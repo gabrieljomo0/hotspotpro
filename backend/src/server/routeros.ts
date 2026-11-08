@@ -236,7 +236,7 @@ export function buildProvisionScript(input: {
   // Home mode (RouterOS 7) blocks the download and the 30-second check-in. Switch to advanced first.
   // The router does not apply that until someone presses reset or power-cycles it, so setup stops here and waits.
   add(`:do { :local hpMode [/system device-mode get mode]; :local dmF [/system device-mode get fetch]; :local dmS [/system device-mode get scheduler]; :if ($hpMode = "home" || !$dmF || !$dmS) do={ :set hpDm "blocked"; :log warning "HotspotPro: device-mode is home, or downloads are off. Switching to advanced. Press the reset button briefly, or switch the power off and on, within 5 minutes. Then run the HotspotPro command again."; /system device-mode update mode=advanced fetch=yes scheduler=yes } } on-error={ }`);
-  add(`:if ($hpDm = "blocked") do={ :put "HotspotPro stopped. The router was asked to switch from home mode to advanced. Press the reset button briefly within 5 minutes, or turn the power off and on. After it restarts, paste the HotspotPro command again."; :error "device-mode" }`);
+  add(`:if ($hpDm = "blocked") do={ :put "HotspotPro stopped. This router is still in home mode. Paste the device-mode command, press reset or power-cycle within 5 minutes, then paste the device-mode command again before the configuration command."; :error "device-mode" }`);
   say("Router mode is fine. Continuing.");
   const wan = wanOf(router);
   const mgmt = mgmtOf(router);
@@ -459,5 +459,9 @@ export function buildProvisionScript(input: {
   say("Continue to create a package and a voucher to enjoy this service.");
   say("==========================================");
   add(`:if ($hpFails > 0) do={ :put ("HotspotPro finished with " . $hpFails . " step(s) skipped. Look in the router log for HotspotPro step failed.") }`);
+  // The hotspot is already saved. A newer RouterOS on the router's own update channel is installed last, then the router restarts.
+  say("Checking for a newer RouterOS...");
+  add(`:do { /system package update check-for-updates } on-error={ :put "HotspotPro could not ask MikroTik for a newer RouterOS. The hotspot setup is already saved." }`);
+  add(`:do { :delay 3s; :local hpUp 0; :local hpSt ""; :while ($hpUp < 10) do={ :set hpSt [/system package update get status]; :if ($hpSt != "finding out latest version..." && $hpSt != "please wait..." && $hpSt != "downloading...") do={ :set hpUp 10 }; :delay 2s; :set hpUp ($hpUp + 1) }; :local hpNow [/system package update get installed-version]; :local hpNew [/system package update get latest-version]; :put ("RouterOS " . $hpNow); :if ([:len $hpNew] > 0 && $hpNow != $hpNew) do={ :put ("A newer RouterOS is available: " . $hpNew . ". Installing it now. The router will restart. The hotspot setup is already saved."); /system package update install } else={ :put "RouterOS is already the newest version." } } on-error={ :put "HotspotPro could not install a RouterOS update. The hotspot setup is already saved." }`);
   return lines.join("\n") + "\n";
 }

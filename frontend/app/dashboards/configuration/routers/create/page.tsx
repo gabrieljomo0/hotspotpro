@@ -96,7 +96,7 @@ export default function AddRouterPage() {
   const [started, setStarted] = useState(false);
   const [doneCount, setDoneCount] = useState(0);
   const [countdown, setCountdown] = useState<number | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"mode" | "config" | null>(null);
   const startedAt = useRef(0);
   const finishedRef = useRef(false);
 
@@ -229,15 +229,15 @@ export default function AddRouterPage() {
   const setupUrl = `${origin}/api/provision/${provisioningToken.current}${routerType === "New Router" ? wifiQuery : ""}`;
   const tlsFlag = fetchMode === "https" ? " check-certificate=no" : "";
   // One line, so a paste into the MikroTik terminal runs it as a single script.
-  // Home mode is switched to advanced before anything is downloaded. RouterOS applies that only after a
-  // reset-button press, so the command stops and waits instead of configuring a router that is still in home mode.
+  // Device mode is a separate command. This one only downloads and imports the setup.
   // Boards with a flash folder store the file under flash/, so the import looks there too.
   const downloadAndImport = `:global hpFile "hotspotpro-setup.rsc"; :do { /tool fetch mode=${fetchMode} url="${setupUrl}" dst-path=$hpFile${tlsFlag} } on-error={ :put "HotspotPro could not download the setup. Check the address, and that this computer allows the router through its firewall." }; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; :if ([:len [/file find where name=$hpFile]] > 0) do={ /import file-name=$hpFile } else={ :put "HotspotPro did not get the setup file. Use an address this router can reach, and allow that port through this computer's firewall." }`;
-  const setupBody =
+  const provisioningCommand =
     routerType === "Existing Router"
       ? `:do { :local existingDhcpClient [/ip dhcp-client find interface=${wanClean}]; :if ([:len $existingDhcpClient] = 0) do={ /ip dhcp-client add interface=${wanClean} disabled=no use-peer-dns=yes use-peer-ntp=yes add-default-route=yes comment="HotspotPro WAN DHCP Client" } } on-error={ }; ${downloadAndImport}`
       : downloadAndImport;
-  const provisioningCommand = `:global hpMode ""; :do { :set hpMode [/system device-mode get mode] } on-error={ }; :global hpFetch true; :global hpSched true; :do { :set hpFetch [/system device-mode get fetch] } on-error={ }; :do { :set hpSched [/system device-mode get scheduler] } on-error={ }; :if ($hpMode = "home" || !$hpFetch || !$hpSched) do={ :do { /system device-mode update mode=advanced fetch=yes scheduler=yes } on-error={ }; :put "HotspotPro: this router is in home mode, or downloads are switched off. It was asked to switch to advanced. Press the reset button briefly within 5 minutes, or turn the power off and on. After it restarts, paste this command again." } else={ ${setupBody} }`;
+  // Pasted on its own, before the configuration command. RouterOS applies a mode change only after reset or a power cycle.
+  const deviceModeCommand = `:global hpMode ""; :do { :set hpMode [/system device-mode get mode] } on-error={ }; :global hpFetch true; :global hpSched true; :do { :set hpFetch [/system device-mode get fetch] } on-error={ }; :do { :set hpSched [/system device-mode get scheduler] } on-error={ }; :if ($hpMode = "home" || !$hpFetch || !$hpSched) do={ :do { /system device-mode update mode=advanced fetch=yes scheduler=yes } on-error={ }; :put "HotspotPro: this router is in home mode, or downloads are switched off. It was asked to switch to advanced. Press the reset button briefly within 5 minutes, or turn the power off and on. After it restarts, paste this device-mode command again." } else={ :put "HotspotPro: device mode is advanced and downloads are allowed. Paste the configuration command next." }`;
 
   const provisionSteps = buildProvisionSteps(routerType, hotspotEnabled, pppoeEnabled);
   const connected = started && doneCount >= provisionSteps.length;
@@ -337,11 +337,11 @@ export default function AddRouterPage() {
     setStarted(true);
   }
 
-  function handleCopy() {
-    navigator.clipboard?.writeText(provisioningCommand).catch(() => {});
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1500);
-    startProvisioning();
+  function handleCopy(which: "mode" | "config") {
+    navigator.clipboard?.writeText(which === "mode" ? deviceModeCommand : provisioningCommand).catch(() => {});
+    setCopied(which);
+    window.setTimeout(() => setCopied(null), 1500);
+    if (which === "config") startProvisioning();
   }
 
   function handleCheckNow() {
@@ -403,8 +403,7 @@ export default function AddRouterPage() {
       </div>
       <h1 className="mb-2 text-3xl font-black text-[#1a1a1a] md:text-4xl">Provision Router</h1>
       <p className="mb-6 text-sm text-[#737373]">
-        Configure the router and run the generated command in its RouterOS
-        terminal.
+        Paste the device-mode command first. When the router says advanced mode is on, paste the configuration command.
       </p>
 
       <div className="mb-6 flex items-center gap-2 rounded-2xl border border-[#e6e6e6] bg-white p-4">
@@ -781,37 +780,53 @@ export default function AddRouterPage() {
 
         {step === 1 && (
           <div className="space-y-5">
-            <div className="rounded-xl border border-[#f4f4f4] p-4">
-              <div className="mb-2 flex items-center justify-between">
+            <div data-testid="device-mode-help" className="rounded-xl border border-[#f4f4f4] p-4">
+              <div className="mb-2 flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-bold text-[#1a1a1a]">Provisioning Command</p>
-                  <p className="text-xs text-[#a3a3a3]">In WinBox open New Terminal, paste this whole line, and press Enter. Keep this computer on the admin port and the internet cable in the ISP port.</p>
+                  <p className="text-sm font-bold text-[#1a1a1a]">1. Device mode command</p>
+                  <p className="text-xs text-[#a3a3a3]">Paste this first. It checks the router and switches it to advanced mode. If it asks you to press reset, do that within 5 minutes, wait for the restart, then paste this same command again. Continue only when it says device mode is advanced.</p>
+                </div>
+                <button
+                  type="button"
+                  data-testid="copy-device-mode"
+                  onClick={() => handleCopy("mode")}
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-[#1a1a1a] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#111111]"
+                >
+                  {copied === "mode" ? <Check size={13} /> : <Copy size={13} />}
+                  {copied === "mode" ? "Copied" : "Copy"}
+                </button>
+              </div>
+              <code
+                data-testid="device-mode-command"
+                className="block max-h-40 overflow-y-auto whitespace-pre-wrap break-all rounded-lg bg-[#1a1a1a] px-3 py-2.5 text-xs text-white"
+              >
+                {deviceModeCommand}
+              </code>
+            </div>
+
+            <div className="rounded-xl border border-[#f4f4f4] p-4">
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-bold text-[#1a1a1a]">2. Configuration command</p>
+                  <p className="text-xs text-[#a3a3a3]">Paste this after device mode is advanced. It sets up the hotspot, then installs a newer RouterOS when one is available. The router restarts after that install. Keep this computer on the admin port and the internet cable in the ISP port.</p>
                 </div>
                 <button
                   type="button"
                   data-testid="copy-command"
-                  onClick={handleCopy}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#1a1a1a] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#111111]"
+                  onClick={() => handleCopy("config")}
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-[#1a1a1a] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#111111]"
                 >
-                  {copied ? <Check size={13} /> : <Copy size={13} />}
-                  {copied ? "Copied" : "Copy"}
+                  {copied === "config" ? <Check size={13} /> : <Copy size={13} />}
+                  {copied === "config" ? "Copied" : "Copy"}
                 </button>
               </div>
               <code
                 data-testid="command-text"
-                onCopy={startProvisioning}
+                onCopy={() => startProvisioning()}
                 className="block max-h-40 overflow-y-auto whitespace-pre-wrap break-all rounded-lg bg-[#1a1a1a] px-3 py-2.5 text-xs text-white"
               >
                 {provisioningCommand}
               </code>
-            </div>
-
-            <div data-testid="device-mode-help" className="rounded-xl border border-[#e6e6e6] bg-white p-4 text-xs text-[#525252]">
-              <p className="text-sm font-bold text-[#1a1a1a]">Router in home mode?</p>
-              <p className="mt-1">
-                The pasted command checks the router first. If the mode is home, it switches the router to advanced and stops.
-                Press the reset button briefly (or switch the power off and on) within 5 minutes, wait for the restart, then paste the same command again. The configuration runs on that second paste.
-              </p>
             </div>
 
             {/* Address the router will use to reach this server */}
@@ -948,7 +963,7 @@ export default function AddRouterPage() {
               </p>
               <p data-testid="provision-status" className="text-xs text-[#a3a3a3]">
                 {!started
-                  ? "Run the command on the router to begin."
+                  ? "Paste the configuration command on the router to begin."
                   : connected
                     ? "Your router is ready."
                     : "Please wait, this takes a moment…"}
@@ -959,7 +974,7 @@ export default function AddRouterPage() {
               <div className="flex items-center justify-between gap-3 rounded-xl border border-[#f4f4f4] p-4">
                 <div>
                   <p className="text-sm font-bold text-[#1a1a1a]">Router Status Check</p>
-                  <p className="text-xs text-[#a3a3a3]">Starts as soon as you copy the command, or click to check now</p>
+                  <p className="text-xs text-[#a3a3a3]">Starts as soon as you copy the configuration command, or click to check now</p>
                 </div>
                 <button
                   type="button"
@@ -975,11 +990,9 @@ export default function AddRouterPage() {
 
             {!connected && (
               <p className="rounded-xl bg-[#f4f4f4] p-3 text-xs text-[#525252]">
-                If the device reports &quot;device mode not allowed&quot;, open the
-                router terminal and run{" "}
-                <code className="rounded bg-white px-1">/system/device-mode update mode=advanced</code>,
-                unplug the power cord for 10 seconds, then restore power before
-                retrying the provisioning command.
+                If the router says device mode is not allowed, paste the device-mode command,
+                press the reset button briefly within 5 minutes, wait for the restart, paste that
+                command again, and only then paste the configuration command.
               </p>
             )}
 
