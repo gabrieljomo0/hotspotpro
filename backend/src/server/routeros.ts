@@ -250,9 +250,8 @@ export function buildProvisionScript(input: {
   // A new MikroTik keeps that port inside the factory bridge, and a DHCP client on a bridge port never gets an address.
   say(`Setting the internet port ${wan}...`);
   if (!input.existing) safe(`/interface bridge port remove [find where interface=${wan}]`, true);
-  safe(`/ip dhcp-client add interface=${wan} disabled=no use-peer-dns=yes use-peer-ntp=yes add-default-route=yes comment="HotspotPro WAN DHCP Client"`, true);
-  safe(`/ip dhcp-client set [find where interface=${wan}] disabled=no use-peer-dns=yes use-peer-ntp=yes add-default-route=yes`, true);
-  say(`Internet port ${wan} will take an address from your ISP.`);
+  safe(`/ip dhcp-client add interface=${wan} disabled=no use-peer-dns=yes use-peer-ntp=yes add-default-route=yes comment="HotspotPro WAN DHCP Client"`, true, `DHCP client added on ${wan}`);
+  safe(`/ip dhcp-client set [find where interface=${wan}] disabled=no use-peer-dns=yes use-peer-ntp=yes add-default-route=yes`, false, `DHCP client is on ${wan}`);
   say("Configuring DNS...");
   safe(`/ip dns set allow-remote-requests=yes servers=8.8.8.8,1.1.1.1`, false, "DNS configured");
   // Voucher time limits depend on the router's clock.
