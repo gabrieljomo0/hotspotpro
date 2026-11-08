@@ -114,6 +114,8 @@ export type RouterInfo = {
   status: string;
   uptime: string;
   clients: number;
+  /** Voucher names signed in on the router, reported on its check-in. */
+  liveUsers?: string[];
   cpu: number;
   memory: number;
   lastSeen: string;

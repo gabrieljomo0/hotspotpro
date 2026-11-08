@@ -94,7 +94,7 @@ export function RouterTaskHost() {
                 </span>
               </div>
               <p data-testid="router-task-status" className="mt-3 text-sm font-semibold text-[#525252]">
-                {status === "running" && "Please wait…"}
+                {status === "running" && (routerTask.jobId ? "Waiting for the router. It picks this up within about 30 seconds." : "Please wait…")}
                 {status === "done" && "Setup completed"}
                 {status === "failed" && "Stopped"}
               </p>

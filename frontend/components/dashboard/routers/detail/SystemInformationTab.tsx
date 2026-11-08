@@ -8,11 +8,10 @@
 
 import { useState } from "react";
 import { Eye, EyeOff, Copy, CheckCircle2, AlertTriangle } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell } from "recharts";
+import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { useDashboard } from "@/components/dashboard/context/DashboardContext";
 import type { RouterInfo } from "@/components/dashboard/data/dashboard-data";
-import { seeded, buildDailyUptime } from "./chartHelpers";
 
 const WARN_AT = 75;
 const OVERLOAD_AT = 90;
@@ -30,12 +29,10 @@ export function SystemInformationTab({
   const [showPassword, setShowPassword] = useState(false);
 
   // Both charts use "fake but consistent" data — see chartHelpers.ts for why.
-  const dailyUptime = buildDailyUptime(router.ip, isEnabled && router.provisioningStatus === "Provisioned");
-  const upDays = dailyUptime.filter((d) => d.uptime === 100).length;
   const perfData = Array.from({ length: 12 }, (_, i) => ({
     t: i,
-    cpu: isEnabled ? Math.min(100, Math.max(2, Math.round(router.cpu + seeded(i, -8, 8)))) : 0,
-    memory: isEnabled ? Math.min(100, Math.max(2, Math.round(router.memory + seeded(i + 50, -8, 8)))) : 0,
+    cpu: isEnabled ? router.cpu : 0,
+    memory: isEnabled ? router.memory : 0,
   }));
 
   // Overload hint: above WARN_AT the router is getting strained, above
@@ -210,23 +207,7 @@ export function SystemInformationTab({
           </div>
         </div>
 
-        <div className="mt-5">
-          <p className="mb-2 text-sm font-bold text-[#1a1a1a]">Daily Uptime (Last 9 Days)</p>
-          <div className="h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dailyUptime}>
-                <XAxis dataKey="day" tick={{ fontSize: 11 }} />
-                <YAxis hide domain={[0, 100]} />
-                <Bar dataKey="uptime" radius={[6, 6, 0, 0]}>
-                  {dailyUptime.map((entry, index) => (
-                    <Cell key={index} fill={entry.uptime === 100 ? "#1a1a1a" : "#1a1a1a"} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <p className="mt-1 text-xs text-[#a3a3a3]">{upDays} of 9 days fully up</p>
-        </div>
+        <p className="mt-5 text-sm text-[#525252]">Uptime last reported by the router: <span className="font-bold text-[#1a1a1a]">{router.uptime || "waiting for the next check-in"}</span></p>
       </article>
 
       <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
@@ -341,15 +322,20 @@ export function SystemInformationTab({
           <p className="mt-1 text-sm text-[#737373]">Only one method runs at a time. The router follows this on its next check-in, about 30 seconds.</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {([
-              ["cloud", "Cloud", "Logins are checked on HotspotPro."],
-              ["local", "On the router", "Vouchers stay on the MikroTik."],
+              ["cloud", "Cloud", "Unavailable here. This site has no RADIUS port."],
+              ["local", "On the router", "Paid vouchers are copied onto the MikroTik."],
             ] as const).map(([id, label, detail]) => {
-              const selected = (router.loginMode ?? "cloud") === id;
+              const selected = (router.loginMode === "cloud" ? "cloud" : "local") === id;
               return (
                 <button
                   key={id}
                   type="button"
                   onClick={() => {
+                    if (id === "cloud") {
+                      showToast("This site has no RADIUS port, so paid vouchers stay on the router.");
+                      if ((router.loginMode ?? "cloud") !== "local") updateRouterDetails(router.ip, { loginMode: "local" });
+                      return;
+                    }
                     if (!selected) updateRouterDetails(router.ip, { loginMode: id });
                   }}
                   className={`rounded-xl border-2 p-4 text-left ${selected ? "border-[#1a1a1a] bg-[#f4f4f4]" : "border-[#e6e6e6]"}`}
@@ -369,7 +355,7 @@ export function SystemInformationTab({
           <div>
             <p className="text-xs text-[#737373]">RADIUS Address</p>
             <span className="inline-flex rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-bold text-[#111111]">
-              {router.radiusAddress ?? "Not configured"}
+              {router.radiusAddress || "Not used — vouchers stay on the router"}
             </span>
           </div>
           <div>

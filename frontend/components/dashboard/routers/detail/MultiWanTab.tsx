@@ -56,6 +56,16 @@ export function MultiWanTab({ router }: { router: RouterInfo }) {
 
   function saveMultiWan() {
     updateMultiWanConfig(router.ip, wanMode, ispLinks);
+    const lines = ispLinks
+      .map((link) => link.interface.trim())
+      .filter((name, index, all) => /^ether[0-9]+$/.test(name) && name !== (router.managementPort || "ether5") && all.indexOf(name) === index)
+      .map((name, index) => `:do { :if ([:len [/ip dhcp-client find where interface=${name}]] = 0) do={ /ip dhcp-client add interface=${name} disabled=no use-peer-dns=yes use-peer-ntp=yes add-default-route=${index === 0 ? "yes" : "no"} comment="HotspotPro WAN" } } on-error={ }`);
+    if (lines.length === 0) return;
+    void fetch("/api/routers/jobs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ip: router.ip, script: lines.join("\n") }),
+    });
   }
 
   return (

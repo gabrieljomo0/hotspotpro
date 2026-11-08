@@ -9,7 +9,7 @@
 // earlier in DashboardProvider) rather than imported directly, since
 // this hook doesn't own that state itself.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePersistedState } from "./usePersistedState";
 import { ROUTER_TASKS, TASK_STEP_MS, type RouterTaskKind } from "../routers/routerTasks";
 import { DEFAULT_WAN_MODE, defaultIspLinks } from "../routers/multiWanDefaults";
@@ -322,48 +322,7 @@ export function useRouterState(
   }
 
   function fullProvisionRouter(ip: string) {
-    const router = routers.find((r) => r.ip === ip);
-    if (!router) return;
-
-    setRouters((current) =>
-      current.map((r) =>
-        r.ip === ip
-          ? {
-              ...r,
-              provisioningStatus: "Provisioned",
-              status: "Online",
-              health: "ok" as const,
-              lastConnectedAt: new Date().toLocaleString("en-GB", {
-                day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
-              }),
-              lastError: null,
-              winboxAddress: r.winboxAddress || `remote.hotspotpro.com:${41000 + Math.floor(Math.random() * 999)}`,
-              remoteAccessEnabled: true,
-              routerOSVersion: r.routerOSVersion === "Unknown" ? "7.15.2" : r.routerOSVersion,
-              hardwareModel: r.hardwareModel === "Unknown" ? "RB951Ui-2HnD" : r.hardwareModel,
-              architecture: r.architecture === "Unknown" ? "mipsbe" : r.architecture,
-              cpuCount: r.cpuCount === "Unknown" ? "1" : r.cpuCount,
-              uptime30Day: r.uptime30Day ?? 100,
-              uptime7Day: r.uptime7Day ?? 100,
-              wireguardTunnelIp: r.wireguardTunnelIp ?? `10.77.0.${10 + Math.floor(Math.random() * 200)}`,
-              radiusAddress: r.radiusAddress ?? "radius.hotspotpro.com",
-              snmpConfigured: true,
-              walledGardenConfigured: true,
-              servicesHardened: true,
-              hotspotFilesSyncedAt: stamp(),
-              timeSyncedAt: stamp(),
-              provisionedAt: stamp(),
-              paused: false,
-              uptime: r.uptime === "N/A" ? "0m" : r.uptime,
-              lastSeen: "Just now",
-              activity: [{ at: stamp(), text: "Fully provisioned (SNMP, RADIUS, services, walled garden, hotspot files, clock)." }, ...(r.activity ?? [])].slice(0, 30),
-            }
-          : r,
-      ),
-    );
-    setRouterEnabled((current) => ({ ...current, [ip]: true }));
-    showToast(`${router.name} fully provisioned — SNMP, RADIUS, services, and walled garden configured.`);
-    logActivity("Router", `Fully provisioned ${router.name}.`);
+    startRouterTask("full-provision", ip);
   }
 
   function regenerateApiCredentials(ip: string) {
@@ -390,9 +349,8 @@ export function useRouterState(
       return;
     }
 
-    const newPort = 41000 + Math.floor(Math.random() * 999);
-    patchRouter(ip, { winboxAddress: `remote.hotspotpro.com:${newPort}` }, `WinBox address changed to remote.hotspotpro.com:${newPort}.`);
-    showToast(`WinBox address regenerated for ${router.name}.`);
+    patchRouter(ip, { winboxAddress: "192.168.88.1", remoteAccessEnabled: true }, "WinBox limited to the admin port 192.168.88.1.");
+    showToast(`WinBox for ${router.name} is 192.168.88.1 on the admin port.`);
     logActivity("Router", `Regenerated WinBox address for ${router.name}.`);
   }
 
@@ -478,21 +436,33 @@ export function useRouterState(
     const router = routers.find((r) => r.ip === ip);
     if (!router) return;
 
-    const content =
-      kind === "provision-script"
-        ? `# HotspotPro provisioning script for ${router.name}\n/tool fetch mode=https url="https://jnet.hotspotpro.com/provision/${router.ip}"\n`
-        : `[Interface]\nPrivateKey = (hidden)\nAddress = ${router.wireguardTunnelIp ?? "10.77.0.2"}/32\n\n[Peer]\nPublicKey = (hidden)\nEndpoint = vpn.hotspotpro.com:51820\nAllowedIPs = 10.77.0.0/24\n`;
+    if (kind === "wireguard-config") {
+      const address = router.winboxAddress || "192.168.88.1";
+      void navigator.clipboard?.writeText(address);
+      showToast(`Copied ${address}. Open WinBox on the computer plugged into the admin port. This router has no WireGuard tunnel.`);
+      logActivity("Router", `Copied the WinBox address for ${router.name}.`);
+      return;
+    }
+    if (!router.provisioningToken) {
+      showToast("This router has no setup link yet. Add it from the Add Router page.");
+      return;
+    }
+    void fetch(`/api/provision/${router.provisioningToken}`)
+      .then((response) => response.text())
+      .then((content) => {
+        const blob = new Blob([content], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${router.name}-provision.rsc`;
+        link.click();
+        URL.revokeObjectURL(url);
+        showToast("Provisioning script downloaded.");
+        logActivity("Router", `Downloaded the provisioning script for ${router.name}.`);
+      })
+      .catch(() => showToast("Could not download the provisioning script."));
+    return;
 
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = kind === "provision-script" ? `${router.name}-provision.rsc` : `${router.name}-wireguard.conf`;
-    link.click();
-    URL.revokeObjectURL(url);
-
-    showToast(`${kind === "provision-script" ? "Provisioning script" : "WireGuard config"} downloaded.`);
-    logActivity("Router", `Downloaded ${kind} for ${router.name}.`);
   }
 
   function updateRouterNotificationContacts(ip: string, phones: string[], emails: string[]) {
@@ -543,9 +513,7 @@ export function useRouterState(
           ? {
               ...r,
               remoteAccessEnabled: next,
-              winboxAddress: next && !r.winboxAddress
-                ? `remote.hotspotpro.com:${41000 + Math.floor(Math.random() * 999)}`
-                : r.winboxAddress,
+              winboxAddress: next && !r.winboxAddress ? "192.168.88.1" : r.winboxAddress,
             }
           : r,
       ),
@@ -815,6 +783,7 @@ export function useRouterState(
   }
 
   // ---- step-by-step router tasks ----------------------------------------
+  const REMOTE_TASKS = new Set<RouterTaskKind>(["full-provision", "sync-files", "sync-time", "snmp", "walled-garden", "harden", "winbox", "api-credentials", "update-script", "reboot"]);
   type ActiveRouterTask = {
     kind: RouterTaskKind;
     ip: string;
@@ -822,13 +791,16 @@ export function useRouterState(
     status: "confirm" | "running" | "done" | "failed";
     doneCount: number;
     error: string | null;
+    jobId: string | null;
   };
   const [routerTask, setRouterTask] = useState<ActiveRouterTask | null>(null);
+  const postingTask = useRef(false);
 
   function startRouterTask(kind: RouterTaskKind, ip: string) {
     const router = routers.find((r) => r.ip === ip);
     if (!router) return;
     const def = ROUTER_TASKS[kind];
+    postingTask.current = false;
     setRouterTask({
       kind,
       ip,
@@ -836,11 +808,13 @@ export function useRouterState(
       status: def.confirm ? "confirm" : "running",
       doneCount: 0,
       error: null,
+      jobId: null,
     });
   }
 
   function confirmRouterTask() {
-    setRouterTask((task) => (task ? { ...task, status: "running", doneCount: 0, error: null } : task));
+    postingTask.current = false;
+    setRouterTask((task) => (task ? { ...task, status: "running", doneCount: 0, error: null, jobId: null } : task));
   }
 
   function closeRouterTask() {
@@ -849,24 +823,11 @@ export function useRouterState(
 
   function applyRouterTask(kind: RouterTaskKind, ip: string) {
     switch (kind) {
-      case "full-provision": return fullProvisionRouter(ip);
-      case "sync-files": return syncHotspotFiles(ip);
-      case "sync-time": return syncRouterTime(ip);
-      case "snmp": return configureSnmp(ip);
-      case "walled-garden": return configureWalledGarden(ip);
-      case "harden": return hardenServices(ip);
-      case "winbox": return regenerateWinboxAddress(ip);
-      case "api-credentials": return regenerateApiCredentials(ip);
-      case "update-script": return updateRouterScript(ip);
-      case "reboot":
-        setRouterEnabled((current) => ({ ...current, [ip]: true }));
-        patchRouter(ip, { uptime: "0m", lastSeen: "Just now", status: "Online" }, "Rebooted — back online.");
-        showToast("Router is back online.");
-        return;
       case "pause": return router_setPaused(ip, true);
       case "resume": return router_setPaused(ip, false);
       case "disconnect": return router_setOnline(ip, false);
       case "reconnect": return router_setOnline(ip, true);
+      default: return;
     }
   }
 
@@ -889,20 +850,62 @@ export function useRouterState(
     return `${router.name.split(" (")[0]} has not been provisioned yet. Run Full Provision first.`;
   }
 
-  // Tick the checklist; the real change is made when the last step finishes.
+  // Local actions (pause, disconnect) finish on a short checklist. Actions that
+  // change the MikroTik are queued and this waits until the router reports back.
   useEffect(() => {
     if (!routerTask || routerTask.status !== "running") return;
     const def = ROUTER_TASKS[routerTask.kind];
+    if (REMOTE_TASKS.has(routerTask.kind)) {
+      if (!routerTask.jobId) {
+        if (postingTask.current) return;
+        postingTask.current = true;
+        const { kind, ip } = routerTask;
+        void fetch("/api/routers/jobs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ip, action: kind }),
+        })
+          .then(async (response) => {
+            const data = (await response.json().catch(() => ({}))) as { message?: string; job?: { id: string } };
+            if (!response.ok || !data.job?.id) {
+              postingTask.current = false;
+              setRouterTask((task) => task && task.ip === ip && task.kind === kind ? { ...task, status: "failed", error: data.message ?? "Could not send this to the router." } : task);
+              return;
+            }
+            setRouterTask((task) => task && task.ip === ip && task.kind === kind ? { ...task, jobId: data.job!.id, doneCount: 1 } : task);
+          })
+          .catch(() => {
+            postingTask.current = false;
+            setRouterTask((task) => task && task.ip === ip && task.kind === kind ? { ...task, status: "failed", error: "Could not reach the site." } : task);
+          });
+        return;
+      }
+      const timer = window.setTimeout(() => {
+        const { ip, jobId, kind } = routerTask;
+        void fetch(`/api/routers/jobs?ip=${encodeURIComponent(ip)}`, { cache: "no-store" })
+          .then((response) => response.json())
+          .then((data: { jobs?: { id: string; status: string }[] }) => {
+            const job = (data.jobs ?? []).find((item) => item.id === jobId);
+            if (!job) return;
+            if (job.status === "ok" || (kind === "reboot" && job.status === "sent")) {
+              setRouterTask((task) => task && task.jobId === jobId ? { ...task, status: "done", doneCount: def.steps.length } : task);
+              return;
+            }
+            if (job.status === "failed") {
+              setRouterTask((task) => task && task.jobId === jobId ? { ...task, status: "failed", error: "The router reported an error. Its log (System → Log) shows which line failed." } : task);
+              return;
+            }
+            setRouterTask((task) => task && task.jobId === jobId ? { ...task, doneCount: Math.max(task.doneCount, job.status === "sent" ? def.steps.length - 1 : 1) } : task);
+          })
+          .catch(() => undefined);
+      }, 2000);
+      return () => window.clearTimeout(timer);
+    }
     const timer = window.setTimeout(() => {
       const { kind, ip, doneCount } = routerTask;
       if (doneCount === 0 && def.needsReachable && !isRouterReachable(ip)) {
         setRouterTask({ ...routerTask, status: "failed", error: whyNotReachable(ip) });
         return;
-      }
-      if (kind === "reboot" && doneCount === 1) {
-        // The router really goes offline while it restarts.
-        setRouterEnabled((current) => ({ ...current, [ip]: false }));
-        patchRouter(ip, { lastSeen: "Restarting…" }, "Rebooting…");
       }
       if (doneCount + 1 >= def.steps.length) {
         applyRouterTask(kind, ip);

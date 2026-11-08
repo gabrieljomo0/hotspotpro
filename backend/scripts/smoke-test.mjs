@@ -171,6 +171,13 @@ try {
   await fetch(base + `/api/provision/tok-ama-12345678/job/${job.id}/result?ok=1`);
   const list2 = await json(await send("GET", "/api/routers/jobs?ip=10.0.0.1", undefined, amaCookie));
   check("result is recorded", list2.jobs?.[0]?.status === "ok");
+  const action = await send("POST", "/api/routers/jobs", { ip: "10.0.0.1", action: "full-provision" }, amaCookie);
+  const actionJob = (await json(action)).job;
+  check("full provision is sent to the router", action.status === 200 && actionJob?.script?.includes("hotspotpro-action:full-provision") && actionJob.script.includes("/snmp set") && actionJob.script.includes("walled-garden") && actionJob.script.includes("use-radius=no"));
+  if (actionJob?.id) await fetch(base + `/api/provision/tok-ama-12345678/job/${actionJob.id}/result?ok=1`);
+  const after = await json(await send("GET", "/api/state", undefined, amaCookie));
+  const amaRouter = after.docs?.routers?.value?.find((r) => r.ip === "10.0.0.1");
+  check("a finished full provision is recorded on the router", amaRouter?.snmpConfigured === true && amaRouter?.walledGardenConfigured === true && amaRouter?.loginMode === "local");
 
   // ---- super admin powers; others are kept out ----
   check("a business cannot open the super admin area", (await send("GET", "/api/super/overview", undefined, amaCookie)).status === 403);

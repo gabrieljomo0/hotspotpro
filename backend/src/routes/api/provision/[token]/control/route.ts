@@ -19,7 +19,30 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
   const free = number("free");
   const total = number("total");
   const memory = free !== null && total !== null && total > 0 ? Math.max(0, Math.min(100, Math.round((1 - free / total) * 100))) : null;
-  if (cpu !== null || memory !== null) recordRouterStats(token, { cpu: cpu === null ? null : Math.max(0, Math.min(100, Math.round(cpu))), memory });
+  const text = (name: string, pattern: RegExp) => {
+    const value = query.get(name) ?? "";
+    return pattern.test(value) ? value : null;
+  };
+  const uptime = text("up", /^[0-9wdhms]{1,32}$/);
+  const version = text("ver", /^[0-9.]{1,16}$/);
+  const architecture = text("arch", /^[A-Za-z0-9]{1,24}$/);
+  const cpuCount = text("cpus", /^[0-9]{1,3}$/);
+  const clients = number("active");
+  const users = query.has("users")
+    ? (query.get("users") ?? "").split(",").map((part) => part.trim()).filter((part) => /^[A-Za-z0-9_-]{1,32}$/.test(part)).slice(0, 12)
+    : null;
+  if (query.has("cpu") || query.has("free") || uptime || version || architecture || cpuCount || clients !== null || users) {
+    recordRouterStats(token, {
+      cpu: cpu === null ? null : Math.max(0, Math.min(100, Math.round(cpu))),
+      memory,
+      uptime,
+      version,
+      architecture,
+      cpuCount,
+      clients,
+      users,
+    });
+  }
   const script = controlScript(token, publicOrigin(request));
   if (!script) return new Response("unknown\n", { status: 404 });
   return new Response(script, { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });

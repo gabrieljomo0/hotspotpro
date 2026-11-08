@@ -179,7 +179,7 @@ function RouterDetailPageInner({
       </nav>
 
       {tab === "System Information" && (
-        <SystemInformationTab router={router} isEnabled={isEnabled} connectedUserCount={connectedUsers.length} />
+        <SystemInformationTab router={router} isEnabled={isEnabled} connectedUserCount={router.clients ?? connectedUsers.length} />
       )}
 
       {tab === "Hotspot" && <RouterCaptivePortalPanel router={router} section="hotspot" />}
@@ -189,7 +189,7 @@ function RouterDetailPageInner({
 
       {tab === "Reports" && <ReportsTab routerIp={router.ip} />}
 
-      {tab === "Internet Users" && <InternetUsersTab connectedUsers={connectedUsers} />}
+      {tab === "Internet Users" && <InternetUsersTab names={router.liveUsers ?? []} />}
 
       {tab === "Assigned Agents" && <AccessPointsTab assignedAgents={assignedAgents} />}
 

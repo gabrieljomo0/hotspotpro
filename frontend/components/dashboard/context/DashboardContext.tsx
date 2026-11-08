@@ -257,6 +257,7 @@ type DashboardContextValue = {
     status: "confirm" | "running" | "done" | "failed";
     doneCount: number;
     error: string | null;
+    jobId: string | null;
   } | null;
   startRouterTask: (kind: RouterTaskKind, ip: string) => void;
   confirmRouterTask: () => void;

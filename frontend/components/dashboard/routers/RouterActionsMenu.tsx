@@ -41,12 +41,9 @@ export function RouterActionsMenu({
   }
 
   function handleRemoteWinbox() {
-    if (!router.remoteAccessEnabled || !router.winboxAddress) {
-      showToast("Enable remote access and provision the router first.");
-      onClose();
-      return;
-    }
-    window.open(`https://${router.winboxAddress}`, "_blank", "noopener,noreferrer");
+    const address = router.winboxAddress || "192.168.88.1";
+    void navigator.clipboard?.writeText(address);
+    showToast(`Copied ${address}. On the computer plugged into the admin port, open the WinBox app and connect to that address.`);
     onClose();
   }
 

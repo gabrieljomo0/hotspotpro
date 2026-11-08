@@ -22,7 +22,7 @@ import { accessGuardCommand, accessLockEnsureCommand, checkInBody } from "./rout
 
 export const SWITCH_COMMENT = "HotspotPro internet off";
 const ACCESS_LOCK = "HotspotPro access lock";
-type Row = { ip: string; name: string; disconnected?: boolean; provisioningToken?: string; hotspotEnabled?: boolean; wanAddress?: string | null; loginMode?: "cloud" | "local" };
+type Row = { ip: string; name: string; disconnected?: boolean; paused?: boolean; provisioningToken?: string; hotspotEnabled?: boolean; wanAddress?: string | null; loginMode?: "cloud" | "local" };
 
 function rows(): Row[] {
   const value = getState("routers")?.value;
@@ -55,6 +55,7 @@ export function controlScript(token: string, origin?: string): string | null {
   if (!router) return null;
   recordBeat(token);
   const off = !!router.disconnected;
+  const paused = !!router.paused && !off;
   const access = accessDecision();
   // With no RADIUS server, vouchers have to live on the router or a paid login can never get online.
   const local = router.loginMode === "local" || process.env.HOTSPOTPRO_RADIUS === "off";
@@ -63,6 +64,8 @@ export function controlScript(token: string, origin?: string): string | null {
     `# HotspotPro access: ${access.locked ? "locked" : "open"}`,
     `# HotspotPro login: ${local ? "local" : "cloud"}`,
     `:do { /ip firewall raw ${off ? "enable" : "disable"} [find where comment="${SWITCH_COMMENT}"] } on-error={ }`,
+    `:do { :if ([:len [/ip firewall raw find where comment="HotspotPro paused"]] = 0) do={ /ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=accept dst-address-type=local comment="HotspotPro paused" disabled=yes; /ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=accept dst-address-type=broadcast comment="HotspotPro paused" disabled=yes; /ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=drop comment="HotspotPro paused" disabled=yes } } on-error={ }`,
+    `:do { /ip firewall raw ${paused ? "enable" : "disable"} [find where comment="HotspotPro paused"] } on-error={ }`,
     // Plant the lock rules and the offline timer, including on routers set up before this existed.
     `:do { ${accessLockEnsureCommand()} } on-error={ }`,
     `:do { ${accessGuardCommand()} } on-error={ }`,
@@ -120,7 +123,7 @@ export function controlScript(token: string, origin?: string): string | null {
 }
 
 /** Save the CPU, memory and uptime the router just reported, and fill a blank WinBox address. */
-export function recordRouterStats(token: string, stats: { cpu: number | null; memory: number | null }) {
+export function recordRouterStats(token: string, stats: { cpu: number | null; memory: number | null; uptime?: string | null; version?: string | null; architecture?: string | null; cpuCount?: string | null; clients?: number | null; users?: string[] | null }) {
   const value = getState("routers")?.value;
   if (!Array.isArray(value)) return;
   let changed = false;
@@ -130,6 +133,12 @@ export function recordRouterStats(token: string, stats: { cpu: number | null; me
     const updated: Record<string, unknown> = { ...row, lastSeen: "Just now", status: "Online" };
     if (stats.cpu !== null) updated.cpu = stats.cpu;
     if (stats.memory !== null) updated.memory = stats.memory;
+    if (stats.uptime) updated.uptime = stats.uptime;
+    if (stats.version) updated.routerOSVersion = stats.version;
+    if (stats.architecture) updated.architecture = stats.architecture;
+    if (stats.cpuCount) updated.cpuCount = stats.cpuCount;
+    if (stats.clients !== null && stats.clients !== undefined) updated.clients = stats.clients;
+    if (stats.users) updated.liveUsers = stats.users;
     if (!row.winboxAddress) {
       updated.winboxAddress = "192.168.88.1";
       updated.remoteAccessEnabled = true;

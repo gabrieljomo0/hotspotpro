@@ -97,7 +97,7 @@ export function RouterMoreActionsMenu({
         onClick={() => { onClose(); downloadRouterFile(router.ip, "wireguard-config"); }}
         className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#525252] hover:bg-[#f4f4f4]"
       >
-        <Download size={14} /> Download WireGuard Config
+        <Download size={14} /> Copy WinBox address
       </button>
       <button
         type="button"
