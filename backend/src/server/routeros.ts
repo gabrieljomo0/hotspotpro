@@ -242,7 +242,6 @@ export function buildProvisionScript(input: {
   // Voucher time limits depend on the router's clock: keep it right (RouterOS 7 syntax first, then the older one).
   safe(`/system ntp client set enabled=yes`, true);
   safe(`/system ntp client servers add address=pool.ntp.org`, true);
-  safe(`/system ntp client set enabled=yes server-dns-names=pool.ntp.org`, true);
   // The login pages and the "I'm finished" call need this port to have an address first.
   if (!input.existing) add(`:do { :local hpWait 0; :while ($hpWait < 8 && [/ip dhcp-client get [find where interface=${wan}] status] != "bound") do={ :delay 2s; :set hpWait ($hpWait + 1) } } on-error={ }`);
 
