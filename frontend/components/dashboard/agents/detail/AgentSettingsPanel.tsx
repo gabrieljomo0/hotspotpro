@@ -19,7 +19,7 @@ import {
   type AgentSettings,
 } from "../agentSettings";
 
-function SectionTitle({ children }: { children: string }) {
+function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div className="mb-3 mt-8 flex items-center gap-4">
       <h4 className="shrink-0 text-base font-bold text-[#0f172a]">{children}</h4>

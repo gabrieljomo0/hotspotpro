@@ -19,7 +19,6 @@ export { LiveRoutersStatusTable } from "./analytics/data-usage/LiveRoutersStatus
 export { DateRangeSelector } from "./analytics/data-usage/DateRangeSelector";
 export { ClearDataUsageHistoryButton } from "./analytics/data-usage/ClearDataUsageHistoryButton";
 export { UsageScopeSelector } from "./analytics/data-usage/UsageScopeSelector";
-export { DetailTabs } from "./active-users/advanced-details/DetailTabs";
 export { NetworkStatusCard } from "./routers/NetworkStatusCard";
 export { RouterActionsMenu } from "./routers/RouterActionsMenu";
 

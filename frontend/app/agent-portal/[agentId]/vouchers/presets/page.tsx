@@ -47,7 +47,7 @@ export default function AgentVoucherPresetsPage({
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [newPackageName, setNewPackageName] = useState("");
 
-  function openMenu(presetId: string, event: MouseEvent) {
+  function openMenu(presetId: string, event: React.MouseEvent<HTMLElement>) {
     setMenuRect((event.currentTarget as HTMLElement).getBoundingClientRect());
     setOpenMenuId((current) => (current === presetId ? null : presetId));
   }

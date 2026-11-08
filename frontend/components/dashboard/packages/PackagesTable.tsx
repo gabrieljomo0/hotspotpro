@@ -86,7 +86,7 @@ export function PackagesTable({
     setSelectedIds([]);
   }
 
-  function handleOpenMenu(id: string, event: MouseEvent) {
+  function handleOpenMenu(id: string, event: React.MouseEvent<HTMLElement>) {
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
     setMenuRect(rect);
     setOpenMenu((current) => (current === id ? null : id));

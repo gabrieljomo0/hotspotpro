@@ -65,7 +65,7 @@ export default function RoutersPage() {
     navigate.push(`/dashboards/configuration/sites/${encodeURIComponent(site.id)}?new=1`);
   }
 
-  function handleOpenMenu(ip: string, event: MouseEvent) {
+  function handleOpenMenu(ip: string, event: React.MouseEvent<HTMLElement>) {
     setMenuRect((event.currentTarget as HTMLElement).getBoundingClientRect());
     openRouterActions(ip);
   }

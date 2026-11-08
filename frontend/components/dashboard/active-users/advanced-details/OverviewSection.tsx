@@ -24,7 +24,7 @@ export function OverviewSection({
   userId: string;
   openUserAction: string | null;
   menuRect: DOMRect | null;
-  onOpenActions: (event: MouseEvent) => void;
+  onOpenActions: (event: React.MouseEvent<HTMLElement>) => void;
   onCloseActions: () => void;
   onPrint: () => void;
 }) {

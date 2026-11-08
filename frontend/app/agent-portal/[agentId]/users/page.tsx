@@ -112,7 +112,7 @@ function AgentUsersTable({ agent }: { agent: AgentProfile }) {
     setSelectedIds([]);
   }
 
-  function openMenu(userId: string, event: MouseEvent) {
+  function openMenu(userId: string, event: React.MouseEvent<HTMLElement>) {
     setMenuRect((event.currentTarget as HTMLElement).getBoundingClientRect());
     openUserActions(userId);
   }

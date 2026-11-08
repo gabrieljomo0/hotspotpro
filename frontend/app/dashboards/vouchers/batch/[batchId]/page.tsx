@@ -103,6 +103,7 @@ export default function VoucherBatchPage({
   }
 
   function selectDesign(id: PrintDesignId) {
+    if (!batch) return;
     setBatchPrintDesign(batch.id, id);
     setPreviewDesign(id);
   }
@@ -124,7 +125,7 @@ export default function VoucherBatchPage({
   }
 
   function finalizeDelete() {
-    if (!pendingDeleteMode || typedCode !== confirmCode) return;
+    if (!batch || !pendingDeleteMode || typedCode !== confirmCode) return;
     deleteVoucherBatch(
       batch.id,
       pendingDeleteMode === "keep" || pendingDeleteMode === "preserve",
@@ -144,7 +145,7 @@ export default function VoucherBatchPage({
   }
 
   function handlePushToAgents() {
-    if (selectedAgentIds.length === 0) return;
+    if (!batch || selectedAgentIds.length === 0) return;
     bulkAssignVouchersToAgents(batch.codes, selectedAgentIds);
     setSelectedAgentIds([]);
   }

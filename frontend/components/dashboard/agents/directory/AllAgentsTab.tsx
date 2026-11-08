@@ -150,7 +150,7 @@ export function AllAgentsTab({
       .includes(needle);
   });
 
-  function openMenuFor(id: string, event: MouseEvent) {
+  function openMenuFor(id: string, event: React.MouseEvent<HTMLElement>) {
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
     setMenuRect(rect);
     setOpenMenu((current) => (current === id ? null : id));

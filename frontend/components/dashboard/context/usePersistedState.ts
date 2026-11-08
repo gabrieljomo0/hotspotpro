@@ -46,7 +46,10 @@ export function useSyncReady() {
   const [ready, setReady] = useState(isSyncReady());
   useEffect(() => {
     void bootstrap();
-    return onSyncReady(() => setReady(true));
+    const stop = onSyncReady(() => setReady(true));
+    return () => {
+      stop();
+    };
   }, []);
   return ready;
 }
@@ -122,7 +125,10 @@ export function usePersistedState<T>(
 
   // 3a) Follow changes other people / the router made on the server.
   useEffect(() => {
-    return subscribe(name, (incoming) => setValue(incoming as T));
+    const stop = subscribe(name, (incoming) => setValue(incoming as T));
+    return () => {
+      stop();
+    };
   }, [name]);
 
   // 3b) Follow changes made in other tabs of this browser (used when the

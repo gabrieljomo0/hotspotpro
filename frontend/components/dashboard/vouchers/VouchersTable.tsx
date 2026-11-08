@@ -196,7 +196,7 @@ export function VouchersTable({
     }
   }
 
-  function handleOpenMenu(code: string, event: MouseEvent) {
+  function handleOpenMenu(code: string, event: React.MouseEvent<HTMLElement>) {
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
     setMenuRect(rect);
     setOpenMenu((current) => (current === code ? null : code));

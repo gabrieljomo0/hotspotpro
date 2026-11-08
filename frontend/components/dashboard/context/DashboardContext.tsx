@@ -2463,10 +2463,12 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
               hour: "2-digit",
               minute: "2-digit",
             }),
+            createdAtMs: Date.now(),
             codes,
             agentId: currentAgentId,
             routerIps: [],
             assignedAgentIds: [],
+            hiddenFromAdmin: false,
           },
           ...current,
         ]);

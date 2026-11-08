@@ -85,7 +85,7 @@ export function ActiveUsersCard({
   const [extendUnit, setExtendUnit] = useState("Hours");
   const [topUpAmount, setTopUpAmount] = useState("1");
 
-  function handleOpenActions(userId: string, event: MouseEvent) {
+  function handleOpenActions(userId: string, event: React.MouseEvent<HTMLElement>) {
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
     setMenuRect(rect);
     openUserActions(userId);

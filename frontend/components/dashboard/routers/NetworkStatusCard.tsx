@@ -33,7 +33,7 @@ export function NetworkStatusCard({
 
   const [menuRect, setMenuRect] = useState<DOMRect | null>(null);
 
-  function handleOpenActions(ip: string, event: MouseEvent) {
+  function handleOpenActions(ip: string, event: React.MouseEvent<HTMLElement>) {
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
     setMenuRect(rect);
     openRouterActions(ip);

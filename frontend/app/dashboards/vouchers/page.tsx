@@ -46,7 +46,7 @@ export default function VouchersPage() {
     if (filter === "Available" && voucher.status !== "Available") return false;
     if (filter === "Expired" && voucher.status !== "Expired") return false;
     if (filter === "Online" && !(voucher.saleType === "Online" && voucher.status === "Used")) return false;
-    if (filter === "Walk-in" && !(voucher.saleType === "Walk-in" && voucher.status === "Used")) return false;
+    if (filter === "Walk-in" && !(voucher.saleType === "Counter Sale" && voucher.status === "Used")) return false;
     if (filter === "Free Trial" && voucher.saleType !== "Free Trial") return false;
     if (filter === "Giveaway" && voucher.saleType !== "Giveaway") return false;
 
