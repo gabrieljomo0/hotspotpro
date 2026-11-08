@@ -201,16 +201,23 @@ export function buildProvisionScript(input: {
   })();
   const lines: string[] = [];
   const add = (line: string) => lines.push(line);
+  const plain = (message: string) => message.replace(/[\r\n"\\$]/g, " ").replace(/\s+/g, " ").trim().slice(0, 180);
+  // Printed in the WinBox terminal so the person pasting the command can watch each step.
+  const say = (message: string) => {
+    const text = plain(message);
+    if (text) add(`:put "${text}"`);
+  };
   // Every step is allowed to fail without stopping the script (a step that was
   // already done, or a feature this model doesn't have), but each failure is
   // counted and logged on the router, and the count is reported to HotspotPro
   // at the end so a half-configured router is not shown as healthy.
-  const safe = (command: string, quiet = false) => {
+  const safe = (command: string, quiet = false, done?: string) => {
     const label = command.replace(/[\\"$]/g, "").slice(0, 60);
+    const ok = done ? `; :put "${plain(done)}"` : "";
     add(
       quiet
-        ? `:do { ${command} } on-error={ }`
-        : `:do { ${command} } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: ${label}" }`,
+        ? `:do { ${command}${ok} } on-error={ }`
+        : `:do { ${command}${ok} } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: ${label}"; :put "HotspotPro: one step had a problem and was skipped. Setup continues." }`,
     );
   };
 
@@ -222,34 +229,49 @@ export function buildProvisionScript(input: {
   add(`:local hpWan ""`);
   add(`:local hpNet ""`);
   add(`:local hpDir "hotspot"`);
+  say("==========================================");
+  say("HotspotPro setup is starting...");
+  say("==========================================");
+  say("Checking the router mode...");
   // Home mode (RouterOS 7) blocks the download and the 30-second check-in. Switch to advanced first.
   // The router does not apply that until someone presses reset or power-cycles it, so setup stops here and waits.
   add(`:do { :local hpMode [/system device-mode get mode]; :local dmF [/system device-mode get fetch]; :local dmS [/system device-mode get scheduler]; :if ($hpMode = "home" || !$dmF || !$dmS) do={ :set hpDm "blocked"; :log warning "HotspotPro: device-mode is home, or downloads are off. Switching to advanced. Press the reset button briefly, or switch the power off and on, within 5 minutes. Then run the HotspotPro command again."; /system device-mode update mode=advanced fetch=yes scheduler=yes } } on-error={ }`);
   add(`:if ($hpDm = "blocked") do={ :put "HotspotPro stopped. The router was asked to switch from home mode to advanced. Press the reset button briefly within 5 minutes, or turn the power off and on. After it restarts, paste the HotspotPro command again."; :error "device-mode" }`);
+  say("Router mode is fine. Continuing.");
   const wan = wanOf(router);
   const mgmt = mgmtOf(router);
 
   // MikroTik sends this name as NAS-Identifier on every RADIUS packet. Accounting and Disconnect match the router by it.
-  safe(`/system identity set name=${q(router.name)}`);
+  say("Setting the router name...");
+  safe(`/system identity set name=${q(router.name)}`, false, "Router name set");
 
   // WAN
   // The ISP port gets its address by DHCP (ether1 unless the owner chose another port).
   // A new MikroTik keeps that port inside the factory bridge, and a DHCP client on a bridge port never gets an address.
+  say(`Setting the internet port ${wan}...`);
   if (!input.existing) safe(`/interface bridge port remove [find where interface=${wan}]`, true);
   safe(`/ip dhcp-client add interface=${wan} disabled=no use-peer-dns=yes use-peer-ntp=yes add-default-route=yes comment="HotspotPro WAN DHCP Client"`, true);
   safe(`/ip dhcp-client set [find where interface=${wan}] disabled=no use-peer-dns=yes use-peer-ntp=yes add-default-route=yes`, true);
-  safe(`/ip dns set allow-remote-requests=yes servers=8.8.8.8,1.1.1.1`);
-  // Voucher time limits depend on the router's clock: keep it right (RouterOS 7 syntax first, then the older one).
+  say(`Internet port ${wan} will take an address from your ISP.`);
+  say("Configuring DNS...");
+  safe(`/ip dns set allow-remote-requests=yes servers=8.8.8.8,1.1.1.1`, false, "DNS configured");
+  // Voucher time limits depend on the router's clock.
+  say("Setting the clock...");
   safe(`/system ntp client set enabled=yes`, true);
-  safe(`/system ntp client servers add address=pool.ntp.org`, true);
+  safe(`/system ntp client servers add address=pool.ntp.org`, true, "Clock service turned on");
   // The login pages and the "I'm finished" call need this port to have an address first.
-  if (!input.existing) add(`:do { :local hpWait 0; :while ($hpWait < 8 && [/ip dhcp-client get [find where interface=${wan}] status] != "bound") do={ :delay 2s; :set hpWait ($hpWait + 1) } } on-error={ }`);
+  if (!input.existing) {
+    say(`Waiting for the internet cable on ${wan}...`);
+    add(`:do { :local hpWait 0; :while ($hpWait < 8 && [/ip dhcp-client get [find where interface=${wan}] status] != "bound") do={ :delay 2s; :set hpWait ($hpWait + 1) } } on-error={ }`);
+    say("Internet port checked.");
+  }
 
   if (router.adminFromWan === true) {
     // The factory firewall only lets the LAN talk to the router. This opens WinBox (port 8291) for PRIVATE addresses only
     // (192.168.x.x, 10.x.x.x, 172.16-31.x.x) arriving on the ISP port, and lets WinBox find the router by name/MAC on that network.
     // It stays password-protected; nothing is opened to the public internet.
     add(`# --- WinBox from the private network on ${wan}`);
+    say(`Opening WinBox for the private network on ${wan}...`);
     for (const cidr of ["192.168.0.0/16", "10.0.0.0/8", "172.16.0.0/12"]) {
       safe(`/ip firewall address-list remove [find where list=hotspotpro-private address=${cidr}]`, true);
       safe(`/ip firewall address-list add list=hotspotpro-private address=${cidr}`, true);
@@ -262,8 +284,11 @@ export function buildProvisionScript(input: {
     safe(`/tool mac-server set allowed-interface-list=hotspotpro-admin`, true);
     safe(`/tool mac-server mac-winbox set allowed-interface-list=hotspotpro-admin`, true);
     safe(`/ip neighbor discovery-settings set discover-interface-list=hotspotpro-admin`, true);
+    say("WinBox access from the private network is set.");
   }
 
+  let hotspotNetwork = "";
+  let hotspotGateway = "";
   if (router.hotspotEnabled !== false) {
     let plan = planNetwork(router.hotspotNetwork, router.hotspotGatewayIp);
     // The hotspot network must not contain the server's own address, or the router could never reach the server again.
@@ -278,6 +303,8 @@ export function buildProvisionScript(input: {
       add(`# NOTE: ${plan.network} contains the server address ${host}, so ${alt.network} is used for the hotspot instead.`);
       plan = alt;
     }
+    hotspotNetwork = plan.network;
+    hotspotGateway = plan.gateway;
     // Routers with a "flash" folder keep their files there; the hotspot pages go with them.
     add(`:do { :if ([:len [/file find where name="flash"]] > 0) do={ :set hpDir "flash/hotspot" } } on-error={ }`);
     const dns = (router.hotspotDnsServers || "8.8.8.8,8.8.4.4").replace(/[^0-9.,]/g, "");
@@ -285,9 +312,11 @@ export function buildProvisionScript(input: {
       // Your computer keeps its own small network, outside the hotspot. A factory-default router already has one
       // (192.168.88.1/24); a blank router gets one now. Either way this port is never touched, so you never lose the connection.
       add(`# --- Admin port ${mgmt}: stays outside the hotspot (your computer)`);
-      add(`:do { :if ([:len [/ip address find where address="192.168.88.1/24"]] = 0) do={ /interface bridge add name=hotspotpro-admin comment="HotspotPro admin"; /interface bridge port remove [find where interface=${mgmt}]; /interface bridge port add bridge=hotspotpro-admin interface=${mgmt} comment="HotspotPro admin"; /ip address add address=192.168.88.1/24 interface=hotspotpro-admin comment="HotspotPro admin"; /ip pool add name=hotspotpro-admin-pool ranges=192.168.88.10-192.168.88.60; /ip dhcp-server network add address=192.168.88.0/24 gateway=192.168.88.1 dns-server=192.168.88.1 comment="HotspotPro admin"; /ip dhcp-server add name=hotspotpro-admin-dhcp interface=hotspotpro-admin address-pool=hotspotpro-admin-pool disabled=no; /interface list member add list=LAN interface=hotspotpro-admin } } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: admin port setup" }`);
+      say(`Keeping ${mgmt} as the admin port for your computer...`);
+      add(`:do { :if ([:len [/ip address find where address="192.168.88.1/24"]] = 0) do={ /interface bridge add name=hotspotpro-admin comment="HotspotPro admin"; /interface bridge port remove [find where interface=${mgmt}]; /interface bridge port add bridge=hotspotpro-admin interface=${mgmt} comment="HotspotPro admin"; /ip address add address=192.168.88.1/24 interface=hotspotpro-admin comment="HotspotPro admin"; /ip pool add name=hotspotpro-admin-pool ranges=192.168.88.10-192.168.88.60; /ip dhcp-server network add address=192.168.88.0/24 gateway=192.168.88.1 dns-server=192.168.88.1 comment="HotspotPro admin"; /ip dhcp-server add name=hotspotpro-admin-dhcp interface=hotspotpro-admin address-pool=hotspotpro-admin-pool disabled=no; /interface list member add list=LAN interface=hotspotpro-admin; :put "Admin port ${mgmt} is ready." } else={ :put "Admin port ${mgmt} was already set." } } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: admin port setup"; :put "HotspotPro: the admin port step had a problem and was skipped. Setup continues." }`);
     }
     add(`# --- Hotspot network ${plan.network} (these pieces are replaced if the script is run again)`);
+    say(`Preparing the hotspot network ${plan.network}...`);
     for (const command of [
       `/ip hotspot remove [find where name=hotspotpro]`,
       `/ip hotspot profile remove [find where name=hotspotpro]`,
@@ -314,36 +343,46 @@ export function buildProvisionScript(input: {
       const skipMgmt = mgmt.replace(/[^A-Za-z0-9._-]/g, "");
       const notMgmt = skipMgmt ? ` && $n != "${skipMgmt}"` : "";
       add(`:do { :foreach p in=[/interface ethernet find] do={ :local n [/interface ethernet get $p name]; :if ($n != "${skipWan}"${notMgmt}) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`);
+      say("Ethernet ports added to the hotspot bridge.");
     }
     // The factory firewall only lets "LAN" interfaces talk to the router (DHCP, DNS, login page).
     safe(`/interface list member add list=LAN interface=hotspotpro-bridge`, true);
-    safe(`/ip address add address=${plan.gateway}/${plan.prefix} interface=hotspotpro-bridge comment="HotspotPro"`);
-    safe(`/ip pool add name=hotspotpro-pool ranges=${plan.poolFrom}-${plan.poolTo}`);
-    safe(`/ip dhcp-server network add address=${plan.network} gateway=${plan.gateway} dns-server=${plan.gateway},${dns} comment="HotspotPro"`);
-    safe(`/ip dhcp-server add name=hotspotpro-dhcp interface=hotspotpro-bridge address-pool=hotspotpro-pool disabled=no`);
-    safe(`/ip firewall nat add chain=srcnat out-interface=${wan} action=masquerade comment="HotspotPro NAT"`);
+    say(`Assigning gateway ${plan.gateway}...`);
+    safe(`/ip address add address=${plan.gateway}/${plan.prefix} interface=hotspotpro-bridge comment="HotspotPro"`, false, "Gateway address assigned");
+    say("Creating the address pool...");
+    safe(`/ip pool add name=hotspotpro-pool ranges=${plan.poolFrom}-${plan.poolTo}`, false, "Address pool created");
+    say("Creating the DHCP server...");
+    safe(`/ip dhcp-server network add address=${plan.network} gateway=${plan.gateway} dns-server=${plan.gateway},${dns} comment="HotspotPro"`, false, "DHCP network created");
+    safe(`/ip dhcp-server add name=hotspotpro-dhcp interface=hotspotpro-bridge address-pool=hotspotpro-pool disabled=no`, false, "DHCP server created");
+    say("Adding the internet sharing rule...");
+    safe(`/ip firewall nat add chain=srcnat out-interface=${wan} action=masquerade comment="HotspotPro NAT"`, false, "Internet sharing rule added");
     // One mode at a time. Cloud asks RADIUS. Local does not, and the check-in copies vouchers onto the router instead.
     const useCloud = router.loginMode !== "local" && !!radius;
-    safe(`/ip hotspot profile add name=hotspotpro hotspot-address=${plan.gateway} dns-name=${q(router.dnsName || "login.hotspot")} login-by=http-pap,http-chap trial-uptime=0s${useCloud ? " use-radius=yes accounting=yes interim-update=1m" : " use-radius=no"} html-directory=$hpDir`);
-    safe(`/ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no`);
+    say("Creating the hotspot server...");
+    safe(`/ip hotspot profile add name=hotspotpro hotspot-address=${plan.gateway} dns-name=${q(router.dnsName || "login.hotspot")} login-by=http-pap,http-chap trial-uptime=0s${useCloud ? " use-radius=yes accounting=yes interim-update=1m" : " use-radius=no"} html-directory=$hpDir`, false, "Hotspot profile created");
+    safe(`/ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no`, false, "Hotspot server created");
     if (radius) {
+      say("Configuring RADIUS login...");
       // RouterOS asks this server whether each voucher may get online (time, data and speed limits come back in the answer).
       const target = radiusTarget(radius.host);
       const secret = q(radius.secret);
       const ports = `authentication-port=${radius.authPort} accounting-port=${radius.acctPort}`;
       if (target.ip) {
-        safe(`/radius add service=hotspot address=${target.ip} secret=${secret} ${ports} timeout=3s comment="HotspotPro"`);
+        safe(`/radius add service=hotspot address=${target.ip} secret=${secret} ${ports} timeout=3s comment="HotspotPro"`, false, "RADIUS server added");
       } else if (target.name) {
         add(`:local hpRad ""`);
-        add(`:do { :set hpRad [/resolve ${q(target.name)}] } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: could not resolve the RADIUS server" }`);
-        safe(`/radius add service=hotspot address=$hpRad secret=${secret} ${ports} timeout=3s comment="HotspotPro"`);
+        add(`:do { :set hpRad [/resolve ${q(target.name)}] } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: could not resolve the RADIUS server"; :put "HotspotPro could not find the RADIUS server name. Setup continues." }`);
+        safe(`/radius add service=hotspot address=$hpRad secret=${secret} ${ports} timeout=3s comment="HotspotPro"`, false, "RADIUS server added");
       }
+    } else {
+      say("Login stays on the router. Cloud RADIUS is not used for this site.");
     }
     // Login pages go on the router either way. Cloud and local both send the phone to the same portal.
     const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
+    say("Downloading the captive portal pages...");
     for (const [index, page] of ["login.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html"].entries()) {
       const wait = index === 0 ? ":delay 1s; " : "";
-      safe(`${wait}/tool fetch url="${origin}/api/provision/${token}/${page}" dst-path=($hpDir . "/${page}")${tls}`);
+      safe(`${wait}/tool fetch url="${origin}/api/provision/${token}/${page}" dst-path=($hpDir . "/${page}")${tls}`, false, `Downloaded ${page}`);
       // Some boards keep files under flash/, others at the top. Put a copy in both so the profile can find it.
       safe(`/tool fetch url="${origin}/api/provision/${token}/${page}" dst-path=("hotspot/${page}")${tls}`, true);
       safe(`/tool fetch url="${origin}/api/provision/${token}/${page}" dst-path=("flash/hotspot/${page}")${tls}`, true);
@@ -363,19 +402,24 @@ export function buildProvisionScript(input: {
       }
       if (!IPV4.test(name)) safe(`/ip hotspot walled-garden add dst-host=${q(name)} comment="HotspotPro"`);
     };
+    say("Allowing the login page before a customer has paid...");
     garden(host);
     try { garden(new URL(portalBase).hostname); } catch { /* portal address was not a URL */ }
+    say("Login page access is set.");
+    say("The 30-second check-in is scheduled.");
   }
 
   if (router.pppoeEnabled) {
     const pppoe = planNetwork(router.pppoeNetwork || "192.168.91.0/24", undefined);
     add(`# --- PPPoE network ${pppoe.network}`);
-    safe(`/ip pool add name=hotspotpro-pppoe-pool ranges=${pppoe.poolFrom}-${pppoe.poolTo}`);
-    safe(`/ppp profile add name=hotspotpro-pppoe local-address=${pppoe.gateway} remote-address=hotspotpro-pppoe-pool`);
+    say("Configuring PPPoE...");
+    safe(`/ip pool add name=hotspotpro-pppoe-pool ranges=${pppoe.poolFrom}-${pppoe.poolTo}`, false, "PPPoE address pool created");
+    safe(`/ppp profile add name=hotspotpro-pppoe local-address=${pppoe.gateway} remote-address=hotspotpro-pppoe-pool`, false, "PPPoE profile created");
   }
 
   if (!input.existing && input.wireless && ssid) {
     add(`# --- WiFi`);
+    say("Turning on WiFi...");
     safe(`/interface wifi set [find] disabled=no configuration.ssid=${q(ssid)} configuration.mode=ap`, true);
     // A hotspot WiFi is open (no WiFi password): the customer logs in on the portal page instead.
     safe(`/interface wireless security-profiles set [find default=yes] mode=none`, true);
@@ -391,15 +435,29 @@ export function buildProvisionScript(input: {
     for (const kind of ["wifi", "wireless"]) {
       add(`:do { :foreach p in=[/interface ${kind} find] do={ :local n [/interface ${kind} get $p name]; :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } on-error={ }`);
     }
+    say("WiFi is set. Customers log in on the portal page.");
+  } else if (!input.wireless) {
+    say("Wireless setup skipped. This router is using its LAN ports.");
   }
 
   add(`# --- Self-check: is the ISP port working?`);
-  add(`:do { :local n 0; :while ($n < 10 && [/ip dhcp-client get [find where interface=${wan}] status] != "bound") do={ :delay 2s; :set n ($n + 1) }; :if ([/ip dhcp-client get [find where interface=${wan}] status] != "bound") do={ :set hpWan "down"; :log warning "HotspotPro: the ISP port ${wan} has no address from your ISP yet. Check the cable and modem on ${wan}." } } on-error={ }`);
-  add(`:do { :if ($hpWan = "") do={ :if ([/ping 8.8.8.8 count=3] = 0) do={ :set hpNet "down"; :log warning "HotspotPro: the router cannot reach the internet (ping 8.8.8.8 failed). Customers will not get online until it works." } } } on-error={ }`);
+  say("Checking the internet...");
+  add(`:do { :local n 0; :while ($n < 10 && [/ip dhcp-client get [find where interface=${wan}] status] != "bound") do={ :delay 2s; :set n ($n + 1) }; :if ([/ip dhcp-client get [find where interface=${wan}] status] != "bound") do={ :set hpWan "down"; :put "The internet cable on ${wan} has no address from your ISP yet. Check the cable and modem."; :log warning "HotspotPro: the ISP port ${wan} has no address from your ISP yet. Check the cable and modem on ${wan}." } else={ :put "Internet port ${wan} has an address." } } on-error={ }`);
+  add(`:do { :if ($hpWan = "") do={ :if ([/ping 8.8.8.8 count=3] = 0) do={ :set hpNet "down"; :put "The router cannot reach the internet yet. Customers will not get online until it works."; :log warning "HotspotPro: the router cannot reach the internet (ping 8.8.8.8 failed). Customers will not get online until it works." } else={ :put "The router can reach the internet." } } } on-error={ }`);
   add(`# --- Tell HotspotPro this router finished setting up`);
+  say("Telling HotspotPro this router is ready...");
   const reportTls = origin.startsWith("https:") ? " check-certificate=no" : "";
-  add(`:do { /tool fetch url=(${q(`${origin}/api/provision/${token}/done?failed=`)} . $hpFails . "&dm=" . $hpDm . "&wan=" . $hpWan . "&net=" . $hpNet) keep-result=no${reportTls} } on-error={ :log warning "HotspotPro could not report back to the server" }`);
+  add(`:do { /tool fetch url=(${q(`${origin}/api/provision/${token}/done?failed=`)} . $hpFails . "&dm=" . $hpDm . "&wan=" . $hpWan . "&net=" . $hpNet) keep-result=no${reportTls}; :put "HotspotPro received this router." } on-error={ :put "HotspotPro could not be told that setup finished. The router is still configured."; :log warning "HotspotPro could not report back to the server" }`);
   add(`:log info ("HotspotPro provisioning finished, steps failed: " . $hpFails)`);
-  add(`:put ("HotspotPro provisioning finished. Failed steps: " . $hpFails)`);
+  say("==========================================");
+  say("HotspotPro setup is complete.");
+  say("==========================================");
+  say("Your hotspot is configured and ready.");
+  if (hotspotNetwork) say(`Hotspot network: ${hotspotNetwork}`);
+  if (hotspotGateway) say(`Gateway: ${hotspotGateway}`);
+  say("Thank you for using our system.");
+  say("Continue to create a package and a voucher to enjoy this service.");
+  say("==========================================");
+  add(`:if ($hpFails > 0) do={ :put ("HotspotPro finished with " . $hpFails . " step(s) skipped. Look in the router log for HotspotPro step failed.") }`);
   return lines.join("\n") + "\n";
 }

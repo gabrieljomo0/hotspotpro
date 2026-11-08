@@ -990,11 +990,12 @@ export default function AddRouterPage() {
               >
                 <div>
                   <p className="text-sm font-bold text-[#1a1a1a]">
-                    Setup completed · {name} is online
-                    {" "}
-                    · {siteChoice === "__new__" ? newSiteName || "New business" : businessLocations.find((s) => s.id === siteChoice)?.name ?? ""}
+                    Router connected successfully. Thank you for using our system.
                   </p>
-                  <p data-testid="open-countdown" className="text-xs text-[#737373]">
+                  <p className="mt-1 text-sm text-[#1a1a1a]">
+                    Continue to create a package and a voucher to enjoy this service.
+                  </p>
+                  <p data-testid="open-countdown" className="mt-1 text-xs text-[#737373]">
                     {countdown !== null && countdown > 0
                       ? `Opening its dashboard in ${countdown}…`
                       : "Opening the setup dashboard…"}
