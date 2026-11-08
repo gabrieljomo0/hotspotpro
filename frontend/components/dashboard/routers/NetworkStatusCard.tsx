@@ -43,30 +43,30 @@ export function NetworkStatusCard({
   const offlineCount = routers.length - onlineCount;
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]  ">
-      <div className="flex items-center justify-between border-b border-[#e2e8f0] px-5 py-4 ">
+    <section className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]  ">
+      <div className="flex items-center justify-between border-b border-[#e6e6e6] px-5 py-4 ">
         <h3 className="text-base font-bold">Network Status</h3>
 
         {!expanded && (
           <Link
             href="/dashboards/configuration/routers"
-            className="rounded-lg border border-[#e2e8f0] px-3 py-2 text-xs font-semibold text-[#2563eb] transition hover:bg-[#ffffff]"
+            className="rounded-lg border border-[#e6e6e6] px-3 py-2 text-xs font-semibold text-[#1a1a1a] transition hover:bg-[#ffffff]"
           >
             View all
           </Link>
         )}
       </div>
 
-      <div className="flex items-center gap-4 border-b border-[#f1f5f9] px-5 py-3 text-xs">
-        <span className="inline-flex items-center gap-1.5 font-semibold text-[#2563eb]">
-          <span className="h-2 w-2 rounded-full bg-[#2563eb]" />
+      <div className="flex items-center gap-4 border-b border-[#f4f4f4] px-5 py-3 text-xs">
+        <span className="inline-flex items-center gap-1.5 font-semibold text-[#1a1a1a]">
+          <span className="h-2 w-2 rounded-full bg-[#1a1a1a]" />
           {onlineCount} Online
         </span>
         <span className="inline-flex items-center gap-1.5 font-semibold text-red-500">
           <span className="h-2 w-2 rounded-full bg-red-500" />
           {offlineCount} Offline
         </span>
-        <span className="text-[#94a3b8]">= {routers.length} total</span>
+        <span className="text-[#a3a3a3]">= {routers.length} total</span>
       </div>
 
       <div
@@ -83,7 +83,7 @@ export function NetworkStatusCard({
               : "w-full min-w-[1280px] text-left text-sm"
           }
         >
-          <thead className="sticky top-0 bg-[#ffffff] text-[#64748b]  ">
+          <thead className="sticky top-0 bg-[#ffffff] text-[#737373]  ">
             <tr>
               <th className="px-6 py-4 font-semibold">Router</th>
               <th className="px-4 py-4 font-semibold">IP Address</th>
@@ -106,12 +106,12 @@ export function NetworkStatusCard({
               return (
                 <tr
                   key={router.ip}
-                  className="border-t border-[#f1f5f9] transition hover:bg-[#ffffff]  /70"
+                  className="border-t border-[#f4f4f4] transition hover:bg-[#ffffff]  /70"
                 >
                   <td className="px-6 py-4 font-semibold">
                     <Link
                       href={`/dashboards/configuration/routers/${encodeURIComponent(router.ip)}`}
-                      className="inline-flex items-center gap-3 hover:text-[#2563eb]"
+                      className="inline-flex items-center gap-3 hover:text-[#1a1a1a]"
                     >
                       <Router size={19} />
                       {router.name}
@@ -125,8 +125,8 @@ export function NetworkStatusCard({
                     <span
                       className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
                         online
-                          ? "bg-[#f1f5f9] text-[#2563eb] "
-                          : "bg-[#fef2f2] text-[#b91c1c] "
+                          ? "bg-[#f4f4f4] text-[#1a1a1a] "
+                          : "bg-[#f3f1ec] text-[#1a1a1a] "
                       }`}
                     >
                       {routerEnabled[router.ip] ? "Online" : "Disabled"}
@@ -145,7 +145,7 @@ export function NetworkStatusCard({
                     <PercentageBar value={router.memory} />
                   </td>
 
-                  <td className="px-4 py-4 text-[#64748b]">
+                  <td className="px-4 py-4 text-[#737373]">
                     {router.lastSeen}
                   </td>
 
@@ -153,7 +153,7 @@ export function NetworkStatusCard({
                     <button
                       type="button"
                       onClick={(event) => handleOpenActions(router.ip, event)}
-                      className="rounded-lg border border-[#e2e8f0] bg-white px-3 py-2 text-xs font-semibold text-[#475569] hover:bg-[#f1f5f9]"
+                      className="rounded-lg border border-[#e6e6e6] bg-white px-3 py-2 text-xs font-semibold text-[#525252] hover:bg-[#f4f4f4]"
                     >
                       Actions
                     </button>

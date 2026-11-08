@@ -67,14 +67,14 @@ export function RevenueStatCard() {
   return (
     <Link
       href="/dashboards/analytics"
-      className="min-h-[150px] rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+      className="min-h-[150px] rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
     >
       <div className="flex items-center gap-4">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#fff8df] text-[#b7791f]">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#f3f1ec] text-[#1a1a1a]">
           <Banknote size={27} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-[#64748b]">{label}</p>
+          <p className="text-sm font-medium text-[#737373]">{label}</p>
           <p className="mt-2 truncate text-2xl font-bold">{sym()} {total.toLocaleString()}</p>
 
           <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">

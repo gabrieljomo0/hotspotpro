@@ -45,7 +45,7 @@ export default function TopUpDataPage({
       title={user.phone || user.voucherUsername}
       subtitle={`Current data left: ${user.dataLeft}`}
     >
-      <p className="mb-4 text-sm text-[#64748b]">
+      <p className="mb-4 text-sm text-[#737373]">
         Manually add data to this user&apos;s remaining allowance — useful
         for goodwill top-ups or fixing a billing issue, without waiting for
         them to buy a new voucher.
@@ -62,8 +62,8 @@ export default function TopUpDataPage({
             }}
             className={`rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${
               !customGb && selected === option
-                ? "border-[#2563eb] bg-[#f1f5f9] text-[#2563eb]"
-                : "border-[#e2e8f0] text-[#475569] hover:bg-[#ffffff]"
+                ? "border-[#1a1a1a] bg-[#f4f4f4] text-[#1a1a1a]"
+                : "border-[#e6e6e6] text-[#525252] hover:bg-[#ffffff]"
             }`}
           >
             +{option} GB
@@ -72,7 +72,7 @@ export default function TopUpDataPage({
       </div>
 
       <label className="mt-4 block max-w-xs">
-        <span className="mb-2 block text-sm font-semibold text-[#475569]">
+        <span className="mb-2 block text-sm font-semibold text-[#525252]">
           Or enter a custom amount (GB)
         </span>
         <input
@@ -82,7 +82,7 @@ export default function TopUpDataPage({
           value={customGb}
           onChange={(event) => setCustomGb(event.target.value)}
           placeholder="e.g. 3.5"
-          className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+          className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
         />
       </label>
 
@@ -90,7 +90,7 @@ export default function TopUpDataPage({
         type="button"
         onClick={handleConfirm}
         disabled={!amount || amount <= 0}
-        className="mt-6 w-full rounded-xl bg-[#2563eb] px-5 py-3 text-sm font-semibold text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:bg-[#e2e8f0] disabled:text-[#94a3b8] sm:w-auto"
+        className="mt-6 w-full rounded-xl bg-[#1a1a1a] px-5 py-3 text-sm font-semibold text-white hover:bg-[#111111] disabled:cursor-not-allowed disabled:bg-[#e6e6e6] disabled:text-[#a3a3a3] sm:w-auto"
       >
         Add {amount || 0} GB
       </button>

@@ -26,15 +26,15 @@ function TemplateCard({
   return (
     <article
       className={`rounded-2xl border-2 bg-white p-5 ${
-        template.recommended ? "border-blue-400" : "border-[#f1f5f9]"
+        template.recommended ? "border-blue-400" : "border-[#f4f4f4]"
       }`}
     >
       <div className="mb-2 flex items-start justify-between">
         <div className="flex items-center gap-2">
-          <Icon size={16} className="text-[#64748b]" />
+          <Icon size={16} className="text-[#737373]" />
           <div>
-            <p className="font-bold text-[#0f172a]">{template.name}</p>
-            <p className="text-[11px] text-[#94a3b8]">
+            <p className="font-bold text-[#1a1a1a]">{template.name}</p>
+            <p className="text-[11px] text-[#a3a3a3]">
               Hotspot{template.scheduled ? " · Scheduled" : ""}
             </p>
           </div>
@@ -48,30 +48,30 @@ function TemplateCard({
         )}
       </div>
 
-      <p className="mb-4 text-xs text-[#64748b]">{template.description}</p>
+      <p className="mb-4 text-xs text-[#737373]">{template.description}</p>
 
       <div className="mb-4 space-y-2">
         <div className="rounded-lg bg-[#ffffff] px-3 py-2">
-          <p className="text-[10px] text-[#94a3b8]">Speed</p>
-          <p className="text-sm font-bold text-[#0f172a]">
+          <p className="text-[10px] text-[#a3a3a3]">Speed</p>
+          <p className="text-sm font-bold text-[#1a1a1a]">
             {template.input.downloadMbps}M / {template.input.uploadMbps}M
           </p>
         </div>
         <div className="rounded-lg bg-[#ffffff] px-3 py-2">
-          <p className="text-[10px] text-[#94a3b8]">Duration</p>
-          <p className="text-sm font-bold text-[#0f172a]">
+          <p className="text-[10px] text-[#a3a3a3]">Duration</p>
+          <p className="text-sm font-bold text-[#1a1a1a]">
             {template.input.durationValue} {template.input.durationUnit}
           </p>
         </div>
         <div className="rounded-lg bg-[#ffffff] px-3 py-2">
-          <p className="text-[10px] text-[#94a3b8]">Price</p>
-          <p className="text-sm font-bold text-[#0f172a]">
+          <p className="text-[10px] text-[#a3a3a3]">Price</p>
+          <p className="text-sm font-bold text-[#1a1a1a]">
             {template.input.freeTrial ? "Free" : localizeAmountString(template.input.price)}
           </p>
         </div>
         <div className="rounded-lg bg-[#ffffff] px-3 py-2">
-          <p className="text-[10px] text-[#94a3b8]">Devices</p>
-          <p className="text-sm font-bold text-[#0f172a]">
+          <p className="text-[10px] text-[#a3a3a3]">Devices</p>
+          <p className="text-sm font-bold text-[#1a1a1a]">
             {template.input.devices}
           </p>
         </div>
@@ -116,12 +116,12 @@ export function QuickTemplatesModal({
       />
 
       <div className="relative z-10 max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
-        <div className="sticky top-0 flex items-center justify-between border-b border-[#f1f5f9] bg-white px-6 py-5">
+        <div className="sticky top-0 flex items-center justify-between border-b border-[#f4f4f4] bg-white px-6 py-5">
           <div>
-            <h2 className="text-base font-bold text-[#0f172a]">
+            <h2 className="text-base font-bold text-[#1a1a1a]">
               Package Templates
             </h2>
-            <p className="text-xs text-[#64748b]">
+            <p className="text-xs text-[#737373]">
               Choose from pre-configured package templates to get started
               quickly.
             </p>
@@ -129,7 +129,7 @@ export function QuickTemplatesModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-[#64748b] hover:bg-[#ffffff]"
+            className="rounded-lg p-1.5 text-[#737373] hover:bg-[#ffffff]"
           >
             <X size={18} />
           </button>
@@ -137,7 +137,7 @@ export function QuickTemplatesModal({
 
         <div className="space-y-6 px-6 py-6">
           <div>
-            <p className="mb-3 flex items-center gap-1.5 text-sm font-bold text-[#0f172a]">
+            <p className="mb-3 flex items-center gap-1.5 text-sm font-bold text-[#1a1a1a]">
               <Zap size={14} className="text-amber-500" />
               Quick Start Templates
             </p>
@@ -153,7 +153,7 @@ export function QuickTemplatesModal({
           </div>
 
           <div>
-            <p className="mb-3 flex items-center gap-1.5 text-sm font-bold text-[#0f172a]">
+            <p className="mb-3 flex items-center gap-1.5 text-sm font-bold text-[#1a1a1a]">
               <Sparkles size={14} className="text-blue-500" />
               Special Templates
             </p>

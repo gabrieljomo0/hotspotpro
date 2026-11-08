@@ -47,14 +47,14 @@ export function NotificationsSettingsPanel() {
   return (
     <div className="space-y-6">
       {/* MikroTik status */}
-      <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
+      <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
         <div className="mb-6 flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
             <Radio size={20} />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-[#0f172a]">MikroTik Status Notifications</h3>
-            <p className="text-sm text-[#64748b]">Notifications for MikroTik status changes.</p>
+            <h3 className="text-lg font-bold text-[#1a1a1a]">MikroTik Status Notifications</h3>
+            <p className="text-sm text-[#737373]">Notifications for MikroTik status changes.</p>
           </div>
         </div>
 
@@ -85,14 +85,14 @@ export function NotificationsSettingsPanel() {
       </article>
 
       {/* Voucher and payment notifications */}
-      <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
+      <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
         <div className="mb-6 flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
             <Ticket size={20} />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-[#0f172a]">Voucher and Payment Notifications</h3>
-            <p className="text-sm text-[#64748b]">
+            <h3 className="text-lg font-bold text-[#1a1a1a]">Voucher and Payment Notifications</h3>
+            <p className="text-sm text-[#737373]">
               Control voucher delivery and the optional payment receipt sent after successful hotspot payments.
             </p>
           </div>
@@ -132,14 +132,14 @@ export function NotificationsSettingsPanel() {
       </article>
 
       {/* Hotspot expiry notifications */}
-      <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
+      <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
         <div className="mb-6 flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
             <Clock3 size={20} />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-[#0f172a]">Expiry Notifications</h3>
-            <p className="text-sm text-[#64748b]">SMS sent when a user package has expired, or shortly before it does.</p>
+            <h3 className="text-lg font-bold text-[#1a1a1a]">Expiry Notifications</h3>
+            <p className="text-sm text-[#737373]">SMS sent when a user package has expired, or shortly before it does.</p>
           </div>
         </div>
 
@@ -158,7 +158,7 @@ export function NotificationsSettingsPanel() {
             />
           </Field>
 
-          <div className="border-t border-[#f1f5f9] pt-5">
+          <div className="border-t border-[#f4f4f4] pt-5">
             <ToggleRow
               title="Send expiry reminder notifications to hotspot users"
               hint="Send SMS reminder before package expires"
@@ -196,14 +196,14 @@ export function NotificationsSettingsPanel() {
       </article>
 
       {/* PPPoE expiry notifications */}
-      <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
+      <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
         <div className="mb-6 flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
             <WifiIcon size={20} />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-[#0f172a]">PPPoE Expiry Notifications</h3>
-            <p className="text-sm text-[#64748b]">
+            <h3 className="text-lg font-bold text-[#1a1a1a]">PPPoE Expiry Notifications</h3>
+            <p className="text-sm text-[#737373]">
               Notifications for PPPoE customers (separate from hotspot users). Routed via the channel configured in WhatsApp Settings.
             </p>
           </div>
@@ -242,7 +242,7 @@ export function NotificationsSettingsPanel() {
             </>
           )}
 
-          <div className="border-t border-[#f1f5f9] pt-5">
+          <div className="border-t border-[#f4f4f4] pt-5">
             <ToggleRow
               title="Send notification when PPPoE subscription expires"
               checked={form.sendPppoeExpiryNotification}
@@ -266,14 +266,14 @@ export function NotificationsSettingsPanel() {
       </article>
 
       {/* OTP verification */}
-      <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
+      <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
         <div className="mb-6 flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
             <KeyRound size={20} />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-[#0f172a]">OTP Verification SMS</h3>
-            <p className="text-sm text-[#64748b]">SMS sent for free trial phone verification.</p>
+            <h3 className="text-lg font-bold text-[#1a1a1a]">OTP Verification SMS</h3>
+            <p className="text-sm text-[#737373]">SMS sent for free trial phone verification.</p>
           </div>
         </div>
         <Field label="OTP verification SMS" hint="Variables: @company_name, @otp_code, @validity">
@@ -287,14 +287,14 @@ export function NotificationsSettingsPanel() {
       </article>
 
       {/* Business Pulse */}
-      <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
+      <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
         <div className="mb-6 flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-100 text-red-600">
             <Activity size={20} />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-[#0f172a]">Business Pulse</h3>
-            <p className="text-sm text-[#64748b]">Owner alerts when sales are completed. These messages go to your team, not customers.</p>
+            <h3 className="text-lg font-bold text-[#1a1a1a]">Business Pulse</h3>
+            <p className="text-sm text-[#737373]">Owner alerts when sales are completed. These messages go to your team, not customers.</p>
           </div>
         </div>
 
@@ -309,21 +309,21 @@ export function NotificationsSettingsPanel() {
           {form.businessPulseEnabled && (
             <>
               <div>
-                <p className="mb-2 text-sm font-semibold text-[#475569]">Alert channels</p>
+                <p className="mb-2 text-sm font-semibold text-[#525252]">Alert channels</p>
                 <div className="flex flex-wrap gap-4">
                   {CHANNEL_LABELS.map(({ key, label }) => (
-                    <label key={key} className="flex items-center gap-2 text-sm text-[#475569]">
+                    <label key={key} className="flex items-center gap-2 text-sm text-[#525252]">
                       <input
                         type="checkbox"
                         checked={form.businessPulseChannels[key]}
                         onChange={() => toggleChannel(key)}
-                        className="h-4 w-4 rounded border-[#e2e8f0] accent-[#2563eb]"
+                        className="h-4 w-4 rounded border-[#e6e6e6] accent-[#1a1a1a]"
                       />
                       {label}
                     </label>
                   ))}
                 </div>
-                <p className="mt-1 text-xs text-[#94a3b8]">Browser push can notify enabled admin devices even when the dashboard is closed.</p>
+                <p className="mt-1 text-xs text-[#a3a3a3]">Browser push can notify enabled admin devices even when the dashboard is closed.</p>
               </div>
 
               <Field label="Owner email addresses" hint="Required for email alerts. You can add multiple addresses.">
@@ -336,32 +336,32 @@ export function NotificationsSettingsPanel() {
               </Field>
 
               <div>
-                <p className="mb-2 text-sm font-semibold text-[#475569]">Alert types</p>
+                <p className="mb-2 text-sm font-semibold text-[#525252]">Alert types</p>
                 <div className="flex flex-wrap gap-4">
-                  <label className="flex items-center gap-2 text-sm text-[#475569]">
+                  <label className="flex items-center gap-2 text-sm text-[#525252]">
                     <input
                       type="checkbox"
                       checked={form.alertVoucherSales}
                       onChange={() => set("alertVoucherSales", !form.alertVoucherSales)}
-                      className="h-4 w-4 rounded border-[#e2e8f0] accent-[#2563eb]"
+                      className="h-4 w-4 rounded border-[#e6e6e6] accent-[#1a1a1a]"
                     />
                     Voucher sales
                   </label>
-                  <label className="flex items-center gap-2 text-sm text-[#475569]">
+                  <label className="flex items-center gap-2 text-sm text-[#525252]">
                     <input
                       type="checkbox"
                       checked={form.alertPppoeRenewals}
                       onChange={() => set("alertPppoeRenewals", !form.alertPppoeRenewals)}
-                      className="h-4 w-4 rounded border-[#e2e8f0] accent-[#2563eb]"
+                      className="h-4 w-4 rounded border-[#e6e6e6] accent-[#1a1a1a]"
                     />
                     PPPoE renewals
                   </label>
-                  <label className="flex items-center gap-2 text-sm text-[#475569]">
+                  <label className="flex items-center gap-2 text-sm text-[#525252]">
                     <input
                       type="checkbox"
                       checked={form.alertAgentVoucherSales}
                       onChange={() => set("alertAgentVoucherSales", !form.alertAgentVoucherSales)}
-                      className="h-4 w-4 rounded border-[#e2e8f0] accent-[#2563eb]"
+                      className="h-4 w-4 rounded border-[#e6e6e6] accent-[#1a1a1a]"
                     />
                     Agent voucher sales
                   </label>
@@ -386,7 +386,7 @@ export function NotificationsSettingsPanel() {
         <button
           type="button"
           onClick={save}
-          className="rounded-xl bg-[#2563eb] px-6 py-3 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+          className="rounded-xl bg-[#1a1a1a] px-6 py-3 text-sm font-bold text-white hover:bg-[#111111]"
         >
           Save Notification Settings
         </button>

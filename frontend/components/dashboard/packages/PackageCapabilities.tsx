@@ -18,12 +18,12 @@ function YesNoToggle({
   onChange: (next: boolean) => void;
 }) {
   return (
-    <div className="inline-flex overflow-hidden rounded-lg border border-[#e2e8f0]">
+    <div className="inline-flex overflow-hidden rounded-lg border border-[#e6e6e6]">
       <button
         type="button"
         onClick={() => onChange(true)}
         className={`px-4 py-2 text-sm font-bold transition ${
-          value ? "bg-[#0f172a] text-white" : "bg-white text-[#475569]"
+          value ? "bg-[#1a1a1a] text-white" : "bg-white text-[#525252]"
         }`}
       >
         Yes
@@ -32,7 +32,7 @@ function YesNoToggle({
         type="button"
         onClick={() => onChange(false)}
         className={`px-4 py-2 text-sm font-bold transition ${
-          !value ? "bg-emerald-500 text-white" : "bg-white text-[#475569]"
+          !value ? "bg-emerald-500 text-white" : "bg-white text-[#525252]"
         }`}
       >
         No
@@ -53,7 +53,7 @@ function Switch({
       type="button"
       onClick={onChange}
       className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-        checked ? "bg-emerald-500" : "bg-[#e2e8f0]"
+        checked ? "bg-emerald-500" : "bg-[#e6e6e6]"
       }`}
     >
       <span
@@ -85,77 +85,77 @@ export function PackageCapabilities({
   const overCap = capAmount !== null && form.agentPrice.trim() !== "" && !Number.isNaN(enteredPrice) && enteredPrice > capAmount;
 
   return (
-    <section className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
-      <h3 className="text-base font-bold text-[#0f172a]">Advanced Features</h3>
-      <p className="mb-5 text-xs text-[#64748b]">Configure burst and scheduling features.</p>
+    <section className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
+      <h3 className="text-base font-bold text-[#1a1a1a]">Advanced Features</h3>
+      <p className="mb-5 text-xs text-[#737373]">Configure burst and scheduling features.</p>
 
       <div className="space-y-5">
         <div>
-          <span className="mb-2 block text-sm font-semibold text-[#475569]">
+          <span className="mb-2 block text-sm font-semibold text-[#525252]">
             Enable burst for this package?
           </span>
           <YesNoToggle value={form.burstEnabled} onChange={(v) => update("burstEnabled", v)} />
         </div>
 
         <div>
-          <span className="mb-1 block text-sm font-semibold text-[#475569]">
+          <span className="mb-1 block text-sm font-semibold text-[#525252]">
             Enable schedule for this package?
           </span>
-          <p className="mb-2 text-xs text-[#94a3b8]">
+          <p className="mb-2 text-xs text-[#a3a3a3]">
             Enable to make this package available only during specific times.
           </p>
           <YesNoToggle value={form.scheduleEnabled} onChange={(v) => update("scheduleEnabled", v)} />
         </div>
 
-        <div className="border-t border-[#f1f5f9] pt-5">
-          <span className="mb-1 block text-sm font-semibold text-[#475569]">Enable PPPoE support?</span>
-          <p className="mb-2 text-xs text-[#94a3b8]">
+        <div className="border-t border-[#f4f4f4] pt-5">
+          <span className="mb-1 block text-sm font-semibold text-[#525252]">Enable PPPoE support?</span>
+          <p className="mb-2 text-xs text-[#a3a3a3]">
             Make this package available for PPPoE subscription customers.
           </p>
           <label className="flex items-center gap-2">
             <Switch checked={form.pppoeEnabled} onChange={() => update("pppoeEnabled", !form.pppoeEnabled)} />
-            <span className="text-sm text-[#475569]">Enable PPPoE</span>
+            <span className="text-sm text-[#525252]">Enable PPPoE</span>
           </label>
         </div>
 
-        <div className="border-t border-[#f1f5f9] pt-5">
-          <span className="mb-1 block text-sm font-semibold text-[#475569]">Enable Hotspot support?</span>
-          <p className="mb-2 text-xs text-[#94a3b8]">
+        <div className="border-t border-[#f4f4f4] pt-5">
+          <span className="mb-1 block text-sm font-semibold text-[#525252]">Enable Hotspot support?</span>
+          <p className="mb-2 text-xs text-[#a3a3a3]">
             Make this package available on the WiFi hotspot captive portal (login page).
           </p>
           <label className="flex items-center gap-2">
             <Switch checked={form.hotspotEnabled} onChange={() => update("hotspotEnabled", !form.hotspotEnabled)} />
-            <span className="text-sm text-[#475569]">Enable Hotspot</span>
+            <span className="text-sm text-[#525252]">Enable Hotspot</span>
           </label>
         </div>
 
-        <div className="border-t border-[#f1f5f9] pt-5">
+        <div className="border-t border-[#f4f4f4] pt-5">
           <label className="flex items-center gap-2">
             <Switch
               checked={form.agentResellingEnabled}
               onChange={() => update("agentResellingEnabled", !form.agentResellingEnabled)}
             />
-            <span className="text-sm font-semibold text-[#475569]">Enable Agent Reselling</span>
+            <span className="text-sm font-semibold text-[#525252]">Enable Agent Reselling</span>
           </label>
-          <p className="mt-1 text-xs text-[#94a3b8]">
+          <p className="mt-1 text-xs text-[#a3a3a3]">
             Allow agents to pre-buy vouchers for this package from the agent portal.
           </p>
 
           {form.agentResellingEnabled &&
             (isAgentContext && !canSetOwnPrice ? (
-              <p className="mt-3 max-w-xs text-xs text-[#94a3b8]">
+              <p className="mt-3 max-w-xs text-xs text-[#a3a3a3]">
                 Setting your own agent price isn&apos;t allowed yet -- ask admin for the &quot;Set their own resale
                 price / markup&quot; permission.
               </p>
             ) : (
               <label className="mt-3 block max-w-xs">
-                <span className="mb-2 block text-sm font-semibold text-[#475569]">Agent Price</span>
+                <span className="mb-2 block text-sm font-semibold text-[#525252]">Agent Price</span>
                 <div
-                  className={`flex overflow-hidden rounded-xl border focus-within:border-[#2563eb] ${
-                    overCap ? "border-red-400" : "border-[#e2e8f0]"
+                  className={`flex overflow-hidden rounded-xl border focus-within:border-[#1a1a1a] ${
+                    overCap ? "border-red-400" : "border-[#e6e6e6]"
                   }`}
                 >
-                  <span className="flex items-center bg-[#ffffff] px-3 text-xs font-semibold text-[#64748b]">
+                  <span className="flex items-center bg-[#ffffff] px-3 text-xs font-semibold text-[#737373]">
                     {sym()}
                   </span>
                   <input
@@ -169,7 +169,7 @@ export function PackageCapabilities({
                     Above your {cap}% limit -- the most you can charge on this package is {sym()} {capAmount!.toFixed(2)}.
                   </span>
                 ) : (
-                  <span className="mt-1 block text-xs text-[#94a3b8]">
+                  <span className="mt-1 block text-xs text-[#a3a3a3]">
                     {capAmount !== null
                       ? `Custom price for agents. Capped at ${sym()} ${capAmount.toFixed(2)} (${cap}% above base price).`
                       : "Custom price for agents. Leave empty to use the pricing model from hotspot settings."}

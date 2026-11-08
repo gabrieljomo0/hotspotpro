@@ -88,13 +88,13 @@ function AgentDirectoryPage() {
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="mb-1 text-3xl font-bold tracking-tight md:text-4xl">Agents</h2>
-          <p className="max-w-2xl text-sm text-[#64748b] md:text-base">
+          <p className="max-w-2xl text-sm text-[#737373] md:text-base">
             Resellers who sell vouchers and collect payments in the field.{" "}
             <button
               type="button"
               onClick={() => setHowOpen((open) => !open)}
               aria-expanded={howOpen}
-              className="font-semibold text-[#2563eb] hover:underline"
+              className="font-semibold text-[#1a1a1a] hover:underline"
             >
               How it works
             </button>
@@ -105,7 +105,7 @@ function AgentDirectoryPage() {
           <button
             type="button"
             onClick={() => setAddOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#2563eb] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#1a1a1a] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#111111]"
           >
             <UserPlus size={15} />
             Add agent
@@ -116,7 +116,7 @@ function AgentDirectoryPage() {
       {howOpen && (
         <div
           data-testid="agents-how-it-works"
-          className="mb-6 max-w-3xl space-y-2 rounded-xl border border-[#e2e8f0] bg-[#ffffff] px-4 py-3 text-sm text-[#64748b]"
+          className="mb-6 max-w-3xl space-y-2 rounded-xl border border-[#e6e6e6] bg-[#ffffff] px-4 py-3 text-sm text-[#737373]"
         >
           <p>
             Agents are resellers: they sign in to their own portal, generate and sell vouchers for the router they are

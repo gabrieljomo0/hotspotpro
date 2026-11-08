@@ -13,7 +13,7 @@ export function UsersByStatus({ scopedUsers }: { scopedUsers: ActiveUser[] }) {
       <h3 className="font-bold">Users by Status</h3>
 
       {data.length === 0 ? (
-        <p className="mt-5 text-sm text-[#94a3b8]">No users on this router yet.</p>
+        <p className="mt-5 text-sm text-[#a3a3a3]">No users on this router yet.</p>
       ) : (
         <div className="mt-5 grid items-center gap-5 sm:grid-cols-[1fr_1.15fr]">
           <div className="relative h-[220px]">
@@ -29,7 +29,7 @@ export function UsersByStatus({ scopedUsers }: { scopedUsers: ActiveUser[] }) {
 
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
               <p className="text-2xl font-black">{scopedUsers.length}</p>
-              <p className="text-xs text-[#64748b]">Total Users</p>
+              <p className="text-xs text-[#737373]">Total Users</p>
             </div>
           </div>
 
@@ -39,7 +39,7 @@ export function UsersByStatus({ scopedUsers }: { scopedUsers: ActiveUser[] }) {
                 <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
                 <span>{item.name}</span>
                 <span className="font-semibold">
-                  {item.value} <span className="font-normal text-[#64748b]">({item.percentage})</span>
+                  {item.value} <span className="font-normal text-[#737373]">({item.percentage})</span>
                 </span>
               </div>
             ))}

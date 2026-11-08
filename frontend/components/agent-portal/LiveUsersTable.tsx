@@ -34,20 +34,20 @@ export function LiveUsersTable({
       <div className="flex flex-col gap-4 border-b p-4 xl:flex-row xl:items-center">
         <div className="flex items-center gap-3">
           <h3 className="font-bold">Live Users (Now)</h3>
-          <span className="rounded-md bg-[#f1f5f9] px-2 py-1 text-xs font-semibold text-[#2563eb]">
+          <span className="rounded-md bg-[#f4f4f4] px-2 py-1 text-xs font-semibold text-[#1a1a1a]">
             {onlineCount} Online
           </span>
         </div>
 
         <div className="ml-auto flex w-full gap-3 xl:w-auto">
           <div className="relative flex-1 xl:w-[300px]">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748b]" />
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#737373]" />
             <input
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search by phone or MAC..."
-              className="h-10 w-full rounded-lg border border-[#cbd5e1] pl-10 pr-4 text-sm outline-none focus:border-[#2563eb] "
+              className="h-10 w-full rounded-lg border border-[#d4d4d4] pl-10 pr-4 text-sm outline-none focus:border-[#1a1a1a] "
             />
           </div>
         </div>
@@ -55,7 +55,7 @@ export function LiveUsersTable({
 
       <div className="overflow-x-auto">
         <table className="w-full min-w-[950px] text-left text-xs">
-          <thead className="bg-[#f8fafc] text-[#64748b]">
+          <thead className="bg-[#f7f7f7] text-[#737373]">
             <tr>
               <th className="px-4 py-3">User / Phone</th>
               <th className="px-4 py-3">Device</th>
@@ -70,15 +70,15 @@ export function LiveUsersTable({
 
           <tbody>
             {visible.map((user) => (
-              <tr key={getUserId(user)} className="border-t border-slate-100 hover:bg-[#f1f5f9]">
+              <tr key={getUserId(user)} className="border-t border-slate-100 hover:bg-[#f4f4f4]">
                 <td className="px-4 py-3 font-semibold">
                   <span
-                    className={`mr-3 inline-block h-2 w-2 rounded-full ${ user.status === "Online" ? "bg-[#2563eb]" : user.status === "Idle" ? "bg-[#2563eb]" : user.status === "Expiring Soon" ? "bg-[#2563eb]" : user.status === "Blocked" ? "bg-red-500" : "bg-slate-400" }`}
+                    className={`mr-3 inline-block h-2 w-2 rounded-full ${ user.status === "Online" ? "bg-[#1a1a1a]" : user.status === "Idle" ? "bg-[#1a1a1a]" : user.status === "Expiring Soon" ? "bg-[#1a1a1a]" : user.status === "Blocked" ? "bg-red-500" : "bg-slate-400" }`}
                   />
                   {user.phone}
                 </td>
                 <td className="px-4 py-3">{user.deviceType ?? "—"}</td>
-                <td className={`px-4 py-3 ${user.status === "Expiring Soon" ? "font-semibold text-[#2563eb]" : ""}`}>
+                <td className={`px-4 py-3 ${user.status === "Expiring Soon" ? "font-semibold text-[#1a1a1a]" : ""}`}>
                   {user.timeLeft}
                 </td>
                 <td className="px-4 py-3">{user.dataUsed}</td>
@@ -93,11 +93,11 @@ export function LiveUsersTable({
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       {canBlock && user.status === "Blocked" ? (
-                        <button type="button" className="rounded-md bg-[#f1f5f9] px-2 py-1 font-semibold text-[#2563eb]">
+                        <button type="button" className="rounded-md bg-[#f4f4f4] px-2 py-1 font-semibold text-[#1a1a1a]">
                           Unblock
                         </button>
                       ) : canDisconnect && user.status !== "Disconnected" && user.status !== "Expired" ? (
-                        <button type="button" className="rounded-md bg-[#fef2f2] px-2 py-1 font-semibold text-[#b91c1c]">
+                        <button type="button" className="rounded-md bg-[#f3f1ec] px-2 py-1 font-semibold text-[#1a1a1a]">
                           Disconnect
                         </button>
                       ) : (
@@ -110,7 +110,7 @@ export function LiveUsersTable({
             ))}
             {visible.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-8 text-center text-[#94a3b8]">
+                <td colSpan={8} className="px-4 py-8 text-center text-[#a3a3a3]">
                   No users on this router yet.
                 </td>
               </tr>
@@ -120,7 +120,7 @@ export function LiveUsersTable({
       </div>
 
       <div className="flex items-center justify-between border-t px-4 py-3 text-xs">
-        <p className="text-[#64748b]">Showing {visible.length} of {scopedUsers.length} users on this router</p>
+        <p className="text-[#737373]">Showing {visible.length} of {scopedUsers.length} users on this router</p>
       </div>
     </article>
   );

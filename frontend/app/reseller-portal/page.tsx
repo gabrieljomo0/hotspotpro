@@ -51,46 +51,46 @@ export default function ResellerPortalGatewayPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f1f5f9] px-4 py-10 text-[#0f172a] sm:py-16">
+    <main className="min-h-screen bg-[#f4f4f4] px-4 py-10 text-[#1a1a1a] sm:py-16">
       <div className="mx-auto max-w-3xl">
         <div className="mb-8 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0f172a] text-amber-400">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#1a1a1a] text-amber-400">
             <Wifi size={22} strokeWidth={3} />
           </div>
           <div>
             <p className="text-xl font-black">
-              Hotspot<span className="text-[#2563eb]">Pro</span>
+              Hotspot<span className="text-[#1a1a1a]">Pro</span>
             </p>
-            <p className="text-xs text-[#64748b]">Reseller Portal</p>
+            <p className="text-xs text-[#737373]">Reseller Portal</p>
           </div>
         </div>
 
         {/* How it works */}
-        <section className="mb-8 rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] sm:p-8">
+        <section className="mb-8 rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] sm:p-8">
           <h1 className="text-2xl font-black sm:text-3xl">How the Reseller Portal works</h1>
-          <p className="mt-2 text-sm text-[#64748b]">
+          <p className="mt-2 text-sm text-[#737373]">
             There are two ways people work with HotspotPro outside of the main admin team — installers, who set up
             and maintain routers, and agents, who sell internet vouchers and packages. This page is for the first
             group.
           </p>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            <div className="rounded-xl border border-[#f1f5f9] p-4">
+            <div className="rounded-xl border border-[#f4f4f4] p-4">
               <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
                 <Wrench size={16} />
               </span>
               <p className="mt-2 text-sm font-bold">Installers</p>
-              <p className="mt-1 text-xs text-[#64748b]">
+              <p className="mt-1 text-xs text-[#737373]">
                 Set up and maintain hotspot routers on site. Create an account below, then admin assigns you to a
                 site once you&apos;re ready to start.
               </p>
             </div>
-            <div className="rounded-xl border border-[#f1f5f9] p-4">
+            <div className="rounded-xl border border-[#f4f4f4] p-4">
               <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
                 <ShoppingBag size={16} />
               </span>
               <p className="mt-2 text-sm font-bold">Agents (Resellers)</p>
-              <p className="mt-1 text-xs text-[#64748b]">
+              <p className="mt-1 text-xs text-[#737373]">
                 Sell vouchers and packages to customers and earn commission. Agents don&apos;t sign up here — see
                 below for how to apply.
               </p>
@@ -99,8 +99,8 @@ export default function ResellerPortalGatewayPage() {
         </section>
 
         {/* Installer: sign in or create account */}
-        <section className="mb-8 overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
-          <div className="border-b border-[#e2e8f0] px-6 py-4 sm:px-8">
+        <section className="mb-8 overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+          <div className="border-b border-[#e6e6e6] px-6 py-4 sm:px-8">
             <h2 className="text-lg font-bold">I&apos;m an Installer</h2>
           </div>
 
@@ -128,7 +128,7 @@ export default function ResellerPortalGatewayPage() {
             <div className="flex flex-col gap-3 p-6 sm:flex-row sm:p-8">
               <Link
                 href="/login"
-                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#2563eb] px-5 py-3.5 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#1a1a1a] px-5 py-3.5 text-sm font-bold text-white hover:bg-[#111111]"
               >
                 <LogIn size={16} />
                 Sign In
@@ -136,7 +136,7 @@ export default function ResellerPortalGatewayPage() {
               <button
                 type="button"
                 onClick={() => setCreatingAccount(true)}
-                className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-[#2563eb] px-5 py-3.5 text-sm font-bold text-[#2563eb] hover:bg-[#f1f5f9]"
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-[#1a1a1a] px-5 py-3.5 text-sm font-bold text-[#1a1a1a] hover:bg-[#f4f4f4]"
               >
                 <UserPlus size={16} />
                 Create Account
@@ -146,39 +146,39 @@ export default function ResellerPortalGatewayPage() {
             <form onSubmit={handleSubmit} className="space-y-4 p-6 sm:p-8">
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block">
-                  <span className="mb-1.5 block text-xs font-semibold text-[#475569]">Full name</span>
+                  <span className="mb-1.5 block text-xs font-semibold text-[#525252]">Full name</span>
                   <input
                     value={form.name}
                     onChange={(event) => update("name", event.target.value)}
-                    className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                    className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-1.5 block text-xs font-semibold text-[#475569]">Phone number</span>
+                  <span className="mb-1.5 block text-xs font-semibold text-[#525252]">Phone number</span>
                   <input
                     value={form.phone}
                     onChange={(event) => update("phone", event.target.value)}
                     placeholder="055 123 4567"
-                    className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                    className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-1.5 block text-xs font-semibold text-[#475569]">Email</span>
+                  <span className="mb-1.5 block text-xs font-semibold text-[#525252]">Email</span>
                   <input
                     type="email"
                     value={form.email}
                     onChange={(event) => update("email", event.target.value)}
-                    className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                    className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-1.5 block text-xs font-semibold text-[#475569]">Password</span>
+                  <span className="mb-1.5 block text-xs font-semibold text-[#525252]">Password</span>
                   <input
                     type="password"
                     value={form.password}
                     onChange={(event) => update("password", event.target.value)}
                     placeholder="At least 6 characters"
-                    className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                    className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
                   />
                 </label>
               </div>
@@ -193,7 +193,7 @@ export default function ResellerPortalGatewayPage() {
               <div className="flex gap-3">
                 <button
                   type="submit"
-                  className="rounded-xl bg-[#2563eb] px-5 py-3 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+                  className="rounded-xl bg-[#1a1a1a] px-5 py-3 text-sm font-bold text-white hover:bg-[#111111]"
                 >
                   Create Account
                 </button>
@@ -203,7 +203,7 @@ export default function ResellerPortalGatewayPage() {
                     setCreatingAccount(false);
                     setError("");
                   }}
-                  className="rounded-xl border border-[#e2e8f0] bg-white px-5 py-3 text-sm font-bold text-[#475569] hover:bg-[#ffffff]"
+                  className="rounded-xl border border-[#e6e6e6] bg-white px-5 py-3 text-sm font-bold text-[#525252] hover:bg-[#ffffff]"
                 >
                   Cancel
                 </button>
@@ -232,7 +232,7 @@ export default function ResellerPortalGatewayPage() {
           </div>
         </section>
 
-        <p className="mt-8 flex items-center gap-1.5 text-xs text-[#94a3b8]">
+        <p className="mt-8 flex items-center gap-1.5 text-xs text-[#a3a3a3]">
           <Wallet size={12} />
           Installers and agents are managed separately — admin can see both from the main dashboard.
         </p>

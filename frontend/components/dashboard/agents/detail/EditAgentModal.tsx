@@ -42,13 +42,13 @@ export function EditAgentModal({ agent, onClose }: { agent: AgentProfile; onClos
   }
 
   const field = (bad: boolean) =>
-    `h-11 w-full rounded-xl border bg-white px-3.5 text-sm outline-none focus:border-[#2563eb] ${bad ? "border-red-400" : "border-[#e2e8f0]"}`;
+    `h-11 w-full rounded-xl border bg-white px-3.5 text-sm outline-none focus:border-[#1a1a1a] ${bad ? "border-red-400" : "border-[#e6e6e6]"}`;
 
   return (
     <ModalFrame title={`Edit ${agent.name}`} subtitle="Agent information" onClose={onClose} widthClass="max-w-xl" testId="edit-agent-modal">
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <label className="block">
-          <span className="mb-1.5 block text-sm font-semibold text-[#475569]">
+          <span className="mb-1.5 block text-sm font-semibold text-[#525252]">
             Agent name <span className="text-red-500">*</span>
           </span>
           <input autoFocus value={name} onChange={(event) => setName(event.target.value)} aria-label="Agent name" className={field(submitted && !!nameError)} />
@@ -56,29 +56,29 @@ export function EditAgentModal({ agent, onClose }: { agent: AgentProfile; onClos
         </label>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold text-[#475569]">Email</span>
+            <span className="mb-1.5 block text-sm font-semibold text-[#525252]">Email</span>
             <input value={email} onChange={(event) => setEmail(event.target.value)} aria-label="Email" className={field(submitted && !!emailError)} />
             {submitted && emailError && <span className="mt-1 block text-xs font-semibold text-red-600">{emailError}</span>}
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold text-[#475569]">Username</span>
+            <span className="mb-1.5 block text-sm font-semibold text-[#525252]">Username</span>
             <input value={username} onChange={(event) => setUsername(event.target.value)} aria-label="Username" className={field(submitted && !!usernameError)} />
             {submitted && usernameError && <span className="mt-1 block text-xs font-semibold text-red-600">{usernameError}</span>}
           </label>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold text-[#475569]">Phone</span>
+            <span className="mb-1.5 block text-sm font-semibold text-[#525252]">Phone</span>
             <input value={phone} onChange={(event) => setPhone(event.target.value)} aria-label="Phone" className={field(submitted && !!phoneError)} />
             {submitted && phoneError && <span className="mt-1 block text-xs font-semibold text-red-600">{phoneError}</span>}
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold text-[#475569]">Location</span>
+            <span className="mb-1.5 block text-sm font-semibold text-[#525252]">Location</span>
             <input value={location} onChange={(event) => setLocation(event.target.value)} aria-label="Location" className={field(false)} />
           </label>
         </div>
         <label className="block">
-          <span className="mb-1.5 block text-sm font-semibold text-[#475569]">Assigned router</span>
+          <span className="mb-1.5 block text-sm font-semibold text-[#525252]">Assigned router</span>
           <select value={routerIp} onChange={(event) => setRouterIp(event.target.value)} aria-label="Assigned router" className={field(false)}>
             {!agent.routerIp && <option value="">No router yet</option>}
             {routers.map((router) => (
@@ -89,13 +89,13 @@ export function EditAgentModal({ agent, onClose }: { agent: AgentProfile; onClos
           </select>
         </label>
         <label className="block">
-          <span className="mb-1.5 block text-sm font-semibold text-[#475569]">Status</span>
+          <span className="mb-1.5 block text-sm font-semibold text-[#525252]">Status</span>
           <select
             value={status}
             disabled={!canChangeStatus}
             onChange={(event) => setStatus(event.target.value as AgentStatus)}
             aria-label="Status"
-            className={`${field(false)} disabled:bg-[#f1f5f9] disabled:text-[#94a3b8]`}
+            className={`${field(false)} disabled:bg-[#f4f4f4] disabled:text-[#a3a3a3]`}
           >
             {(canChangeStatus ? STATUSES : [agent.status]).map((value) => (
               <option key={value} value={value}>
@@ -104,19 +104,19 @@ export function EditAgentModal({ agent, onClose }: { agent: AgentProfile; onClos
             ))}
           </select>
           {!canChangeStatus && (
-            <span className="mt-1 block text-xs text-[#94a3b8]">
+            <span className="mt-1 block text-xs text-[#a3a3a3]">
               {agent.isDefault ? "The owner profile is always active." : "Approve the application first to change status."}
             </span>
           )}
         </label>
-        <p className="rounded-xl bg-[#f8fafc] px-4 py-3 text-xs text-[#64748b]">
+        <p className="rounded-xl bg-[#f7f7f7] px-4 py-3 text-xs text-[#737373]">
           Commission rate, wallet and permissions have their own tabs on this page.
         </p>
         <div className="flex gap-3 pt-1">
-          <button type="submit" className="rounded-xl bg-[#2563eb] px-6 py-3 text-sm font-bold text-white hover:bg-[#1d4ed8]">
+          <button type="submit" className="rounded-xl bg-[#1a1a1a] px-6 py-3 text-sm font-bold text-white hover:bg-[#111111]">
             Save changes
           </button>
-          <button type="button" onClick={onClose} className="rounded-xl border border-[#e2e8f0] bg-white px-5 py-3 text-sm font-semibold text-[#475569] hover:bg-[#ffffff]">
+          <button type="button" onClick={onClose} className="rounded-xl border border-[#e6e6e6] bg-white px-5 py-3 text-sm font-semibold text-[#525252] hover:bg-[#ffffff]">
             Cancel
           </button>
         </div>

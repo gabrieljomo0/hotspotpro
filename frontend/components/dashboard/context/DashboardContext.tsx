@@ -892,7 +892,7 @@ const initialVouchers: Voucher[] = [
 
 const initialBranding: BrandingSettings = {
   businessName: "HotspotPro",
-  brandColor: "#2563eb",
+  brandColor: "#1a1a1a",
   supportNumber: "233241948202",
   secondSupportNumber: "",
   whatsappNumber: "",

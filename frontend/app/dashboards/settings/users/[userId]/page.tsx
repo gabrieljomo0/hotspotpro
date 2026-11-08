@@ -46,10 +46,10 @@ export default function ViewSystemUserPage({
         {rows.map(([label, value]) => (
           <div
             key={label}
-            className="flex items-center justify-between gap-4 rounded-xl border border-[#f1f5f9] px-4 py-3"
+            className="flex items-center justify-between gap-4 rounded-xl border border-[#f4f4f4] px-4 py-3"
           >
-            <span className="text-sm text-[#64748b]">{label}</span>
-            <span className="text-sm font-semibold text-[#0f172a]">{value}</span>
+            <span className="text-sm text-[#737373]">{label}</span>
+            <span className="text-sm font-semibold text-[#1a1a1a]">{value}</span>
           </div>
         ))}
       </div>
@@ -59,13 +59,13 @@ export default function ViewSystemUserPage({
           type="button"
           data-testid="user-edit"
           onClick={() => setEditing(true)}
-          className="rounded-xl bg-[#2563eb] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+          className="rounded-xl bg-[#1a1a1a] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#111111]"
         >
           Edit User
         </button>
         <Link
           href="/dashboards/settings/users/access-roles"
-          className="rounded-xl border border-[#e2e8f0] bg-white px-5 py-2.5 text-sm font-bold text-[#475569] hover:bg-[#ffffff]"
+          className="rounded-xl border border-[#e6e6e6] bg-white px-5 py-2.5 text-sm font-bold text-[#525252] hover:bg-[#ffffff]"
         >
           View Access Roles
         </Link>

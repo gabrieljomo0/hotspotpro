@@ -32,7 +32,7 @@ export function StatisticsGrid() {
         const Icon = statistic.icon;
 
         const cardClass =
-          "min-h-[150px] rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg  ";
+          "min-h-[150px] rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg  ";
 
         const content = (
           <div className="flex items-center gap-4">
@@ -43,7 +43,7 @@ export function StatisticsGrid() {
             </div>
 
             <div className="min-w-0">
-              <p className="text-sm font-medium text-[#64748b] ">
+              <p className="text-sm font-medium text-[#737373] ">
                 {statistic.title}
               </p>
 
@@ -54,9 +54,9 @@ export function StatisticsGrid() {
               <p
                 className={`mt-3 text-xs ${
                   statistic.isNeutral
-                    ? "text-[#64748b] "
+                    ? "text-[#737373] "
                     : statistic.href
-                      ? "font-medium text-[#2563eb] "
+                      ? "font-medium text-[#1a1a1a] "
                       : "font-medium text-emerald-600 "
                 }`}
               >

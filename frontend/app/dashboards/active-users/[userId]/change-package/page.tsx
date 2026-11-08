@@ -54,8 +54,8 @@ export default function ChangePackagePage({
             onClick={() => setSelected(option)}
             className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left text-sm font-semibold transition ${
               selected === option
-                ? "border-[#2563eb] bg-[#f1f5f9] text-[#2563eb]"
-                : "border-[#e2e8f0] text-[#475569] hover:bg-[#ffffff]"
+                ? "border-[#1a1a1a] bg-[#f4f4f4] text-[#1a1a1a]"
+                : "border-[#e6e6e6] text-[#525252] hover:bg-[#ffffff]"
             }`}
           >
             {option}
@@ -68,7 +68,7 @@ export default function ChangePackagePage({
         type="button"
         disabled={selected === user.package}
         onClick={handleConfirm}
-        className="mt-6 w-full rounded-xl bg-[#2563eb] px-5 py-3 text-sm font-semibold text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+        className="mt-6 w-full rounded-xl bg-[#1a1a1a] px-5 py-3 text-sm font-semibold text-white hover:bg-[#111111] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
       >
         Confirm Change
       </button>

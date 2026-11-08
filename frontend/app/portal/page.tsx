@@ -118,27 +118,27 @@ const paymentNetworks: Record<
     id: "mtn",
     name: "MTN Mobile Money",
     shortName: "MTN",
-    badgeClass: "bg-[#ffcc00] text-[#0f172a]",
-    borderClass: "border-[#bfdbfe]",
-    backgroundClass: "bg-[#f1f5f9]",
+    badgeClass: "bg-[#1a1a1a] text-[#1a1a1a]",
+    borderClass: "border-[#f3f1ec]",
+    backgroundClass: "bg-[#f4f4f4]",
   },
 
   telecel: {
     id: "telecel",
     name: "Telecel Cash",
     shortName: "TC",
-    badgeClass: "bg-red-600 text-[#0f172a]",
+    badgeClass: "bg-red-600 text-[#1a1a1a]",
     borderClass: "border-red-200",
-    backgroundClass: "bg-[#fff4f4]",
+    backgroundClass: "bg-[#f3f1ec]",
   },
 
   "at-money": {
     id: "at-money",
     name: "AT Money",
     shortName: "AT",
-    badgeClass: "bg-[#fff7ed]0 text-[#0f172a]",
+    badgeClass: "bg-[#f3f1ec]0 text-[#1a1a1a]",
     borderClass: "border-amber-200",
-    backgroundClass: "bg-[#fff7ed]",
+    backgroundClass: "bg-[#f3f1ec]",
   },
 
   unknown: {
@@ -342,25 +342,25 @@ function HomePortal({
       <BrandHeader />
 
       <div className="mt-6 text-center">
-        <h2 className="text-2xl font-black text-[#0f172a]">
+        <h2 className="text-2xl font-black text-[#1a1a1a]">
           Welcome!
         </h2>
 
-        <p className="mt-2 text-sm leading-6 text-[#64748b]">
+        <p className="mt-2 text-sm leading-6 text-[#737373]">
           Enter your voucher or buy internet
           access online.
         </p>
       </div>
 
       {connectedFromVoucher && (
-        <div className="mt-5 rounded-xl border border-[#a7f3d0] bg-[#ecfdf5] p-4 text-center">
-          <CheckCircle2 className="mx-auto text-[#059669]" />
+        <div className="mt-5 rounded-xl border border-[#f3f1ec] bg-[#f3f1ec] p-4 text-center">
+          <CheckCircle2 className="mx-auto text-[#1a1a1a]" />
 
-          <p className="mt-2 font-bold text-[#047857]">
+          <p className="mt-2 font-bold text-[#111111]">
             Internet connected
           </p>
 
-          <p className="mt-1 text-xs text-[#059669]">
+          <p className="mt-1 text-xs text-[#1a1a1a]">
             Your voucher has been accepted.
           </p>
         </div>
@@ -368,19 +368,19 @@ function HomePortal({
 
       <form
         onSubmit={onVoucherLogin}
-        className="mt-6 rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_10px_30px_rgba(37,99,235,0.06)]"
+        className="mt-6 rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_10px_30px_rgba(26,26,26,0.06)]"
       >
         <div className="mb-5 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#f1f5f9] text-[#2563eb]">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#f4f4f4] text-[#1a1a1a]">
             <Ticket size={22} />
           </div>
 
           <div>
-            <h3 className="font-black text-[#0f172a]">
+            <h3 className="font-black text-[#1a1a1a]">
               Use Voucher
             </h3>
 
-            <p className="text-xs text-[#64748b]">
+            <p className="text-xs text-[#737373]">
               Enter the voucher code. Add a password only if it has one.
             </p>
           </div>
@@ -412,7 +412,7 @@ function HomePortal({
                 type="button"
                 onClick={onTogglePassword}
                 aria-label="Show or hide password"
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#94a3b8] hover:text-[#0f172a]"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a3a3a3] hover:text-[#1a1a1a]"
               >
                 {showPassword ? (
                   <EyeOff size={19} />
@@ -425,7 +425,7 @@ function HomePortal({
         </div>
 
         {error && (
-          <p className="mt-4 rounded-lg border border-red-200 bg-[#fff4f4] p-3 text-sm text-[#dc2626]">
+          <p className="mt-4 rounded-lg border border-red-200 bg-[#f3f1ec] p-3 text-sm text-[#1a1a1a]">
             {error}
           </p>
         )}
@@ -440,7 +440,7 @@ function HomePortal({
         <div className="my-5 flex items-center gap-3">
           <div className="h-px flex-1 bg-slate-200" />
 
-          <span className="text-xs font-bold text-[#94a3b8]">
+          <span className="text-xs font-bold text-[#a3a3a3]">
             OR
           </span>
 
@@ -450,46 +450,46 @@ function HomePortal({
         <button
           type="button"
           onClick={onOpenBuy}
-          className="flex w-full items-center gap-4 rounded-xl border border-[#bfdbfe] bg-[#f1f5f9] p-4 text-left transition hover:border-[#f4b400] hover:bg-[#f1f5f9]"
+          className="flex w-full items-center gap-4 rounded-xl border border-[#f3f1ec] bg-[#f4f4f4] p-4 text-left transition hover:border-[#1a1a1a] hover:bg-[#f4f4f4]"
         >
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#2563eb] text-white">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#1a1a1a] text-white">
             <ShoppingCart size={23} />
           </div>
 
           <div className="min-w-0 flex-1">
-            <p className="font-black text-[#0f172a]">
+            <p className="font-black text-[#1a1a1a]">
               Buy Online Voucher
             </p>
 
-            <p className="mt-1 text-xs leading-5 text-[#64748b]">
+            <p className="mt-1 text-xs leading-5 text-[#737373]">
               Select a package and pay with Mobile
               Money
             </p>
           </div>
 
-          <ChevronRight className="text-[#2563eb]" />
+          <ChevronRight className="text-[#1a1a1a]" />
         </button>
 
         <button
           type="button"
           onClick={onOpenReseller}
-          className="mt-3 flex w-full items-center gap-4 rounded-xl border border-[#a7f3d0] bg-[#ecfdf5] p-4 text-left transition hover:border-emerald-500 hover:bg-emerald-100"
+          className="mt-3 flex w-full items-center gap-4 rounded-xl border border-[#f3f1ec] bg-[#f3f1ec] p-4 text-left transition hover:border-emerald-500 hover:bg-emerald-100"
         >
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-[#0f172a]">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-[#1a1a1a]">
             <UsersRound size={23} />
           </div>
 
           <div className="min-w-0 flex-1">
-            <p className="font-black text-[#0f172a]">
+            <p className="font-black text-[#1a1a1a]">
               Apply for Reseller / Agent
             </p>
 
-            <p className="mt-1 text-xs leading-5 text-[#64748b]">
+            <p className="mt-1 text-xs leading-5 text-[#737373]">
               Join the network and start earning
             </p>
           </div>
 
-          <ChevronRight className="text-[#047857]" />
+          <ChevronRight className="text-[#111111]" />
         </button>
       </form>
     </div>
@@ -543,7 +543,7 @@ function BuyForm({
   return (
     <div>
       <section>
-        <p className="mb-3 text-sm font-black text-[#0f172a]">
+        <p className="mb-3 text-sm font-black text-[#1a1a1a]">
           1. Choose a package
         </p>
 
@@ -561,33 +561,33 @@ function BuyForm({
                 }
                 className={`flex w-full items-center gap-3 rounded-xl border p-3.5 text-left transition ${
                   selected
-                    ? "border-[#f4b400] bg-[#f1f5f9] ring-2 ring-amber-100"
-                    : "border-[#e2e8f0] bg-white hover:border-[#60a5fa]"
+                    ? "border-[#1a1a1a] bg-[#f4f4f4] ring-2 ring-amber-100"
+                    : "border-[#e6e6e6] bg-white hover:border-[#1a1a1a]"
                 }`}
               >
                 <span
                   className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
                     selected
-                      ? "border-[#f4b400]"
-                      : "border-[#cbd5e1]"
+                      ? "border-[#1a1a1a]"
+                      : "border-[#d4d4d4]"
                   }`}
                 >
                   {selected && (
-                    <span className="h-2.5 w-2.5 rounded-full bg-[#f4b400]" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-[#1a1a1a]" />
                   )}
                 </span>
 
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-black text-[#0f172a]">
+                  <p className="text-sm font-black text-[#1a1a1a]">
                     {plan.name}
                   </p>
 
-                  <p className="mt-1 text-xs text-[#64748b]">
+                  <p className="mt-1 text-xs text-[#737373]">
                     {plan.speed} · {plan.validity}
                   </p>
                 </div>
 
-                <p className="text-sm font-black text-[#1d4ed8]">
+                <p className="text-sm font-black text-[#111111]">
                   {formatMoney(plan.price)}
                 </p>
               </button>
@@ -596,8 +596,8 @@ function BuyForm({
         </div>
       </section>
 
-      <section className="mt-6 border-t border-[#e2e8f0] pt-5">
-        <p className="mb-3 text-sm font-black text-[#0f172a]">
+      <section className="mt-6 border-t border-[#e6e6e6] pt-5">
+        <p className="mb-3 text-sm font-black text-[#1a1a1a]">
           2. Who is this package for?
         </p>
 
@@ -609,24 +609,24 @@ function BuyForm({
             }
             className={`rounded-xl border p-3.5 text-left transition ${
               buyerType === "self"
-                ? "border-[#f4b400] bg-[#f1f5f9]"
-                : "border-[#e2e8f0]"
+                ? "border-[#1a1a1a] bg-[#f4f4f4]"
+                : "border-[#e6e6e6]"
             }`}
           >
             <UserRound
               size={20}
               className={
                 buyerType === "self"
-                  ? "text-[#2563eb]"
-                  : "text-[#64748b]"
+                  ? "text-[#1a1a1a]"
+                  : "text-[#737373]"
               }
             />
 
-            <p className="mt-2 text-sm font-black text-[#0f172a]">
+            <p className="mt-2 text-sm font-black text-[#1a1a1a]">
               Myself
             </p>
 
-            <p className="mt-1 text-[11px] leading-4 text-[#64748b]">
+            <p className="mt-1 text-[11px] leading-4 text-[#737373]">
               Connect this device
             </p>
           </button>
@@ -638,24 +638,24 @@ function BuyForm({
             }
             className={`rounded-xl border p-3.5 text-left transition ${
               buyerType === "other"
-                ? "border-[#f4b400] bg-[#f1f5f9]"
-                : "border-[#e2e8f0]"
+                ? "border-[#1a1a1a] bg-[#f4f4f4]"
+                : "border-[#e6e6e6]"
             }`}
           >
             <UsersRound
               size={20}
               className={
                 buyerType === "other"
-                  ? "text-[#2563eb]"
-                  : "text-[#64748b]"
+                  ? "text-[#1a1a1a]"
+                  : "text-[#737373]"
               }
             />
 
-            <p className="mt-2 text-sm font-black text-[#0f172a]">
+            <p className="mt-2 text-sm font-black text-[#1a1a1a]">
               Someone Else
             </p>
 
-            <p className="mt-1 text-[11px] leading-4 text-[#64748b]">
+            <p className="mt-1 text-[11px] leading-4 text-[#737373]">
               Send voucher by SMS
             </p>
           </button>
@@ -669,24 +669,24 @@ function BuyForm({
               }
               className={`rounded-xl border p-3.5 text-left transition ${
                 buyerType === "device"
-                  ? "border-[#f4b400] bg-[#f1f5f9]"
-                  : "border-[#e2e8f0]"
+                  ? "border-[#1a1a1a] bg-[#f4f4f4]"
+                  : "border-[#e6e6e6]"
               }`}
             >
               <Tv
                 size={20}
                 className={
                   buyerType === "device"
-                    ? "text-[#2563eb]"
-                    : "text-[#64748b]"
+                    ? "text-[#1a1a1a]"
+                    : "text-[#737373]"
                 }
               />
 
-              <p className="mt-2 text-sm font-black text-[#0f172a]">
+              <p className="mt-2 text-sm font-black text-[#1a1a1a]">
                 TV / Device
               </p>
 
-              <p className="mt-1 text-[11px] leading-4 text-[#64748b]">
+              <p className="mt-1 text-[11px] leading-4 text-[#737373]">
                 Connect a TV or other device
               </p>
             </button>
@@ -703,7 +703,7 @@ function BuyForm({
               required
               onChange={onDeviceMacChange}
             />
-            <p className="mt-1.5 text-[11px] text-[#64748b]">
+            <p className="mt-1.5 text-[11px] text-[#737373]">
               Find it in the TV or device&apos;s network settings.
             </p>
           </div>
@@ -731,20 +731,20 @@ function BuyForm({
         )}
       </section>
 
-      <section className="mt-6 border-t border-[#e2e8f0] pt-5">
-        <p className="mb-3 text-sm font-black text-[#0f172a]">
+      <section className="mt-6 border-t border-[#e6e6e6] pt-5">
+        <p className="mb-3 text-sm font-black text-[#1a1a1a]">
           3. Enter payment number
         </p>
 
         <label className="block">
-          <span className="mb-2 block text-sm font-bold text-[#0f172a]">
+          <span className="mb-2 block text-sm font-bold text-[#1a1a1a]">
             Mobile Money number
           </span>
 
           <div className="relative">
             <Smartphone
               size={18}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-[#94a3b8]"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-[#a3a3a3]"
             />
 
             <input
@@ -762,10 +762,10 @@ function BuyForm({
                   ),
                 )
               }
-              className={`w-full rounded-xl border bg-white py-3.5 pl-12 text-base text-[#0f172a] outline-none transition placeholder:text-[#94a3b8] focus:ring-4 focus:ring-blue-100 ${
+              className={`w-full rounded-xl border bg-white py-3.5 pl-12 text-base text-[#1a1a1a] outline-none transition placeholder:text-[#a3a3a3] focus:ring-4 focus:ring-blue-100 ${
                 networkDetected
-                  ? "border-[#f4b400] pr-36"
-                  : "border-[#cbd5e1] pr-4 focus:border-[#2563eb]"
+                  ? "border-[#1a1a1a] pr-36"
+                  : "border-[#d4d4d4] pr-4 focus:border-[#1a1a1a]"
               }`}
             />
 
@@ -780,7 +780,7 @@ function BuyForm({
                     {detectedPaymentNetwork.shortName}
                   </span>
 
-                  <span className="max-w-[82px] truncate text-[11px] font-black text-[#0f172a]">
+                  <span className="max-w-[82px] truncate text-[11px] font-black text-[#1a1a1a]">
                     {detectedPaymentNetwork.name}
                   </span>
                 </div>
@@ -790,23 +790,23 @@ function BuyForm({
         </label>
       </section>
 
-      <section className="mt-5 rounded-xl border border-[#e2e8f0] bg-[#ffffff] p-4">
+      <section className="mt-5 rounded-xl border border-[#e6e6e6] bg-[#ffffff] p-4">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-[#64748b]">
+          <span className="text-[#737373]">
             Package
           </span>
 
-          <span className="font-black text-[#0f172a]">
+          <span className="font-black text-[#1a1a1a]">
             {selectedPackage?.name}
           </span>
         </div>
 
         <div className="mt-3 flex items-center justify-between text-sm">
-          <span className="text-[#64748b]">
+          <span className="text-[#737373]">
             Recipient
           </span>
 
-          <span className="font-black text-[#0f172a]">
+          <span className="font-black text-[#1a1a1a]">
             {buyerType === "self"
               ? "This device"
               : buyerType === "device"
@@ -819,35 +819,35 @@ function BuyForm({
 
         {networkDetected && (
           <div className="mt-3 flex items-center justify-between text-sm">
-            <span className="text-[#64748b]">
+            <span className="text-[#737373]">
               Payment network
             </span>
 
-            <span className="font-black text-[#0f172a]">
+            <span className="font-black text-[#1a1a1a]">
               {detectedPaymentNetwork.name}
             </span>
           </div>
         )}
 
         <div className="mt-3 flex items-center justify-between text-sm">
-          <span className="text-[#64748b]">
+          <span className="text-[#737373]">
             Payment number
           </span>
 
-          <span className="font-black text-[#0f172a]">
+          <span className="font-black text-[#1a1a1a]">
             {displayPhoneNumber(
               paymentPhone,
             ) || "Not entered"}
           </span>
         </div>
 
-        <div className="mt-4 border-t border-[#e2e8f0] pt-4">
+        <div className="mt-4 border-t border-[#e6e6e6] pt-4">
           <div className="flex items-center justify-between">
-            <span className="font-black text-[#0f172a]">
+            <span className="font-black text-[#1a1a1a]">
               Total amount
             </span>
 
-            <span className="text-xl font-black text-[#1d4ed8]">
+            <span className="text-xl font-black text-[#111111]">
               {selectedPackage
                 ? formatMoney(
                     selectedPackage.price,
@@ -859,7 +859,7 @@ function BuyForm({
       </section>
 
       {error && (
-        <p className="mt-4 rounded-xl border border-red-200 bg-[#fff4f4] p-3 text-sm text-[#dc2626]">
+        <p className="mt-4 rounded-xl border border-red-200 bg-[#f3f1ec] p-3 text-sm text-[#1a1a1a]">
           {error}
         </p>
       )}
@@ -878,7 +878,7 @@ function BuyForm({
         </PrimaryButton>
       </div>
 
-      <p className="mt-4 flex items-center justify-center gap-2 text-center text-xs leading-5 text-[#64748b]">
+      <p className="mt-4 flex items-center justify-center gap-2 text-center text-xs leading-5 text-[#737373]">
         <KeyRound size={14} />
         Approve the secure payment prompt on your
         phone.
@@ -930,28 +930,28 @@ function ProcessingContent({
   return (
     <div className="py-5 text-center">
       <div className="relative mx-auto flex h-28 w-28 items-center justify-center">
-        <div className="absolute inset-0 rounded-full border-[9px] border-[#f1f5f9]" />
+        <div className="absolute inset-0 rounded-full border-[9px] border-[#f4f4f4]" />
 
-        <div className="absolute inset-0 animate-spin rounded-full border-[9px] border-transparent border-r-[#2563eb] border-t-[#2563eb]" />
+        <div className="absolute inset-0 animate-spin rounded-full border-[9px] border-transparent border-r-[#1a1a1a] border-t-[#1a1a1a]" />
 
         {paymentStage === "waiting" ? (
           <Smartphone
             size={36}
-            className="text-[#0f172a]"
+            className="text-[#1a1a1a]"
           />
         ) : (
           <LoaderCircle
             size={38}
-            className="text-[#0f172a]"
+            className="text-[#1a1a1a]"
           />
         )}
       </div>
 
-      <h3 className="mt-6 text-xl font-black text-[#0f172a]">
+      <h3 className="mt-6 text-xl font-black text-[#1a1a1a]">
         {content.title}
       </h3>
 
-      <p className="mx-auto mt-3 max-w-xs text-sm leading-6 text-[#64748b]">
+      <p className="mx-auto mt-3 max-w-xs text-sm leading-6 text-[#737373]">
         {content.description}
       </p>
 
@@ -964,38 +964,38 @@ function ProcessingContent({
           {paymentNetwork.shortName}
         </span>
 
-        <span className="text-xs font-bold text-[#0f172a]">
+        <span className="text-xs font-bold text-[#1a1a1a]">
           {paymentNetwork.name}
         </span>
       </div>
 
-      <div className="mt-6 rounded-xl border border-[#e2e8f0] bg-[#ffffff] p-4 text-left">
+      <div className="mt-6 rounded-xl border border-[#e6e6e6] bg-[#ffffff] p-4 text-left">
         <div className="flex justify-between text-sm">
-          <span className="text-[#64748b]">
+          <span className="text-[#737373]">
             Package
           </span>
 
-          <span className="font-black text-[#0f172a]">
+          <span className="font-black text-[#1a1a1a]">
             {selectedPackage?.name}
           </span>
         </div>
 
         <div className="mt-3 flex justify-between text-sm">
-          <span className="text-[#64748b]">
+          <span className="text-[#737373]">
             Network
           </span>
 
-          <span className="font-black text-[#0f172a]">
+          <span className="font-black text-[#1a1a1a]">
             {paymentNetwork.name}
           </span>
         </div>
 
         <div className="mt-3 flex justify-between text-sm">
-          <span className="text-[#64748b]">
+          <span className="text-[#737373]">
             Number
           </span>
 
-          <span className="font-black text-[#0f172a]">
+          <span className="font-black text-[#1a1a1a]">
             {displayPhoneNumber(
               paymentPhone,
             )}
@@ -1003,11 +1003,11 @@ function ProcessingContent({
         </div>
 
         <div className="mt-3 flex justify-between text-sm">
-          <span className="text-[#64748b]">
+          <span className="text-[#737373]">
             Amount
           </span>
 
-          <span className="font-black text-[#0f172a]">
+          <span className="font-black text-[#1a1a1a]">
             {selectedPackage
               ? formatMoney(
                   selectedPackage.price,
@@ -1017,17 +1017,17 @@ function ProcessingContent({
         </div>
 
         <div className="mt-3 flex justify-between text-sm">
-          <span className="text-[#64748b]">
+          <span className="text-[#737373]">
             Time
           </span>
 
-          <span className="font-black text-[#0f172a]">
+          <span className="font-black text-[#1a1a1a]">
             {elapsedSeconds}s
           </span>
         </div>
       </div>
 
-      <div className="mt-5 rounded-xl border border-[#e2e8f0] bg-[#f1f5f9] p-4 text-sm leading-6 text-[#1e3a8a]">
+      <div className="mt-5 rounded-xl border border-[#e6e6e6] bg-[#f4f4f4] p-4 text-sm leading-6 text-[#111111]">
         Do not close this popup. Approve the
         payment request on your phone.
       </div>
@@ -1035,9 +1035,9 @@ function ProcessingContent({
       {onSandbox && (
         <div
           data-testid="sandbox-box"
-          className="mt-4 rounded-xl border border-[#e2e8f0] bg-white p-4 text-left"
+          className="mt-4 rounded-xl border border-[#e6e6e6] bg-white p-4 text-left"
         >
-          <p className="text-xs font-bold text-[#475569]">
+          <p className="text-xs font-bold text-[#525252]">
             Test mode — no real money is taken
           </p>
           <div className="mt-3 flex gap-2">
@@ -1045,7 +1045,7 @@ function ProcessingContent({
               type="button"
               data-testid="sandbox-approve"
               onClick={() => onSandbox("pay")}
-              className="flex-1 rounded-lg bg-[#2563eb] px-3 py-2 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+              className="flex-1 rounded-lg bg-[#1a1a1a] px-3 py-2 text-sm font-bold text-white hover:bg-[#111111]"
             >
               Approve payment
             </button>
@@ -1053,7 +1053,7 @@ function ProcessingContent({
               type="button"
               data-testid="sandbox-decline"
               onClick={() => onSandbox("fail")}
-              className="flex-1 rounded-lg border border-[#cbd5e1] bg-white px-3 py-2 text-sm font-bold text-[#475569] hover:bg-[#f1f5f9]"
+              className="flex-1 rounded-lg border border-[#d4d4d4] bg-white px-3 py-2 text-sm font-bold text-[#525252] hover:bg-[#f4f4f4]"
             >
               Decline
             </button>
@@ -1102,87 +1102,87 @@ function ConnectedContent({
 
   return (
     <div className="text-center">
-      <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-emerald-100 text-[#059669]">
+      <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-emerald-100 text-[#1a1a1a]">
         <Wifi
           size={49}
           strokeWidth={3}
         />
       </div>
 
-      <h3 className="mt-5 text-2xl font-black text-[#0f172a]">
+      <h3 className="mt-5 text-2xl font-black text-[#1a1a1a]">
         {deviceMac ? "Device Connected!" : "You\u2019re Connected!"}
       </h3>
 
-      <p className="mt-2 text-sm text-[#64748b]" data-testid="portal-connected-note">
+      <p className="mt-2 text-sm text-[#737373]" data-testid="portal-connected-note">
         {deviceMac
           ? `Your package is active on ${deviceMac.toUpperCase()}.`
           : "Your internet package is active."}
       </p>
 
-      <div className="mt-6 rounded-xl border border-[#e2e8f0] bg-white p-4 text-left">
-        <div className="flex justify-between border-b border-[#f1f5f9] py-3 text-sm">
-          <span className="text-[#64748b]">
+      <div className="mt-6 rounded-xl border border-[#e6e6e6] bg-white p-4 text-left">
+        <div className="flex justify-between border-b border-[#f4f4f4] py-3 text-sm">
+          <span className="text-[#737373]">
             Status
           </span>
 
-          <span className="flex items-center gap-2 font-black text-[#059669]">
-            <span className="h-2 w-2 rounded-full bg-[#ecfdf5]0" />
+          <span className="flex items-center gap-2 font-black text-[#1a1a1a]">
+            <span className="h-2 w-2 rounded-full bg-[#f3f1ec]0" />
             Connected
           </span>
         </div>
 
-        <div className="flex justify-between border-b border-[#f1f5f9] py-3 text-sm">
-          <span className="text-[#64748b]">
+        <div className="flex justify-between border-b border-[#f4f4f4] py-3 text-sm">
+          <span className="text-[#737373]">
             Package
           </span>
 
-          <span className="font-black text-[#0f172a]">
+          <span className="font-black text-[#1a1a1a]">
             {selectedPackage?.name}
           </span>
         </div>
 
-        <div className="flex justify-between border-b border-[#f1f5f9] py-3 text-sm">
-          <span className="text-[#64748b]">
+        <div className="flex justify-between border-b border-[#f4f4f4] py-3 text-sm">
+          <span className="text-[#737373]">
             Speed
           </span>
 
-          <span className="font-black text-[#0f172a]">
+          <span className="font-black text-[#1a1a1a]">
             Up to {selectedPackage?.speed}
           </span>
         </div>
 
-        <div className="flex justify-between border-b border-[#f1f5f9] py-3 text-sm">
-          <span className="text-[#64748b]">
+        <div className="flex justify-between border-b border-[#f4f4f4] py-3 text-sm">
+          <span className="text-[#737373]">
             Valid until
           </span>
 
-          <span className="max-w-[190px] text-right font-black text-[#0f172a]">
+          <span className="max-w-[190px] text-right font-black text-[#1a1a1a]">
             {expiry}
           </span>
         </div>
 
-        <div className="flex justify-between border-b border-[#f1f5f9] py-3 text-sm">
-          <span className="text-[#64748b]">
+        <div className="flex justify-between border-b border-[#f4f4f4] py-3 text-sm">
+          <span className="text-[#737373]">
             Reference
           </span>
 
-          <span className="font-black text-[#0f172a]">
+          <span className="font-black text-[#1a1a1a]">
             {paymentResult?.reference}
           </span>
         </div>
 
         <div className="flex justify-between py-3 text-sm">
-          <span className="text-[#64748b]">
+          <span className="text-[#737373]">
             Session ID
           </span>
 
-          <span className="font-black text-[#0f172a]">
+          <span className="font-black text-[#1a1a1a]">
             {paymentResult?.sessionId}
           </span>
         </div>
       </div>
 
-      <div className="mt-5 rounded-xl border border-[#a7f3d0] bg-[#ecfdf5] p-4 text-sm leading-6 text-[#047857]">
+      <div className="mt-5 rounded-xl border border-[#f3f1ec] bg-[#f3f1ec] p-4 text-sm leading-6 text-[#111111]">
         <CheckCircle2 className="mx-auto mb-2" />
 
         No logout is required. Access ends
@@ -1216,67 +1216,67 @@ function VoucherSentContent({
 }) {
   return (
     <div className="text-center">
-      <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-[#f1f5f9] text-[#2563eb]">
+      <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-[#f4f4f4] text-[#1a1a1a]">
         <MessageSquareText size={46} />
       </div>
 
-      <h3 className="mt-5 text-2xl font-black text-[#0f172a]">
+      <h3 className="mt-5 text-2xl font-black text-[#1a1a1a]">
         Voucher Sent!
       </h3>
 
-      <p className="mt-2 text-sm leading-6 text-[#64748b]">
+      <p className="mt-2 text-sm leading-6 text-[#737373]">
         The voucher details were sent by SMS to:
       </p>
 
-      <p className="mt-2 text-xl font-black text-[#1d4ed8]">
+      <p className="mt-2 text-xl font-black text-[#111111]">
         {displayPhoneNumber(
           recipientPhone,
         )}
       </p>
 
-      <div className="mt-6 rounded-xl border border-[#e2e8f0] bg-white p-4 text-left">
-        <div className="flex justify-between border-b border-[#f1f5f9] py-3 text-sm">
-          <span className="text-[#64748b]">
+      <div className="mt-6 rounded-xl border border-[#e6e6e6] bg-white p-4 text-left">
+        <div className="flex justify-between border-b border-[#f4f4f4] py-3 text-sm">
+          <span className="text-[#737373]">
             Package
           </span>
 
-          <span className="font-black text-[#0f172a]">
+          <span className="font-black text-[#1a1a1a]">
             {selectedPackage?.name}
           </span>
         </div>
 
-        <div className="flex justify-between border-b border-[#f1f5f9] py-3 text-sm">
-          <span className="text-[#64748b]">
+        <div className="flex justify-between border-b border-[#f4f4f4] py-3 text-sm">
+          <span className="text-[#737373]">
             Username
           </span>
 
-          <span className="font-black text-[#0f172a]">
+          <span className="font-black text-[#1a1a1a]">
             {paymentResult?.voucherUsername}
           </span>
         </div>
 
-        <div className="flex justify-between border-b border-[#f1f5f9] py-3 text-sm">
-          <span className="text-[#64748b]">
+        <div className="flex justify-between border-b border-[#f4f4f4] py-3 text-sm">
+          <span className="text-[#737373]">
             Password
           </span>
 
-          <span className="font-black text-[#0f172a]">
+          <span className="font-black text-[#1a1a1a]">
             {paymentResult?.voucherPassword}
           </span>
         </div>
 
         <div className="flex justify-between py-3 text-sm">
-          <span className="text-[#64748b]">
+          <span className="text-[#737373]">
             Reference
           </span>
 
-          <span className="font-black text-[#0f172a]">
+          <span className="font-black text-[#1a1a1a]">
             {paymentResult?.reference}
           </span>
         </div>
       </div>
 
-      <div className="mt-5 rounded-xl border border-[#e2e8f0] bg-[#f1f5f9] p-4 text-sm leading-6 text-[#1e3a8a]">
+      <div className="mt-5 rounded-xl border border-[#e6e6e6] bg-[#f4f4f4] p-4 text-sm leading-6 text-[#111111]">
         The recipient can enter the username and
         password on the portal to connect.
       </div>
@@ -1320,15 +1320,15 @@ function ResellerApplication({
   if (submitted) {
     return (
       <div className="py-8 text-center">
-        <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-emerald-100 text-[#047857]">
+        <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-emerald-100 text-[#111111]">
           <Send size={43} />
         </div>
 
-        <h3 className="mt-5 text-2xl font-black text-[#0f172a]">
+        <h3 className="mt-5 text-2xl font-black text-[#1a1a1a]">
           Application Submitted
         </h3>
 
-        <p className="mt-3 text-sm leading-6 text-[#64748b]">
+        <p className="mt-3 text-sm leading-6 text-[#737373]">
           Your reseller application has been
           received. Our team will contact you after
           reviewing it.
@@ -1385,7 +1385,7 @@ function ResellerApplication({
           <button
             type="button"
             onClick={() => setShowPassword((current) => !current)}
-            className="text-[#94a3b8]"
+            className="text-[#a3a3a3]"
           >
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
@@ -1410,14 +1410,14 @@ function ResellerApplication({
         }
       />
 
-      <label className="flex items-center gap-2 text-xs text-[#64748b]">
+      <label className="flex items-center gap-2 text-xs text-[#737373]">
         <input
           type="checkbox"
           checked={form.whatsapp === form.phone && form.phone !== ""}
           onChange={(event) =>
             onChange("whatsapp", event.target.checked ? form.phone : "")
           }
-          className="h-4 w-4 rounded border-[#e2e8f0] accent-[#2563eb]"
+          className="h-4 w-4 rounded border-[#e6e6e6] accent-[#1a1a1a]"
         />
         My WhatsApp number is the same as my phone number
       </label>
@@ -1492,7 +1492,7 @@ function ResellerApplication({
       />
 
       {error && (
-        <p className="rounded-xl border border-red-200 bg-[#fff4f4] p-3 text-sm text-[#dc2626]">
+        <p className="rounded-xl border border-red-200 bg-[#f3f1ec] p-3 text-sm text-[#1a1a1a]">
           {error}
         </p>
       )}
@@ -2144,8 +2144,8 @@ function CaptivePortalPageInner() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f1f5f9] px-3 py-4 text-[#0f172a] sm:py-8">
-      <div className="mx-auto w-full max-w-md overflow-hidden rounded-[28px] border border-[#e2e8f0] bg-white shadow-[0_20px_60px_rgba(37,99,235,0.12)]">
+    <main className="min-h-screen bg-[#f4f4f4] px-3 py-4 text-[#1a1a1a] sm:py-8">
+      <div className="mx-auto w-full max-w-md overflow-hidden rounded-[28px] border border-[#e6e6e6] bg-white shadow-[0_20px_60px_rgba(26,26,26,0.12)]">
         <PortalHeader />
 
         <div className="p-5 sm:p-6">
@@ -2185,7 +2185,7 @@ function CaptivePortalPageInner() {
         </div>
       </div>
 
-      <p className="mx-auto mt-5 max-w-md text-center text-xs text-[#64748b]">
+      <p className="mx-auto mt-5 max-w-md text-center text-xs text-[#737373]">
         Powered by HotspotPro Billing
         System
       </p>
@@ -2362,8 +2362,8 @@ export default function CaptivePortalPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-[#f1f5f9]">
-          <Loader2 className="h-9 w-9 animate-spin text-[#2563eb]" />
+        <div className="flex min-h-screen items-center justify-center bg-[#f4f4f4]">
+          <Loader2 className="h-9 w-9 animate-spin text-[#1a1a1a]" />
         </div>
       }
     >

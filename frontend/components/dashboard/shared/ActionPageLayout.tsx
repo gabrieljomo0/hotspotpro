@@ -25,7 +25,7 @@ function BackButton({
     <button
       type="button"
       onClick={handleBack}
-      className="mb-5 inline-flex items-center gap-2 rounded-xl border border-[#e2e8f0] bg-white px-4 py-2.5 text-sm font-semibold text-[#475569] hover:bg-[#ffffff] print:hidden"
+      className="mb-5 inline-flex items-center gap-2 rounded-xl border border-[#e6e6e6] bg-white px-4 py-2.5 text-sm font-semibold text-[#525252] hover:bg-[#ffffff] print:hidden"
     >
       <ArrowLeft size={16} />
       {backLabel}
@@ -54,12 +54,12 @@ export function ActionPageLayout({
     <div className={`mx-auto w-full ${wide ? "max-w-5xl" : "max-w-2xl"}`}>
       <BackButton backHref={backHref} backLabel={backLabel} />
 
-      <section className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
-        <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#2563eb]">
+      <section className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#1a1a1a]">
           {eyebrow}
         </p>
-        <h1 className="mt-2 text-2xl font-black text-[#0f172a]">{title}</h1>
-        {subtitle && <p className="mt-2 text-sm text-[#64748b]">{subtitle}</p>}
+        <h1 className="mt-2 text-2xl font-black text-[#1a1a1a]">{title}</h1>
+        {subtitle && <p className="mt-2 text-sm text-[#737373]">{subtitle}</p>}
 
         <div className="mt-6">{children}</div>
       </section>
@@ -78,9 +78,9 @@ export function NotFoundCard({
     <div className="mx-auto w-full max-w-2xl">
       <BackButton backHref={backHref} backLabel="Back" />
 
-      <section className="rounded-2xl border border-[#e2e8f0] bg-white p-8 text-center shadow-sm">
-        <p className="text-lg font-bold text-[#0f172a]">Not found</p>
-        <p className="mt-2 text-sm text-[#64748b]">{message}</p>
+      <section className="rounded-2xl border border-[#e6e6e6] bg-white p-8 text-center shadow-sm">
+        <p className="text-lg font-bold text-[#1a1a1a]">Not found</p>
+        <p className="mt-2 text-sm text-[#737373]">{message}</p>
       </section>
     </div>
   );

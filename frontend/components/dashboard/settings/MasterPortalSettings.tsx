@@ -87,30 +87,30 @@ export function MasterPortalSettings({ section }: { section: MasterSection }) {
     <article data-testid={`master-${section}`} className="rounded-2xl bg-white p-6 md:p-8">
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#2563eb] text-white">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#1a1a1a] text-white">
             <Crown size={20} />
           </span>
           <div>
-            <h3 className="text-lg font-bold text-[#0f172a]">{text.title}</h3>
-            <p className="text-sm text-[#64748b]">{text.blurb}</p>
+            <h3 className="text-lg font-bold text-[#1a1a1a]">{text.title}</h3>
+            <p className="text-sm text-[#737373]">{text.blurb}</p>
           </div>
         </div>
         <span
           data-testid={`master-${section}-status`}
-          className={`rounded-md px-2.5 py-1 text-xs font-bold ${savedOn ? "bg-[#16a34a] text-white" : "bg-[#e2e8f0] text-[#475569]"}`}
+          className={`rounded-md px-2.5 py-1 text-xs font-bold ${savedOn ? "bg-[#1a1a1a] text-white" : "bg-[#e6e6e6] text-[#525252]"}`}
         >
           {savedOn ? "ON — overriding routers" : "OFF"}
         </span>
       </div>
 
-      <div className="rounded-xl border border-[#e2e8f0] p-4">
+      <div className="rounded-xl border border-[#e6e6e6] p-4">
         <div className="flex items-center gap-3">
           <span data-testid={`master-${section}-switch`}>
             <Toggle checked={on} onChange={toggle} />
           </span>
-          <span className="text-sm font-bold text-[#0f172a]">Override all routers</span>
+          <span className="text-sm font-bold text-[#1a1a1a]">Override all routers</span>
         </div>
-        <p className="mt-2 text-xs text-[#64748b]">
+        <p className="mt-2 text-xs text-[#737373]">
           When on, the settings below replace what every router has saved on its <strong>{text.tab}</strong> tab, and those tabs become read-only.
           Each router keeps its own values underneath, so turning this off brings them straight back.
         </p>
@@ -118,13 +118,13 @@ export function MasterPortalSettings({ section }: { section: MasterSection }) {
 
       {on && (
         <div className="mt-5 space-y-5">
-          <div className="flex flex-wrap items-center gap-2 rounded-xl bg-[#f1f5f9] p-3">
-            <span className="text-sm font-semibold text-[#475569]">Start from a router:</span>
+          <div className="flex flex-wrap items-center gap-2 rounded-xl bg-[#f4f4f4] p-3">
+            <span className="text-sm font-semibold text-[#525252]">Start from a router:</span>
             <select
               data-testid={`master-${section}-copy`}
               value={copyFrom}
               onChange={(e) => setCopyFrom(e.target.value)}
-              className="h-10 rounded-lg border border-[#cbd5e1] bg-white px-3 text-sm text-[#0f172a] outline-none focus:border-[#2563eb]"
+              className="h-10 rounded-lg border border-[#d4d4d4] bg-white px-3 text-sm text-[#1a1a1a] outline-none focus:border-[#1a1a1a]"
             >
               <option value="">Choose a router…</option>
               {routers.map((r) => (
@@ -137,7 +137,7 @@ export function MasterPortalSettings({ section }: { section: MasterSection }) {
               type="button"
               disabled={!copyFrom}
               onClick={copyFromRouter}
-              className="h-10 rounded-lg border border-[#cbd5e1] bg-white px-3 text-sm font-bold text-[#0f172a] hover:bg-[#e2e8f0] disabled:opacity-50"
+              className="h-10 rounded-lg border border-[#d4d4d4] bg-white px-3 text-sm font-bold text-[#1a1a1a] hover:bg-[#e6e6e6] disabled:opacity-50"
             >
               Copy its settings
             </button>
@@ -145,13 +145,13 @@ export function MasterPortalSettings({ section }: { section: MasterSection }) {
 
           <div className={section === "portal" ? "grid gap-6 lg:grid-cols-[1fr_360px]" : ""}>
             <div className="space-y-5">
-              <nav className="flex flex-wrap gap-2 border-b border-[#f1f5f9] pb-4">
+              <nav className="flex flex-wrap gap-2 border-b border-[#f4f4f4] pb-4">
                 {TABS[section].map((t) => (
                   <button
                     key={t}
                     type="button"
                     onClick={() => setSubTab(t)}
-                    className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${subTab === t ? "bg-[#f1f5f9] text-[#2563eb]" : "text-[#64748b] hover:bg-[#f1f5f9]"}`}
+                    className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${subTab === t ? "bg-[#f4f4f4] text-[#1a1a1a]" : "text-[#737373] hover:bg-[#f4f4f4]"}`}
                   >
                     {t}
                   </button>
@@ -165,7 +165,7 @@ export function MasterPortalSettings({ section }: { section: MasterSection }) {
             </div>
             {section === "portal" && (
               <div className="lg:sticky lg:top-4 lg:self-start">
-                <p className="mb-2 text-center text-xs font-bold uppercase tracking-wide text-[#94a3b8]">Live Preview</p>
+                <p className="mb-2 text-center text-xs font-bold uppercase tracking-wide text-[#a3a3a3]">Live Preview</p>
                 <LivePreview config={draft.config} businessName={businessName} />
               </div>
             )}
@@ -174,12 +174,12 @@ export function MasterPortalSettings({ section }: { section: MasterSection }) {
       )}
 
       <div className="mt-6 flex items-center justify-end gap-3">
-        {dirty && <span data-testid={`master-${section}-dirty`} className="text-xs font-semibold text-[#b45309]">Unsaved changes</span>}
+        {dirty && <span data-testid={`master-${section}-dirty`} className="text-xs font-semibold text-[#111111]">Unsaved changes</span>}
         <button
           type="button"
           data-testid={`master-${section}-save`}
           onClick={save}
-          className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#2563eb] px-6 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+          className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#1a1a1a] px-6 text-sm font-bold text-white hover:bg-[#111111]"
         >
           <Check size={16} /> Save master settings
         </button>

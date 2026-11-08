@@ -76,20 +76,20 @@ export default function AgentPortalPreviewPage() {
 
   return (
     <div>
-      <div className="sticky top-0 z-40 border-b bg-[#e2e8f0] px-4 py-3 text-[#0f172a] shadow-md">
+      <div className="sticky top-0 z-40 border-b bg-[#e6e6e6] px-4 py-3 text-[#1a1a1a] shadow-md">
         <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-sm font-bold">
             <Eye size={16} />
             PREVIEW MODE — this is exactly what a dispatched client will see. No real data, nothing you do here is saved.
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-[#0f172a]">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-[#1a1a1a]">
               <ShieldCheck size={13} />
               {allowedCount}/{totalCount} permissions allowed ({previewAgent.role})
             </span>
             <Link
               href="/dashboards/installers/clients"
-              className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-[#0f172a] hover:bg-slate-100"
+              className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-[#1a1a1a] hover:bg-slate-100"
             >
               <ArrowLeft size={13} />
               Back to Installer Clients

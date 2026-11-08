@@ -107,12 +107,12 @@ export default function EditAccessRolePage({
   function renderCheckbox(perm: { key: string; label: string }) {
     const checked = !!permissions[perm.key];
     return (
-      <label key={perm.key} className="flex cursor-pointer items-center gap-2.5 py-1.5 text-sm text-[#475569]">
+      <label key={perm.key} className="flex cursor-pointer items-center gap-2.5 py-1.5 text-sm text-[#525252]">
         <input
           type="checkbox"
           checked={checked}
           onChange={() => togglePermission(perm.key)}
-          className="h-4 w-4 shrink-0 rounded border-[#e2e8f0] accent-emerald-500"
+          className="h-4 w-4 shrink-0 rounded border-[#e6e6e6] accent-emerald-500"
         />
         {perm.label}
       </label>
@@ -121,44 +121,44 @@ export default function EditAccessRolePage({
 
   return (
     <section className="w-full">
-      <nav className="mb-4 flex items-center gap-1.5 text-sm text-[#64748b]">
-        <Link href="/dashboards/settings/users/access-roles" className="hover:text-[#2563eb]">
+      <nav className="mb-4 flex items-center gap-1.5 text-sm text-[#737373]">
+        <Link href="/dashboards/settings/users/access-roles" className="hover:text-[#1a1a1a]">
           Access Roles
         </Link>
         <ChevronRight size={14} />
-        <span className="font-semibold text-[#0f172a]">Edit</span>
+        <span className="font-semibold text-[#1a1a1a]">Edit</span>
       </nav>
       <h2 className="mb-6 text-3xl font-bold tracking-tight md:text-4xl">Edit Access Role</h2>
 
       <form onSubmit={handleSaveClick} className="space-y-6">
-        <article className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
-          <div className="border-b border-[#e2e8f0] px-6 py-4">
-            <h3 className="text-sm font-bold text-[#0f172a]">Role</h3>
+        <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+          <div className="border-b border-[#e6e6e6] px-6 py-4">
+            <h3 className="text-sm font-bold text-[#1a1a1a]">Role</h3>
           </div>
           <div className="grid gap-5 p-6 sm:grid-cols-2">
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">Name</span>
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">Name</span>
               <input
                 required
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
             </label>
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">Description</span>
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">Description</span>
               <textarea
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 rows={2}
-                className="w-full resize-none rounded-xl border border-[#e2e8f0] bg-white px-3 py-2.5 text-sm outline-none focus:border-[#2563eb]"
+                className="w-full resize-none rounded-xl border border-[#e6e6e6] bg-white px-3 py-2.5 text-sm outline-none focus:border-[#1a1a1a]"
               />
             </label>
           </div>
         </article>
 
-        <article className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
-          <div className="flex flex-wrap gap-1 border-b border-[#e2e8f0] px-4 pt-3">
+        <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+          <div className="flex flex-wrap gap-1 border-b border-[#e6e6e6] px-4 pt-3">
             {ACCESS_PERMISSION_GROUPS.map((group) => (
               <button
                 key={group.key}
@@ -167,7 +167,7 @@ export default function EditAccessRolePage({
                 className={`rounded-t-lg px-3.5 py-2.5 text-sm font-semibold transition ${
                   activeGroupKey === group.key
                     ? "border-b-2 border-emerald-500 text-emerald-600"
-                    : "text-[#64748b] hover:text-[#475569]"
+                    : "text-[#737373] hover:text-[#525252]"
                 }`}
               >
                 {group.label}
@@ -176,10 +176,10 @@ export default function EditAccessRolePage({
           </div>
 
           <div className="p-6">
-            <p className="mb-4 text-sm font-bold text-[#0f172a]">Permissions</p>
+            <p className="mb-4 text-sm font-bold text-[#1a1a1a]">Permissions</p>
             <div className="grid gap-x-8 sm:grid-cols-2">
-              <div className="divide-y divide-[#f1f5f9]">{leftColumn.map(renderCheckbox)}</div>
-              <div className="divide-y divide-[#f1f5f9]">{rightColumn.map(renderCheckbox)}</div>
+              <div className="divide-y divide-[#f4f4f4]">{leftColumn.map(renderCheckbox)}</div>
+              <div className="divide-y divide-[#f4f4f4]">{rightColumn.map(renderCheckbox)}</div>
             </div>
           </div>
         </article>
@@ -195,7 +195,7 @@ export default function EditAccessRolePage({
           <button
             type="button"
             onClick={() => navigate.push("/dashboards/settings/users/access-roles")}
-            className="rounded-xl border border-[#e2e8f0] bg-white px-5 py-3 text-sm font-bold text-[#475569] hover:bg-[#ffffff]"
+            className="rounded-xl border border-[#e6e6e6] bg-white px-5 py-3 text-sm font-bold text-[#525252] hover:bg-[#ffffff]"
           >
             Cancel
           </button>
@@ -212,15 +212,15 @@ export default function EditAccessRolePage({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
             <div className="mb-1 flex items-start justify-between">
-              <h3 className="flex items-center gap-2 text-lg font-bold text-[#0f172a]">
+              <h3 className="flex items-center gap-2 text-lg font-bold text-[#1a1a1a]">
                 <Save size={18} className="text-emerald-500" />
                 Save Changes?
               </h3>
-              <button type="button" onClick={() => setConfirmOpen(false)} className="text-[#94a3b8] hover:text-[#475569]">
+              <button type="button" onClick={() => setConfirmOpen(false)} className="text-[#a3a3a3] hover:text-[#525252]">
                 <X size={18} />
               </button>
             </div>
-            <p className="mb-5 text-sm text-[#64748b]">
+            <p className="mb-5 text-sm text-[#737373]">
               This updates the &quot;{name.trim() || preset.name}&quot; role — every system user assigned it will
               immediately gain or lose the access you changed.
             </p>
@@ -235,7 +235,7 @@ export default function EditAccessRolePage({
               <button
                 type="button"
                 onClick={() => setConfirmOpen(false)}
-                className="rounded-xl border border-[#e2e8f0] bg-white px-5 py-2.5 text-sm font-bold text-[#475569] hover:bg-[#ffffff]"
+                className="rounded-xl border border-[#e6e6e6] bg-white px-5 py-2.5 text-sm font-bold text-[#525252] hover:bg-[#ffffff]"
               >
                 Cancel
               </button>

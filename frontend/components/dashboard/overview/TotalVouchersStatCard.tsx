@@ -15,15 +15,15 @@ export function TotalVouchersStatCard() {
   return (
     <Link
       href="/dashboards/vouchers"
-      className="min-h-[150px] rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg  "
+      className="min-h-[150px] rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg  "
     >
       <div className="flex items-center gap-4">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#f1f5f9] text-[#2563eb] ">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#f4f4f4] text-[#1a1a1a] ">
           <Ticket size={27} />
         </div>
 
         <div className="min-w-0">
-          <p className="text-sm font-medium text-[#64748b] ">Total Vouchers</p>
+          <p className="text-sm font-medium text-[#737373] ">Total Vouchers</p>
 
           <p className="mt-2 truncate text-2xl font-bold">{vouchers.length}</p>
 

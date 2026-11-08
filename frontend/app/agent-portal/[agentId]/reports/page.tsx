@@ -75,16 +75,16 @@ export default function AgentReportsPage({
             <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h1 className="flex items-center gap-2 text-2xl font-black md:text-3xl">
-                  <FileBarChart size={26} className="text-[#2563eb]" />
+                  <FileBarChart size={26} className="text-[#1a1a1a]" />
                   Reports
                 </h1>
-                <p className="mt-1 text-sm text-[#64748b]">Your own performance, built from real voucher and customer records.</p>
+                <p className="mt-1 text-sm text-[#737373]">Your own performance, built from real voucher and customer records.</p>
               </div>
               {canExport && (
                 <button
                   type="button"
                   onClick={handleExport}
-                  className="inline-flex items-center gap-2 rounded-xl border-2 border-[#2563eb] px-4 py-2.5 text-sm font-bold text-[#2563eb] hover:bg-[#e2e8f0]"
+                  className="inline-flex items-center gap-2 rounded-xl border-2 border-[#1a1a1a] px-4 py-2.5 text-sm font-bold text-[#1a1a1a] hover:bg-[#e6e6e6]"
                 >
                   <Download size={16} />
                   Export CSV
@@ -95,56 +95,56 @@ export default function AgentReportsPage({
             <div className="mb-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {canViewFinancial && (
                 <div className="rounded-2xl bg-white p-5">
-                  <p className="flex items-center gap-1.5 text-xs font-semibold text-[#2563eb]">
+                  <p className="flex items-center gap-1.5 text-xs font-semibold text-[#1a1a1a]">
                     <TrendingUp size={13} />
                     Total Revenue
                   </p>
-                  <p className="mt-1 text-2xl font-black text-[#0f172a]">{sym()} {revenue.toLocaleString()}</p>
+                  <p className="mt-1 text-2xl font-black text-[#1a1a1a]">{sym()} {revenue.toLocaleString()}</p>
                 </div>
               )}
               <div className="rounded-2xl bg-white p-5">
-                <p className="flex items-center gap-1.5 text-xs font-semibold text-[#64748b]">
-                  <CheckCircle2 size={13} className="text-[#2563eb]" />
+                <p className="flex items-center gap-1.5 text-xs font-semibold text-[#737373]">
+                  <CheckCircle2 size={13} className="text-[#1a1a1a]" />
                   Available Vouchers
                 </p>
-                <p className="mt-1 text-2xl font-black text-[#0f172a]">{available}</p>
+                <p className="mt-1 text-2xl font-black text-[#1a1a1a]">{available}</p>
               </div>
               <div className="rounded-2xl bg-white p-5">
-                <p className="flex items-center gap-1.5 text-xs font-semibold text-[#64748b]">
+                <p className="flex items-center gap-1.5 text-xs font-semibold text-[#737373]">
                   <Clock size={13} className="text-slate-500" />
                   Used Vouchers
                 </p>
-                <p className="mt-1 text-2xl font-black text-[#0f172a]">{used}</p>
+                <p className="mt-1 text-2xl font-black text-[#1a1a1a]">{used}</p>
               </div>
               <div className="rounded-2xl bg-white p-5">
-                <p className="flex items-center gap-1.5 text-xs font-semibold text-[#64748b]">
+                <p className="flex items-center gap-1.5 text-xs font-semibold text-[#737373]">
                   <XCircle size={13} className="text-red-500" />
                   Expired Vouchers
                 </p>
-                <p className="mt-1 text-2xl font-black text-[#0f172a]">{expired}</p>
+                <p className="mt-1 text-2xl font-black text-[#1a1a1a]">{expired}</p>
               </div>
             </div>
 
             <div className="grid gap-5 lg:grid-cols-2">
               <article className="rounded-2xl bg-white p-6">
-                <h3 className="mb-3 font-bold text-[#0f172a]">Best-Selling Package</h3>
+                <h3 className="mb-3 font-bold text-[#1a1a1a]">Best-Selling Package</h3>
                 {topPackage ? (
-                  <div className="flex items-center justify-between rounded-xl bg-[#f8fafc] px-4 py-3">
-                    <span className="font-semibold text-[#0f172a]">{topPackage[0]}</span>
-                    <span className="rounded-full bg-[#f1f5f9] px-2.5 py-1 text-xs font-bold text-[#2563eb]">
+                  <div className="flex items-center justify-between rounded-xl bg-[#f7f7f7] px-4 py-3">
+                    <span className="font-semibold text-[#1a1a1a]">{topPackage[0]}</span>
+                    <span className="rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-bold text-[#1a1a1a]">
                       {topPackage[1]} voucher{topPackage[1] === 1 ? "" : "s"}
                     </span>
                   </div>
                 ) : (
-                  <p className="text-sm text-[#94a3b8]">No vouchers generated yet.</p>
+                  <p className="text-sm text-[#a3a3a3]">No vouchers generated yet.</p>
                 )}
               </article>
 
               <article className="rounded-2xl bg-white p-6">
-                <h3 className="mb-3 font-bold text-[#0f172a]">Customers on Your Router</h3>
-                <div className="flex items-center justify-between rounded-xl bg-[#f8fafc] px-4 py-3">
-                  <span className="text-sm text-[#64748b]">Total customers</span>
-                  <span className="text-lg font-black text-[#0f172a]">{scopedUsers.length}</span>
+                <h3 className="mb-3 font-bold text-[#1a1a1a]">Customers on Your Router</h3>
+                <div className="flex items-center justify-between rounded-xl bg-[#f7f7f7] px-4 py-3">
+                  <span className="text-sm text-[#737373]">Total customers</span>
+                  <span className="text-lg font-black text-[#1a1a1a]">{scopedUsers.length}</span>
                 </div>
               </article>
             </div>

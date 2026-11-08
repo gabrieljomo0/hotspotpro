@@ -7,7 +7,7 @@ import { statusData } from "./mockData";
 
 export function UsersByStatus() {
  return (
-  <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] ">
+  <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] ">
    <h3 className="font-bold">
     Users by Status
    </h3>
@@ -41,7 +41,7 @@ export function UsersByStatus() {
        487
       </p>
 
-      <p className="text-xs text-[#64748b]">
+      <p className="text-xs text-[#737373]">
        Total Users
       </p>
      </div>
@@ -65,7 +65,7 @@ export function UsersByStatus() {
 
        <span className="font-semibold">
         {item.value}{" "}
-        <span className="font-normal text-[#64748b]">
+        <span className="font-normal text-[#737373]">
          ({item.percentage})
         </span>
        </span>

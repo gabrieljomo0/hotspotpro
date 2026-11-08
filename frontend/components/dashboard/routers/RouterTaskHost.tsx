@@ -31,8 +31,8 @@ export function RouterTaskHost() {
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
-            <h3 data-testid="router-task-title" className="text-lg font-bold text-[#0f172a]">{def.title}</h3>
-            <p className="text-xs text-[#64748b]">{name}</p>
+            <h3 data-testid="router-task-title" className="text-lg font-bold text-[#1a1a1a]">{def.title}</h3>
+            <p className="text-xs text-[#737373]">{name}</p>
           </div>
           {status !== "running" && (
             <button
@@ -40,7 +40,7 @@ export function RouterTaskHost() {
               aria-label="Close"
               data-testid="router-task-close"
               onClick={closeRouterTask}
-              className="rounded-lg p-1.5 text-[#64748b] hover:bg-[#f1f5f9]"
+              className="rounded-lg p-1.5 text-[#737373] hover:bg-[#f4f4f4]"
             >
               <X size={18} />
             </button>
@@ -49,13 +49,13 @@ export function RouterTaskHost() {
 
         {status === "confirm" ? (
           <>
-            <p className="mb-5 text-sm text-[#475569]">{def.confirm}</p>
+            <p className="mb-5 text-sm text-[#525252]">{def.confirm}</p>
             <div className="flex gap-3">
               <button
                 type="button"
                 data-testid="router-task-start"
                 onClick={confirmRouterTask}
-                className="rounded-xl bg-[#2563eb] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+                className="rounded-xl bg-[#1a1a1a] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#111111]"
               >
                 Start
               </button>
@@ -63,7 +63,7 @@ export function RouterTaskHost() {
                 type="button"
                 data-testid="router-task-cancel"
                 onClick={closeRouterTask}
-                className="rounded-xl bg-[#f1f5f9] px-5 py-2.5 text-sm font-bold text-[#475569] hover:bg-[#e2e8f0]"
+                className="rounded-xl bg-[#f4f4f4] px-5 py-2.5 text-sm font-bold text-[#525252] hover:bg-[#e6e6e6]"
               >
                 Cancel
               </button>
@@ -74,14 +74,14 @@ export function RouterTaskHost() {
             <div className="mb-4 flex flex-col items-center text-center">
               <div className="relative h-32 w-32">
                 <svg viewBox="0 0 128 128" className="h-full w-full -rotate-90">
-                  <circle cx="64" cy="64" r="54" fill="none" stroke="#e2e8f0" strokeWidth="10" />
+                  <circle cx="64" cy="64" r="54" fill="none" stroke="#e6e6e6" strokeWidth="10" />
                   <circle
                     data-testid="router-task-ring"
                     cx="64"
                     cy="64"
                     r="54"
                     fill="none"
-                    stroke={status === "failed" ? "#b91c1c" : "#2563eb"}
+                    stroke={status === "failed" ? "#1a1a1a" : "#1a1a1a"}
                     strokeWidth="10"
                     strokeLinecap="round"
                     strokeDasharray={2 * Math.PI * 54}
@@ -89,11 +89,11 @@ export function RouterTaskHost() {
                     style={{ transition: "stroke-dashoffset 600ms ease" }}
                   />
                 </svg>
-                <span data-testid="router-task-percent" className="absolute inset-0 flex items-center justify-center text-2xl font-black text-[#0f172a]">
+                <span data-testid="router-task-percent" className="absolute inset-0 flex items-center justify-center text-2xl font-black text-[#1a1a1a]">
                   {percent}%
                 </span>
               </div>
-              <p data-testid="router-task-status" className="mt-3 text-sm font-semibold text-[#475569]">
+              <p data-testid="router-task-status" className="mt-3 text-sm font-semibold text-[#525252]">
                 {status === "running" && "Please wait…"}
                 {status === "done" && "Setup completed"}
                 {status === "failed" && "Stopped"}
@@ -101,12 +101,12 @@ export function RouterTaskHost() {
             </div>
 
             {status === "done" && (
-              <div data-testid="router-task-result" className="mb-4 rounded-lg bg-[#f1f5f9] p-3 text-sm text-[#0f172a]">
+              <div data-testid="router-task-result" className="mb-4 rounded-lg bg-[#f4f4f4] p-3 text-sm text-[#1a1a1a]">
                 <strong>{name}</strong> {def.success}
               </div>
             )}
             {status === "failed" && (
-              <div data-testid="router-task-error" className="mb-4 rounded-lg bg-[#fef2f2] p-3 text-sm font-semibold text-[#b91c1c]">
+              <div data-testid="router-task-error" className="mb-4 rounded-lg bg-[#f3f1ec] p-3 text-sm font-semibold text-[#1a1a1a]">
                 {error}
               </div>
             )}
@@ -118,7 +118,7 @@ export function RouterTaskHost() {
                     type="button"
                     data-testid="router-task-retry"
                     onClick={confirmRouterTask}
-                    className="rounded-xl bg-[#2563eb] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+                    className="rounded-xl bg-[#1a1a1a] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#111111]"
                   >
                     Try again
                   </button>
@@ -127,7 +127,7 @@ export function RouterTaskHost() {
                   type="button"
                   data-testid="router-task-done"
                   onClick={closeRouterTask}
-                  className="rounded-xl bg-[#f1f5f9] px-5 py-2.5 text-sm font-bold text-[#475569] hover:bg-[#e2e8f0]"
+                  className="rounded-xl bg-[#f4f4f4] px-5 py-2.5 text-sm font-bold text-[#525252] hover:bg-[#e6e6e6]"
                 >
                   {status === "done" ? "Done" : "Close"}
                 </button>

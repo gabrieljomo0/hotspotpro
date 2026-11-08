@@ -20,15 +20,15 @@ export function RoutersOnlineStatCard() {
   return (
     <Link
       href="/dashboards/configuration/routers"
-      className="min-h-[150px] rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg  "
+      className="min-h-[150px] rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg  "
     >
       <div className="flex items-center gap-4">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#e9fbf3] text-[#0f9f6e] ">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#f3f1ec] text-[#1a1a1a] ">
           <Router size={27} />
         </div>
 
         <div className="min-w-0">
-          <p className="text-sm font-medium text-[#64748b] ">
+          <p className="text-sm font-medium text-[#737373] ">
             Routers Online
           </p>
 
@@ -37,7 +37,7 @@ export function RoutersOnlineStatCard() {
           </p>
 
           <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-            <span className="text-[#64748b]">{pct}% online</span>
+            <span className="text-[#737373]">{pct}% online</span>
             {offlineCount > 0 && (
               <span className="inline-flex items-center gap-1 font-semibold text-red-600">
                 <span className="h-1.5 w-1.5 rounded-full bg-red-500" />

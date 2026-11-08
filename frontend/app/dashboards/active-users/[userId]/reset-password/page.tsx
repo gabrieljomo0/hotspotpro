@@ -54,7 +54,7 @@ export default function ResetPasswordPage({
         <button
           type="button"
           onClick={() => router.push(routes.listHref)}
-          className="mt-6 w-full rounded-xl bg-[#2563eb] px-5 py-3 text-sm font-semibold text-white hover:bg-[#1d4ed8] sm:w-auto"
+          className="mt-6 w-full rounded-xl bg-[#1a1a1a] px-5 py-3 text-sm font-semibold text-white hover:bg-[#111111] sm:w-auto"
         >
           Done
         </button>
@@ -71,7 +71,7 @@ export default function ResetPasswordPage({
       <button
         type="button"
         onClick={handleConfirm}
-        className="w-full rounded-xl bg-[#2563eb] px-5 py-3 text-sm font-semibold text-white hover:bg-[#1d4ed8] sm:w-auto"
+        className="w-full rounded-xl bg-[#1a1a1a] px-5 py-3 text-sm font-semibold text-white hover:bg-[#111111] sm:w-auto"
       >
         Yes, Reset Password
       </button>

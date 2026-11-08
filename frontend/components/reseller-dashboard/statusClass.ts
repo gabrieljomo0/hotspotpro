@@ -2,22 +2,22 @@
 
 export function statusClass(status: string) {
  if (status === "Online") {
-  return "bg-[#e9fbf3] text-[#0f9f6e] ";
+  return "bg-[#f3f1ec] text-[#1a1a1a] ";
  }
 
  if (status === "Idle") {
-  return "bg-[#f1f5f9] text-[#475569] dark:text-[#475569]";
+  return "bg-[#f4f4f4] text-[#525252] dark:text-[#525252]";
  }
 
  if (status === "Expiring Soon") {
-  return "bg-[#fff5e8] text-[#d97706] ";
+  return "bg-[#f3f1ec] text-[#1a1a1a] ";
  }
 
  if (status === "Blocked") {
-  return "bg-[#fff0f0] text-[#dc2626] ";
+  return "bg-[#f3f1ec] text-[#1a1a1a] ";
  }
 
- return "bg-[#f1f5f9] text-[#64748b] ";
+ return "bg-[#f4f4f4] text-[#737373] ";
 }
 
 /* -------------------------------------------------------------------------- */

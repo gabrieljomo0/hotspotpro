@@ -105,10 +105,10 @@ export default function AgentRolesPermissionsPage() {
       <BackLink />
       <div className="mb-6">
         <h2 className="mb-1 flex items-center gap-2 text-3xl font-bold tracking-tight md:text-4xl">
-          <ShieldCheck className="text-[#2563eb]" size={30} />
+          <ShieldCheck className="text-[#1a1a1a]" size={30} />
           Agent Roles &amp; Permissions
         </h2>
-        <p className="max-w-2xl text-sm text-[#64748b] md:text-base">
+        <p className="max-w-2xl text-sm text-[#737373] md:text-base">
           What each agent role can access on their reseller dashboard —
           the same modules an agent sees there: Dashboard, Users &amp;
           Connections, Sales, Vouchers, Packages, Transactions, Reports,
@@ -118,7 +118,7 @@ export default function AgentRolesPermissionsPage() {
         </p>
       </div>
 
-      <div className="mb-5 overflow-hidden rounded-xl border border-[#e2e8f0] bg-white">
+      <div className="mb-5 overflow-hidden rounded-xl border border-[#e6e6e6] bg-white">
         {PRESET_NAMES.map((preset, index) => {
           const presetPermissions = agentRolePermissions[preset] ?? {};
           const allowed = countByState(presetPermissions, "Allowed");
@@ -131,17 +131,17 @@ export default function AgentRolesPermissionsPage() {
               type="button"
               onClick={() => setSelectedPreset(preset)}
               className={`relative flex w-full items-center justify-between gap-3 px-3.5 py-3 text-left transition ${
-                index > 0 ? "border-t border-[#f1f5f9]" : ""
-              } ${isSelected ? "bg-[#f1f5f9]" : "bg-white hover:bg-[#ffffff]"}`}
+                index > 0 ? "border-t border-[#f4f4f4]" : ""
+              } ${isSelected ? "bg-[#f4f4f4]" : "bg-white hover:bg-[#ffffff]"}`}
             >
               <span className="min-w-0">
-                <span className={`flex items-center gap-1.5 truncate text-sm font-bold ${isSelected ? "text-[#1d4ed8]" : "text-[#0f172a]"}`}>
+                <span className={`flex items-center gap-1.5 truncate text-sm font-bold ${isSelected ? "text-[#111111]" : "text-[#1a1a1a]"}`}>
                   {preset}
                   {hasDraft && (
                     <span className="rounded-full bg-amber-500 px-1.5 py-0.5 text-[9px] font-bold text-white">Unsaved</span>
                   )}
                 </span>
-                <span className="block truncate text-xs text-[#64748b]">{PRESET_DESCRIPTIONS[preset]}</span>
+                <span className="block truncate text-xs text-[#737373]">{PRESET_DESCRIPTIONS[preset]}</span>
               </span>
               <span className="shrink-0 rounded-full bg-emerald-600 px-2.5 py-1 text-[11px] font-bold text-white">
                 {allowed}/{total}
@@ -151,25 +151,25 @@ export default function AgentRolesPermissionsPage() {
         })}
       </div>
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
         <div>
-          <p className="text-base font-bold text-[#0f172a]">{selectedPreset}</p>
-          <p className="text-xs text-[#64748b]">
+          <p className="text-base font-bold text-[#1a1a1a]">{selectedPreset}</p>
+          <p className="text-xs text-[#737373]">
             {overallAllowed} of {overallTotal} permissions allowed across every module.
           </p>
         </div>
         <button
           type="button"
           onClick={handleResetToDefault}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-[#e2e8f0] bg-white px-3 py-2 text-xs font-bold text-[#475569] hover:bg-[#ffffff]"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-[#e6e6e6] bg-white px-3 py-2 text-xs font-bold text-[#525252] hover:bg-[#ffffff]"
         >
           <RotateCcw size={13} />
           Reset to Default
         </button>
       </div>
 
-      <article className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
-        <div className="flex flex-wrap gap-1 border-b border-[#e2e8f0] px-4 pt-3">
+      <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+        <div className="flex flex-wrap gap-1 border-b border-[#e6e6e6] px-4 pt-3">
           {PERMISSION_GROUPS.map((group) => {
             const groupTotal = group.permissions.length;
             const groupAllowed = group.permissions.filter((p) => permissions[p.key] === "Allowed").length;
@@ -181,7 +181,7 @@ export default function AgentRolesPermissionsPage() {
                 className={`rounded-t-lg px-3.5 py-2.5 text-left text-sm font-semibold transition ${
                   activeGroupKey === group.key
                     ? "border-b-2 border-emerald-500 text-emerald-600"
-                    : "text-[#64748b] hover:text-[#475569]"
+                    : "text-[#737373] hover:text-[#525252]"
                 }`}
               >
                 {group.label}
@@ -194,10 +194,10 @@ export default function AgentRolesPermissionsPage() {
         </div>
 
         <div className="p-6">
-          <p className="mb-4 text-sm font-bold text-[#0f172a]">Permissions</p>
+          <p className="mb-4 text-sm font-bold text-[#1a1a1a]">Permissions</p>
           <div className="grid gap-x-8 sm:grid-cols-2">
-            <div className="divide-y divide-[#f1f5f9]">{leftColumn.map(renderCheckbox)}</div>
-            <div className="divide-y divide-[#f1f5f9]">{rightColumn.map(renderCheckbox)}</div>
+            <div className="divide-y divide-[#f4f4f4]">{leftColumn.map(renderCheckbox)}</div>
+            <div className="divide-y divide-[#f4f4f4]">{rightColumn.map(renderCheckbox)}</div>
           </div>
         </div>
       </article>

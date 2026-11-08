@@ -19,12 +19,12 @@ export function FileCaptureField({
 
   return (
     <label htmlFor={inputId} className="block cursor-pointer">
-      <span className="mb-1.5 block text-xs font-semibold text-[#475569]">
+      <span className="mb-1.5 block text-xs font-semibold text-[#525252]">
         {label}
       </span>
-      <div className="flex items-center gap-3 rounded-xl border border-dashed border-[#cbd5e1] bg-[#ffffff] px-4 py-3">
-        <Icon size={18} className="shrink-0 text-[#2563eb]" />
-        <span className="truncate text-sm text-[#64748b]">
+      <div className="flex items-center gap-3 rounded-xl border border-dashed border-[#d4d4d4] bg-[#ffffff] px-4 py-3">
+        <Icon size={18} className="shrink-0 text-[#1a1a1a]" />
+        <span className="truncate text-sm text-[#737373]">
           {fileName || "Tap to upload or take a photo"}
         </span>
       </div>

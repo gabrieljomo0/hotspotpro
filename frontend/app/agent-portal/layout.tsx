@@ -16,10 +16,19 @@ function ToastHost() {
 
 // Every agent-portal screen waits for saved data first, so a dashboard
 // opened in its own tab shows the agent's real, current details.
+function ThemedPortal({ children }: { children: ReactNode }) {
+  const { darkMode } = useDashboard();
+  return (
+    <div id="dashboard-root" className={darkMode ? "dark" : undefined}>
+      {children}
+    </div>
+  );
+}
+
 export default function AgentPortalLayout({ children }: { children: ReactNode }) {
   return (
     <StoreGate>
-      {children}
+      <ThemedPortal>{children}</ThemedPortal>
       <ToastHost />
     </StoreGate>
   );

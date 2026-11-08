@@ -60,9 +60,9 @@ export function PortalControlPanel() {
   const { portalControls, updatePortalControls } = useDashboard();
 
   return (
-    <article className="mt-6 rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
-      <h3 className="text-lg font-bold text-[#0f172a]">Portal Control</h3>
-      <p className="mt-1 text-sm text-[#64748b]">
+    <article className="mt-6 rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
+      <h3 className="text-lg font-bold text-[#1a1a1a]">Portal Control</h3>
+      <p className="mt-1 text-sm text-[#737373]">
         Turn entire features of your customer portal on or off — full control
         over what your business currently offers.
       </p>
@@ -75,17 +75,17 @@ export function PortalControlPanel() {
           return (
             <div
               key={toggle.key}
-              className="flex items-start justify-between gap-4 rounded-xl border border-[#e2e8f0] p-4"
+              className="flex items-start justify-between gap-4 rounded-xl border border-[#e6e6e6] p-4"
             >
               <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#f1f5f9] text-[#2563eb]">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#f4f4f4] text-[#1a1a1a]">
                   <Icon size={17} />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-[#475569]">
+                  <p className="text-sm font-semibold text-[#525252]">
                     {toggle.label}
                   </p>
-                  <p className="mt-1 text-xs leading-5 text-[#94a3b8]">
+                  <p className="mt-1 text-xs leading-5 text-[#a3a3a3]">
                     {toggle.description}
                   </p>
                 </div>
@@ -97,7 +97,7 @@ export function PortalControlPanel() {
                   updatePortalControls({ [toggle.key]: !enabled })
                 }
                 className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
-                  enabled ? "bg-emerald-500" : "bg-[#e2e8f0]"
+                  enabled ? "bg-emerald-500" : "bg-[#e6e6e6]"
                 }`}
                 aria-label={`Toggle ${toggle.label}`}
                 aria-pressed={enabled}

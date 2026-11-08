@@ -22,9 +22,9 @@ import { revenueData } from "@/components/dashboard/data/dashboard-data";
 import { BackLink } from "@/components/dashboard/shared/BackLink";
 
 const STATUS_COLORS: Record<string, string> = {
-  Available: "#10b981",
-  Used: "#94a3b8",
-  Expired: "#ef4444",
+  Available: "#1a1a1a",
+  Used: "#a3a3a3",
+  Expired: "#1a1a1a",
 };
 
 type RevenueTimeframe = "Today" | "Daily" | "Monthly" | "Yearly";
@@ -229,12 +229,12 @@ export default function AnalyticsOverviewPage() {
         <head>
           <title>Revenue History — ${historyFromDate} to ${historyToDate}</title>
           <style>
-            body { font-family: system-ui, sans-serif; padding: 24px; color: #0f172a; }
+            body { font-family: system-ui, sans-serif; padding: 24px; color: #1a1a1a; }
             h1 { font-size: 18px; margin-bottom: 4px; }
-            p { font-size: 12px; color: #64748b; margin-top: 0; }
+            p { font-size: 12px; color: #737373; margin-top: 0; }
             table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-            th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
-            th { background: #ffffff; color: #64748b; }
+            th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #f4f4f4; font-size: 13px; }
+            th { background: #ffffff; color: #737373; }
           </style>
         </head>
         <body>
@@ -262,17 +262,17 @@ export default function AnalyticsOverviewPage() {
       <h2 className="mb-1 text-3xl font-bold tracking-tight md:text-4xl">
         Analytics Overview
       </h2>
-      <p className="mb-6 max-w-2xl text-sm text-[#64748b] md:text-base">
+      <p className="mb-6 max-w-2xl text-sm text-[#737373] md:text-base">
         A snapshot of revenue, voucher activity, and package performance.
       </p>
 
       {/* In-page nav */}
-      <nav className="mb-6 flex flex-wrap gap-2 border-b border-[#f1f5f9] pb-4 print:hidden">
+      <nav className="mb-6 flex flex-wrap gap-2 border-b border-[#f4f4f4] pb-4 print:hidden">
         {NAV_SECTIONS.map((section) => (
           <a
             key={section.id}
             href={`#${section.id}`}
-            className="rounded-lg px-3 py-1.5 text-xs font-semibold text-[#64748b] hover:bg-[#ffffff] hover:text-[#2563eb]"
+            className="rounded-lg px-3 py-1.5 text-xs font-semibold text-[#737373] hover:bg-[#ffffff] hover:text-[#1a1a1a]"
           >
             {section.label}
           </a>
@@ -281,24 +281,24 @@ export default function AnalyticsOverviewPage() {
 
       <div id="overview" className="mb-5 grid scroll-mt-20 gap-4 sm:grid-cols-3">
         <div className="rounded-2xl border border-blue-200 bg-white p-5">
-          <p className="text-xs font-medium text-[#64748b]">Total Vouchers</p>
-          <p className="mt-1 text-2xl font-bold text-[#0f172a]">
+          <p className="text-xs font-medium text-[#737373]">Total Vouchers</p>
+          <p className="mt-1 text-2xl font-bold text-[#1a1a1a]">
             {vouchers.length}
           </p>
         </div>
         <div className="rounded-2xl border border-emerald-200 bg-white p-5">
-          <p className="text-xs font-medium text-[#64748b]">
+          <p className="text-xs font-medium text-[#737373]">
             Active Packages
           </p>
-          <p className="mt-1 text-2xl font-bold text-[#0f172a]">
+          <p className="mt-1 text-2xl font-bold text-[#1a1a1a]">
             {packages.filter((p) => p.status === "Active").length}
           </p>
         </div>
         <div className="rounded-2xl border border-blue-200 bg-white p-5">
-          <p className="text-xs font-medium text-[#64748b]">
+          <p className="text-xs font-medium text-[#737373]">
             Active Sessions
           </p>
-          <p className="mt-1 text-2xl font-bold text-[#0f172a]">
+          <p className="mt-1 text-2xl font-bold text-[#1a1a1a]">
             {users.length}
           </p>
         </div>
@@ -311,7 +311,7 @@ export default function AnalyticsOverviewPage() {
       >
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-base font-bold">Revenue Trend</h3>
-          <div className="flex overflow-hidden rounded-lg border border-[#e2e8f0] bg-white text-xs">
+          <div className="flex overflow-hidden rounded-lg border border-[#e6e6e6] bg-white text-xs">
             {(["Today", "Daily", "Monthly", "Yearly"] as RevenueTimeframe[]).map(
               (period) => (
                 <button
@@ -320,8 +320,8 @@ export default function AnalyticsOverviewPage() {
                   onClick={() => setRevenueTimeframe(period)}
                   className={`px-3 py-1.5 font-semibold transition ${
                     revenueTimeframe === period
-                      ? "bg-[#f1f5f9] text-[#2563eb]"
-                      : "bg-white text-[#64748b] hover:bg-[#ffffff]"
+                      ? "bg-[#f4f4f4] text-[#1a1a1a]"
+                      : "bg-white text-[#737373] hover:bg-[#ffffff]"
                   }`}
                 >
                   {period}
@@ -349,7 +349,7 @@ export default function AnalyticsOverviewPage() {
               <Line
                 type="monotone"
                 dataKey="revenue"
-                stroke="#2563eb"
+                stroke="#1a1a1a"
                 strokeWidth={2.5}
                 dot={{ r: 3 }}
               />
@@ -359,7 +359,7 @@ export default function AnalyticsOverviewPage() {
       </article>
 
       <div className="mb-5 grid gap-5 lg:grid-cols-2">
-        <article className="rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+        <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
           <h3 className="mb-4 text-base font-bold">Voucher Status Split</h3>
           <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -375,7 +375,7 @@ export default function AnalyticsOverviewPage() {
                   {voucherStatusData.map((entry) => (
                     <Cell
                       key={entry.name}
-                      fill={STATUS_COLORS[entry.name] ?? "#94a3b8"}
+                      fill={STATUS_COLORS[entry.name] ?? "#a3a3a3"}
                     />
                   ))}
                 </Pie>
@@ -386,7 +386,7 @@ export default function AnalyticsOverviewPage() {
           </div>
         </article>
 
-        <article className="rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+        <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
           <h3 className="mb-4 text-base font-bold">Customers per Package</h3>
           <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -398,7 +398,7 @@ export default function AnalyticsOverviewPage() {
                 <Line
                   type="monotone"
                   dataKey="customers"
-                  stroke="#2563eb"
+                  stroke="#1a1a1a"
                   strokeWidth={2.5}
                   dot={{ r: 4 }}
                 />
@@ -415,14 +415,14 @@ export default function AnalyticsOverviewPage() {
       >
         <div className="border-b border-emerald-200 bg-white px-5 py-4">
           <h3 className="text-base font-bold">Sales by Agent</h3>
-          <p className="mt-1 text-xs text-[#64748b]">
+          <p className="mt-1 text-xs text-[#737373]">
             Vouchers generated, sold, revenue, and which router each agent
             works from — before rolling up to router totals below.
           </p>
         </div>
         <div className="overflow-x-auto bg-white">
           <table className="w-full text-left text-sm">
-            <thead className="bg-[#ffffff] text-[#64748b]">
+            <thead className="bg-[#ffffff] text-[#737373]">
               <tr>
                 <th className="px-5 py-3 font-semibold">Agent</th>
                 <th className="px-5 py-3 font-semibold">Role</th>
@@ -443,12 +443,12 @@ export default function AnalyticsOverviewPage() {
                 const commission = revenue * (commissionSettings.ratePercent / 100);
 
                 return (
-                  <tr key={agent.id} className="border-t border-[#f1f5f9]">
-                    <td className="px-5 py-3 font-semibold text-[#0f172a]">
+                  <tr key={agent.id} className="border-t border-[#f4f4f4]">
+                    <td className="px-5 py-3 font-semibold text-[#1a1a1a]">
                       {agent.name}
                     </td>
-                    <td className="px-5 py-3 text-[#64748b]">{agent.role}</td>
-                    <td className="px-5 py-3 text-[#475569]">
+                    <td className="px-5 py-3 text-[#737373]">{agent.role}</td>
+                    <td className="px-5 py-3 text-[#525252]">
                       {router ? (
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">
                           <RouterIcon size={12} />
@@ -458,9 +458,9 @@ export default function AnalyticsOverviewPage() {
                         "—"
                       )}
                     </td>
-                    <td className="px-5 py-3 text-[#475569]">{totalGenerated}</td>
-                    <td className="px-5 py-3 text-[#475569]">{totalSold}</td>
-                    <td className="px-5 py-3 font-semibold text-[#2563eb]">
+                    <td className="px-5 py-3 text-[#525252]">{totalGenerated}</td>
+                    <td className="px-5 py-3 text-[#525252]">{totalSold}</td>
+                    <td className="px-5 py-3 font-semibold text-[#1a1a1a]">
                       {sym()} {revenue.toLocaleString()}
                     </td>
                     {commissionSettings.enabled && (
@@ -483,13 +483,13 @@ export default function AnalyticsOverviewPage() {
       >
         <div className="border-b border-blue-200 bg-white px-5 py-4">
           <h3 className="text-base font-bold">Revenue by Router</h3>
-          <p className="mt-1 text-xs text-[#64748b]">
+          <p className="mt-1 text-xs text-[#737373]">
             Grand total revenue when several agents share the same router.
           </p>
         </div>
         <div className="overflow-x-auto bg-white">
           <table className="w-full text-left text-sm">
-            <thead className="bg-[#ffffff] text-[#64748b]">
+            <thead className="bg-[#ffffff] text-[#737373]">
               <tr>
                 <th className="px-5 py-3 font-semibold">Router</th>
                 <th className="px-5 py-3 font-semibold">Agents on this Router</th>
@@ -499,21 +499,21 @@ export default function AnalyticsOverviewPage() {
             <tbody>
               {revenueByRouter.map(
                 ({ router, agentCount, agentNames, totalRevenue }) => (
-                  <tr key={router.ip} className="border-t border-[#f1f5f9]">
-                    <td className="px-5 py-3 font-semibold text-[#0f172a]">
+                  <tr key={router.ip} className="border-t border-[#f4f4f4]">
+                    <td className="px-5 py-3 font-semibold text-[#1a1a1a]">
                       <span className="inline-flex items-center gap-1.5">
                         <RouterIcon size={14} className="text-blue-600" />
                         {router.name.split(" (")[0]}
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-[#475569]">
+                    <td className="px-5 py-3 text-[#525252]">
                       {agentCount === 0 ? (
-                        <span className="text-[#94a3b8]">No agents assigned</span>
+                        <span className="text-[#a3a3a3]">No agents assigned</span>
                       ) : (
                         `${agentCount} — ${agentNames.join(", ")}`
                       )}
                     </td>
-                    <td className="px-5 py-3 font-semibold text-[#2563eb]">
+                    <td className="px-5 py-3 font-semibold text-[#1a1a1a]">
                       {sym()} {totalRevenue.toLocaleString()}
                     </td>
                   </tr>
@@ -530,32 +530,32 @@ export default function AnalyticsOverviewPage() {
         className="mb-5 scroll-mt-20 rounded-2xl border border-amber-200 bg-white p-5"
       >
         <h3 className="mb-1 text-base font-bold">Revenue by Source</h3>
-        <p className="mb-4 text-xs text-[#64748b]">
+        <p className="mb-4 text-xs text-[#737373]">
           Where sold-voucher revenue came from.
         </p>
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="rounded-xl bg-white p-4">
-            <div className="flex items-center gap-2 text-[#64748b]">
+            <div className="flex items-center gap-2 text-[#737373]">
               <Store size={15} />
               <p className="text-xs">Direct Sale (Voucher)</p>
             </div>
-            <p className="mt-2 text-xl font-black text-[#0f172a]">
+            <p className="mt-2 text-xl font-black text-[#1a1a1a]">
               {sym()} {revenueBySource.directSale.toLocaleString()}
             </p>
-            <p className="mt-1 text-xs text-[#94a3b8]">
+            <p className="mt-1 text-xs text-[#a3a3a3]">
               {Math.round((revenueBySource.directSale / totalSourceRevenue) * 100)}
               % of sold revenue
             </p>
           </div>
           <div className="rounded-xl bg-white p-4">
-            <div className="flex items-center gap-2 text-[#64748b]">
+            <div className="flex items-center gap-2 text-[#737373]">
               <Globe size={15} />
               <p className="text-xs">Online Purchase</p>
             </div>
-            <p className="mt-2 text-xl font-black text-[#0f172a]">
+            <p className="mt-2 text-xl font-black text-[#1a1a1a]">
               {sym()} {revenueBySource.onlinePurchase.toLocaleString()}
             </p>
-            <p className="mt-1 text-xs text-[#94a3b8]">
+            <p className="mt-1 text-xs text-[#a3a3a3]">
               {Math.round(
                 (revenueBySource.onlinePurchase / totalSourceRevenue) * 100,
               )}
@@ -563,14 +563,14 @@ export default function AnalyticsOverviewPage() {
             </p>
           </div>
           <div className="rounded-xl bg-white p-4">
-            <div className="flex items-center gap-2 text-[#64748b]">
+            <div className="flex items-center gap-2 text-[#737373]">
               <Gift size={15} />
               <p className="text-xs">Package Sales</p>
             </div>
-            <p className="mt-2 text-xl font-black text-[#0f172a]">
+            <p className="mt-2 text-xl font-black text-[#1a1a1a]">
               {sym()} {revenueBySource.packageSales.toLocaleString()}
             </p>
-            <p className="mt-1 text-xs text-[#94a3b8]">
+            <p className="mt-1 text-xs text-[#a3a3a3]">
               {Math.round(
                 (revenueBySource.packageSales / totalSourceRevenue) * 100,
               )}
@@ -587,50 +587,50 @@ export default function AnalyticsOverviewPage() {
       >
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-blue-200 bg-white px-5 py-4">
           <h3 className="text-base font-bold">Revenue History</h3>
-          <span className="text-xs text-[#64748b]">
+          <span className="text-xs text-[#737373]">
             Total: {sym()} {totalRevenueAllTime.toLocaleString()}
           </span>
         </div>
 
         <div className="flex flex-wrap items-end gap-3 border-b border-blue-200 bg-white px-5 py-4 print:hidden">
           <div className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-[#64748b]">From</span>
+            <span className="text-xs font-semibold text-[#737373]">From</span>
             <div className="flex gap-2">
               <input
                 type="date"
                 value={historyFromDate}
                 onChange={(event) => setHistoryFromDate(event.target.value)}
-                className="h-10 cursor-pointer rounded-lg border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-10 cursor-pointer rounded-lg border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
               <input
                 type="time"
                 value={historyFromTime}
                 onChange={(event) => setHistoryFromTime(event.target.value)}
-                className="h-10 w-28 cursor-pointer rounded-lg border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-10 w-28 cursor-pointer rounded-lg border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
             </div>
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-[#64748b]">To</span>
+            <span className="text-xs font-semibold text-[#737373]">To</span>
             <div className="flex gap-2">
               <input
                 type="date"
                 value={historyToDate}
                 onChange={(event) => setHistoryToDate(event.target.value)}
-                className="h-10 cursor-pointer rounded-lg border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-10 cursor-pointer rounded-lg border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
               <input
                 type="time"
                 value={historyToTime}
                 onChange={(event) => setHistoryToTime(event.target.value)}
-                className="h-10 w-28 cursor-pointer rounded-lg border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-10 w-28 cursor-pointer rounded-lg border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
             </div>
           </div>
 
           <label className="block">
-            <span className="mb-1 block text-xs font-semibold text-[#64748b]">
+            <span className="mb-1 block text-xs font-semibold text-[#737373]">
               Minimum revenue ({sym()})
             </span>
             <input
@@ -640,14 +640,14 @@ export default function AnalyticsOverviewPage() {
               onChange={(event) =>
                 setHistoryMinAmount(Number(event.target.value) || 0)
               }
-              className="h-10 w-36 rounded-lg border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-10 w-36 rounded-lg border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             />
           </label>
 
           <button
             type="button"
             onClick={handleClearHistoryFilter}
-            className="h-10 rounded-lg border border-[#e2e8f0] bg-white px-4 text-sm font-semibold text-[#475569] hover:bg-[#ffffff]"
+            className="h-10 rounded-lg border border-[#e6e6e6] bg-white px-4 text-sm font-semibold text-[#525252] hover:bg-[#ffffff]"
           >
             Clear Filter
           </button>
@@ -655,7 +655,7 @@ export default function AnalyticsOverviewPage() {
           <button
             type="button"
             onClick={handlePrintHistory}
-            className="ml-auto h-10 rounded-lg bg-[#2563eb] px-4 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+            className="ml-auto h-10 rounded-lg bg-[#1a1a1a] px-4 text-sm font-bold text-white hover:bg-[#111111]"
           >
             Print
           </button>
@@ -663,7 +663,7 @@ export default function AnalyticsOverviewPage() {
 
         <div className="overflow-x-auto bg-white">
           <table className="w-full text-left text-sm">
-            <thead className="bg-[#ffffff] text-[#64748b]">
+            <thead className="bg-[#ffffff] text-[#737373]">
               <tr>
                 <th className="px-5 py-3 font-semibold">Date</th>
                 <th className="px-5 py-3 font-semibold">Revenue</th>
@@ -675,7 +675,7 @@ export default function AnalyticsOverviewPage() {
                 <tr>
                   <td
                     colSpan={3}
-                    className="px-5 py-8 text-center text-sm text-[#94a3b8]"
+                    className="px-5 py-8 text-center text-sm text-[#a3a3a3]"
                   >
                     No revenue entries match this filter.
                   </td>
@@ -685,14 +685,14 @@ export default function AnalyticsOverviewPage() {
                 .slice()
                 .reverse()
                 .map((day) => (
-                  <tr key={day.date} className="border-t border-[#f1f5f9]">
-                    <td className="px-5 py-3 font-semibold text-[#0f172a]">
+                  <tr key={day.date} className="border-t border-[#f4f4f4]">
+                    <td className="px-5 py-3 font-semibold text-[#1a1a1a]">
                       {day.date}
                     </td>
-                    <td className="px-5 py-3 text-[#475569]">
+                    <td className="px-5 py-3 text-[#525252]">
                       {sym()} {day.revenue.toLocaleString()}
                     </td>
-                    <td className="px-5 py-3 text-[#64748b]">
+                    <td className="px-5 py-3 text-[#737373]">
                       {((day.revenue / totalRevenueAllTime) * 100).toFixed(1)}%
                     </td>
                   </tr>

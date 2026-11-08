@@ -18,34 +18,34 @@ export function ReportsTab({ routerIp }: { routerIp: string }) {
     <div className="space-y-5">
       <div className="grid gap-4 sm:grid-cols-4">
         {["Today's Revenue", "This Week's Revenue", "This Month's Revenue", "This Year's Revenue"].map((label) => (
-          <div key={label} className="rounded-xl border border-[#f1f5f9] p-4">
-            <p className="text-xs text-[#64748b]">{label}</p>
-            <p className="text-lg font-black text-[#0f172a]">{sym()} 0.00</p>
+          <div key={label} className="rounded-xl border border-[#f4f4f4] p-4">
+            <p className="text-xs text-[#737373]">{label}</p>
+            <p className="text-lg font-black text-[#1a1a1a]">{sym()} 0.00</p>
           </div>
         ))}
       </div>
       <div className="grid gap-4 sm:grid-cols-4">
-        <div className="rounded-xl border border-[#f1f5f9] p-4">
-          <p className="text-xs text-[#64748b]">Avg Session Duration</p>
-          <p className="text-lg font-black text-[#0f172a]">{data?.avgSessionSeconds ? fmtDuration(data.avgSessionSeconds) : "0 sec"}</p>
+        <div className="rounded-xl border border-[#f4f4f4] p-4">
+          <p className="text-xs text-[#737373]">Avg Session Duration</p>
+          <p className="text-lg font-black text-[#1a1a1a]">{data?.avgSessionSeconds ? fmtDuration(data.avgSessionSeconds) : "0 sec"}</p>
         </div>
-        <div className="rounded-xl border border-[#f1f5f9] p-4">
-          <p className="text-xs text-[#64748b]">This Month Sessions</p>
-          <p className="text-lg font-black text-[#0f172a]">{month.starts}</p>
+        <div className="rounded-xl border border-[#f4f4f4] p-4">
+          <p className="text-xs text-[#737373]">This Month Sessions</p>
+          <p className="text-lg font-black text-[#1a1a1a]">{month.starts}</p>
         </div>
-        <div className="rounded-xl border border-[#f1f5f9] p-4">
-          <p className="text-xs text-[#64748b]">Data Usage (This Month)</p>
-          <p className="text-lg font-black text-[#0f172a]">{fmtBytes(month.total)}</p>
+        <div className="rounded-xl border border-[#f4f4f4] p-4">
+          <p className="text-xs text-[#737373]">Data Usage (This Month)</p>
+          <p className="text-lg font-black text-[#1a1a1a]">{fmtBytes(month.total)}</p>
         </div>
-        <div className="rounded-xl border border-[#f1f5f9] p-4">
-          <p className="text-xs text-[#64748b]">SMS Sent</p>
-          <p className="text-lg font-black text-[#0f172a]">0</p>
+        <div className="rounded-xl border border-[#f4f4f4] p-4">
+          <p className="text-xs text-[#737373]">SMS Sent</p>
+          <p className="text-lg font-black text-[#1a1a1a]">0</p>
         </div>
       </div>
 
-      <article className="rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
-        <h3 className="mb-1 text-base font-bold text-[#0f172a]">Revenue Trend (Last 30 Days)</h3>
-        <p className="mb-4 text-xs text-[#94a3b8]">Daily revenue from voucher purchases</p>
+      <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+        <h3 className="mb-1 text-base font-bold text-[#1a1a1a]">Revenue Trend (Last 30 Days)</h3>
+        <p className="mb-4 text-xs text-[#a3a3a3]">Daily revenue from voucher purchases</p>
         <div className="h-[220px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={Array.from({ length: 14 }, (_, i) => ({ d: i, revenue: 0 }))}>
@@ -53,35 +53,35 @@ export function ReportsTab({ routerIp }: { routerIp: string }) {
               <XAxis dataKey="d" hide />
               <YAxis tick={{ fontSize: 11 }} />
               <Tooltip />
-              <Line type="monotone" dataKey="revenue" stroke="#2563eb" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="revenue" stroke="#1a1a1a" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>
       </article>
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <article className="rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
-          <h3 className="mb-1 text-base font-bold text-[#0f172a]">Peak Usage Hours</h3>
-          <p className="mb-4 text-xs text-[#94a3b8]">Session distribution by hour (last 7 days)</p>
+        <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+          <h3 className="mb-1 text-base font-bold text-[#1a1a1a]">Peak Usage Hours</h3>
+          <p className="mb-4 text-xs text-[#a3a3a3]">Session distribution by hour (last 7 days)</p>
           <div className="h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={Array.from({ length: 24 }, (_, i) => ({ h: i, sessions: 0 }))}>
                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
                 <XAxis dataKey="h" tick={{ fontSize: 10 }} />
                 <YAxis tick={{ fontSize: 10 }} />
-                <Line type="monotone" dataKey="sessions" stroke="#2563eb" strokeWidth={2} dot />
+                <Line type="monotone" dataKey="sessions" stroke="#1a1a1a" strokeWidth={2} dot />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </article>
 
-        <article className="rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
-          <h3 className="mb-1 text-base font-bold text-[#0f172a]">Package Distribution</h3>
-          <p className="mb-4 text-xs text-[#94a3b8]">Active vouchers by package type</p>
+        <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+          <h3 className="mb-1 text-base font-bold text-[#1a1a1a]">Package Distribution</h3>
+          <p className="mb-4 text-xs text-[#a3a3a3]">Active vouchers by package type</p>
           <div className="flex h-[200px] items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={[{ name: "No Data", value: 1 }]} dataKey="value" outerRadius={80} fill="#2563eb" />
+                <Pie data={[{ name: "No Data", value: 1 }]} dataKey="value" outerRadius={80} fill="#1a1a1a" />
               </PieChart>
             </ResponsiveContainer>
           </div>

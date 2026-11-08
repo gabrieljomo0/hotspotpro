@@ -97,8 +97,8 @@ export default function VouchersPage() {
       />
       <ConnectedAgentBanner />
 
-      <div className="mb-5 flex flex-wrap items-center gap-2 border-b border-[#e2e8f0] pb-4">
-        <span className="mr-1 text-xs font-semibold text-[#94a3b8]">Filter:</span>
+      <div className="mb-5 flex flex-wrap items-center gap-2 border-b border-[#e6e6e6] pb-4">
+        <span className="mr-1 text-xs font-semibold text-[#a3a3a3]">Filter:</span>
 
         <select
           value={siteFilter}
@@ -106,7 +106,7 @@ export default function VouchersPage() {
             setSiteFilter(event.target.value);
             setRouterFilter("");
           }}
-          className="h-9 rounded-lg border border-[#e2e8f0] bg-white px-2.5 text-xs font-medium text-[#475569] outline-none focus:border-[#2563eb]"
+          className="h-9 rounded-lg border border-[#e6e6e6] bg-white px-2.5 text-xs font-medium text-[#525252] outline-none focus:border-[#1a1a1a]"
         >
           <option value="">Any site / business</option>
           {businessLocations.map((site) => (
@@ -119,7 +119,7 @@ export default function VouchersPage() {
         <select
           value={routerFilter}
           onChange={(event) => setRouterFilter(event.target.value)}
-          className="h-9 rounded-lg border border-[#e2e8f0] bg-white px-2.5 text-xs font-medium text-[#475569] outline-none focus:border-[#2563eb]"
+          className="h-9 rounded-lg border border-[#e6e6e6] bg-white px-2.5 text-xs font-medium text-[#525252] outline-none focus:border-[#1a1a1a]"
         >
           <option value="">Any router</option>
           {routersForSiteFilter.map((r) => (
@@ -132,7 +132,7 @@ export default function VouchersPage() {
         <select
           value={packageFilter}
           onChange={(event) => setPackageFilter(event.target.value)}
-          className="h-9 rounded-lg border border-[#e2e8f0] bg-white px-2.5 text-xs font-medium text-[#475569] outline-none focus:border-[#2563eb]"
+          className="h-9 rounded-lg border border-[#e6e6e6] bg-white px-2.5 text-xs font-medium text-[#525252] outline-none focus:border-[#1a1a1a]"
         >
           <option value="">Any package</option>
           {packages.map((pkg) => (
@@ -146,34 +146,34 @@ export default function VouchersPage() {
           value={batchQuery}
           onChange={(event) => setBatchQuery(event.target.value)}
           placeholder="Batch ID / reference"
-          className="h-9 w-40 rounded-lg border border-[#e2e8f0] bg-white px-2.5 text-xs font-medium text-[#475569] outline-none placeholder:font-normal placeholder:text-[#94a3b8] focus:border-[#2563eb]"
+          className="h-9 w-40 rounded-lg border border-[#e6e6e6] bg-white px-2.5 text-xs font-medium text-[#525252] outline-none placeholder:font-normal placeholder:text-[#a3a3a3] focus:border-[#1a1a1a]"
         />
 
         <input
           type="date"
           value={fromDate}
           onChange={(event) => setFromDate(event.target.value)}
-          className="h-9 rounded-lg border border-[#e2e8f0] bg-white px-2 text-xs font-medium text-[#475569] outline-none focus:border-[#2563eb]"
+          className="h-9 rounded-lg border border-[#e6e6e6] bg-white px-2 text-xs font-medium text-[#525252] outline-none focus:border-[#1a1a1a]"
         />
-        <span className="text-xs text-[#94a3b8]">to</span>
+        <span className="text-xs text-[#a3a3a3]">to</span>
         <input
           type="date"
           value={toDate}
           onChange={(event) => setToDate(event.target.value)}
-          className="h-9 rounded-lg border border-[#e2e8f0] bg-white px-2 text-xs font-medium text-[#475569] outline-none focus:border-[#2563eb]"
+          className="h-9 rounded-lg border border-[#e6e6e6] bg-white px-2 text-xs font-medium text-[#525252] outline-none focus:border-[#1a1a1a]"
         />
 
         {hasAnyFilter && (
           <button
             type="button"
             onClick={clearAllFilters}
-            className="inline-flex items-center gap-1 rounded-lg border border-[#e2e8f0] px-2.5 py-1.5 text-xs font-semibold text-[#64748b] hover:bg-[#ffffff]"
+            className="inline-flex items-center gap-1 rounded-lg border border-[#e6e6e6] px-2.5 py-1.5 text-xs font-semibold text-[#737373] hover:bg-[#ffffff]"
           >
             <X size={12} />
             Clear
           </button>
         )}
-        <span className="ml-auto text-xs text-[#94a3b8]">
+        <span className="ml-auto text-xs text-[#a3a3a3]">
           {filteredVouchers.length} voucher{filteredVouchers.length === 1 ? "" : "s"}
         </span>
       </div>

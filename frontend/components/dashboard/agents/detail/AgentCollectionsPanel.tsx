@@ -57,31 +57,31 @@ export function AgentCollectionsPanel({
   return (
     <div className="space-y-5" data-testid="collections-panel">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-2xl border border-[#e2e8f0] bg-white p-5" data-testid="ledger-unsettled">
-          <p className="text-sm text-[#64748b]">Unsettled Vouchers</p>
-          <p className="mt-1 text-3xl font-black text-[#0f172a]">{ledger.unsettledVouchers}</p>
+        <div className="rounded-2xl border border-[#e6e6e6] bg-white p-5" data-testid="ledger-unsettled">
+          <p className="text-sm text-[#737373]">Unsettled Vouchers</p>
+          <p className="mt-1 text-3xl font-black text-[#1a1a1a]">{ledger.unsettledVouchers}</p>
           <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-amber-600">
             {money(Math.max(0, ledger.balance))} gross pending <Clock size={12} />
           </p>
         </div>
-        <div className="rounded-2xl border border-[#e2e8f0] bg-white p-5" data-testid="ledger-collected">
-          <p className="text-sm text-[#64748b]">Total Collected</p>
-          <p className="mt-1 text-3xl font-black text-[#0f172a]">{money(ledger.totalCollected)}</p>
+        <div className="rounded-2xl border border-[#e6e6e6] bg-white p-5" data-testid="ledger-collected">
+          <p className="text-sm text-[#737373]">Total Collected</p>
+          <p className="mt-1 text-3xl font-black text-[#1a1a1a]">{money(ledger.totalCollected)}</p>
           <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
             {ledger.collectionsCount} collection{ledger.collectionsCount === 1 ? "" : "s"} <Banknote size={12} />
           </p>
         </div>
-        <div className="rounded-2xl border border-[#e2e8f0] bg-white p-5" data-testid="ledger-month">
-          <p className="text-sm text-[#64748b]">This Month</p>
-          <p className="mt-1 text-3xl font-black text-[#0f172a]">{money(ledger.collectedThisMonth)}</p>
-          <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-[#2563eb]">
+        <div className="rounded-2xl border border-[#e6e6e6] bg-white p-5" data-testid="ledger-month">
+          <p className="text-sm text-[#737373]">This Month</p>
+          <p className="mt-1 text-3xl font-black text-[#1a1a1a]">{money(ledger.collectedThisMonth)}</p>
+          <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-[#1a1a1a]">
             {ledger.collectionsThisMonthCount} collection{ledger.collectionsThisMonthCount === 1 ? "" : "s"} this month{" "}
             <CalendarDays size={12} />
           </p>
         </div>
-        <div className="rounded-2xl border border-[#e2e8f0] bg-white p-5" data-testid="ledger-balance">
-          <p className="text-sm text-[#64748b]">Ledger Balance</p>
-          <p className={`mt-1 text-3xl font-black ${overpaid ? "text-emerald-700" : "text-[#0f172a]"}`}>
+        <div className="rounded-2xl border border-[#e6e6e6] bg-white p-5" data-testid="ledger-balance">
+          <p className="text-sm text-[#737373]">Ledger Balance</p>
+          <p className={`mt-1 text-3xl font-black ${overpaid ? "text-emerald-700" : "text-[#1a1a1a]"}`}>
             {money(Math.abs(ledger.balance))}
           </p>
           <p className={`mt-2 flex items-center gap-1.5 text-xs font-semibold ${overpaid ? "text-emerald-600" : "text-amber-600"}`}>
@@ -90,11 +90,11 @@ export function AgentCollectionsPanel({
         </div>
       </div>
 
-      <div className="rounded-xl border border-[#e2e8f0] bg-[#f8fafc] px-4 py-3 text-sm text-[#64748b]" data-testid="ledger-explainer">
+      <div className="rounded-xl border border-[#e6e6e6] bg-[#f7f7f7] px-4 py-3 text-sm text-[#737373]" data-testid="ledger-explainer">
         <p>
-          <strong className="text-[#475569]">How this works:</strong> this counts the vouchers you gave {agentName} (a
+          <strong className="text-[#525252]">How this works:</strong> this counts the vouchers you gave {agentName} (a
           batch pushed to them alone) and what they&apos;ve sold from it,{" "}
-          <strong className="text-[#475569]">{money(ledger.owedGross)}</strong> from {ledger.consignedSold} sold so far. Each
+          <strong className="text-[#525252]">{money(ledger.owedGross)}</strong> from {ledger.consignedSold} sold so far. Each
           collection you record reduces what they owe, oldest sales first. Vouchers they generated themselves are paid
           for from their wallet, so they never appear here.
         </p>
@@ -113,18 +113,18 @@ export function AgentCollectionsPanel({
         )}
       </div>
 
-      <article className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#f1f5f9] px-5 py-4">
-          <h3 className="text-base font-bold text-[#0f172a]">Collection History</h3>
+      <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#f4f4f4] px-5 py-4">
+          <h3 className="text-base font-bold text-[#1a1a1a]">Collection History</h3>
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8]" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" />
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search"
                 aria-label="Search collections"
-                className="h-10 w-56 rounded-lg border border-[#e2e8f0] bg-white pl-8 pr-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-10 w-56 rounded-lg border border-[#e6e6e6] bg-white pl-8 pr-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
             </div>
             <button
@@ -140,16 +140,16 @@ export function AgentCollectionsPanel({
 
         {collections.length === 0 ? (
           <div className="px-6 py-12 text-center" data-testid="collections-empty">
-            <p className="text-base font-bold text-[#0f172a]">No Collections Yet</p>
-            <p className="mx-auto mt-1 max-w-md text-sm text-[#64748b]">
+            <p className="text-base font-bold text-[#1a1a1a]">No Collections Yet</p>
+            <p className="mx-auto mt-1 max-w-md text-sm text-[#737373]">
               Collections will appear here when you record money collected from this agent.
             </p>
           </div>
         ) : rows.length === 0 ? (
-          <p className="px-6 py-10 text-center text-sm text-[#94a3b8]">No collections match that search.</p>
+          <p className="px-6 py-10 text-center text-sm text-[#a3a3a3]">No collections match that search.</p>
         ) : (
           <table className="w-full text-left text-sm" data-testid="collections-table">
-            <thead className="bg-[#ffffff] text-xs text-[#64748b]">
+            <thead className="bg-[#ffffff] text-xs text-[#737373]">
               <tr>
                 <th className="px-5 py-3 font-semibold">Collected on</th>
                 <th className="px-5 py-3 font-semibold">Amount</th>
@@ -162,13 +162,13 @@ export function AgentCollectionsPanel({
             </thead>
             <tbody>
               {rows.map((collection) => (
-                <tr key={collection.id} className="border-t border-[#f1f5f9]">
-                  <td className="px-5 py-3 text-[#475569]">{dateLabel(collection.collectedOnMs)}</td>
+                <tr key={collection.id} className="border-t border-[#f4f4f4]">
+                  <td className="px-5 py-3 text-[#525252]">{dateLabel(collection.collectedOnMs)}</td>
                   <td className="px-5 py-3 font-bold text-emerald-700">{money(collection.amount)}</td>
-                  <td className="px-5 py-3 text-[#475569]">{collection.method}</td>
-                  <td className="px-5 py-3 text-[#475569]">{collection.reference || "—"}</td>
-                  <td className="max-w-[240px] truncate px-5 py-3 text-[#64748b]">{collection.note || "—"}</td>
-                  <td className="px-5 py-3 text-[#64748b]">{collection.recordedBy}</td>
+                  <td className="px-5 py-3 text-[#525252]">{collection.method}</td>
+                  <td className="px-5 py-3 text-[#525252]">{collection.reference || "—"}</td>
+                  <td className="max-w-[240px] truncate px-5 py-3 text-[#737373]">{collection.note || "—"}</td>
+                  <td className="px-5 py-3 text-[#737373]">{collection.recordedBy}</td>
                   <td className="px-5 py-3 text-right">
                     <button
                       type="button"

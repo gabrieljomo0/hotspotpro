@@ -38,7 +38,7 @@ import { Wallet as WalletIcon } from "lucide-react";
 // always tracks what's actually been allowed on the admin side.
 function RestrictedNotice({ label }: { label: string }) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl bg-white p-6 text-sm text-[#94a3b8]">
+    <div className="flex items-center gap-3 rounded-2xl bg-white p-6 text-sm text-[#a3a3a3]">
       <Lock size={16} />
       {label} isn&apos;t enabled for your account. Ask your admin to turn it on if you need it.
     </div>
@@ -90,7 +90,7 @@ export function AgentPortalBody({ agent: storedAgent }: { agent: AgentProfile })
   const canViewReports = agent.permissions["reports.view"] === "Allowed";
 
   return (
-    <div className="min-h-screen bg-[#f1f5f9] text-[#0f172a]">
+    <div className="min-h-screen bg-[#f4f4f4] text-[#1a1a1a]">
       <div className="flex">
         <Sidebar
           agent={agent}
@@ -122,23 +122,23 @@ export function AgentPortalBody({ agent: storedAgent }: { agent: AgentProfile })
                 <h1 className="text-2xl font-black md:text-3xl">
                   Welcome back, {agent.name.split(" ")[0]}! 👋
                 </h1>
-                <p className="mt-2 text-sm text-[#64748b]">
+                <p className="mt-2 text-sm text-[#737373]">
                   {agent.agentCode} · {agent.role} · {agent.status}
                 </p>
               </div>
 
               <div className="flex flex-wrap gap-3">
                 <div className="rounded-xl bg-white px-4 py-2.5">
-                  <p className="text-[10px] text-[#64748b]">Wallet</p>
+                  <p className="text-[10px] text-[#737373]">Wallet</p>
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-black text-[#0f172a]">
+                    <p className="text-sm font-black text-[#1a1a1a]">
                       {sym()} {agent.walletBalance.toLocaleString()}
                     </p>
                     {agent.allowWalletTopUp && (
                       <button
                         type="button"
                         onClick={() => setTopUpOpen(true)}
-                        className="inline-flex items-center gap-1 rounded-full bg-[#2563eb] px-2 py-0.5 text-[10px] font-bold text-white hover:bg-[#1d4ed8]"
+                        className="inline-flex items-center gap-1 rounded-full bg-[#1a1a1a] px-2 py-0.5 text-[10px] font-bold text-white hover:bg-[#111111]"
                       >
                         <WalletIcon size={10} />
                         Top Up
@@ -151,8 +151,8 @@ export function AgentPortalBody({ agent: storedAgent }: { agent: AgentProfile })
                     data-testid="commission-earned-card"
                     className="rounded-xl bg-white px-4 py-2.5"
                   >
-                    <p className="text-[10px] text-[#64748b]">Commission Earned</p>
-                    <p className="text-sm font-black text-[#0f172a]">
+                    <p className="text-[10px] text-[#737373]">Commission Earned</p>
+                    <p className="text-sm font-black text-[#1a1a1a]">
                       {sym()} {agent.earnedCommission.toLocaleString()}
                     </p>
                   </div>
@@ -195,13 +195,13 @@ export function AgentPortalBody({ agent: storedAgent }: { agent: AgentProfile })
               <RecentEvents scopedUsers={scopedUsers} recentBatches={recentBatches} />
             </section>
 
-            <p className="mt-6 text-xs italic text-[#94a3b8]">
+            <p className="mt-6 text-xs italic text-[#a3a3a3]">
               Live data for {siteName}
               {assignedRouter && showRouterName ? ` · ${assignedRouter.name.split(" (")[0]}` : ""} — reflects what&apos;s actually
               set up on the admin dashboard right now.
             </p>
 
-            <footer className="mt-8 flex flex-col justify-between gap-3 border-t py-5 text-xs text-[#64748b] sm:flex-row">
+            <footer className="mt-8 flex flex-col justify-between gap-3 border-t py-5 text-xs text-[#737373] sm:flex-row">
               <p>Signed in as {agent.name} ({agent.role})</p>
               <p>HotspotPro Billing System © 2026</p>
             </footer>

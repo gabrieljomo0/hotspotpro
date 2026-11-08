@@ -50,41 +50,41 @@ export default function ExtendAccessPage({
       title={user.phone || user.voucherUsername}
       subtitle={`Current time left: ${user.timeLeft}`}
     >
-      <p className="mb-3 text-sm font-semibold text-[#475569]">Quick options</p>
+      <p className="mb-3 text-sm font-semibold text-[#525252]">Quick options</p>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {QUICK_OPTIONS.map((option) => (
           <button
             type="button"
             key={option}
             onClick={() => applyExtension(option)}
-            className="rounded-xl border border-[#e2e8f0] px-3 py-2.5 text-sm font-semibold text-[#475569] transition hover:border-[#2563eb] hover:bg-[#f1f5f9] hover:text-[#2563eb]"
+            className="rounded-xl border border-[#e6e6e6] px-3 py-2.5 text-sm font-semibold text-[#525252] transition hover:border-[#1a1a1a] hover:bg-[#f4f4f4] hover:text-[#1a1a1a]"
           >
             +{option}
           </button>
         ))}
       </div>
 
-      <p className="mb-3 mt-6 text-sm font-semibold text-[#475569]">
+      <p className="mb-3 mt-6 text-sm font-semibold text-[#525252]">
         Or specify a custom amount
       </p>
       <div className="flex flex-wrap items-end gap-3">
         <label className="block">
-          <span className="mb-1.5 block text-xs font-semibold text-[#64748b]">Amount</span>
+          <span className="mb-1.5 block text-xs font-semibold text-[#737373]">Amount</span>
           <input
             type="number"
             min={1}
             value={customValue}
             onChange={(event) => setCustomValue(event.target.value)}
             placeholder="e.g. 45"
-            className="h-11 w-32 rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+            className="h-11 w-32 rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
           />
         </label>
         <label className="block">
-          <span className="mb-1.5 block text-xs font-semibold text-[#64748b]">Unit</span>
+          <span className="mb-1.5 block text-xs font-semibold text-[#737373]">Unit</span>
           <select
             value={customUnit}
             onChange={(event) => setCustomUnit(event.target.value)}
-            className="h-11 rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+            className="h-11 rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
           >
             {UNITS.map((unit) => (
               <option key={unit} value={unit}>
@@ -97,7 +97,7 @@ export default function ExtendAccessPage({
           type="button"
           onClick={handleCustomSubmit}
           disabled={!customValue || Number(customValue) <= 0}
-          className="h-11 rounded-xl bg-[#2563eb] px-5 text-sm font-semibold text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:bg-[#e2e8f0] disabled:text-[#94a3b8]"
+          className="h-11 rounded-xl bg-[#1a1a1a] px-5 text-sm font-semibold text-white hover:bg-[#111111] disabled:cursor-not-allowed disabled:bg-[#e6e6e6] disabled:text-[#a3a3a3]"
         >
           Apply
         </button>

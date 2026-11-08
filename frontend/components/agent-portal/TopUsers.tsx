@@ -11,11 +11,11 @@ export function TopUsers({ scopedUsers }: { scopedUsers: ActiveUser[] }) {
 
       <div className="mt-5 space-y-4">
         {users.length === 0 ? (
-          <p className="text-sm text-[#94a3b8]">No users on this router yet.</p>
+          <p className="text-sm text-[#a3a3a3]">No users on this router yet.</p>
         ) : (
           users.map((user, index) => (
             <div key={user.phone} className="grid grid-cols-[28px_1fr_auto] items-center gap-3 text-sm">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#f1f5f9] text-xs font-semibold text-[#2563eb]">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#f4f4f4] text-xs font-semibold text-[#1a1a1a]">
                 {index + 1}
               </span>
               <span className="font-semibold">{user.phone}</span>

@@ -31,8 +31,8 @@ export function AgentActionsMenu({
     showToast,
   } = useDashboard();
 
-  const linkClass = "flex w-full items-center px-4 py-2.5 text-sm text-[#475569] hover:bg-[#f1f5f9]";
-  const buttonClass = "flex w-full px-4 py-2.5 text-left text-sm text-[#475569] hover:bg-[#f1f5f9]";
+  const linkClass = "flex w-full items-center px-4 py-2.5 text-sm text-[#525252] hover:bg-[#f4f4f4]";
+  const buttonClass = "flex w-full px-4 py-2.5 text-left text-sm text-[#525252] hover:bg-[#f4f4f4]";
   const dashboardLocked = isAgentDashboardLockedForAdmin(agent);
 
   return (
@@ -51,7 +51,7 @@ export function AgentActionsMenu({
         Edit
       </button>
       {dashboardLocked ? (
-        <p className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#94a3b8]">
+        <p className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#a3a3a3]">
           <Lock size={14} /> Dashboard locked (permanent access)
         </p>
       ) : (
@@ -79,7 +79,7 @@ export function AgentActionsMenu({
         Copy login link
       </button>
 
-      <div className="my-2 border-t border-[#f1f5f9]" />
+      <div className="my-2 border-t border-[#f4f4f4]" />
 
       <button
         type="button"
@@ -118,7 +118,7 @@ export function AgentActionsMenu({
         Force Logout (All Devices)
       </button>
 
-      <div className="my-2 border-t border-[#f1f5f9]" />
+      <div className="my-2 border-t border-[#f4f4f4]" />
 
       {agent.status !== "Active" && (
         <button
@@ -165,7 +165,7 @@ export function AgentActionsMenu({
 
       {!agent.isDefault && (
         <>
-          <div className="my-2 border-t border-[#f1f5f9]" />
+          <div className="my-2 border-t border-[#f4f4f4]" />
           <button
             type="button"
             className="flex w-full px-4 py-2.5 text-left text-sm font-semibold text-red-600 hover:bg-red-50"

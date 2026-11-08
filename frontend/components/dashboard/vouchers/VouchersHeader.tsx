@@ -44,7 +44,7 @@ export function VouchersHeader({
           <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
             Vouchers
           </h2>
-          <p className="mt-2 max-w-xl text-sm text-[#64748b] md:text-base">
+          <p className="mt-2 max-w-xl text-sm text-[#737373] md:text-base">
             Manage prepaid voucher codes customers buy and redeem for internet
             access.
           </p>
@@ -54,7 +54,7 @@ export function VouchersHeader({
           <button
             type="button"
             onClick={onGenerateClick}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#2563eb] px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#1d4ed8]"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#1a1a1a] px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#111111]"
           >
             <Sparkles size={17} />
             Generate Vouchers
@@ -68,21 +68,21 @@ export function VouchersHeader({
           </Link>
           <Link
             href="/dashboards/vouchers/tracking"
-            className="inline-flex items-center gap-2 rounded-xl border border-[#e2e8f0] bg-white px-4 py-3 text-sm font-bold text-[#475569] shadow-sm transition hover:bg-[#ffffff]"
+            className="inline-flex items-center gap-2 rounded-xl border border-[#e6e6e6] bg-white px-4 py-3 text-sm font-bold text-[#525252] shadow-sm transition hover:bg-[#ffffff]"
           >
             <BarChart3 size={17} />
             Batch Tracking
           </Link>
           <Link
             href="/dashboards/vouchers/create"
-            className="inline-flex items-center gap-2 rounded-xl border border-[#e2e8f0] bg-white px-4 py-3 text-sm font-bold text-[#475569] shadow-sm transition hover:bg-[#ffffff]"
+            className="inline-flex items-center gap-2 rounded-xl border border-[#e6e6e6] bg-white px-4 py-3 text-sm font-bold text-[#525252] shadow-sm transition hover:bg-[#ffffff]"
           >
             <FilePlus2 size={17} />
             New Voucher
           </Link>
           <Link
             href="/dashboards/vouchers/bulk-assign"
-            className="inline-flex items-center gap-2 rounded-xl border border-[#e2e8f0] bg-white px-4 py-3 text-sm font-bold text-[#475569] shadow-sm transition hover:bg-[#ffffff]"
+            className="inline-flex items-center gap-2 rounded-xl border border-[#e6e6e6] bg-white px-4 py-3 text-sm font-bold text-[#525252] shadow-sm transition hover:bg-[#ffffff]"
           >
             <Users2 size={17} />
             Assign to Customer
@@ -100,14 +100,14 @@ export function VouchersHeader({
               onClick={() => onFilterChange(tab.key)}
               className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
                 isActive
-                  ? "border-[#2563eb] bg-[#f1f5f9] text-[#2563eb]"
-                  : "border-[#e2e8f0] bg-white text-[#475569] hover:bg-[#ffffff]"
+                  ? "border-[#1a1a1a] bg-[#f4f4f4] text-[#1a1a1a]"
+                  : "border-[#e6e6e6] bg-white text-[#525252] hover:bg-[#ffffff]"
               }`}
             >
               {tab.label}
               <span
                 className={`rounded-full px-2 py-0.5 text-xs font-bold ${
-                  isActive ? "bg-[#2563eb] text-white" : "bg-[#f1f5f9] text-[#64748b]"
+                  isActive ? "bg-[#1a1a1a] text-white" : "bg-[#f4f4f4] text-[#737373]"
                 }`}
               >
                 {tab.count}

@@ -18,9 +18,9 @@ export function AdsFreeTrialTab({
 }) {
   return (
     <>
-      <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
-        <h3 className="text-lg font-bold text-[#0f172a]">Advertisements</h3>
-        <p className="mb-4 text-sm text-[#64748b]">
+      <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
+        <h3 className="text-lg font-bold text-[#1a1a1a]">Advertisements</h3>
+        <p className="mb-4 text-sm text-[#737373]">
           Control advertising shown on {router.name.split(" (")[0]}&apos;s captive portal.
         </p>
         <ToggleRow
@@ -30,9 +30,9 @@ export function AdsFreeTrialTab({
         />
       </article>
 
-      <article className="mt-5 rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
-        <h3 className="text-lg font-bold text-[#0f172a]">Free Trial</h3>
-        <p className="mb-6 text-sm text-[#64748b]">
+      <article className="mt-5 rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
+        <h3 className="text-lg font-bold text-[#1a1a1a]">Free Trial</h3>
+        <p className="mb-6 text-sm text-[#737373]">
           Configure the captive portal free-trial experience and limits.
         </p>
 

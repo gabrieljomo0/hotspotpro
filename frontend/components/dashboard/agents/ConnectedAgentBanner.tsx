@@ -9,21 +9,21 @@ export function ConnectedAgentBanner() {
   const { currentAgent } = useDashboard();
 
   return (
-    <div className="mb-5 flex items-center justify-between gap-3 rounded-xl border border-[#e2e8f0] bg-[#ffffff] px-4 py-3">
+    <div className="mb-5 flex items-center justify-between gap-3 rounded-xl border border-[#e6e6e6] bg-[#ffffff] px-4 py-3">
       <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f1f5f9] text-[#2563eb]">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f4f4f4] text-[#1a1a1a]">
           <UserCircle2 size={18} />
         </div>
-        <p className="text-sm text-[#475569]">
+        <p className="text-sm text-[#525252]">
           Connected to agent profile{" "}
-          <strong className="text-[#0f172a]">{currentAgent.name}</strong>{" "}
-          <span className="text-xs text-[#64748b]">({currentAgent.role})</span>
+          <strong className="text-[#1a1a1a]">{currentAgent.name}</strong>{" "}
+          <span className="text-xs text-[#737373]">({currentAgent.role})</span>
         </p>
       </div>
 
       <Link
         href="/dashboards/agents"
-        className="text-xs font-semibold text-[#2563eb] hover:underline"
+        className="text-xs font-semibold text-[#1a1a1a] hover:underline"
       >
         Switch agent
       </Link>

@@ -46,9 +46,9 @@ function StatCard({
   hintClass?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
-      <p className="text-xs font-semibold text-[#64748b]">{label}</p>
-      <p className="mt-1 text-2xl font-black text-[#0f172a]">{value}</p>
+    <div className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+      <p className="text-xs font-semibold text-[#737373]">{label}</p>
+      <p className="mt-1 text-2xl font-black text-[#1a1a1a]">{value}</p>
       <p className={`mt-1 text-xs font-semibold ${hintClass}`}>{hint}</p>
     </div>
   );
@@ -77,7 +77,7 @@ export default function SubscriptionBillingPage() {
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="mb-1 text-3xl font-bold tracking-tight md:text-4xl">Billing &amp; Subscription</h2>
-          <p className="max-w-2xl text-sm text-[#64748b] md:text-base">
+          <p className="max-w-2xl text-sm text-[#737373] md:text-base">
             {isCommission
               ? "You pay a share of each router's sales. See what you owe and your payment history."
               : "Manage your monthly subscription and payment history."}
@@ -89,7 +89,7 @@ export default function SubscriptionBillingPage() {
             data-testid="pay-commission"
             onClick={() => setPayOpen(true)}
             disabled={fig.balanceDue <= 0}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#2563eb] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#1a1a1a] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#111111] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <CreditCard size={16} />
             Pay commission
@@ -165,53 +165,53 @@ export default function SubscriptionBillingPage() {
       ) : (
         <>
       {/* Subscription Details */}
-      <article className="mb-5 rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+      <article className="mb-5 rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
         <div className="mb-5 flex items-center gap-2">
-          <Sparkles size={16} className="text-[#2563eb]" />
+          <Sparkles size={16} className="text-[#1a1a1a]" />
           <div>
-            <h3 className="text-base font-bold text-[#0f172a]">Subscription Details</h3>
-            <p className="text-xs text-[#64748b]">Your current subscription plan and billing information</p>
+            <h3 className="text-base font-bold text-[#1a1a1a]">Subscription Details</h3>
+            <p className="text-xs text-[#737373]">Your current subscription plan and billing information</p>
           </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-[#f1f5f9] p-4">
-            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[#94a3b8]">Account Status</p>
-            <p className="mb-1 text-xs font-semibold text-[#64748b]">Status</p>
+          <div className="rounded-xl border border-[#f4f4f4] p-4">
+            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[#a3a3a3]">Account Status</p>
+            <p className="mb-1 text-xs font-semibold text-[#737373]">Status</p>
             <span className="mb-3 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">
               <CheckCircle2 size={11} />
               {subscription.status}
             </span>
-            <p className="mb-1 text-xs font-semibold text-[#64748b]">Member Since</p>
-            <p className="flex items-center gap-1.5 text-sm text-[#0f172a]">
-              <Calendar size={13} className="text-[#94a3b8]" />
+            <p className="mb-1 text-xs font-semibold text-[#737373]">Member Since</p>
+            <p className="flex items-center gap-1.5 text-sm text-[#1a1a1a]">
+              <Calendar size={13} className="text-[#a3a3a3]" />
               {subscription.memberSince}
             </p>
           </div>
 
-          <div className="rounded-xl border border-[#f1f5f9] p-4">
-            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[#94a3b8]">Monthly Fee</p>
-            <p className="mb-1 text-xs font-semibold text-[#64748b]">Fee</p>
-            <p className="mb-3 flex items-center gap-1.5 text-sm font-bold text-[#0f172a]">
-              <CreditCard size={13} className="text-[#94a3b8]" />{sym()} {subscription.monthlyFee.toFixed(2)}
+          <div className="rounded-xl border border-[#f4f4f4] p-4">
+            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[#a3a3a3]">Monthly Fee</p>
+            <p className="mb-1 text-xs font-semibold text-[#737373]">Fee</p>
+            <p className="mb-3 flex items-center gap-1.5 text-sm font-bold text-[#1a1a1a]">
+              <CreditCard size={13} className="text-[#a3a3a3]" />{sym()} {subscription.monthlyFee.toFixed(2)}
             </p>
-            <p className="mb-1 text-xs font-semibold text-[#64748b]">Billing Model</p>
+            <p className="mb-1 text-xs font-semibold text-[#737373]">Billing Model</p>
             <span className="mb-3 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">
               <CheckCircle2 size={11} />
               {subscription.billingModel}
             </span>
-            <p className="mb-1 text-xs font-semibold text-[#64748b]">Info</p>
-            <p className="text-xs text-[#2563eb]">Flat monthly fee - no commission on sales</p>
+            <p className="mb-1 text-xs font-semibold text-[#737373]">Info</p>
+            <p className="text-xs text-[#1a1a1a]">Flat monthly fee - no commission on sales</p>
           </div>
 
-          <div className="rounded-xl border border-[#f1f5f9] p-4">
-            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[#94a3b8]">Subscription Period</p>
-            <p className="mb-1 text-xs font-semibold text-[#64748b]">Paid Until</p>
-            <p className="mb-3 flex items-center gap-1.5 text-sm font-bold text-[#0f172a]">
+          <div className="rounded-xl border border-[#f4f4f4] p-4">
+            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[#a3a3a3]">Subscription Period</p>
+            <p className="mb-1 text-xs font-semibold text-[#737373]">Paid Until</p>
+            <p className="mb-3 flex items-center gap-1.5 text-sm font-bold text-[#1a1a1a]">
               <CheckCircle2 size={13} className="text-emerald-500" />
               {subscription.paidUntil}
             </p>
-            <p className="mb-1 text-xs font-semibold text-[#64748b]">Days Remaining</p>
+            <p className="mb-1 text-xs font-semibold text-[#737373]">Days Remaining</p>
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">
               ✓ {subscription.daysRemaining} days
             </span>
@@ -220,37 +220,37 @@ export default function SubscriptionBillingPage() {
       </article>
 
       {/* Billing Cycle */}
-      <article className="mb-5 rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+      <article className="mb-5 rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
         <div className="mb-5 flex items-center gap-2">
-          <Calendar size={16} className="text-[#2563eb]" />
+          <Calendar size={16} className="text-[#1a1a1a]" />
           <div>
-            <h3 className="text-base font-bold text-[#0f172a]">Billing Cycle</h3>
-            <p className="text-xs text-[#64748b]">Your monthly billing schedule</p>
+            <h3 className="text-base font-bold text-[#1a1a1a]">Billing Cycle</h3>
+            <p className="text-xs text-[#737373]">Your monthly billing schedule</p>
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-3">
           <div>
-            <p className="mb-1 text-xs font-semibold text-[#64748b]">Billing Day</p>
-            <p className="flex items-center gap-1.5 text-sm font-bold text-[#0f172a]">
+            <p className="mb-1 text-xs font-semibold text-[#737373]">Billing Day</p>
+            <p className="flex items-center gap-1.5 text-sm font-bold text-[#1a1a1a]">
               <Calendar size={13} className="text-emerald-500" />
               Day {subscription.billingDay} of each month
             </p>
           </div>
           <div>
-            <p className="mb-1 text-xs font-semibold text-[#64748b]">Next Billing Date</p>
-            <p className="flex items-center gap-1.5 text-sm font-bold text-[#0f172a]">
-              <Clock size={13} className="text-[#94a3b8]" />
+            <p className="mb-1 text-xs font-semibold text-[#737373]">Next Billing Date</p>
+            <p className="flex items-center gap-1.5 text-sm font-bold text-[#1a1a1a]">
+              <Clock size={13} className="text-[#a3a3a3]" />
               {subscription.nextBillingDate}
             </p>
-            <p className="mt-0.5 text-xs text-[#94a3b8]">Prepaid subscription - no charge until this date</p>
+            <p className="mt-0.5 text-xs text-[#a3a3a3]">Prepaid subscription - no charge until this date</p>
           </div>
           <div>
-            <p className="mb-1 text-xs font-semibold text-[#64748b]">Grace Period</p>
-            <p className="flex items-center gap-1.5 text-sm font-bold text-[#0f172a]">
+            <p className="mb-1 text-xs font-semibold text-[#737373]">Grace Period</p>
+            <p className="flex items-center gap-1.5 text-sm font-bold text-[#1a1a1a]">
               <CheckCircle2 size={13} className="text-emerald-500" />
               {subscription.gracePeriodDays} days
             </p>
-            <p className="mt-0.5 text-xs text-[#94a3b8]">Time to pay after billing date</p>
+            <p className="mt-0.5 text-xs text-[#a3a3a3]">Time to pay after billing date</p>
           </div>
         </div>
       </article>
@@ -259,75 +259,75 @@ export default function SubscriptionBillingPage() {
       )}
 
       {/* Account Summary (collapsible) */}
-      <article className="mb-5 overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+      <article className="mb-5 overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
         <button
           type="button"
           onClick={() => setSummaryOpen((c) => !c)}
           className="flex w-full items-center justify-between px-6 py-5"
         >
           <span className="flex items-center gap-2">
-            <BarChart3 size={16} className="text-[#2563eb]" />
-            <span className="text-base font-bold text-[#0f172a]">Account Summary</span>
+            <BarChart3 size={16} className="text-[#1a1a1a]" />
+            <span className="text-base font-bold text-[#1a1a1a]">Account Summary</span>
           </span>
-          <ChevronDown size={16} className={`text-[#94a3b8] transition-transform ${summaryOpen ? "rotate-180" : ""}`} />
+          <ChevronDown size={16} className={`text-[#a3a3a3] transition-transform ${summaryOpen ? "rotate-180" : ""}`} />
         </button>
         {summaryOpen && (
-          <div className="grid gap-4 border-t border-[#f1f5f9] p-6 sm:grid-cols-3">
+          <div className="grid gap-4 border-t border-[#f4f4f4] p-6 sm:grid-cols-3">
             <div className="rounded-xl bg-[#ffffff] p-4">
-              <p className="text-xs font-semibold text-[#64748b]">This Month Sales</p>
-              <p className="mt-1 text-lg font-black text-[#0f172a]">
+              <p className="text-xs font-semibold text-[#737373]">This Month Sales</p>
+              <p className="mt-1 text-lg font-black text-[#1a1a1a]">
                 {sym()} {subscription.thisMonthSales.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </p>
             </div>
             <div className="rounded-xl bg-[#ffffff] p-4">
-              <p className="text-xs font-semibold text-[#64748b]">Total Sales</p>
-              <p className="mt-1 text-lg font-black text-[#0f172a]">
+              <p className="text-xs font-semibold text-[#737373]">Total Sales</p>
+              <p className="mt-1 text-lg font-black text-[#1a1a1a]">
                 {sym()} {subscription.totalSales.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </p>
             </div>
             <div className="rounded-xl bg-[#ffffff] p-4">
-              <p className="text-xs font-semibold text-[#64748b]">Total Paid To HotspotPro</p>
-              <p className="mt-1 text-lg font-black text-[#0f172a]">{sym()} {subscription.totalPaid.toFixed(2)}</p>
+              <p className="text-xs font-semibold text-[#737373]">Total Paid To HotspotPro</p>
+              <p className="mt-1 text-lg font-black text-[#1a1a1a]">{sym()} {subscription.totalPaid.toFixed(2)}</p>
             </div>
           </div>
         )}
       </article>
 
       {/* Payment History */}
-      <article className="mb-5 rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+      <article className="mb-5 rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
         <div className="mb-5 flex items-center gap-2">
-          <CreditCard size={16} className="text-[#2563eb]" />
+          <CreditCard size={16} className="text-[#1a1a1a]" />
           <div>
-            <h3 className="text-base font-bold text-[#0f172a]">Payment History</h3>
-            <p className="text-xs text-[#64748b]">Your subscription payment records</p>
+            <h3 className="text-base font-bold text-[#1a1a1a]">Payment History</h3>
+            <p className="text-xs text-[#737373]">Your subscription payment records</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap gap-8">
             <div>
-              <p className="text-xs font-semibold text-[#64748b]">Total Paid</p>
-              <p className="flex items-center gap-1.5 text-sm font-bold text-[#0f172a]">
-                <CreditCard size={13} className="text-[#94a3b8]" />{sym()} {subscription.totalPaid.toFixed(2)}
+              <p className="text-xs font-semibold text-[#737373]">Total Paid</p>
+              <p className="flex items-center gap-1.5 text-sm font-bold text-[#1a1a1a]">
+                <CreditCard size={13} className="text-[#a3a3a3]" />{sym()} {subscription.totalPaid.toFixed(2)}
               </p>
             </div>
             <div>
-              <p className="text-xs font-semibold text-[#64748b]">Successful Payments</p>
-              <p className="flex items-center gap-1.5 text-sm font-bold text-[#0f172a]">
+              <p className="text-xs font-semibold text-[#737373]">Successful Payments</p>
+              <p className="flex items-center gap-1.5 text-sm font-bold text-[#1a1a1a]">
                 <CheckCircle2 size={13} className="text-emerald-500" />
                 {subscription.successfulPayments} payments
               </p>
             </div>
             <div>
-              <p className="text-xs font-semibold text-[#64748b]">Last Payment</p>
-              <p className="flex items-center gap-1.5 text-sm font-bold text-[#0f172a]">
-                <Calendar size={13} className="text-[#94a3b8]" />
+              <p className="text-xs font-semibold text-[#737373]">Last Payment</p>
+              <p className="flex items-center gap-1.5 text-sm font-bold text-[#1a1a1a]">
+                <Calendar size={13} className="text-[#a3a3a3]" />
                 {subscription.lastPaymentDate ?? "—"}
               </p>
             </div>
           </div>
           <Link
             href="/dashboards/settings/payment-history"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-[#e2e8f0] bg-white px-4 py-2.5 text-sm font-bold text-[#475569] hover:bg-[#ffffff]"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-[#e6e6e6] bg-white px-4 py-2.5 text-sm font-bold text-[#525252] hover:bg-[#ffffff]"
           >
             <ExternalLink size={14} />
             View Full History
@@ -336,33 +336,33 @@ export default function SubscriptionBillingPage() {
       </article>
 
       {/* Billing History */}
-      <article className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
-        <div className="flex items-center gap-2 border-b border-[#e2e8f0] px-6 py-5">
-          <FileText size={16} className="text-[#2563eb]" />
+      <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+        <div className="flex items-center gap-2 border-b border-[#e6e6e6] px-6 py-5">
+          <FileText size={16} className="text-[#1a1a1a]" />
           <div>
-            <h3 className="text-base font-bold text-[#0f172a]">Billing History</h3>
-            <p className="text-xs text-[#64748b]">Record of subscription payments</p>
+            <h3 className="text-base font-bold text-[#1a1a1a]">Billing History</h3>
+            <p className="text-xs text-[#737373]">Record of subscription payments</p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2 px-5 py-4">
           <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8]" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search"
-              className="h-10 w-56 rounded-lg border border-[#e2e8f0] bg-white pl-8 pr-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-10 w-56 rounded-lg border border-[#e6e6e6] bg-white pl-8 pr-3 text-sm outline-none focus:border-[#1a1a1a]"
             />
           </div>
-          <button type="button" className="rounded-lg border border-[#e2e8f0] p-2.5 text-[#475569] hover:bg-[#ffffff]">
+          <button type="button" className="rounded-lg border border-[#e6e6e6] p-2.5 text-[#525252] hover:bg-[#ffffff]">
             <Filter size={16} />
           </button>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-[#ffffff] text-xs text-[#64748b]">
+            <thead className="bg-[#ffffff] text-xs text-[#737373]">
               <tr>
                 <th className="px-4 py-3 font-semibold">Date</th>
                 <th className="px-4 py-3 font-semibold">Reference</th>
@@ -371,17 +371,17 @@ export default function SubscriptionBillingPage() {
                 <th className="px-4 py-3 font-semibold">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#f1f5f9]">
+            <tbody className="divide-y divide-[#f4f4f4]">
               {visibleHistory.map((entry) => (
                 <tr key={entry.id} className="hover:bg-[#ffffff]">
-                  <td className="px-4 py-3 text-[#475569]">{entry.date}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-[#2563eb]">{entry.reference}</td>
+                  <td className="px-4 py-3 text-[#525252]">{entry.date}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-[#1a1a1a]">{entry.reference}</td>
                   <td className="px-4 py-3">
-                    <span className="rounded-full border border-[#e2e8f0] px-2.5 py-1 text-xs font-semibold text-[#475569]">
+                    <span className="rounded-full border border-[#e6e6e6] px-2.5 py-1 text-xs font-semibold text-[#525252]">
                       {entry.method}
                     </span>
                   </td>
-                  <td className="px-4 py-3 font-semibold text-[#0f172a]">{sym()} {entry.amount.toFixed(2)}</td>
+                  <td className="px-4 py-3 font-semibold text-[#1a1a1a]">{sym()} {entry.amount.toFixed(2)}</td>
                   <td className="px-4 py-3">
                     <span
                       className={`rounded-full px-2.5 py-1 text-xs font-bold ${
@@ -399,7 +399,7 @@ export default function SubscriptionBillingPage() {
               ))}
               {visibleHistory.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-sm text-[#94a3b8]">
+                  <td colSpan={5} className="px-4 py-8 text-center text-sm text-[#a3a3a3]">
                     No billing history matches your search.
                   </td>
                 </tr>
@@ -408,13 +408,13 @@ export default function SubscriptionBillingPage() {
           </table>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e2e8f0] px-5 py-3 text-sm text-[#64748b]">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e6e6e6] px-5 py-3 text-sm text-[#737373]">
           <span>
             Showing {visibleHistory.length} result{visibleHistory.length === 1 ? "" : "s"}
           </span>
           <label className="flex items-center gap-2 text-xs">
             Per page
-            <select defaultValue={10} className="rounded-lg border border-[#e2e8f0] bg-white px-2 py-1.5 text-xs outline-none focus:border-[#2563eb]">
+            <select defaultValue={10} className="rounded-lg border border-[#e6e6e6] bg-white px-2 py-1.5 text-xs outline-none focus:border-[#1a1a1a]">
               <option value={10}>10</option>
               <option value={25}>25</option>
             </select>

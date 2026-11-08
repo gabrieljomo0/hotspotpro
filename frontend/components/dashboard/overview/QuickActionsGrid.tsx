@@ -11,7 +11,7 @@ export function QuickActionsGrid() {
         const Icon = action.icon;
 
         const className =
-          "group flex min-h-[96px] items-center gap-4 rounded-2xl border border-[#e2e8f0] bg-white p-4 text-left shadow-[0_8px_24px_rgba(37,99,235,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-[#2563eb] hover:shadow-lg   dark:hover:border-[#2563eb]";
+          "group flex min-h-[96px] items-center gap-4 rounded-2xl border border-[#e6e6e6] bg-white p-4 text-left shadow-[0_8px_24px_rgba(26,26,26,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-[#1a1a1a] hover:shadow-lg   dark:hover:border-[#1a1a1a]";
 
         const content = (
           <>
@@ -24,7 +24,7 @@ export function QuickActionsGrid() {
             <div className="min-w-0">
               <p className="truncate text-sm font-bold">{action.title}</p>
 
-              <p className="mt-1 truncate text-xs text-[#64748b] ">
+              <p className="mt-1 truncate text-xs text-[#737373] ">
                 {action.subtitle}
               </p>
             </div>

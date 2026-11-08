@@ -88,7 +88,7 @@ export default function VoucherTrackingPage() {
       <BackLink />
       <div className="mb-6">
         <h2 className="mb-1 text-3xl font-bold tracking-tight md:text-4xl">Voucher Batch Tracking</h2>
-        <p className="max-w-2xl text-sm text-[#64748b] md:text-base">
+        <p className="max-w-2xl text-sm text-[#737373] md:text-base">
           See what's active, used, and expired across every batch you've
           generated — filter by when it was created and by router or site.
         </p>
@@ -103,8 +103,8 @@ export default function VoucherTrackingPage() {
               onClick={() => setPeriod(p.key)}
               className={`inline-flex items-center gap-1.5 rounded-full border-2 px-4 py-2 text-sm font-semibold transition ${
                 period === p.key
-                  ? "border-[#2563eb] bg-[#f1f5f9] text-[#2563eb]"
-                  : "border-[#e2e8f0] bg-white text-[#475569] hover:bg-[#ffffff]"
+                  ? "border-[#1a1a1a] bg-[#f4f4f4] text-[#1a1a1a]"
+                  : "border-[#e6e6e6] bg-white text-[#525252] hover:bg-[#ffffff]"
               }`}
             >
               <Clock size={13} />
@@ -114,23 +114,23 @@ export default function VoucherTrackingPage() {
         </div>
 
         <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8]" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search router, site, package or reference"
-            className="h-10 w-72 rounded-lg border border-[#e2e8f0] bg-white pl-8 pr-3 text-sm outline-none focus:border-[#2563eb]"
+            className="h-10 w-72 rounded-lg border border-[#e6e6e6] bg-white pl-8 pr-3 text-sm outline-none focus:border-[#1a1a1a]"
           />
         </div>
       </div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-4">
-        <div className="rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
-          <p className="flex items-center gap-1.5 text-xs font-semibold text-[#64748b]">
+        <div className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+          <p className="flex items-center gap-1.5 text-xs font-semibold text-[#737373]">
             <Ticket size={13} />
             Total Vouchers
           </p>
-          <p className="mt-1 text-2xl font-black text-[#0f172a]">{totals.total}</p>
+          <p className="mt-1 text-2xl font-black text-[#1a1a1a]">{totals.total}</p>
         </div>
         <div className="rounded-2xl border border-emerald-200 bg-white p-5">
           <p className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
@@ -155,10 +155,10 @@ export default function VoucherTrackingPage() {
         </div>
       </div>
 
-      <article className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+      <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-[#ffffff] text-xs text-[#64748b]">
+            <thead className="bg-[#ffffff] text-xs text-[#737373]">
               <tr>
                 <th className="px-4 py-4 font-semibold">Batch</th>
                 <th className="px-4 py-4 font-semibold">Site / Router</th>
@@ -169,14 +169,14 @@ export default function VoucherTrackingPage() {
                 <th className="px-4 py-4 font-semibold">Total</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#f1f5f9]">
+            <tbody className="divide-y divide-[#f4f4f4]">
               {batchStats.map(({ batch, total, used, expired, available, site, routerNames }) => (
                 <tr key={batch.id} className="hover:bg-[#ffffff]">
                   <td className="px-4 py-4">
-                    <Link href={`/dashboards/vouchers/batch/${batch.id}`} className="font-semibold text-[#2563eb] hover:underline">
+                    <Link href={`/dashboards/vouchers/batch/${batch.id}`} className="font-semibold text-[#1a1a1a] hover:underline">
                       {batch.reference}
                     </Link>
-                    <p className="text-xs text-[#94a3b8]">{batch.packageName}</p>
+                    <p className="text-xs text-[#a3a3a3]">{batch.packageName}</p>
                   </td>
                   <td className="px-4 py-4">
                     {site ? (
@@ -195,7 +195,7 @@ export default function VoucherTrackingPage() {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-4 text-xs text-[#475569]">{batch.createdAt}</td>
+                  <td className="px-4 py-4 text-xs text-[#525252]">{batch.createdAt}</td>
                   <td className="px-4 py-4">
                     <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">{available}</span>
                   </td>
@@ -205,12 +205,12 @@ export default function VoucherTrackingPage() {
                   <td className="px-4 py-4">
                     <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold text-red-700">{expired}</span>
                   </td>
-                  <td className="px-4 py-4 font-semibold text-[#0f172a]">{total}</td>
+                  <td className="px-4 py-4 font-semibold text-[#1a1a1a]">{total}</td>
                 </tr>
               ))}
               {batchStats.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-sm text-[#94a3b8]">
+                  <td colSpan={7} className="px-4 py-10 text-center text-sm text-[#a3a3a3]">
                     No batches match this period/search.
                   </td>
                 </tr>

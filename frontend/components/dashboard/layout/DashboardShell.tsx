@@ -24,7 +24,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   return (
     <div
       id="dashboard-root"
-      className={`flex min-h-screen bg-[#f1f5f9] text-[#0f172a] transition-colors duration-300 ${
+      className={`flex min-h-screen bg-[#f4f4f4] text-[#1a1a1a] transition-colors duration-300 ${
         controller.darkMode ? "dark" : ""
       }`}
     >

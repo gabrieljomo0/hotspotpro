@@ -35,7 +35,7 @@ export default function ResellerDashboardPage() {
  }
 
  return (
-  <div className="flex min-h-screen bg-[#f1f5f9] text-[#0f172a]">
+  <div className="flex min-h-screen bg-[#f4f4f4] text-[#1a1a1a]">
    <Sidebar
     mobileOpen={mobileSidebarOpen}
     desktopCollapsed={
@@ -64,7 +64,7 @@ export default function ResellerDashboardPage() {
          Welcome back, Emm! 👋
         </h1>
 
-        <p className="mt-2 text-sm text-[#64748b] ">
+        <p className="mt-2 text-sm text-[#737373] ">
          Here&apos;s what&apos;s happening
          on your network today.
         </p>
@@ -73,7 +73,7 @@ export default function ResellerDashboardPage() {
        <div className="flex flex-wrap gap-3">
         <button
          type="button"
-         className="flex items-center gap-3 rounded-lg border border-[#e2e8f0] bg-white px-4 py-3 text-sm font-semibold "
+         className="flex items-center gap-3 rounded-lg border border-[#e6e6e6] bg-white px-4 py-3 text-sm font-semibold "
         >
          <CalendarDays size={17} />
          May 12 - May 18, 2024
@@ -82,7 +82,7 @@ export default function ResellerDashboardPage() {
 
         <button
          type="button"
-         className="flex items-center gap-2 rounded-lg bg-[#2563eb] px-5 py-3 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+         className="flex items-center gap-2 rounded-lg bg-[#1a1a1a] px-5 py-3 text-sm font-bold text-white hover:bg-[#111111]"
         >
          <RefreshCcw size={17} />
          Refresh
@@ -104,7 +104,7 @@ export default function ResellerDashboardPage() {
        <RecentEvents />
       </section>
 
-      <footer className="mt-8 flex flex-col justify-between gap-3 border-t border-[#e2e8f0] py-5 text-xs text-[#64748b] sm:flex-row">
+      <footer className="mt-8 flex flex-col justify-between gap-3 border-t border-[#e6e6e6] py-5 text-xs text-[#737373] sm:flex-row">
        <p>
         You are logged in as: Emm
         (Reseller)

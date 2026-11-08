@@ -42,10 +42,10 @@ export function UsageScopeSelector({
   }
 
   return (
-    <div className="mb-5 rounded-xl border border-[#f1f5f9] p-4">
+    <div className="mb-5 rounded-xl border border-[#f4f4f4] p-4">
       <div className="mb-3 flex items-center gap-2">
-        <Globe2 size={16} className="text-[#2563eb]" />
-        <p className="text-sm font-bold text-[#0f172a]">
+        <Globe2 size={16} className="text-[#1a1a1a]" />
+        <p className="text-sm font-bold text-[#1a1a1a]">
           Check usage for
         </p>
       </div>
@@ -53,7 +53,7 @@ export function UsageScopeSelector({
       <select
         value={scopeKey}
         onChange={(event) => handleChange(event.target.value)}
-        className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb] sm:max-w-sm"
+        className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a] sm:max-w-sm"
       >
         <option value="network">Whole Network</option>
         <optgroup label="By Router">
@@ -73,14 +73,14 @@ export function UsageScopeSelector({
       </select>
 
       {scope.type === "router" && (
-        <p className="mt-2 flex items-center gap-1.5 text-xs text-[#64748b]">
+        <p className="mt-2 flex items-center gap-1.5 text-xs text-[#737373]">
           <RouterIcon size={13} />
           Showing usage recorded on this router only.
         </p>
       )}
 
       {scope.type === "agent" && (
-        <p className="mt-2 flex items-center gap-1.5 text-xs text-[#64748b]">
+        <p className="mt-2 flex items-center gap-1.5 text-xs text-[#737373]">
           <User size={13} />
           Showing usage from customers this agent has sold vouchers to.
         </p>

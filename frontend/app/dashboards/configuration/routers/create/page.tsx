@@ -398,65 +398,65 @@ export default function AddRouterPage() {
 
   return (
     <section className="mx-auto w-full max-w-3xl">
-      <div className="mb-1 text-xs text-[#94a3b8]">
+      <div className="mb-1 text-xs text-[#a3a3a3]">
         Routers <span className="mx-1">›</span> Add Router
       </div>
-      <h1 className="mb-2 text-3xl font-black text-[#0f172a] md:text-4xl">Provision Router</h1>
-      <p className="mb-6 text-sm text-[#64748b]">
+      <h1 className="mb-2 text-3xl font-black text-[#1a1a1a] md:text-4xl">Provision Router</h1>
+      <p className="mb-6 text-sm text-[#737373]">
         Configure the router and run the generated command in its RouterOS
         terminal.
       </p>
 
-      <div className="mb-6 flex items-center gap-2 rounded-2xl border border-[#e2e8f0] bg-white p-4">
+      <div className="mb-6 flex items-center gap-2 rounded-2xl border border-[#e6e6e6] bg-white p-4">
         {STEPS.map((s, index) => (
           <div key={s.label} className="flex flex-1 items-center gap-3">
             <div
               className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 text-sm font-bold ${
                 index < shown
-                  ? "border-[#2563eb] bg-[#2563eb] text-white"
+                  ? "border-[#1a1a1a] bg-[#1a1a1a] text-white"
                   : index === shown
-                    ? "border-[#2563eb] text-[#2563eb]"
-                    : "border-[#e2e8f0] text-[#94a3b8]"
+                    ? "border-[#1a1a1a] text-[#1a1a1a]"
+                    : "border-[#e6e6e6] text-[#a3a3a3]"
               }`}
             >
               {index < shown ? <Check size={16} /> : index + 1}
             </div>
             <div className="hidden sm:block">
-              <p className={`text-sm font-bold ${index <= shown ? "text-[#0f172a]" : "text-[#94a3b8]"}`}>
+              <p className={`text-sm font-bold ${index <= shown ? "text-[#1a1a1a]" : "text-[#a3a3a3]"}`}>
                 {s.label}
               </p>
-              <p className="text-xs text-[#94a3b8]">{s.description}</p>
+              <p className="text-xs text-[#a3a3a3]">{s.description}</p>
             </div>
             {index < STEPS.length - 1 && (
-              <div className="mx-2 hidden h-px flex-1 bg-[#e2e8f0] sm:block" />
+              <div className="mx-2 hidden h-px flex-1 bg-[#e6e6e6] sm:block" />
             )}
           </div>
         ))}
       </div>
 
-      <div className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
+      <div className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
         {step === 0 && (
           <div className="space-y-6">
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">
                 Router Name <span className="text-red-500">*</span>
               </span>
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 placeholder="e.g., Main Office Router"
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
             </label>
 
             <div>
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">
                 Business / Site / Organization <span className="text-red-500">*</span>
               </span>
               <select
                 value={siteChoice}
                 onChange={(event) => setSiteChoice(event.target.value)}
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               >
                 {businessLocations.map((site) => (
                   <option key={site.id} value={site.id}>
@@ -465,7 +465,7 @@ export default function AddRouterPage() {
                 ))}
                 <option value="__new__">+ Add a new business / site…</option>
               </select>
-              <span className="mt-1 block text-xs text-[#94a3b8]">
+              <span className="mt-1 block text-xs text-[#a3a3a3]">
                 Routers in the same business share one captive portal design
                 and hotspot setup. Pick an existing one, or create a new one
                 for a different location.
@@ -476,13 +476,13 @@ export default function AddRouterPage() {
                   value={newSiteName}
                   onChange={(event) => setNewSiteName(event.target.value)}
                   placeholder="e.g., Kasoa Branch"
-                  className="mt-3 h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                  className="mt-3 h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
                 />
               )}
             </div>
 
             <div>
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">
                 Router Type <span className="text-red-500">*</span>
               </span>
               <div className="grid grid-cols-2 gap-3">
@@ -490,13 +490,13 @@ export default function AddRouterPage() {
                   type="button"
                   onClick={() => setRouterType("New Router")}
                   className={`rounded-xl border-2 p-4 text-center ${
-                    routerType === "New Router" ? "border-[#2563eb] bg-[#f1f5f9]" : "border-[#e2e8f0] bg-white"
+                    routerType === "New Router" ? "border-[#1a1a1a] bg-[#f4f4f4]" : "border-[#e6e6e6] bg-white"
                   }`}
                 >
-                  <p className={`text-sm font-bold ${routerType === "New Router" ? "text-[#2563eb]" : "text-[#0f172a]"}`}>
+                  <p className={`text-sm font-bold ${routerType === "New Router" ? "text-[#1a1a1a]" : "text-[#1a1a1a]"}`}>
                     New Router
                   </p>
-                  <p className={`text-xs ${routerType === "New Router" ? "text-[#2563eb]" : "text-[#94a3b8]"}`}>
+                  <p className={`text-xs ${routerType === "New Router" ? "text-[#1a1a1a]" : "text-[#a3a3a3]"}`}>
                     Fresh setup, no existing config
                   </p>
                 </button>
@@ -504,18 +504,18 @@ export default function AddRouterPage() {
                   type="button"
                   onClick={() => setRouterType("Existing Router")}
                   className={`rounded-xl border-2 p-4 text-center ${
-                    routerType === "Existing Router" ? "border-[#2563eb] bg-[#f1f5f9]" : "border-[#e2e8f0] bg-white"
+                    routerType === "Existing Router" ? "border-[#1a1a1a] bg-[#f4f4f4]" : "border-[#e6e6e6] bg-white"
                   }`}
                 >
-                  <p className={`text-sm font-bold ${routerType === "Existing Router" ? "text-[#2563eb]" : "text-[#0f172a]"}`}>
+                  <p className={`text-sm font-bold ${routerType === "Existing Router" ? "text-[#1a1a1a]" : "text-[#1a1a1a]"}`}>
                     Existing Router
                   </p>
-                  <p className={`text-xs ${routerType === "Existing Router" ? "text-[#2563eb]" : "text-[#94a3b8]"}`}>
+                  <p className={`text-xs ${routerType === "Existing Router" ? "text-[#1a1a1a]" : "text-[#a3a3a3]"}`}>
                     Already in use, connect only
                   </p>
                 </button>
               </div>
-              <p className="mt-2 text-xs text-[#94a3b8]">
+              <p className="mt-2 text-xs text-[#a3a3a3]">
                 {routerType === "New Router"
                   ? "Full provisioning will configure bridges, IPs, DHCP, and hotspot services."
                   : "Minimal connection only adds API access and WireGuard. Your existing configuration will not be modified."}
@@ -523,16 +523,16 @@ export default function AddRouterPage() {
             </div>
 
             <label className="block" data-testid="wan-field">
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">
                 Internet (ISP) port
               </span>
               <input
                 value={wanInterface}
                 onChange={(event) => setWanInterface(event.target.value)}
                 placeholder="ether1"
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
-              <span className="mt-1 block text-xs text-[#94a3b8]">
+              <span className="mt-1 block text-xs text-[#a3a3a3]">
                 The port your internet cable goes into. It is ether1 unless you change it here. That port gets its
                 address from your ISP automatically (DHCP client) and is shared with everyone on the hotspot (NAT);
                 the other ports become the hotspot network.
@@ -540,11 +540,11 @@ export default function AddRouterPage() {
               </span>
             </label>
 
-            <label className="flex items-start gap-3 rounded-xl border border-[#e2e8f0] bg-white p-3" data-testid="admin-from-wan">
+            <label className="flex items-start gap-3 rounded-xl border border-[#e6e6e6] bg-white p-3" data-testid="admin-from-wan">
               <input type="checkbox" checked={adminFromWan} onChange={(event) => setAdminFromWan(event.target.checked)} className="mt-1 h-4 w-4" />
-              <span className="text-sm text-[#475569]">
+              <span className="text-sm text-[#525252]">
                 <span className="block font-semibold">Let me use WinBox from the network my ISP cable comes from</span>
-                <span className="mt-0.5 block text-xs text-[#94a3b8]">
+                <span className="mt-0.5 block text-xs text-[#a3a3a3]">
                   Tick this if your computer is on the WiFi of the modem/router the internet cable plugs into (for example a Starlink
                   router). It opens WinBox (port 8291) only to private addresses on the ISP port, still password protected, never to
                   the public internet. The router&apos;s factory settings block this.
@@ -554,16 +554,16 @@ export default function AddRouterPage() {
 
             {routerType === "New Router" && (
               <label className="block" data-testid="mgmt-field">
-                <span className="mb-2 block text-sm font-semibold text-[#475569]">
-                  Port my computer is plugged into <span className="font-normal text-[#94a3b8]">(admin port)</span>
+                <span className="mb-2 block text-sm font-semibold text-[#525252]">
+                  Port my computer is plugged into <span className="font-normal text-[#a3a3a3]">(admin port)</span>
                 </span>
                 <input
                   value={mgmtPort}
                   onChange={(event) => setMgmtPort(event.target.value)}
                   placeholder="ether5"
-                  className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                  className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
                 />
-                <span className="mt-1 block text-xs text-[#94a3b8]">
+                <span className="mt-1 block text-xs text-[#a3a3a3]">
                   This port is kept OUT of the hotspot, so the computer running HotspotPro stays connected to the router and
                   never loses it during setup. Customers use the other ports and the WiFi. Leave it empty only if HotspotPro
                   runs somewhere else on the internet.
@@ -573,15 +573,15 @@ export default function AddRouterPage() {
             )}
 
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">
                 DNS Name {routerType === "Existing Router" ? (
                   <span className="text-red-500">*</span>
                 ) : (
-                  <span className="font-normal text-[#94a3b8]">(Optional)</span>
+                  <span className="font-normal text-[#a3a3a3]">(Optional)</span>
                 )}
               </span>
               {routerType === "Existing Router" && (
-                <p className="mb-2 flex items-start gap-2 rounded-xl border border-[#cbd5e1] bg-white p-3 text-xs text-[#1d4ed8]">
+                <p className="mb-2 flex items-start gap-2 rounded-xl border border-[#d4d4d4] bg-white p-3 text-xs text-[#111111]">
                   <AlertTriangle size={14} className="mt-0.5 shrink-0" />
                   Enter the exact DNS name configured on your router (e.g.,
                   &quot;mynetwork.wifi&quot;). This is required for the captive
@@ -592,9 +592,9 @@ export default function AddRouterPage() {
                 value={dnsName}
                 onChange={(event) => setDnsName(event.target.value)}
                 placeholder="e.g., mynetwork.wifi or company.wifi"
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
-              <span className="mt-1 block text-xs text-[#94a3b8]">
+              <span className="mt-1 block text-xs text-[#a3a3a3]">
                 DNS name for the hotspot captive portal login page. Must
                 include a domain (e.g., &quot;mynetwork.wifi&quot;, not just
                 &quot;wifi&quot;).
@@ -602,7 +602,7 @@ export default function AddRouterPage() {
             </label>
 
             {routerType === "New Router" && (
-              <div data-testid="wireless-card" className="rounded-xl border border-[#e2e8f0] bg-white p-4">
+              <div data-testid="wireless-card" className="rounded-xl border border-[#e6e6e6] bg-white p-4">
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
@@ -610,18 +610,18 @@ export default function AddRouterPage() {
                     aria-checked={hasWireless}
                     data-testid="wireless-switch"
                     onClick={() => setHasWireless((current) => !current)}
-                    className={`relative h-6 w-11 shrink-0 rounded-full transition ${hasWireless ? "bg-[#2563eb]" : "bg-[#cbd5e1]"}`}
+                    className={`relative h-6 w-11 shrink-0 rounded-full transition ${hasWireless ? "bg-[#1a1a1a]" : "bg-[#d4d4d4]"}`}
                   >
                     <span
                       className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${hasWireless ? "translate-x-5" : "translate-x-0.5"}`}
                     />
                   </button>
-                  <span className="text-sm font-bold text-[#0f172a]">Router has Wireless</span>
+                  <span className="text-sm font-bold text-[#1a1a1a]">Router has Wireless</span>
                 </div>
-                <p className="mt-2 text-xs text-[#64748b]">Enable this if your MikroTik router has WiFi capabilities</p>
+                <p className="mt-2 text-xs text-[#737373]">Enable this if your MikroTik router has WiFi capabilities</p>
                 {hasWireless && (
                   <label className="mt-4 block">
-                    <span className="mb-2 block text-sm font-semibold text-[#475569]">
+                    <span className="mb-2 block text-sm font-semibold text-[#525252]">
                       WiFi SSID <span className="text-red-500">*</span>
                     </span>
                     <input
@@ -630,64 +630,64 @@ export default function AddRouterPage() {
                       maxLength={32}
                       data-testid="wifi-ssid"
                       placeholder="e.g., Kasoa Free WiFi"
-                      className="h-11 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm text-[#0f172a] outline-none focus:border-[#2563eb]"
+                      className="h-11 w-full rounded-xl border border-[#d4d4d4] bg-white px-3 text-sm text-[#1a1a1a] outline-none focus:border-[#1a1a1a]"
                     />
-                    <span className="mt-1 block text-xs text-[#94a3b8]">Network name that users will see when connecting</span>
+                    <span className="mt-1 block text-xs text-[#a3a3a3]">Network name that users will see when connecting</span>
                   </label>
                 )}
               </div>
             )}
 
             {routerType === "New Router" && (
-              <div className="rounded-xl border border-[#f1f5f9] bg-[#ffffff] p-4">
-                <p className="mb-3 text-sm font-bold text-[#0f172a]">Service Configuration</p>
+              <div className="rounded-xl border border-[#f4f4f4] bg-[#ffffff] p-4">
+                <p className="mb-3 text-sm font-bold text-[#1a1a1a]">Service Configuration</p>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <button
                     type="button"
                     onClick={() => setHotspotEnabled((current) => !current)}
                     className={`rounded-xl border-2 p-4 text-left ${
-                      hotspotEnabled ? "border-[#2563eb] bg-[#f1f5f9]" : "border-[#e2e8f0] bg-white"
+                      hotspotEnabled ? "border-[#1a1a1a] bg-[#f4f4f4]" : "border-[#e6e6e6] bg-white"
                     }`}
                   >
                     <div className="mb-1 flex items-center justify-between">
-                      <span className="text-sm font-bold text-[#0f172a]">Enable Hotspot</span>
+                      <span className="text-sm font-bold text-[#1a1a1a]">Enable Hotspot</span>
                       <span
                         className={`flex h-4 w-4 items-center justify-center rounded ${
-                          hotspotEnabled ? "bg-[#2563eb] text-white" : "border border-[#e2e8f0]"
+                          hotspotEnabled ? "bg-[#1a1a1a] text-white" : "border border-[#e6e6e6]"
                         }`}
                       >
                         {hotspotEnabled && <Check size={11} />}
                       </span>
                     </div>
-                    <p className="text-xs text-[#94a3b8]">WiFi hotspot for public access</p>
-                    <p className="font-mono text-xs text-[#94a3b8]" data-testid="hotspot-network">Network: {hotspotNetwork}</p>
+                    <p className="text-xs text-[#a3a3a3]">WiFi hotspot for public access</p>
+                    <p className="font-mono text-xs text-[#a3a3a3]" data-testid="hotspot-network">Network: {hotspotNetwork}</p>
                   </button>
                   <button
                     type="button"
                     onClick={() => setPppoeEnabled((current) => !current)}
                     className={`rounded-xl border-2 p-4 text-left ${
-                      pppoeEnabled ? "border-[#2563eb] bg-[#f1f5f9]" : "border-[#e2e8f0] bg-white"
+                      pppoeEnabled ? "border-[#1a1a1a] bg-[#f4f4f4]" : "border-[#e6e6e6] bg-white"
                     }`}
                   >
                     <div className="mb-1 flex items-center justify-between">
-                      <span className="text-sm font-bold text-[#0f172a]">Enable PPPoE</span>
+                      <span className="text-sm font-bold text-[#1a1a1a]">Enable PPPoE</span>
                       <span
                         className={`flex h-4 w-4 items-center justify-center rounded ${
-                          pppoeEnabled ? "bg-[#2563eb] text-white" : "border border-[#e2e8f0]"
+                          pppoeEnabled ? "bg-[#1a1a1a] text-white" : "border border-[#e6e6e6]"
                         }`}
                       >
                         {pppoeEnabled && <Check size={11} />}
                       </span>
                     </div>
-                    <p className="text-xs text-[#94a3b8]">Wired PPPoE for fiber/DSL</p>
-                    <p className="font-mono text-xs text-[#94a3b8]">Network: {pppoeNetwork}</p>
+                    <p className="text-xs text-[#a3a3a3]">Wired PPPoE for fiber/DSL</p>
+                    <p className="font-mono text-xs text-[#a3a3a3]">Network: {pppoeNetwork}</p>
                   </button>
                 </div>
 
                 {hotspotEnabled && (
-                  <div className="mt-4 rounded-xl border border-[#e2e8f0] bg-white p-4">
-                    <p className="text-sm font-bold text-[#0f172a]">How customers log in</p>
-                    <p className="mt-1 text-xs text-[#64748b]">Pick one. The router uses only that method, and you can change it later.</p>
+                  <div className="mt-4 rounded-xl border border-[#e6e6e6] bg-white p-4">
+                    <p className="text-sm font-bold text-[#1a1a1a]">How customers log in</p>
+                    <p className="mt-1 text-xs text-[#737373]">Pick one. The router uses only that method, and you can change it later.</p>
                     <div className="mt-3 grid gap-3 sm:grid-cols-2">
                       {([
                         ["cloud", "Cloud", "Every login is checked on HotspotPro."],
@@ -697,10 +697,10 @@ export default function AddRouterPage() {
                           key={id}
                           type="button"
                           onClick={() => setLoginMode(id)}
-                          className={`rounded-xl border-2 p-3 text-left ${loginMode === id ? "border-[#2563eb] bg-[#f1f5f9]" : "border-[#e2e8f0]"}`}
+                          className={`rounded-xl border-2 p-3 text-left ${loginMode === id ? "border-[#1a1a1a] bg-[#f4f4f4]" : "border-[#e6e6e6]"}`}
                         >
-                          <span className="text-sm font-bold text-[#0f172a]">{label}</span>
-                          <span className="mt-1 block text-xs text-[#64748b]">{detail}</span>
+                          <span className="text-sm font-bold text-[#1a1a1a]">{label}</span>
+                          <span className="mt-1 block text-xs text-[#737373]">{detail}</span>
                         </button>
                       ))}
                     </div>
@@ -722,7 +722,7 @@ export default function AddRouterPage() {
               </div>
             )}
 
-            <div data-testid="prune-card" className="rounded-xl border border-[#e2e8f0] bg-white p-4">
+            <div data-testid="prune-card" className="rounded-xl border border-[#e6e6e6] bg-white p-4">
               <div className="flex items-start gap-3">
                 <button
                   type="button"
@@ -730,18 +730,18 @@ export default function AddRouterPage() {
                   aria-checked={pruneOn}
                   data-testid="prune-switch"
                   onClick={() => setPruneOn((current) => !current)}
-                  className={`relative mt-0.5 h-6 w-11 shrink-0 rounded-full transition ${pruneOn ? "bg-[#2563eb]" : "bg-[#cbd5e1]"}`}
+                  className={`relative mt-0.5 h-6 w-11 shrink-0 rounded-full transition ${pruneOn ? "bg-[#1a1a1a]" : "bg-[#d4d4d4]"}`}
                 >
                   <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${pruneOn ? "translate-x-5" : "translate-x-0.5"}`} />
                 </button>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-[#0f172a]">Prune inactive users</p>
-                  <p className="text-xs text-[#64748b]">
+                  <p className="text-sm font-bold text-[#1a1a1a]">Prune inactive users</p>
+                  <p className="text-xs text-[#737373]">
                     Automatically remove voucher users who are offline and have not been seen for a while. More clean-up options (expired vouchers, cookies, time of day)
                     are under the router&apos;s Hotspot → Clean-up tab.
                   </p>
                   {pruneOn && (
-                    <label className="mt-3 flex items-center gap-2 text-sm text-[#475569]">
+                    <label className="mt-3 flex items-center gap-2 text-sm text-[#525252]">
                       Remove users inactive for
                       <input
                         data-testid="prune-days"
@@ -750,7 +750,7 @@ export default function AddRouterPage() {
                         max={365}
                         value={pruneDays}
                         onChange={(event) => setPruneDays(Math.max(1, Math.min(365, Math.floor(Number(event.target.value) || 1))))}
-                        className="h-10 w-20 rounded-lg border border-[#cbd5e1] bg-white px-2 text-center text-sm text-[#0f172a] outline-none focus:border-[#2563eb]"
+                        className="h-10 w-20 rounded-lg border border-[#d4d4d4] bg-white px-2 text-center text-sm text-[#1a1a1a] outline-none focus:border-[#1a1a1a]"
                       />
                       days
                     </label>
@@ -763,7 +763,7 @@ export default function AddRouterPage() {
               <button
                 type="button"
                 onClick={() => navigate.push("/dashboards/configuration/routers")}
-                className="rounded-xl border border-[#e2e8f0] bg-white px-5 py-3 text-sm font-bold text-[#475569] hover:bg-[#ffffff]"
+                className="rounded-xl border border-[#e6e6e6] bg-white px-5 py-3 text-sm font-bold text-[#525252] hover:bg-[#ffffff]"
               >
                 Back
               </button>
@@ -771,7 +771,7 @@ export default function AddRouterPage() {
                 type="button"
                 disabled={!canContinue}
                 onClick={() => setStep(1)}
-                className="rounded-xl bg-[#2563eb] px-6 py-3 text-sm font-bold text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-xl bg-[#1a1a1a] px-6 py-3 text-sm font-bold text-white hover:bg-[#111111] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Continue to Command
               </button>
@@ -781,17 +781,17 @@ export default function AddRouterPage() {
 
         {step === 1 && (
           <div className="space-y-5">
-            <div className="rounded-xl border border-[#f1f5f9] p-4">
+            <div className="rounded-xl border border-[#f4f4f4] p-4">
               <div className="mb-2 flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-bold text-[#0f172a]">Provisioning Command</p>
-                  <p className="text-xs text-[#94a3b8]">In WinBox open New Terminal, paste this whole line, and press Enter. Keep this computer on the admin port and the internet cable in the ISP port.</p>
+                  <p className="text-sm font-bold text-[#1a1a1a]">Provisioning Command</p>
+                  <p className="text-xs text-[#a3a3a3]">In WinBox open New Terminal, paste this whole line, and press Enter. Keep this computer on the admin port and the internet cable in the ISP port.</p>
                 </div>
                 <button
                   type="button"
                   data-testid="copy-command"
                   onClick={handleCopy}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#2563eb] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#1d4ed8]"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#1a1a1a] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#111111]"
                 >
                   {copied ? <Check size={13} /> : <Copy size={13} />}
                   {copied ? "Copied" : "Copy"}
@@ -800,14 +800,14 @@ export default function AddRouterPage() {
               <code
                 data-testid="command-text"
                 onCopy={startProvisioning}
-                className="block max-h-40 overflow-y-auto whitespace-pre-wrap break-all rounded-lg bg-[#0f172a] px-3 py-2.5 text-xs text-white"
+                className="block max-h-40 overflow-y-auto whitespace-pre-wrap break-all rounded-lg bg-[#1a1a1a] px-3 py-2.5 text-xs text-white"
               >
                 {provisioningCommand}
               </code>
             </div>
 
-            <div data-testid="device-mode-help" className="rounded-xl border border-[#e2e8f0] bg-white p-4 text-xs text-[#475569]">
-              <p className="text-sm font-bold text-[#0f172a]">Router in home mode?</p>
+            <div data-testid="device-mode-help" className="rounded-xl border border-[#e6e6e6] bg-white p-4 text-xs text-[#525252]">
+              <p className="text-sm font-bold text-[#1a1a1a]">Router in home mode?</p>
               <p className="mt-1">
                 The pasted command checks the router first. If the mode is home, it switches the router to advanced and stops.
                 Press the reset button briefly (or switch the power off and on) within 5 minutes, wait for the restart, then paste the same command again. The configuration runs on that second paste.
@@ -815,9 +815,9 @@ export default function AddRouterPage() {
             </div>
 
             {/* Address the router will use to reach this server */}
-            <div data-testid="router-address" className="rounded-xl border border-[#e2e8f0] bg-white p-4">
-              <p className="text-sm font-bold text-[#0f172a]">Address the router will use to reach this server</p>
-              <p className="mt-1 text-xs text-[#64748b]">
+            <div data-testid="router-address" className="rounded-xl border border-[#e6e6e6] bg-white p-4">
+              <p className="text-sm font-bold text-[#1a1a1a]">Address the router will use to reach this server</p>
+              <p className="mt-1 text-xs text-[#737373]">
                 The router downloads its setup from this address, so it must be one the router can reach, such as http://192.168.1.50:4000.
                 If Windows asks whether to allow Node.js on private networks, allow it, or the paste will not download.
               </p>
@@ -828,7 +828,7 @@ export default function AddRouterPage() {
                   setOrigin(e.target.value.trim().replace(/\/+$/, ""));
                   setScriptCheck(null);
                 }}
-                className="mt-3 h-11 w-full rounded-xl border border-[#cbd5e1] px-3 font-mono text-sm outline-none focus:border-[#2563eb]"
+                className="mt-3 h-11 w-full rounded-xl border border-[#d4d4d4] px-3 font-mono text-sm outline-none focus:border-[#1a1a1a]"
               />
               {suggestions.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -840,24 +840,24 @@ export default function AddRouterPage() {
                         setOrigin(item.origin);
                         setScriptCheck(null);
                       }}
-                      className="rounded-lg border border-[#cbd5e1] bg-white px-2.5 py-1 font-mono text-xs text-[#475569] hover:bg-[#f1f5f9]"
+                      className="rounded-lg border border-[#d4d4d4] bg-white px-2.5 py-1 font-mono text-xs text-[#525252] hover:bg-[#f4f4f4]"
                     >
-                      {item.origin} <span className="text-[#94a3b8]">({item.interface})</span>
+                      {item.origin} <span className="text-[#a3a3a3]">({item.interface})</span>
                     </button>
                   ))}
                 </div>
               )}
               {originIsLocal && (
-                <p data-testid="localhost-warning" className="mt-3 rounded-lg border border-[#fecaca] bg-[#fef2f2] p-3 text-xs font-semibold text-[#b91c1c]">
+                <p data-testid="localhost-warning" className="mt-3 rounded-lg border border-[#f3f1ec] bg-[#f3f1ec] p-3 text-xs font-semibold text-[#1a1a1a]">
                   This address says localhost, which a router can never reach. Pick or type this computer&apos;s network address above before running the command.
                 </p>
               )}
             </div>
 
             {/* Test the setup without a router */}
-            <div data-testid="script-test" className="rounded-xl border border-[#e2e8f0] bg-white p-4">
-              <p className="text-sm font-bold text-[#0f172a]">Test the setup before using a real router</p>
-              <p className="mt-1 text-xs text-[#64748b]">
+            <div data-testid="script-test" className="rounded-xl border border-[#e6e6e6] bg-white p-4">
+              <p className="text-sm font-bold text-[#1a1a1a]">Test the setup before using a real router</p>
+              <p className="mt-1 text-xs text-[#737373]">
                 &quot;Check script&quot; builds the exact script the router would download and checks it for mistakes. &quot;Pretend a router ran it&quot; (testing only)
                 completes the setup as if a router had checked in, so you can try the rest of the app.
               </p>
@@ -866,7 +866,7 @@ export default function AddRouterPage() {
                   type="button"
                   data-testid="check-script"
                   onClick={runScriptCheck}
-                  className="rounded-lg bg-[#2563eb] px-3 py-2 text-xs font-bold text-white hover:bg-[#1d4ed8]"
+                  className="rounded-lg bg-[#1a1a1a] px-3 py-2 text-xs font-bold text-white hover:bg-[#111111]"
                 >
                   Check script
                 </button>
@@ -874,44 +874,44 @@ export default function AddRouterPage() {
                   type="button"
                   data-testid="simulate-router"
                   onClick={simulateRouter}
-                  className="rounded-lg border border-[#cbd5e1] bg-white px-3 py-2 text-xs font-bold text-[#475569] hover:bg-[#f1f5f9]"
+                  className="rounded-lg border border-[#d4d4d4] bg-white px-3 py-2 text-xs font-bold text-[#525252] hover:bg-[#f4f4f4]"
                 >
                   Pretend a router ran it
                 </button>
                 {scriptCheck?.script && (
                   <>
-                    <button type="button" data-testid="show-script" onClick={() => setShowScript((v) => !v)} className="rounded-lg border border-[#cbd5e1] bg-white px-3 py-2 text-xs font-bold text-[#475569] hover:bg-[#f1f5f9]">
+                    <button type="button" data-testid="show-script" onClick={() => setShowScript((v) => !v)} className="rounded-lg border border-[#d4d4d4] bg-white px-3 py-2 text-xs font-bold text-[#525252] hover:bg-[#f4f4f4]">
                       {showScript ? "Hide script" : "Show script"}
                     </button>
-                    <button type="button" data-testid="download-script" onClick={downloadScript} className="rounded-lg border border-[#cbd5e1] bg-white px-3 py-2 text-xs font-bold text-[#475569] hover:bg-[#f1f5f9]">
+                    <button type="button" data-testid="download-script" onClick={downloadScript} className="rounded-lg border border-[#d4d4d4] bg-white px-3 py-2 text-xs font-bold text-[#525252] hover:bg-[#f4f4f4]">
                       Download .rsc
                     </button>
                   </>
                 )}
               </div>
-              {checkError && <p data-testid="check-error" className="mt-3 text-xs font-semibold text-[#b91c1c]">{checkError}</p>}
+              {checkError && <p data-testid="check-error" className="mt-3 text-xs font-semibold text-[#1a1a1a]">{checkError}</p>}
               {scriptCheck && (
-                <div data-testid="check-result" className="mt-3 rounded-lg border border-[#e2e8f0] p-3">
-                  <p className={`text-sm font-bold ${scriptCheck.report.ok ? "text-[#0f172a]" : "text-[#b91c1c]"}`}>
+                <div data-testid="check-result" className="mt-3 rounded-lg border border-[#e6e6e6] p-3">
+                  <p className={`text-sm font-bold ${scriptCheck.report.ok ? "text-[#1a1a1a]" : "text-[#1a1a1a]"}`}>
                     {scriptCheck.report.ok
                       ? `Script looks good — ${scriptCheck.report.stats.steps} steps, ${scriptCheck.report.stats.lines} lines.`
                       : `${scriptCheck.report.errors.length} problem${scriptCheck.report.errors.length === 1 ? "" : "s"} found.`}
                   </p>
                   {scriptCheck.report.errors.map((message) => (
-                    <p key={message} className="mt-1 text-xs text-[#b91c1c]">✗ {message}</p>
+                    <p key={message} className="mt-1 text-xs text-[#1a1a1a]">✗ {message}</p>
                   ))}
                   {scriptCheck.report.warnings.map((message) => (
-                    <p key={message} className="mt-1 text-xs text-[#475569]">! {message}</p>
+                    <p key={message} className="mt-1 text-xs text-[#525252]">! {message}</p>
                   ))}
                 </div>
               )}
               {showScript && scriptCheck?.script && (
-                <pre data-testid="script-text" className="mt-3 max-h-72 overflow-auto whitespace-pre-wrap break-all rounded-lg bg-[#0f172a] p-3 text-[11px] text-white">{scriptCheck.script}</pre>
+                <pre data-testid="script-text" className="mt-3 max-h-72 overflow-auto whitespace-pre-wrap break-all rounded-lg bg-[#1a1a1a] p-3 text-[11px] text-white">{scriptCheck.script}</pre>
               )}
             </div>
 
             {/* Live provisioning progress: circular percentage loader */}
-            <div data-testid="provision-progress" className="flex flex-col items-center rounded-xl border border-[#f1f5f9] p-6 text-center">
+            <div data-testid="provision-progress" className="flex flex-col items-center rounded-xl border border-[#f4f4f4] p-6 text-center">
               {(() => {
                 const pct = Math.round((doneCount / provisionSteps.length) * 100);
                 const R = 54;
@@ -919,14 +919,14 @@ export default function AddRouterPage() {
                 return (
                   <div className="relative h-36 w-36">
                     <svg viewBox="0 0 128 128" className="h-full w-full -rotate-90">
-                      <circle cx="64" cy="64" r={R} fill="none" stroke="#e2e8f0" strokeWidth="10" />
+                      <circle cx="64" cy="64" r={R} fill="none" stroke="#e6e6e6" strokeWidth="10" />
                       <circle
                         data-testid="provision-ring"
                         cx="64"
                         cy="64"
                         r={R}
                         fill="none"
-                        stroke="#2563eb"
+                        stroke="#1a1a1a"
                         strokeWidth="10"
                         strokeLinecap="round"
                         strokeDasharray={C}
@@ -936,17 +936,17 @@ export default function AddRouterPage() {
                     </svg>
                     <span
                       data-testid="provision-percent"
-                      className="absolute inset-0 flex items-center justify-center text-3xl font-black text-[#0f172a]"
+                      className="absolute inset-0 flex items-center justify-center text-3xl font-black text-[#1a1a1a]"
                     >
                       {pct}%
                     </span>
                   </div>
                 );
               })()}
-              <p className="mt-4 text-sm font-bold text-[#0f172a]">
+              <p className="mt-4 text-sm font-bold text-[#1a1a1a]">
                 {connected ? "Setup completed" : "Setting up your router"}
               </p>
-              <p data-testid="provision-status" className="text-xs text-[#94a3b8]">
+              <p data-testid="provision-status" className="text-xs text-[#a3a3a3]">
                 {!started
                   ? "Run the command on the router to begin."
                   : connected
@@ -956,16 +956,16 @@ export default function AddRouterPage() {
             </div>
 
             {!started && (
-              <div className="flex items-center justify-between gap-3 rounded-xl border border-[#f1f5f9] p-4">
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-[#f4f4f4] p-4">
                 <div>
-                  <p className="text-sm font-bold text-[#0f172a]">Router Status Check</p>
-                  <p className="text-xs text-[#94a3b8]">Starts as soon as you copy the command, or click to check now</p>
+                  <p className="text-sm font-bold text-[#1a1a1a]">Router Status Check</p>
+                  <p className="text-xs text-[#a3a3a3]">Starts as soon as you copy the command, or click to check now</p>
                 </div>
                 <button
                   type="button"
                   data-testid="check-now"
                   onClick={handleCheckNow}
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-[#2563eb] px-3 py-2 text-xs font-bold text-white hover:bg-[#1d4ed8]"
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-[#1a1a1a] px-3 py-2 text-xs font-bold text-white hover:bg-[#111111]"
                 >
                   <RefreshCw size={13} />
                   Check Now
@@ -974,7 +974,7 @@ export default function AddRouterPage() {
             )}
 
             {!connected && (
-              <p className="rounded-xl bg-[#f1f5f9] p-3 text-xs text-[#475569]">
+              <p className="rounded-xl bg-[#f4f4f4] p-3 text-xs text-[#525252]">
                 If the device reports &quot;device mode not allowed&quot;, open the
                 router terminal and run{" "}
                 <code className="rounded bg-white px-1">/system/device-mode update mode=advanced</code>,
@@ -986,15 +986,15 @@ export default function AddRouterPage() {
             {connected && (
               <div
                 data-testid="provision-success"
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#f1f5f9] p-4"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#f4f4f4] p-4"
               >
                 <div>
-                  <p className="text-sm font-bold text-[#0f172a]">
+                  <p className="text-sm font-bold text-[#1a1a1a]">
                     Setup completed · {name} is online
                     {" "}
                     · {siteChoice === "__new__" ? newSiteName || "New business" : businessLocations.find((s) => s.id === siteChoice)?.name ?? ""}
                   </p>
-                  <p data-testid="open-countdown" className="text-xs text-[#64748b]">
+                  <p data-testid="open-countdown" className="text-xs text-[#737373]">
                     {countdown !== null && countdown > 0
                       ? `Opening its dashboard in ${countdown}…`
                       : "Opening the setup dashboard…"}
@@ -1004,7 +1004,7 @@ export default function AddRouterPage() {
                   type="button"
                   data-testid="finish-setup"
                   onClick={handleFinish}
-                  className="rounded-xl bg-[#2563eb] px-6 py-3 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+                  className="rounded-xl bg-[#1a1a1a] px-6 py-3 text-sm font-bold text-white hover:bg-[#111111]"
                 >
                   Next
                 </button>
@@ -1016,14 +1016,14 @@ export default function AddRouterPage() {
                 <button
                   type="button"
                   onClick={handleBack}
-                  className="rounded-xl border border-[#e2e8f0] bg-white px-5 py-3 text-sm font-bold text-[#475569] hover:bg-[#f1f5f9]"
+                  className="rounded-xl border border-[#e6e6e6] bg-white px-5 py-3 text-sm font-bold text-[#525252] hover:bg-[#f4f4f4]"
                 >
                   Back
                 </button>
                 <button
                   type="button"
                   disabled
-                  className="cursor-not-allowed rounded-xl bg-[#cbd5e1] px-6 py-3 text-sm font-bold text-white"
+                  className="cursor-not-allowed rounded-xl bg-[#d4d4d4] px-6 py-3 text-sm font-bold text-white"
                 >
                   Next
                 </button>

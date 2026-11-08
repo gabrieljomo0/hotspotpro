@@ -28,19 +28,19 @@ export function BusinessScopeBanner({
   const selected = businessLocations.find((b) => b.id === selectedBusinessId);
 
   return (
-    <div className="mb-5 rounded-xl border-2 border-[#2563eb] bg-[#f1f5f9] p-4">
+    <div className="mb-5 rounded-xl border-2 border-[#1a1a1a] bg-[#f4f4f4] p-4">
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#2563eb] text-white">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1a1a1a] text-white">
           <Building2 size={18} />
         </div>
         <div className="min-w-[220px] flex-1">
-          <p className="text-xs font-bold uppercase tracking-wide text-[#2563eb]">
+          <p className="text-xs font-bold uppercase tracking-wide text-[#1a1a1a]">
             Now editing settings for
           </p>
           <select
             value={selectedBusinessId}
             onChange={(event) => onSelectBusiness(event.target.value)}
-            className="mt-1 h-10 w-full max-w-sm rounded-lg border border-[#2563eb] bg-white px-3 text-sm font-bold text-[#0f172a] outline-none"
+            className="mt-1 h-10 w-full max-w-sm rounded-lg border border-[#1a1a1a] bg-white px-3 text-sm font-bold text-[#1a1a1a] outline-none"
           >
             {businessLocations.map((business) => (
               <option key={business.id} value={business.id}>
@@ -50,7 +50,7 @@ export function BusinessScopeBanner({
           </select>
         </div>
         {selected && (
-          <span className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-[#2563eb]">
+          <span className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-[#1a1a1a]">
             {selected.name}
           </span>
         )}

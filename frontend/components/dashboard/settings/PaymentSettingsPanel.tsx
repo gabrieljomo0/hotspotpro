@@ -28,7 +28,7 @@ const GATEWAY_LABELS: Record<string, string> = { Hubtel: "Hubtel (Ghana)" };
 function SecretBox({ value, onChange, testId }: { value: string; onChange: (v: string) => void; testId?: string }) {
   const [show, setShow] = useState(false);
   return (
-    <div className="flex overflow-hidden rounded-xl border border-[#cbd5e1] bg-white focus-within:border-[#2563eb]">
+    <div className="flex overflow-hidden rounded-xl border border-[#d4d4d4] bg-white focus-within:border-[#1a1a1a]">
       <input
         data-testid={testId}
         type={show ? "text" : "password"}
@@ -37,7 +37,7 @@ function SecretBox({ value, onChange, testId }: { value: string; onChange: (v: s
         autoComplete="off"
         className="h-11 w-full px-3 text-sm outline-none"
       />
-      <button type="button" aria-label={show ? "Hide" : "Show"} onClick={() => setShow((c) => !c)} className="flex items-center border-l border-[#e2e8f0] px-3 text-[#64748b]">
+      <button type="button" aria-label={show ? "Hide" : "Show"} onClick={() => setShow((c) => !c)} className="flex items-center border-l border-[#e6e6e6] px-3 text-[#737373]">
         {show ? <EyeOff size={15} /> : <Eye size={15} />}
       </button>
     </div>
@@ -46,15 +46,15 @@ function SecretBox({ value, onChange, testId }: { value: string; onChange: (v: s
 
 function HubtelGuide({ callbackUrl, returnUrl }: { callbackUrl: string; returnUrl: string }) {
   return (
-    <div data-testid="hubtel-guide" className="rounded-xl bg-[#f1f5f9] p-5">
-      <p className="mb-3 flex items-center gap-2 text-sm font-bold text-[#0f172a]">
-        <span className="rounded bg-[#0f172a] px-1.5 py-0.5 text-[10px] font-bold text-white">GH</span>
+    <div data-testid="hubtel-guide" className="rounded-xl bg-[#f4f4f4] p-5">
+      <p className="mb-3 flex items-center gap-2 text-sm font-bold text-[#1a1a1a]">
+        <span className="rounded bg-[#1a1a1a] px-1.5 py-0.5 text-[10px] font-bold text-white">GH</span>
         Hubtel Online Checkout Setup Guide (Ghana)
       </p>
-      <ol className="list-decimal space-y-2 pl-5 text-sm text-[#475569]">
+      <ol className="list-decimal space-y-2 pl-5 text-sm text-[#525252]">
         <li>
           Register at{" "}
-          <a href="https://hubtel.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#2563eb] underline">
+          <a href="https://hubtel.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#1a1a1a] underline">
             hubtel.com
           </a>{" "}
           and create a <strong>Merchant Account</strong>.
@@ -81,14 +81,14 @@ function HubtelGuide({ callbackUrl, returnUrl }: { callbackUrl: string; returnUr
         </li>
       </ol>
       <div className="mt-4 space-y-2">
-        <p className="rounded-lg border border-[#cbd5e1] bg-white px-3 py-2 text-sm text-[#0f172a]">
+        <p className="rounded-lg border border-[#d4d4d4] bg-white px-3 py-2 text-sm text-[#1a1a1a]">
           <strong>Callback URL:</strong> <span data-testid="hubtel-guide-callback" className="break-all">{callbackUrl}</span>
         </p>
-        <p className="rounded-lg border border-[#cbd5e1] bg-white px-3 py-2 text-sm text-[#0f172a]">
+        <p className="rounded-lg border border-[#d4d4d4] bg-white px-3 py-2 text-sm text-[#1a1a1a]">
           <strong>Return URL:</strong> <span data-testid="hubtel-guide-return" className="break-all">{returnUrl}</span>
         </p>
       </div>
-      <p className="mt-3 text-sm text-[#475569]">
+      <p className="mt-3 text-sm text-[#525252]">
         <strong>Ghana only (GHS).</strong> Supports Mobile Money, Bank Card, Hubtel/G-Money/Zeepay wallets, GhQR, Cash and Cheque through Hubtel Online Checkout.
       </p>
     </div>
@@ -176,17 +176,17 @@ export function PaymentSettingsPanel() {
 
   return (
     <>
-    <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
-      <div className="-mx-6 mb-6 flex items-start justify-between gap-4 border-b border-[#e2e8f0] px-6 pb-5 md:-mx-8 md:px-8">
+    <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
+      <div className="-mx-6 mb-6 flex items-start justify-between gap-4 border-b border-[#e6e6e6] px-6 pb-5 md:-mx-8 md:px-8">
         <div>
-          <h3 className="text-lg font-bold text-[#0f172a]">Payment Gateway Settings</h3>
-          <p className="text-sm text-[#64748b]">Configure your own payment gateway to receive payments directly.</p>
+          <h3 className="text-lg font-bold text-[#1a1a1a]">Payment Gateway Settings</h3>
+          <p className="text-sm text-[#737373]">Configure your own payment gateway to receive payments directly.</p>
         </div>
         <button
           type="button"
           data-testid="request-gateway"
           onClick={() => setRequestOpen(true)}
-          className="inline-flex shrink-0 items-center gap-1.5 text-sm font-bold text-[#2563eb] hover:underline"
+          className="inline-flex shrink-0 items-center gap-1.5 text-sm font-bold text-[#1a1a1a] hover:underline"
         >
           <Download size={16} /> Request Payment Gateway
         </button>
@@ -233,9 +233,9 @@ export function PaymentSettingsPanel() {
             />
           </Field>
           <div>
-            <p className="mb-1.5 text-sm font-semibold text-[#475569]">Your Callback URL (Webhook)</p>
-            <div className="flex items-center gap-2 rounded-xl bg-[#f1f5f9] p-2 pl-4">
-              <code data-testid="hubtel-callback" className="min-w-0 flex-1 break-all font-mono text-sm text-[#0f172a]">
+            <p className="mb-1.5 text-sm font-semibold text-[#525252]">Your Callback URL (Webhook)</p>
+            <div className="flex items-center gap-2 rounded-xl bg-[#f4f4f4] p-2 pl-4">
+              <code data-testid="hubtel-callback" className="min-w-0 flex-1 break-all font-mono text-sm text-[#1a1a1a]">
                 {address}/webhooks/hubtel
               </code>
               <button
@@ -246,12 +246,12 @@ export function PaymentSettingsPanel() {
                   setCopied(true);
                   window.setTimeout(() => setCopied(false), 1500);
                 }}
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#2563eb] px-3 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#1a1a1a] px-3 text-sm font-bold text-white hover:bg-[#111111]"
               >
                 {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? "Copied" : "Copy"}
               </button>
             </div>
-            <p className="mt-1 text-xs text-[#94a3b8]">
+            <p className="mt-1 text-xs text-[#a3a3a3]">
               Set automatically per transaction. Hubtel Online Checkout sends customers to pay.hubtel.com for OTP/payment, then posts the final status here.
             </p>
           </div>
@@ -265,7 +265,7 @@ export function PaymentSettingsPanel() {
             onClick={() => setForm({ ...form, sandboxMode: !form.sandboxMode })}
             aria-pressed={form.sandboxMode}
             className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-              form.sandboxMode ? "bg-emerald-500" : "bg-[#e2e8f0]"
+              form.sandboxMode ? "bg-emerald-500" : "bg-[#e6e6e6]"
             }`}
           >
             <span
@@ -275,35 +275,35 @@ export function PaymentSettingsPanel() {
             />
           </button>
           <div>
-            <p className="text-sm font-semibold text-[#475569]">Sandbox Mode</p>
-            <p className="text-xs text-[#94a3b8]">Enable this to use {form.gateway} sandbox/test environment.</p>
+            <p className="text-sm font-semibold text-[#525252]">Sandbox Mode</p>
+            <p className="text-xs text-[#a3a3a3]">Enable this to use {form.gateway} sandbox/test environment.</p>
           </div>
         </div>
 
         <div className="grid gap-5 md:grid-cols-2">
           <Field label="Consumer Key" hint={`Your ${form.gateway} Consumer Key (get from ${form.gateway} dashboard).`}>
-            <div className="flex overflow-hidden rounded-xl border border-[#e2e8f0] focus-within:border-[#2563eb]">
+            <div className="flex overflow-hidden rounded-xl border border-[#e6e6e6] focus-within:border-[#1a1a1a]">
               <input
                 type={showKey ? "text" : "password"}
                 value={form.consumerKey}
                 onChange={(e) => setForm({ ...form, consumerKey: e.target.value })}
                 className="h-11 w-full px-3 text-sm outline-none"
               />
-              <button type="button" onClick={() => setShowKey((c) => !c)} className="flex items-center px-3 text-[#94a3b8]">
+              <button type="button" onClick={() => setShowKey((c) => !c)} className="flex items-center px-3 text-[#a3a3a3]">
                 {showKey ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
             </div>
           </Field>
 
           <Field label="Consumer Secret" hint={`Your ${form.gateway} Consumer Secret.`}>
-            <div className="flex overflow-hidden rounded-xl border border-[#e2e8f0] focus-within:border-[#2563eb]">
+            <div className="flex overflow-hidden rounded-xl border border-[#e6e6e6] focus-within:border-[#1a1a1a]">
               <input
                 type={showSecret ? "text" : "password"}
                 value={form.consumerSecret}
                 onChange={(e) => setForm({ ...form, consumerSecret: e.target.value })}
                 className="h-11 w-full px-3 text-sm outline-none"
               />
-              <button type="button" onClick={() => setShowSecret((c) => !c)} className="flex items-center px-3 text-[#94a3b8]">
+              <button type="button" onClick={() => setShowSecret((c) => !c)} className="flex items-center px-3 text-[#a3a3a3]">
                 {showSecret ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
             </div>
@@ -318,9 +318,9 @@ export function PaymentSettingsPanel() {
           />
         </Field>
 
-        <div className="rounded-xl border border-[#f1f5f9] bg-[#ffffff] p-4">
-          <p className="mb-1 text-sm font-bold text-[#0f172a]">Callback URL</p>
-          <code className="block overflow-x-auto whitespace-nowrap rounded-lg bg-white px-3 py-2 text-xs text-[#475569]">
+        <div className="rounded-xl border border-[#f4f4f4] bg-[#ffffff] p-4">
+          <p className="mb-1 text-sm font-bold text-[#1a1a1a]">Callback URL</p>
+          <code className="block overflow-x-auto whitespace-nowrap rounded-lg bg-white px-3 py-2 text-xs text-[#525252]">
             {address}/api/hotspot/payment-callback
           </code>
           <p className="mt-2 text-xs text-amber-700">
@@ -332,16 +332,16 @@ export function PaymentSettingsPanel() {
         )}
 
         {formError && (
-          <p data-testid="payment-form-error" className="rounded-lg bg-[#fef2f2] px-3 py-2 text-xs font-semibold text-[#b91c1c]">
+          <p data-testid="payment-form-error" className="rounded-lg bg-[#f3f1ec] px-3 py-2 text-xs font-semibold text-[#1a1a1a]">
             {formError}
           </p>
         )}
 
-      <div className="rounded-xl border border-[#f1f5f9] bg-[#ffffff] p-4">
+      <div className="rounded-xl border border-[#f4f4f4] bg-[#ffffff] p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-bold text-[#0f172a]">Use the same payment gateway for every business</p>
-            <p className="text-xs text-[#64748b]">
+            <p className="text-sm font-bold text-[#1a1a1a]">Use the same payment gateway for every business</p>
+            <p className="text-xs text-[#737373]">
               On — one gateway and one set of credentials applies to every business/site on the
               account. Off — each business can use a different gateway (e.g. one on MTN Mobile
               Money, another on PesaPal) with its own separate credentials.
@@ -353,7 +353,7 @@ export function PaymentSettingsPanel() {
               updatePaymentGatewayStrategy(paymentGatewayStrategy === "same" ? "per-business" : "same")
             }
             className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-              paymentGatewayStrategy === "same" ? "bg-emerald-500" : "bg-[#e2e8f0]"
+              paymentGatewayStrategy === "same" ? "bg-emerald-500" : "bg-[#e6e6e6]"
             }`}
           >
             <span
@@ -380,7 +380,7 @@ export function PaymentSettingsPanel() {
           <button
             type="button"
             onClick={save}
-            className="rounded-xl bg-[#2563eb] px-6 py-3 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+            className="rounded-xl bg-[#1a1a1a] px-6 py-3 text-sm font-bold text-white hover:bg-[#111111]"
           >
             Save Payment Settings
           </button>
@@ -392,12 +392,12 @@ export function PaymentSettingsPanel() {
           <button type="button" aria-label="Close" className="absolute inset-0" onClick={() => setRequestOpen(false)} />
           <div className="relative z-10 w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
             <div className="mb-1 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-[#0f172a]">Request Payment Gateway</h3>
-              <button type="button" onClick={() => setRequestOpen(false)} className="rounded-lg p-1.5 text-[#64748b] hover:bg-[#ffffff]">
+              <h3 className="text-lg font-bold text-[#1a1a1a]">Request Payment Gateway</h3>
+              <button type="button" onClick={() => setRequestOpen(false)} className="rounded-lg p-1.5 text-[#737373] hover:bg-[#ffffff]">
                 <X size={18} />
               </button>
             </div>
-            <p className="mb-4 text-sm text-[#64748b]">
+            <p className="mb-4 text-sm text-[#737373]">
               Use this form to request a payment gateway to be added. We will contact you once we have added it.
             </p>
             <div className="space-y-4">
@@ -425,14 +425,14 @@ export function PaymentSettingsPanel() {
                 />
               </Field>
               <Field label="Test Password / Token">
-                <div className="flex overflow-hidden rounded-xl border border-[#e2e8f0] focus-within:border-[#2563eb]">
+                <div className="flex overflow-hidden rounded-xl border border-[#e6e6e6] focus-within:border-[#1a1a1a]">
                   <input
                     type={showReqPassword ? "text" : "password"}
                     value={reqPassword}
                     onChange={(e) => setReqPassword(e.target.value)}
                     className="h-11 w-full px-3 text-sm outline-none"
                   />
-                  <button type="button" onClick={() => setShowReqPassword((c) => !c)} className="flex items-center px-3 text-[#94a3b8]">
+                  <button type="button" onClick={() => setShowReqPassword((c) => !c)} className="flex items-center px-3 text-[#a3a3a3]">
                     {showReqPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 </div>
@@ -451,14 +451,14 @@ export function PaymentSettingsPanel() {
                   type="button"
                   onClick={submitRequest}
                   disabled={!reqName.trim()}
-                  className="rounded-xl bg-[#2563eb] px-5 py-3 text-sm font-bold text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-xl bg-[#1a1a1a] px-5 py-3 text-sm font-bold text-white hover:bg-[#111111] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Submit Request
                 </button>
                 <button
                   type="button"
                   onClick={() => setRequestOpen(false)}
-                  className="rounded-xl border border-[#e2e8f0] bg-white px-5 py-3 text-sm font-bold text-[#475569] hover:bg-[#ffffff]"
+                  className="rounded-xl border border-[#e6e6e6] bg-white px-5 py-3 text-sm font-bold text-[#525252] hover:bg-[#ffffff]"
                 >
                   Cancel
                 </button>

@@ -71,7 +71,7 @@ function TabGroup({
   return (
     <div className={`flex-1 rounded-2xl border-2 p-5 ${cardClass}`}>
       <p className={`text-base font-bold ${titleClass}`}>{title}</p>
-      <p className="mb-4 mt-1 text-xs text-[#64748b]">{description}</p>
+      <p className="mb-4 mt-1 text-xs text-[#737373]">{description}</p>
 
       <div className="flex flex-wrap gap-2">
         {tabs.map((tab) => {
@@ -89,7 +89,7 @@ function TabGroup({
               className={`inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
                 isActive
                   ? tabActiveClass
-                  : "text-[#64748b] hover:bg-white hover:text-[#475569]"
+                  : "text-[#737373] hover:bg-white hover:text-[#525252]"
               }`}
             >
               <Icon size={16} className="shrink-0" />
@@ -110,16 +110,16 @@ export function SettingsTabs({ activeTab }: { activeTab: string }) {
         description="Applies to your whole admin account, no matter how many businesses/sites you run."
         cardClass="border-slate-300 bg-slate-100"
         titleClass="text-slate-700"
-        tabActiveClass="bg-white text-[#0f172a] shadow-sm ring-1 ring-slate-300"
+        tabActiveClass="bg-white text-[#1a1a1a] shadow-sm ring-1 ring-slate-300"
         tabs={ACCOUNT_SETTINGS_TABS}
         activeTab={activeTab}
       />
       <TabGroup
         title="Business Settings"
         description="Can be set the same for every business, or differently for each one."
-        cardClass="border-[#2563eb] bg-[#f1f5f9]"
-        titleClass="text-[#2563eb]"
-        tabActiveClass="bg-white text-[#2563eb] shadow-sm ring-1 ring-[#2563eb]"
+        cardClass="border-[#1a1a1a] bg-[#f4f4f4]"
+        titleClass="text-[#1a1a1a]"
+        tabActiveClass="bg-white text-[#1a1a1a] shadow-sm ring-1 ring-[#1a1a1a]"
         tabs={BUSINESS_SETTINGS_TABS}
         activeTab={activeTab}
       />

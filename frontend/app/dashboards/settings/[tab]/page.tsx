@@ -47,7 +47,7 @@ export default function SettingsTabPage({
       <h2 className="mb-1 text-3xl font-bold tracking-tight md:text-4xl">
         Settings
       </h2>
-      <p className="mb-6 text-sm text-[#64748b] md:text-base">
+      <p className="mb-6 text-sm text-[#737373] md:text-base">
         Configure your HotspotPro business settings.
       </p>
 

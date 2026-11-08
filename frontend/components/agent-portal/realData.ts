@@ -35,12 +35,12 @@ export function formatGB(gb: number): string {
 
 export function statusBreakdown(scopedUsers: ActiveUser[]) {
   const colors: Record<string, string> = {
-    Online: "#2563eb",
-    Idle: "#60a5fa",
-    "Expiring Soon": "#94a3b8",
-    Disconnected: "#cbd5e1",
-    Expired: "#cbd5e1",
-    Blocked: "#b91c1c",
+    Online: "#1a1a1a",
+    Idle: "#1a1a1a",
+    "Expiring Soon": "#a3a3a3",
+    Disconnected: "#d4d4d4",
+    Expired: "#d4d4d4",
+    Blocked: "#1a1a1a",
   };
   const counts = new Map<string, number>();
   scopedUsers.forEach((u) => counts.set(u.status, (counts.get(u.status) ?? 0) + 1));
@@ -49,7 +49,7 @@ export function statusBreakdown(scopedUsers: ActiveUser[]) {
     name,
     value,
     percentage: `${((value / total) * 100).toFixed(1)}%`,
-    color: colors[name] ?? "#cbd5e1",
+    color: colors[name] ?? "#d4d4d4",
   }));
 }
 

@@ -76,14 +76,14 @@ export default function EditPackagePage({
         businessLocations={businessLocations}
       />
 
-      <div id="push-to-agents" className="mt-6 overflow-hidden rounded-2xl border-2 border-amber-200 bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+      <div id="push-to-agents" className="mt-6 overflow-hidden rounded-2xl border-2 border-amber-200 bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
         <div className="flex items-center gap-2 border-b border-amber-200 bg-amber-50 px-5 py-4">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 text-white">
             <UserCheck size={16} />
           </span>
           <div>
-            <p className="text-sm font-bold text-[#0f172a]">Push to Agents</p>
-            <p className="text-xs text-[#64748b]">
+            <p className="text-sm font-bold text-[#1a1a1a]">Push to Agents</p>
+            <p className="text-xs text-[#737373]">
               Give a specific agent access to sell this package even if their router isn&apos;t
               normally covered — they don&apos;t need &quot;Create Package&quot; permission to use it.
             </p>
@@ -115,7 +115,7 @@ export default function EditPackagePage({
           )}
 
           {eligibleAgents.length === 0 ? (
-            <p className="text-sm text-[#94a3b8]">
+            <p className="text-sm text-[#a3a3a3]">
               Every agent is already covered by this package&apos;s router/site scope.
             </p>
           ) : (
@@ -128,7 +128,7 @@ export default function EditPackagePage({
                     <label
                       key={agent.id}
                       className={`flex items-center gap-2 rounded-xl border-2 px-3 py-2.5 text-sm transition ${
-                        isSelected ? "border-amber-400 bg-amber-50" : "border-[#e2e8f0] bg-white hover:bg-[#ffffff]"
+                        isSelected ? "border-amber-400 bg-amber-50" : "border-[#e6e6e6] bg-white hover:bg-[#ffffff]"
                       }`}
                     >
                       <input
@@ -136,9 +136,9 @@ export default function EditPackagePage({
                         checked={isSelected}
                         onChange={() => toggleAgent(agent.id)}
                         disabled={isAssigned}
-                        className="h-4 w-4 rounded border-[#e2e8f0] accent-amber-500"
+                        className="h-4 w-4 rounded border-[#e6e6e6] accent-amber-500"
                       />
-                      <span className="min-w-0 flex-1 truncate text-[#475569]">{agent.name}</span>
+                      <span className="min-w-0 flex-1 truncate text-[#525252]">{agent.name}</span>
                       {isAssigned && (
                         <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
                           Pushed

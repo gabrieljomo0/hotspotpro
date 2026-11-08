@@ -24,7 +24,7 @@ export function BackLink({
     <button
       type="button"
       onClick={handleBack}
-      className="mb-4 inline-flex items-center gap-2 rounded-xl border border-[#e2e8f0] bg-white px-4 py-2.5 text-sm font-semibold text-[#475569] hover:bg-[#ffffff]"
+      className="mb-4 inline-flex items-center gap-2 rounded-xl border border-[#e6e6e6] bg-white px-4 py-2.5 text-sm font-semibold text-[#525252] hover:bg-[#ffffff]"
     >
       <ArrowLeft size={16} />
       {label}

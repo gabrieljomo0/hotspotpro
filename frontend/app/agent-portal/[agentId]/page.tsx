@@ -26,7 +26,7 @@ function AgentPortalInner({ agentId }: { agentId: string }) {
   // No agent found with this ID — show a friendly "not found" message.
   if (!agent) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f8fafc] p-6">
+      <div className="flex min-h-screen items-center justify-center bg-[#f7f7f7] p-6">
         <NotFoundCard
           message="This agent may have been removed."
           backHref="/login"
@@ -40,14 +40,14 @@ function AgentPortalInner({ agentId }: { agentId: string }) {
     const reason = agent.status === "Active" ? AGENT_DASHBOARD_OFF_MESSAGE : accessBlockedMessage(agent.status);
 
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f1f5f9] p-6">
+      <div className="flex min-h-screen items-center justify-center bg-[#f4f4f4] p-6">
         <div className="w-full max-w-sm rounded-2xl bg-white p-8 text-center shadow-sm">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#f1f5f9] text-[#2563eb]">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#f4f4f4] text-[#1a1a1a]">
             <LockKeyhole size={22} />
           </div>
-          <h1 className="mb-2 text-lg font-bold text-[#0f172a]">Access Restricted</h1>
-          <p className="text-sm text-[#64748b]">{reason}</p>
-          <p className="mt-4 text-xs text-[#94a3b8]">
+          <h1 className="mb-2 text-lg font-bold text-[#1a1a1a]">Access Restricted</h1>
+          <p className="text-sm text-[#737373]">{reason}</p>
+          <p className="mt-4 text-xs text-[#a3a3a3]">
             {agent.status === "Pending"
               ? "You'll be able to sign in once admin approves your application."
               : "Contact admin to reactivate your access to this portal."}

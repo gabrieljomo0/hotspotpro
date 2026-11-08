@@ -69,15 +69,15 @@ export function CurrencyGate() {
         data-testid="currency-prompt"
         role="dialog"
         aria-modal="true"
-        className="w-full max-w-md rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-2xl"
+        className="w-full max-w-md rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-2xl"
       >
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-[#2563eb]">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-[#1a1a1a]">
           <Globe2 size={23} />
         </div>
-        <h3 className="mt-4 text-xl font-black text-[#0f172a]">
+        <h3 className="mt-4 text-xl font-black text-[#1a1a1a]">
           Switch to {next.name} ({next.symbol})?
         </h3>
-        <p className="mt-2 text-sm leading-6 text-[#64748b]">
+        <p className="mt-2 text-sm leading-6 text-[#737373]">
           You&apos;re signing in {place}. Amounts are currently shown in {current.name} (
           {current.symbol}). Switching changes the currency label everywhere — it does{" "}
           <strong>not</strong> convert any amounts.
@@ -90,7 +90,7 @@ export function CurrencyGate() {
               setCurrencySettings({ code: found.code, mode: "auto" });
               setFound(null);
             }}
-            className="flex-1 rounded-xl bg-[#2563eb] px-4 py-3 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+            className="flex-1 rounded-xl bg-[#1a1a1a] px-4 py-3 text-sm font-bold text-white hover:bg-[#111111]"
           >
             Switch to {next.symbol}
           </button>
@@ -102,7 +102,7 @@ export function CurrencyGate() {
               setCurrencySettings({ code: current.code, mode: "manual" });
               setFound(null);
             }}
-            className="flex-1 rounded-xl border border-[#e2e8f0] bg-white px-4 py-3 text-sm font-semibold text-[#475569] hover:bg-[#ffffff]"
+            className="flex-1 rounded-xl border border-[#e6e6e6] bg-white px-4 py-3 text-sm font-semibold text-[#525252] hover:bg-[#ffffff]"
           >
             Keep {current.symbol}
           </button>

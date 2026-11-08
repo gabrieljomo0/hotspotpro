@@ -55,49 +55,49 @@ export function ActiveUsersDrawer({
       )}
 
       <aside
-        className={`fixed inset-y-0 right-0 z-[230] flex h-full w-full max-w-sm flex-col border-l border-[#e2e8f0] bg-white shadow-2xl transition-transform duration-300 ${
+        className={`fixed inset-y-0 right-0 z-[230] flex h-full w-full max-w-sm flex-col border-l border-[#e6e6e6] bg-white shadow-2xl transition-transform duration-300 ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-between border-b border-[#e2e8f0] px-5 py-4">
+        <div className="flex items-center justify-between border-b border-[#e6e6e6] px-5 py-4">
           <div className="flex items-center gap-2">
-            <Users size={18} className="text-[#2563eb]" />
-            <h2 className="text-base font-bold text-[#0f172a]">
+            <Users size={18} className="text-[#1a1a1a]" />
+            <h2 className="text-base font-bold text-[#1a1a1a]">
               Active Users ({users.length})
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-[#64748b] hover:bg-[#ffffff]"
+            className="rounded-lg p-1.5 text-[#737373] hover:bg-[#ffffff]"
             aria-label="Close"
           >
             <X size={18} />
           </button>
         </div>
 
-        <div className="border-b border-[#f1f5f9] px-5 py-3">
+        <div className="border-b border-[#f4f4f4] px-5 py-3">
           <div className="relative">
             <Search
               size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8]"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]"
             />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search by phone or username..."
-              className="h-10 w-full rounded-lg border border-[#e2e8f0] bg-[#ffffff] pl-9 pr-3 text-sm outline-none focus:border-[#2563eb] focus:bg-white"
+              className="h-10 w-full rounded-lg border border-[#e6e6e6] bg-[#ffffff] pl-9 pr-3 text-sm outline-none focus:border-[#1a1a1a] focus:bg-white"
             />
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto">
           {filteredUsers.length === 0 ? (
-            <p className="px-5 py-8 text-center text-sm text-[#94a3b8]">
+            <p className="px-5 py-8 text-center text-sm text-[#a3a3a3]">
               No users match &quot;{query}&quot;.
             </p>
           ) : (
-            <ul className="divide-y divide-[#f1f5f9]">
+            <ul className="divide-y divide-[#f4f4f4]">
               {filteredUsers.map((user) => {
                 const userId = getUserId(user);
                 const isCurrent = userId === currentUserId;
@@ -125,28 +125,28 @@ export function ActiveUsersDrawer({
                       onClick={onClose}
                       className={`flex items-center justify-between gap-3 px-5 py-3 transition ${
                         isCurrent
-                          ? "bg-[#f1f5f9]"
+                          ? "bg-[#f4f4f4]"
                           : "hover:bg-[#ffffff]"
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <span className={`h-2 w-2 rounded-full ${dotClass}`} />
                         <div>
-                          <p className="text-sm font-semibold text-[#0f172a]">
+                          <p className="text-sm font-semibold text-[#1a1a1a]">
                             {user.phone || user.voucherUsername}
                             {isCurrent && (
-                              <span className="ml-2 rounded-full bg-[#2563eb] px-2 py-0.5 text-[10px] font-bold text-white">
+                              <span className="ml-2 rounded-full bg-[#1a1a1a] px-2 py-0.5 text-[10px] font-bold text-white">
                                 Viewing
                               </span>
                             )}
                           </p>
-                          <p className="text-xs text-[#64748b]">
+                          <p className="text-xs text-[#737373]">
                             {user.package} · {status}
                           </p>
                         </div>
                       </div>
                       {!isCurrent && (
-                        <ChevronRight size={16} className="text-[#94a3b8]" />
+                        <ChevronRight size={16} className="text-[#a3a3a3]" />
                       )}
                     </Link>
                   </li>

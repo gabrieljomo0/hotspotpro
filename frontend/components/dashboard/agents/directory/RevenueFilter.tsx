@@ -12,7 +12,7 @@ import {
 } from "./revenuePeriod";
 
 const inputClass =
-  "h-10 rounded-lg border border-[#e2e8f0] bg-white px-3 text-sm text-[#0f172a] outline-none focus:border-[#2563eb]";
+  "h-10 rounded-lg border border-[#e6e6e6] bg-white px-3 text-sm text-[#1a1a1a] outline-none focus:border-[#1a1a1a]";
 
 // Chooses which sales the revenue figures on the All Agents tab count: a
 // preset, one day, one month or a date range — optionally only within a
@@ -39,11 +39,11 @@ export function RevenueFilter({
   return (
     <div
       data-testid="revenue-filter"
-      className="mb-5 rounded-xl border border-[#e2e8f0] bg-white p-4 shadow-[0_8px_24px_rgba(37,99,235,0.04)]"
+      className="mb-5 rounded-xl border border-[#e6e6e6] bg-white p-4 shadow-[0_8px_24px_rgba(26,26,26,0.04)]"
     >
       <div className="flex flex-wrap items-end gap-3">
         <label className="block">
-          <span className="mb-1 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-[#64748b]">
+          <span className="mb-1 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-[#737373]">
             <CalendarDays size={12} /> {label}
           </span>
           <select
@@ -62,7 +62,7 @@ export function RevenueFilter({
 
         {period.kind === "day" && (
           <label className="block">
-            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-[#64748b]">Day</span>
+            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-[#737373]">Day</span>
             <input
               type="date"
               data-testid="period-day"
@@ -75,7 +75,7 @@ export function RevenueFilter({
 
         {period.kind === "month-pick" && (
           <label className="block">
-            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-[#64748b]">Month</span>
+            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-[#737373]">Month</span>
             <input
               type="month"
               data-testid="period-month"
@@ -89,7 +89,7 @@ export function RevenueFilter({
         {period.kind === "range" && (
           <>
             <label className="block">
-              <span className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-[#64748b]">From</span>
+              <span className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-[#737373]">From</span>
               <input
                 type="date"
                 data-testid="period-from"
@@ -99,7 +99,7 @@ export function RevenueFilter({
               />
             </label>
             <label className="block">
-              <span className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-[#64748b]">To</span>
+              <span className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-[#737373]">To</span>
               <input
                 type="date"
                 data-testid="period-to"
@@ -113,7 +113,7 @@ export function RevenueFilter({
 
         <div className="flex items-end gap-2">
           <label className="block">
-            <span className="mb-1 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-[#64748b]">
+            <span className="mb-1 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-[#737373]">
               <Clock size={12} /> Time from
             </span>
             <input
@@ -125,7 +125,7 @@ export function RevenueFilter({
             />
           </label>
           <label className="block">
-            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-[#64748b]">to</span>
+            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-[#737373]">to</span>
             <input
               type="time"
               data-testid="period-time-to"
@@ -140,7 +140,7 @@ export function RevenueFilter({
               data-testid="period-time-clear"
               aria-label="Clear time of day"
               onClick={() => set({ timeFrom: "", timeTo: "" })}
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#e2e8f0] bg-white text-[#64748b] hover:bg-[#ffffff]"
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#e6e6e6] bg-white text-[#737373] hover:bg-[#ffffff]"
             >
               <X size={14} />
             </button>
@@ -151,16 +151,16 @@ export function RevenueFilter({
           type="button"
           data-testid="period-reset"
           onClick={() => onChange(defaultPeriod())}
-          className="h-10 rounded-lg border border-[#e2e8f0] bg-white px-3 text-xs font-semibold text-[#475569] hover:bg-[#ffffff]"
+          className="h-10 rounded-lg border border-[#e6e6e6] bg-white px-3 text-xs font-semibold text-[#525252] hover:bg-[#ffffff]"
         >
           Reset to today
         </button>
       </div>
 
-      <p data-testid="period-summary" className={`mt-3 text-xs ${error ? "font-semibold text-red-600" : "text-[#64748b]"}`}>
+      <p data-testid="period-summary" className={`mt-3 text-xs ${error ? "font-semibold text-red-600" : "text-[#737373]"}`}>
         {error ?? (
           <>
-            Showing <strong className="text-[#0f172a]">{periodLabel(period)}</strong> · {soldCount} voucher
+            Showing <strong className="text-[#1a1a1a]">{periodLabel(period)}</strong> · {soldCount} voucher
             {soldCount === 1 ? "" : "s"} sold.
             {note ?? " Revenue, Sold and the card above follow this filter; Remaining and Owed always show the current position."}
           </>

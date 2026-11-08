@@ -74,10 +74,10 @@ export function PerRouterLivePanel({
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
           <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
         </span>
-        <p className="text-sm font-bold text-[#0f172a]">
+        <p className="text-sm font-bold text-[#1a1a1a]">
           Live Data Usage — Per Router
         </p>
-        <span className="text-xs text-[#94a3b8]">
+        <span className="text-xs text-[#a3a3a3]">
           Updates every 2 seconds
         </span>
       </div>
@@ -89,7 +89,7 @@ export function PerRouterLivePanel({
           return (
             <div key={row.ip} className="rounded-lg bg-white p-4">
               <div className="mb-3 flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-sm font-bold text-[#0f172a]">
+                <span className="flex items-center gap-1.5 text-sm font-bold text-[#1a1a1a]">
                   <RouterIcon size={14} className="text-blue-600" />
                   {row.name}
                 </span>
@@ -105,21 +105,21 @@ export function PerRouterLivePanel({
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="flex items-center gap-1.5 text-[#64748b]">
+                <div className="flex items-center gap-1.5 text-[#737373]">
                   <Download size={12} />
-                  Down: <strong className="text-[#0f172a]">{row.downloadMbps} Mbps</strong>
+                  Down: <strong className="text-[#1a1a1a]">{row.downloadMbps} Mbps</strong>
                 </div>
-                <div className="flex items-center gap-1.5 text-[#64748b]">
+                <div className="flex items-center gap-1.5 text-[#737373]">
                   <Upload size={12} />
-                  Up: <strong className="text-[#0f172a]">{row.uploadMbps} Mbps</strong>
+                  Up: <strong className="text-[#1a1a1a]">{row.uploadMbps} Mbps</strong>
                 </div>
-                <div className="flex items-center gap-1.5 text-[#64748b]">
+                <div className="flex items-center gap-1.5 text-[#737373]">
                   <Cpu size={12} />
-                  CPU: <strong className="text-[#0f172a]">{row.cpuPct}%</strong>
+                  CPU: <strong className="text-[#1a1a1a]">{row.cpuPct}%</strong>
                 </div>
-                <div className="flex items-center gap-1.5 text-[#64748b]">
+                <div className="flex items-center gap-1.5 text-[#737373]">
                   <MemoryStick size={12} />
-                  RAM: <strong className="text-[#0f172a]">{row.memoryPct}%</strong>
+                  RAM: <strong className="text-[#1a1a1a]">{row.memoryPct}%</strong>
                 </div>
               </div>
             </div>

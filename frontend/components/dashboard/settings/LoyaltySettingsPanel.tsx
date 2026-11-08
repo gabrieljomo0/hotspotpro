@@ -57,17 +57,17 @@ export function LoyaltySettingsPanel() {
   }
 
   return (
-    <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
+    <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
             <Star size={20} />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-[#0f172a]">
+            <h3 className="text-lg font-bold text-[#1a1a1a]">
               Loyalty Programme
             </h3>
-            <p className="text-sm text-[#64748b]">
+            <p className="text-sm text-[#737373]">
               Reward frequent WiFi users with points they can redeem for free
               vouchers.
             </p>
@@ -78,7 +78,7 @@ export function LoyaltySettingsPanel() {
           type="button"
           onClick={handleToggle}
           className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
-            form.enabled ? "bg-emerald-500" : "bg-[#e2e8f0]"
+            form.enabled ? "bg-emerald-500" : "bg-[#e6e6e6]"
           }`}
           aria-pressed={form.enabled}
           aria-label="Toggle loyalty programme"
@@ -92,11 +92,11 @@ export function LoyaltySettingsPanel() {
       </div>
 
       {businessLocations.length > 1 && (
-        <div className="mt-6 rounded-xl border border-[#f1f5f9] bg-[#ffffff] p-4">
+        <div className="mt-6 rounded-xl border border-[#f4f4f4] bg-[#ffffff] p-4">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-bold text-[#0f172a]">Use the same loyalty programme for every business</p>
-              <p className="text-xs text-[#64748b]">
+              <p className="text-sm font-bold text-[#1a1a1a]">Use the same loyalty programme for every business</p>
+              <p className="text-xs text-[#737373]">
                 On — one set of rules for every business/site on the account. Off — each
                 business can reward and redeem differently.
               </p>
@@ -105,7 +105,7 @@ export function LoyaltySettingsPanel() {
               type="button"
               onClick={() => updateLoyaltyStrategy(loyaltyStrategy === "same" ? "per-business" : "same")}
               className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-                loyaltyStrategy === "same" ? "bg-emerald-500" : "bg-[#e2e8f0]"
+                loyaltyStrategy === "same" ? "bg-emerald-500" : "bg-[#e6e6e6]"
               }`}
             >
               <span
@@ -130,7 +130,7 @@ export function LoyaltySettingsPanel() {
 
       <form onSubmit={handleSubmit} className="mt-6 grid gap-5 md:grid-cols-2">
         <label className="block">
-          <span className="mb-2 block text-sm font-semibold text-[#475569]">
+          <span className="mb-2 block text-sm font-semibold text-[#525252]">
             Points earned per hour online
           </span>
           <input
@@ -143,12 +143,12 @@ export function LoyaltySettingsPanel() {
                 pointsPerHourOnline: Number(event.target.value),
               })
             }
-            className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+            className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
           />
         </label>
 
         <label className="block">
-          <span className="mb-2 block text-sm font-semibold text-[#475569]">
+          <span className="mb-2 block text-sm font-semibold text-[#525252]">
             Points needed to redeem a voucher
           </span>
           <input
@@ -161,12 +161,12 @@ export function LoyaltySettingsPanel() {
                 pointsToVoucherThreshold: Number(event.target.value),
               })
             }
-            className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+            className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
           />
         </label>
 
         <label className="block md:col-span-2">
-          <span className="mb-2 block text-sm font-semibold text-[#475569]">
+          <span className="mb-2 block text-sm font-semibold text-[#525252]">
             Reward package
           </span>
           <select
@@ -174,7 +174,7 @@ export function LoyaltySettingsPanel() {
             onChange={(event) =>
               setForm({ ...form, rewardPackageName: event.target.value })
             }
-            className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+            className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
           >
             {packages.map((pkg) => (
               <option key={pkg.id} value={pkg.name}>
@@ -187,7 +187,7 @@ export function LoyaltySettingsPanel() {
         <div className="md:col-span-2">
           <button
             type="submit"
-            className="rounded-xl bg-[#2563eb] px-6 py-3 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+            className="rounded-xl bg-[#1a1a1a] px-6 py-3 text-sm font-bold text-white hover:bg-[#111111]"
           >
             Save Loyalty Settings
           </button>

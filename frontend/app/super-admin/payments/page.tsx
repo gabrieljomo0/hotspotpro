@@ -20,7 +20,7 @@ export default function PaymentsPage() {
   return (
     <>
       <h1 className="mb-1 text-3xl font-bold tracking-tight">Payments</h1>
-      <p className="mb-6 text-sm text-[#64748b]">Every voucher purchase on the platform, newest first. Paid total in this view: <strong>{money(total)}</strong></p>
+      <p className="mb-6 text-sm text-[#737373]">Every voucher purchase on the platform, newest first. Paid total in this view: <strong>{money(total)}</strong></p>
       <div className="mb-4">
         <select value={status} onChange={(e) => setStatus(e.target.value)} className={`${inputClass} w-auto`}>
           <option value="all">All statuses</option><option value="paid">Paid</option><option value="pending">Pending</option><option value="failed">Failed</option><option value="expired">Expired</option>
@@ -31,10 +31,10 @@ export default function PaymentsPage() {
           {rows.map((p) => (
             <tr key={p.id}>
               <Td className="whitespace-nowrap">{when(p.createdAt)}</Td>
-              <Td><Link href={`/super-admin/businesses/${p.tenantId}`} className="font-semibold text-[#0f172a] hover:text-[#2563eb]">{p.business}</Link></Td>
-              <Td>{p.phone}{p.network ? <span className="text-xs text-[#94a3b8]"> · {p.network}</span> : null}</Td>
+              <Td><Link href={`/super-admin/businesses/${p.tenantId}`} className="font-semibold text-[#1a1a1a] hover:text-[#1a1a1a]">{p.business}</Link></Td>
+              <Td>{p.phone}{p.network ? <span className="text-xs text-[#a3a3a3]"> · {p.network}</span> : null}</Td>
               <Td>{p.packageName}</Td><Td>{money({ [p.currency || "GHS"]: p.amount })}</Td><Td>{p.gateway}</Td>
-              <Td><Badge tone={p.status === "paid" ? "green" : p.status === "pending" ? "amber" : "red"}>{p.status}</Badge>{p.failureReason ? <p className="mt-1 text-xs text-[#94a3b8]">{p.failureReason}</p> : null}</Td>
+              <Td><Badge tone={p.status === "paid" ? "green" : p.status === "pending" ? "amber" : "red"}>{p.status}</Badge>{p.failureReason ? <p className="mt-1 text-xs text-[#a3a3a3]">{p.failureReason}</p> : null}</Td>
             </tr>
           ))}
         </Table>

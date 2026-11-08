@@ -21,7 +21,7 @@ export default function SitesPage() {
             <Building2 className="text-blue-500" size={30} />
             Sites
           </h2>
-          <p className="max-w-2xl text-sm text-[#64748b] md:text-base">
+          <p className="max-w-2xl text-sm text-[#737373] md:text-base">
             Every site/business on your account — its routers, the agents
             working there, and its settings, all in one place. Open a site
             for the full picture.
@@ -37,12 +37,12 @@ export default function SitesPage() {
         </button>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+      <div className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
         {businessLocations.length === 0 ? (
           <div className="p-10 text-center">
             <Building2 size={28} className="mx-auto mb-3 text-blue-300" />
-            <p className="text-sm font-semibold text-[#0f172a]">No sites yet</p>
-            <p className="mt-1 text-xs text-[#94a3b8]">Add one to start grouping routers, agents and settings under it.</p>
+            <p className="text-sm font-semibold text-[#1a1a1a]">No sites yet</p>
+            <p className="mt-1 text-xs text-[#a3a3a3]">Add one to start grouping routers, agents and settings under it.</p>
           </div>
         ) : (
           businessLocations.map((site, index) => {
@@ -54,11 +54,11 @@ export default function SitesPage() {
                 key={site.id}
                 href={`/dashboards/configuration/sites/${site.id}`}
                 className={`flex items-center justify-between gap-4 px-5 py-4 transition hover:bg-[#ffffff] ${
-                  index > 0 ? "border-t border-[#f1f5f9]" : ""
+                  index > 0 ? "border-t border-[#f4f4f4]" : ""
                 }`}
               >
                 <div className="min-w-0">
-                  <p className="flex items-center gap-2 truncate text-sm font-bold text-[#0f172a]">
+                  <p className="flex items-center gap-2 truncate text-sm font-bold text-[#1a1a1a]">
                     {site.name}
                     {!site.enabled && (
                       <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">
@@ -66,7 +66,7 @@ export default function SitesPage() {
                       </span>
                     )}
                   </p>
-                  <p className="mt-0.5 text-xs text-[#94a3b8]">Since {site.createdAt}</p>
+                  <p className="mt-0.5 text-xs text-[#a3a3a3]">Since {site.createdAt}</p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">
@@ -77,7 +77,7 @@ export default function SitesPage() {
                     <Users size={11} />
                     {siteAgents.length} agent{siteAgents.length === 1 ? "" : "s"}
                   </span>
-                  <ChevronRight size={16} className="text-[#94a3b8]" />
+                  <ChevronRight size={16} className="text-[#a3a3a3]" />
                 </div>
               </Link>
             );

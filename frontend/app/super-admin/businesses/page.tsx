@@ -32,11 +32,11 @@ export default function BusinessesPage() {
   return (
     <>
       <h1 className="mb-1 text-3xl font-bold tracking-tight">Businesses</h1>
-      <p className="mb-6 text-sm text-[#64748b]">Everyone who uses the platform for their WiFi. Open one to see everything it does, or to step into its dashboard.</p>
+      <p className="mb-6 text-sm text-[#737373]">Everyone who uses the platform for their WiFi. Open one to see everything it does, or to step into its dashboard.</p>
 
       <div className="mb-4 flex flex-wrap gap-3">
         <div className="relative min-w-[240px] flex-1">
-          <Search size={16} className="absolute left-3 top-3 text-[#94a3b8]" />
+          <Search size={16} className="absolute left-3 top-3 text-[#a3a3a3]" />
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by business, owner or email" className={`${inputClass} pl-9`} />
         </div>
         <select value={status} onChange={(e) => setStatus(e.target.value as typeof status)} className={`${inputClass} w-auto`}>
@@ -49,9 +49,9 @@ export default function BusinessesPage() {
       <Card>
         <Table head={["Business", "Owner", "Status", "Routers", "Vouchers", "Customers", "Revenue (30 d)", "Last activity", "Joined"]} empty={rows.length ? undefined : "No businesses match."}>
           {rows.map((t) => (
-            <tr key={t.id} className="hover:bg-[#f8fafc]">
-              <Td><Link href={`/super-admin/businesses/${t.id}`} className="font-semibold text-[#0f172a] hover:text-[#2563eb]">{t.name}</Link></Td>
-              <Td>{t.owner ? <>{t.owner.name || "—"}<p className="text-xs text-[#94a3b8]">{t.owner.email}</p></> : "—"}</Td>
+            <tr key={t.id} className="hover:bg-[#f7f7f7]">
+              <Td><Link href={`/super-admin/businesses/${t.id}`} className="font-semibold text-[#1a1a1a] hover:text-[#1a1a1a]">{t.name}</Link></Td>
+              <Td>{t.owner ? <>{t.owner.name || "—"}<p className="text-xs text-[#a3a3a3]">{t.owner.email}</p></> : "—"}</Td>
               <Td><Badge tone={t.status === "active" ? "green" : "red"}>{t.status === "active" ? "Active" : "Suspended"}</Badge></Td>
               <Td>{t.stats.routersOnline}/{t.stats.routers}</Td>
               <Td>{t.stats.vouchers}</Td>

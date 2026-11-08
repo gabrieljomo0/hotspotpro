@@ -22,14 +22,14 @@ export function InstallerAccessPanel({ agent }: { agent: AgentProfile }) {
   return (
     <article className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white p-5 shadow-sm">
       <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f1f5f9] text-[#2563eb]">
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f4f4f4] text-[#1a1a1a]">
           <LifeBuoy size={18} />
         </div>
         <div>
-          <p className="text-sm font-bold text-[#0f172a]">
+          <p className="text-sm font-bold text-[#1a1a1a]">
             Installer Support Access: {installer.name}
           </p>
-          <p className="text-xs text-[#64748b]">
+          <p className="text-xs text-[#737373]">
             {agent.allowAdminAccess
               ? "They can open your dashboard to help troubleshoot. This never limits what you can do here yourself."
               : "They can no longer open your dashboard. Turn this back on anytime if you want their help again."}
@@ -39,7 +39,7 @@ export function InstallerAccessPanel({ agent }: { agent: AgentProfile }) {
       <button
         type="button"
         onClick={() => setInstallerSupportAccess(agent.id, !agent.allowAdminAccess)}
-        className={`relative h-6 w-11 shrink-0 rounded-full transition ${ agent.allowAdminAccess ? "bg-[#2563eb]" : "bg-[#e2e8f0]" }`}
+        className={`relative h-6 w-11 shrink-0 rounded-full transition ${ agent.allowAdminAccess ? "bg-[#1a1a1a]" : "bg-[#e6e6e6]" }`}
       >
         <span
           className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${ agent.allowAdminAccess ? "translate-x-5" : "translate-x-0.5" }`}

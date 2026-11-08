@@ -57,14 +57,14 @@ export function AlertsSettingsPanel() {
   }
 
   return (
-    <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
+    <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
       <div className="mb-6 flex items-center gap-3">
         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
           <Bell size={20} />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-[#0f172a]">Alerts</h3>
-          <p className="text-sm text-[#64748b]">
+          <h3 className="text-lg font-bold text-[#1a1a1a]">Alerts</h3>
+          <p className="text-sm text-[#737373]">
             Decide what triggers an alert, who gets it, and for which businesses or routers.
           </p>
         </div>
@@ -76,20 +76,20 @@ export function AlertsSettingsPanel() {
           const isExpanded = expandedRuleId === rule.id;
 
           return (
-            <article key={rule.id} className="overflow-hidden rounded-xl border border-[#f1f5f9]">
+            <article key={rule.id} className="overflow-hidden rounded-xl border border-[#f4f4f4]">
               <div className="flex items-center justify-between gap-3 px-4 py-3">
                 <button
                   type="button"
                   onClick={() => setExpandedRuleId(isExpanded ? null : rule.id)}
                   className="flex flex-1 items-center gap-3 text-left"
                 >
-                  <ChevronDown size={15} className={`shrink-0 text-[#94a3b8] transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                  <ChevronDown size={15} className={`shrink-0 text-[#a3a3a3] transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                   <div>
-                    <p className="text-sm font-bold text-[#0f172a]">{label.title}</p>
-                    <p className="text-xs text-[#94a3b8]">{label.description}</p>
+                    <p className="text-sm font-bold text-[#1a1a1a]">{label.title}</p>
+                    <p className="text-xs text-[#a3a3a3]">{label.description}</p>
                   </div>
                 </button>
-                <span className="hidden shrink-0 rounded-full bg-[#ffffff] px-2.5 py-1 text-[10px] font-bold text-[#64748b] sm:inline-block">
+                <span className="hidden shrink-0 rounded-full bg-[#ffffff] px-2.5 py-1 text-[10px] font-bold text-[#737373] sm:inline-block">
                   {scopeLabel(rule)}
                 </span>
                 <Toggle
@@ -99,35 +99,35 @@ export function AlertsSettingsPanel() {
               </div>
 
               {isExpanded && (
-                <div className="grid gap-4 border-t border-[#f1f5f9] bg-[#ffffff] p-4 sm:grid-cols-2">
+                <div className="grid gap-4 border-t border-[#f4f4f4] bg-[#ffffff] p-4 sm:grid-cols-2">
                   <label className="block sm:col-span-2">
-                    <span className="mb-1.5 block text-xs font-semibold text-[#475569]">Applies to</span>
-                    <div className="max-h-48 space-y-1 overflow-y-auto rounded-lg border border-[#e2e8f0] bg-white p-3">
-                      <label className="flex items-center gap-2 rounded px-1.5 py-1 text-sm text-[#475569] hover:bg-[#ffffff]">
+                    <span className="mb-1.5 block text-xs font-semibold text-[#525252]">Applies to</span>
+                    <div className="max-h-48 space-y-1 overflow-y-auto rounded-lg border border-[#e6e6e6] bg-white p-3">
+                      <label className="flex items-center gap-2 rounded px-1.5 py-1 text-sm text-[#525252] hover:bg-[#ffffff]">
                         <input
                           type="checkbox"
                           checked={rule.scopeType === "all"}
                           onChange={() => updateAlertRule(rule.id, { scopeType: "all", scopeId: null })}
-                          className="h-4 w-4 rounded border-[#e2e8f0] accent-[#2563eb]"
+                          className="h-4 w-4 rounded border-[#e6e6e6] accent-[#1a1a1a]"
                         />
                         All businesses &amp; routers
                       </label>
 
                       {businessLocations.length > 0 && (
                         <>
-                          <p className="mt-2 px-1.5 text-[10px] font-bold uppercase tracking-wide text-[#94a3b8]">
+                          <p className="mt-2 px-1.5 text-[10px] font-bold uppercase tracking-wide text-[#a3a3a3]">
                             A specific business
                           </p>
                           {businessLocations.map((b) => (
                             <label
                               key={b.id}
-                              className="flex items-center gap-2 rounded px-1.5 py-1 text-sm text-[#475569] hover:bg-[#ffffff]"
+                              className="flex items-center gap-2 rounded px-1.5 py-1 text-sm text-[#525252] hover:bg-[#ffffff]"
                             >
                               <input
                                 type="checkbox"
                                 checked={rule.scopeType === "business" && rule.scopeId === b.id}
                                 onChange={() => updateAlertRule(rule.id, { scopeType: "business", scopeId: b.id })}
-                                className="h-4 w-4 rounded border-[#e2e8f0] accent-[#2563eb]"
+                                className="h-4 w-4 rounded border-[#e6e6e6] accent-[#1a1a1a]"
                               />
                               {b.name}
                             </label>
@@ -137,19 +137,19 @@ export function AlertsSettingsPanel() {
 
                       {routers.length > 0 && (
                         <>
-                          <p className="mt-2 px-1.5 text-[10px] font-bold uppercase tracking-wide text-[#94a3b8]">
+                          <p className="mt-2 px-1.5 text-[10px] font-bold uppercase tracking-wide text-[#a3a3a3]">
                             A specific router
                           </p>
                           {routers.map((r) => (
                             <label
                               key={r.ip}
-                              className="flex items-center gap-2 rounded px-1.5 py-1 text-sm text-[#475569] hover:bg-[#ffffff]"
+                              className="flex items-center gap-2 rounded px-1.5 py-1 text-sm text-[#525252] hover:bg-[#ffffff]"
                             >
                               <input
                                 type="checkbox"
                                 checked={rule.scopeType === "router" && rule.scopeId === r.ip}
                                 onChange={() => updateAlertRule(rule.id, { scopeType: "router", scopeId: r.ip })}
-                                className="h-4 w-4 rounded border-[#e2e8f0] accent-[#2563eb]"
+                                className="h-4 w-4 rounded border-[#e6e6e6] accent-[#1a1a1a]"
                               />
                               {r.name}
                             </label>
@@ -161,7 +161,7 @@ export function AlertsSettingsPanel() {
 
                   {(rule.type === "voucherStockLow" || rule.type === "agentStockLow") && (
                     <label className="block">
-                      <span className="mb-1.5 block text-xs font-semibold text-[#475569]">
+                      <span className="mb-1.5 block text-xs font-semibold text-[#525252]">
                         Alert when remaining stock drops to
                       </span>
                       <input
@@ -169,12 +169,12 @@ export function AlertsSettingsPanel() {
                         min={0}
                         value={rule.thresholdValue ?? 0}
                         onChange={(event) => updateAlertRule(rule.id, { thresholdValue: Number(event.target.value) })}
-                        className="h-10 w-full rounded-lg border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                        className="h-10 w-full rounded-lg border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
                       />
                     </label>
                   )}
 
-                  <label className="flex items-center gap-2 text-sm text-[#475569]">
+                  <label className="flex items-center gap-2 text-sm text-[#525252]">
                     <input
                       type="checkbox"
                       checked={rule.notifyAdmin}
@@ -183,7 +183,7 @@ export function AlertsSettingsPanel() {
                     />
                     Notify admin
                   </label>
-                  <label className="flex items-center gap-2 text-sm text-[#475569]">
+                  <label className="flex items-center gap-2 text-sm text-[#525252]">
                     <input
                       type="checkbox"
                       checked={rule.notifyAgents}

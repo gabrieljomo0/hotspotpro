@@ -45,21 +45,21 @@ export default function CopyLoginPage({
       subtitle="Copy this user's login credentials to share with them."
     >
       <div className="space-y-3">
-        <div className="flex items-center justify-between rounded-xl border border-[#f1f5f9] px-4 py-3">
-          <span className="text-xs text-[#64748b]">Username</span>
-          <span className="font-mono text-sm font-semibold text-[#0f172a]">
+        <div className="flex items-center justify-between rounded-xl border border-[#f4f4f4] px-4 py-3">
+          <span className="text-xs text-[#737373]">Username</span>
+          <span className="font-mono text-sm font-semibold text-[#1a1a1a]">
             {user.voucherUsername}
           </span>
         </div>
-        <div className="flex items-center justify-between rounded-xl border border-[#f1f5f9] px-4 py-3">
-          <span className="text-xs text-[#64748b]">Password</span>
-          <span className="font-mono text-sm font-semibold text-[#0f172a]">
+        <div className="flex items-center justify-between rounded-xl border border-[#f4f4f4] px-4 py-3">
+          <span className="text-xs text-[#737373]">Password</span>
+          <span className="font-mono text-sm font-semibold text-[#1a1a1a]">
             {user.voucherPassword}
           </span>
         </div>
-        <div className="flex items-center justify-between rounded-xl border border-[#f1f5f9] px-4 py-3">
-          <span className="text-xs text-[#64748b]">Phone</span>
-          <span className="text-sm font-semibold text-[#0f172a]">
+        <div className="flex items-center justify-between rounded-xl border border-[#f4f4f4] px-4 py-3">
+          <span className="text-xs text-[#737373]">Phone</span>
+          <span className="text-sm font-semibold text-[#1a1a1a]">
             {user.phone || "Not provided"}
           </span>
         </div>
@@ -69,7 +69,7 @@ export default function CopyLoginPage({
         type="button"
         onClick={handleCopy}
         className={`mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white sm:w-auto ${
-          copied ? "bg-emerald-600" : "bg-[#2563eb] hover:bg-[#1d4ed8]"
+          copied ? "bg-emerald-600" : "bg-[#1a1a1a] hover:bg-[#111111]"
         }`}
       >
         {copied ? <CheckCircle2 size={18} /> : <Copy size={18} />}

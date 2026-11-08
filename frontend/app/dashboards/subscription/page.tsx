@@ -69,12 +69,12 @@ export default function SubscriptionPage() {
       <h2 className="mb-1 text-3xl font-bold tracking-tight md:text-4xl">
         Subscription
       </h2>
-      <p className="mb-6 max-w-2xl text-sm text-[#64748b] md:text-base">
+      <p className="mb-6 max-w-2xl text-sm text-[#737373] md:text-base">
         Manage your HotspotPro platform subscription and usage limits.
       </p>
 
       {access && (
-        <p className={`mb-6 max-w-2xl rounded-xl border px-4 py-3 text-sm ${access.locked ? "border-red-200 bg-red-50 text-red-800" : "border-[#e2e8f0] bg-white text-[#334155]"}`}>
+        <p className={`mb-6 max-w-2xl rounded-xl border px-4 py-3 text-sm ${access.locked ? "border-red-200 bg-red-50 text-red-800" : "border-[#e6e6e6] bg-white text-[#333333]"}`}>
           {access.locked
             ? `Captive portal locked. Renew online access to turn the routers back on. ${access.reason}`
             : access.mode === "trial"
@@ -86,32 +86,32 @@ export default function SubscriptionPage() {
       )}
 
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
-          <p className="text-xs font-medium text-[#64748b]">Current Plan</p>
-          <p className="mt-1 text-2xl font-bold text-[#0f172a]">
+        <div className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+          <p className="text-xs font-medium text-[#737373]">Current Plan</p>
+          <p className="mt-1 text-2xl font-bold text-[#1a1a1a]">
             {subscriptionPlan}
           </p>
-          <p className="mt-1 text-xs text-[#64748b]">{localizeAmountString(currentPlan.price)}</p>
+          <p className="mt-1 text-xs text-[#737373]">{localizeAmountString(currentPlan.price)}</p>
         </div>
-        <div className="rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
-          <p className="text-xs font-medium text-[#64748b]">
+        <div className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+          <p className="text-xs font-medium text-[#737373]">
             Vouchers Issued
           </p>
-          <p className="mt-1 text-2xl font-bold text-[#0f172a]">
+          <p className="mt-1 text-2xl font-bold text-[#1a1a1a]">
             {vouchers.length}
           </p>
-          <p className="mt-1 text-xs text-[#64748b]">
+          <p className="mt-1 text-xs text-[#737373]">
             {currentPlan.voucherLimit}
           </p>
         </div>
-        <div className="rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
-          <p className="text-xs font-medium text-[#64748b]">
+        <div className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+          <p className="text-xs font-medium text-[#737373]">
             Packages Configured
           </p>
-          <p className="mt-1 text-2xl font-bold text-[#0f172a]">
+          <p className="mt-1 text-2xl font-bold text-[#1a1a1a]">
             {packages.length}
           </p>
-          <p className="mt-1 text-xs text-[#64748b]">{currentPlan.routerLimit}</p>
+          <p className="mt-1 text-xs text-[#737373]">{currentPlan.routerLimit}</p>
         </div>
       </div>
 
@@ -122,18 +122,18 @@ export default function SubscriptionPage() {
           return (
             <article
               key={plan.key}
-              className={`rounded-2xl border p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] ${
+              className={`rounded-2xl border p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] ${
                 isCurrent
-                  ? "border-[#2563eb] bg-[#f1f5f9]"
-                  : "border-[#e2e8f0] bg-white"
+                  ? "border-[#1a1a1a] bg-[#f4f4f4]"
+                  : "border-[#e6e6e6] bg-white"
               }`}
             >
-              <h3 className="text-lg font-black text-[#0f172a]">
+              <h3 className="text-lg font-black text-[#1a1a1a]">
                 {plan.key}
               </h3>
-              <p className="mt-1 text-sm text-[#64748b]">{localizeAmountString(plan.price)}</p>
+              <p className="mt-1 text-sm text-[#737373]">{localizeAmountString(plan.price)}</p>
 
-              <ul className="mt-5 space-y-2 text-sm text-[#475569]">
+              <ul className="mt-5 space-y-2 text-sm text-[#525252]">
                 <li className="flex items-center gap-2">
                   <Check size={15} className="text-emerald-600" />
                   {plan.voucherLimit}
@@ -154,7 +154,7 @@ export default function SubscriptionPage() {
                 type="button"
                 disabled={isCurrent}
                 onClick={() => setSubscriptionPlan(plan.key)}
-                className="mt-6 w-full rounded-xl bg-[#2563eb] px-5 py-3 text-sm font-bold text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:bg-[#e2e8f0] disabled:text-[#94a3b8]"
+                className="mt-6 w-full rounded-xl bg-[#1a1a1a] px-5 py-3 text-sm font-bold text-white hover:bg-[#111111] disabled:cursor-not-allowed disabled:bg-[#e6e6e6] disabled:text-[#a3a3a3]"
               >
                 {isCurrent ? "Current Plan" : `Switch to ${plan.key}`}
               </button>

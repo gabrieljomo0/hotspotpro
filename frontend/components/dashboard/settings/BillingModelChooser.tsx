@@ -52,8 +52,8 @@ export function BillingModelChooser() {
 
   return (
     <section data-testid="billing-chooser" className="mb-5 rounded-2xl bg-white p-6">
-      <h3 className="text-base font-bold text-[#0f172a]">How do you want to pay?</h3>
-      <p className="mb-4 text-xs text-[#64748b]">Pick one. You can change it later.</p>
+      <h3 className="text-base font-bold text-[#1a1a1a]">How do you want to pay?</h3>
+      <p className="mb-4 text-xs text-[#737373]">Pick one. You can change it later.</p>
 
       <div className="grid gap-4 md:grid-cols-2">
         {options.map((o) => {
@@ -66,21 +66,21 @@ export function BillingModelChooser() {
               data-testid={`model-${o.model}`}
               aria-pressed={selected}
               onClick={() => choose(o.model)}
-              className={`rounded-xl border-2 p-5 text-left transition ${selected ? "border-[#2563eb] bg-[#f1f5f9]" : "border-[#e2e8f0] bg-white hover:border-[#94a3b8]"}`}
+              className={`rounded-xl border-2 p-5 text-left transition ${selected ? "border-[#1a1a1a] bg-[#f4f4f4]" : "border-[#e6e6e6] bg-white hover:border-[#a3a3a3]"}`}
             >
               <div className="flex items-start justify-between gap-3">
-                <span className={`flex h-10 w-10 items-center justify-center rounded-lg ${selected ? "bg-[#2563eb] text-white" : "bg-[#f1f5f9] text-[#475569]"}`}>
+                <span className={`flex h-10 w-10 items-center justify-center rounded-lg ${selected ? "bg-[#1a1a1a] text-white" : "bg-[#f4f4f4] text-[#525252]"}`}>
                   <Icon size={18} />
                 </span>
                 {selected && (
-                  <span className="inline-flex items-center gap-1 rounded-md bg-[#16a34a] px-2 py-1 text-xs font-bold text-white">
+                  <span className="inline-flex items-center gap-1 rounded-md bg-[#1a1a1a] px-2 py-1 text-xs font-bold text-white">
                     <Check size={12} /> Your plan
                   </span>
                 )}
               </div>
-              <p className="mt-3 text-base font-bold text-[#0f172a]">{o.title}</p>
-              <p className="text-sm font-semibold text-[#2563eb]">{o.price}</p>
-              <ul className="mt-3 space-y-1 text-sm text-[#475569]">
+              <p className="mt-3 text-base font-bold text-[#1a1a1a]">{o.title}</p>
+              <p className="text-sm font-semibold text-[#1a1a1a]">{o.price}</p>
+              <ul className="mt-3 space-y-1 text-sm text-[#525252]">
                 {o.points.map((p) => (
                   <li key={p}>• {p}</li>
                 ))}
@@ -90,9 +90,9 @@ export function BillingModelChooser() {
         })}
       </div>
 
-      <div data-testid="billing-compare" className="mt-4 rounded-xl border border-[#e2e8f0] px-4 py-3 text-sm text-[#475569]">
-        This month so far you sold <strong className="text-[#0f172a]">{money(fig.monthSales)}</strong>. On commission that would cost{" "}
-        <strong className="text-[#0f172a]">{money(fig.monthCommission)}</strong>; the subscription costs <strong className="text-[#0f172a]">{money(fee)}</strong>.{" "}
+      <div data-testid="billing-compare" className="mt-4 rounded-xl border border-[#e6e6e6] px-4 py-3 text-sm text-[#525252]">
+        This month so far you sold <strong className="text-[#1a1a1a]">{money(fig.monthSales)}</strong>. On commission that would cost{" "}
+        <strong className="text-[#1a1a1a]">{money(fig.monthCommission)}</strong>; the subscription costs <strong className="text-[#1a1a1a]">{money(fee)}</strong>.{" "}
         {cheaper === "Same" ? "They cost the same." : <>{cheaper} is cheaper right now.</>}
       </div>
     </section>

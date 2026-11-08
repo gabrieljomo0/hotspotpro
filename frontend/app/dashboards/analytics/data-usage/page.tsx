@@ -217,12 +217,12 @@ export default function DataUsagePage() {
       wide
     >
       {/* In-page nav */}
-      <nav className="mb-6 flex flex-wrap gap-2 border-b border-[#f1f5f9] pb-4">
+      <nav className="mb-6 flex flex-wrap gap-2 border-b border-[#f4f4f4] pb-4">
         {NAV_SECTIONS.map((section) => (
           <a
             key={section.id}
             href={`#${section.id}`}
-            className="rounded-lg px-3 py-1.5 text-xs font-semibold text-[#64748b] hover:bg-[#ffffff] hover:text-[#2563eb]"
+            className="rounded-lg px-3 py-1.5 text-xs font-semibold text-[#737373] hover:bg-[#ffffff] hover:text-[#1a1a1a]"
           >
             {section.label}
           </a>
@@ -230,14 +230,14 @@ export default function DataUsagePage() {
       </nav>
 
       {/* Live / Historical toggle */}
-      <div className="mb-5 flex overflow-hidden rounded-lg border border-[#e2e8f0] text-sm">
+      <div className="mb-5 flex overflow-hidden rounded-lg border border-[#e6e6e6] text-sm">
         <button
           type="button"
           onClick={() => setMode("historical")}
           className={`flex-1 px-4 py-2.5 font-semibold transition ${
             mode === "historical"
-              ? "bg-[#f1f5f9] text-[#2563eb]"
-              : "bg-white text-[#64748b] hover:bg-[#ffffff]"
+              ? "bg-[#f4f4f4] text-[#1a1a1a]"
+              : "bg-white text-[#737373] hover:bg-[#ffffff]"
           }`}
         >
           Historical
@@ -248,7 +248,7 @@ export default function DataUsagePage() {
           className={`flex flex-1 items-center justify-center gap-1.5 px-4 py-2.5 font-semibold transition ${
             mode === "live"
               ? "bg-red-50 text-red-600"
-              : "bg-white text-[#64748b] hover:bg-[#ffffff]"
+              : "bg-white text-[#737373] hover:bg-[#ffffff]"
           }`}
         >
           <Radio size={14} />
@@ -274,10 +274,10 @@ export default function DataUsagePage() {
             {scopeAgent && (
               <div className="mb-5 flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm">
                 <RouterIcon size={16} className="text-blue-600" />
-                <span className="text-[#475569]">
-                  <strong className="text-[#0f172a]">{scopeAgent.name}</strong>{" "}
+                <span className="text-[#525252]">
+                  <strong className="text-[#1a1a1a]">{scopeAgent.name}</strong>{" "}
                   ({scopeAgent.role}) works from{" "}
-                  <strong className="text-[#0f172a]">
+                  <strong className="text-[#1a1a1a]">
                     {scopeAgentRouter
                       ? scopeAgentRouter.name.split(" (")[0]
                       : "no router assigned"}
@@ -288,24 +288,24 @@ export default function DataUsagePage() {
 
             <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="rounded-xl border border-blue-200 bg-white p-4">
-                <p className="text-xs text-[#64748b]">
+                <p className="text-xs text-[#737373]">
                   Total ({timeframe})
                   {scope.type !== "network" && " · filtered"}
                 </p>
-                <p className="text-lg font-bold text-[#0f172a]">{totalGb} GB</p>
+                <p className="text-lg font-bold text-[#1a1a1a]">{totalGb} GB</p>
               </div>
               <div className="rounded-xl border border-emerald-200 bg-white p-4">
-                <p className="flex items-center gap-1.5 text-xs text-[#64748b]">
+                <p className="flex items-center gap-1.5 text-xs text-[#737373]">
                   <Users size={13} />
                   Online Now
                 </p>
-                <p className="text-lg font-bold text-[#0f172a]">
+                <p className="text-lg font-bold text-[#1a1a1a]">
                   {onlineNow} / {users.length}
                 </p>
               </div>
               <div className="rounded-xl border border-blue-200 bg-white p-4">
-                <p className="text-xs text-[#64748b]">Avg per User</p>
-                <p className="text-lg font-bold text-[#0f172a]">
+                <p className="text-xs text-[#737373]">Avg per User</p>
+                <p className="text-lg font-bold text-[#1a1a1a]">
                   {users.length ? Math.round(totalGb / users.length) : 0} GB
                 </p>
               </div>
@@ -319,7 +319,7 @@ export default function DataUsagePage() {
           >
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <h3 className="text-base font-bold">Usage Trend</h3>
-              <div className="flex overflow-hidden rounded-lg border border-[#e2e8f0] bg-white text-xs">
+              <div className="flex overflow-hidden rounded-lg border border-[#e6e6e6] bg-white text-xs">
                 {(["Today", "Weekly", "Monthly", "Yearly"] as Timeframe[]).map(
                   (period) => (
                     <button
@@ -328,8 +328,8 @@ export default function DataUsagePage() {
                       onClick={() => setTimeframe(period)}
                       className={`px-3 py-2.5 font-semibold transition ${
                         timeframe === period
-                          ? "bg-[#f1f5f9] text-[#2563eb]"
-                          : "bg-white text-[#64748b] hover:bg-[#ffffff]"
+                          ? "bg-[#f4f4f4] text-[#1a1a1a]"
+                          : "bg-white text-[#737373] hover:bg-[#ffffff]"
                       }`}
                     >
                       {period}
@@ -338,7 +338,7 @@ export default function DataUsagePage() {
                 )}
               </div>
             </div>
-            <p className="mb-4 text-xs text-[#94a3b8]">
+            <p className="mb-4 text-xs text-[#a3a3a3]">
               {TIMEFRAME_DESCRIPTION[timeframe as Timeframe]}
             </p>
 
@@ -357,7 +357,7 @@ export default function DataUsagePage() {
                     type="monotone"
                     dataKey="download"
                     name="Download"
-                    stroke="#2563eb"
+                    stroke="#1a1a1a"
                     strokeWidth={2.5}
                     dot={false}
                   />
@@ -365,7 +365,7 @@ export default function DataUsagePage() {
                     type="monotone"
                     dataKey="upload"
                     name="Upload"
-                    stroke="#93c5fd"
+                    stroke="#f3f1ec"
                     strokeWidth={2.5}
                     dot={false}
                   />
@@ -373,12 +373,12 @@ export default function DataUsagePage() {
               </ResponsiveContainer>
             </div>
             <div className="mt-3 flex gap-4 text-xs">
-              <span className="inline-flex items-center gap-1.5 text-[#475569]">
-                <span className="h-0.5 w-4 bg-[#2563eb]" />
+              <span className="inline-flex items-center gap-1.5 text-[#525252]">
+                <span className="h-0.5 w-4 bg-[#1a1a1a]" />
                 Download
               </span>
-              <span className="inline-flex items-center gap-1.5 text-[#475569]">
-                <span className="h-0.5 w-4 bg-[#93c5fd]" />
+              <span className="inline-flex items-center gap-1.5 text-[#525252]">
+                <span className="h-0.5 w-4 bg-[#f3f1ec]" />
                 Upload
               </span>
             </div>
@@ -388,7 +388,7 @@ export default function DataUsagePage() {
 
               {customRange && (
                 <div className="mt-4 rounded-xl bg-white p-2">
-                  <p className="mb-2 px-2 text-xs font-semibold text-[#475569]">
+                  <p className="mb-2 px-2 text-xs font-semibold text-[#525252]">
                     Usage from {customRange.from} to {customRange.to}
                   </p>
                   {customRangeData.length === 0 ? (
@@ -408,7 +408,7 @@ export default function DataUsagePage() {
                             type="monotone"
                             dataKey="download"
                             name="Download"
-                            stroke="#2563eb"
+                            stroke="#1a1a1a"
                             strokeWidth={2.5}
                             dot={{ r: 3 }}
                           />
@@ -416,7 +416,7 @@ export default function DataUsagePage() {
                             type="monotone"
                             dataKey="upload"
                             name="Upload"
-                            stroke="#93c5fd"
+                            stroke="#f3f1ec"
                             strokeWidth={2.5}
                             dot={{ r: 3 }}
                           />
@@ -459,33 +459,33 @@ export default function DataUsagePage() {
             className="mb-5 scroll-mt-20 rounded-2xl border border-amber-200 bg-white p-5"
           >
             <h3 className="mb-1 text-base font-bold">Usage by Source</h3>
-            <p className="mb-4 text-xs text-[#64748b]">
+            <p className="mb-4 text-xs text-[#737373]">
               Where data-consuming sessions came from — matches the same
               categories as Revenue by Source.
             </p>
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="rounded-xl bg-white p-4">
-                <div className="flex items-center gap-2 text-[#64748b]">
+                <div className="flex items-center gap-2 text-[#737373]">
                   <Store size={15} />
                   <p className="text-xs">Direct Sale (Voucher)</p>
                 </div>
-                <p className="mt-2 text-xl font-black text-[#0f172a]">
+                <p className="mt-2 text-xl font-black text-[#1a1a1a]">
                   {usageBySource.directSale} GB
                 </p>
-                <p className="mt-1 text-xs text-[#94a3b8]">
+                <p className="mt-1 text-xs text-[#a3a3a3]">
                   {Math.round((usageBySource.directSale / totalSourceGb) * 100)}%
                   of tracked usage
                 </p>
               </div>
               <div className="rounded-xl bg-white p-4">
-                <div className="flex items-center gap-2 text-[#64748b]">
+                <div className="flex items-center gap-2 text-[#737373]">
                   <Globe size={15} />
                   <p className="text-xs">Online Purchase</p>
                 </div>
-                <p className="mt-2 text-xl font-black text-[#0f172a]">
+                <p className="mt-2 text-xl font-black text-[#1a1a1a]">
                   {usageBySource.onlinePurchase} GB
                 </p>
-                <p className="mt-1 text-xs text-[#94a3b8]">
+                <p className="mt-1 text-xs text-[#a3a3a3]">
                   {Math.round(
                     (usageBySource.onlinePurchase / totalSourceGb) * 100,
                   )}
@@ -493,14 +493,14 @@ export default function DataUsagePage() {
                 </p>
               </div>
               <div className="rounded-xl bg-white p-4">
-                <div className="flex items-center gap-2 text-[#64748b]">
+                <div className="flex items-center gap-2 text-[#737373]">
                   <Gift size={15} />
                   <p className="text-xs">Package Plans</p>
                 </div>
-                <p className="mt-2 text-xl font-black text-[#0f172a]">
+                <p className="mt-2 text-xl font-black text-[#1a1a1a]">
                   {usageBySource.packageUsage} GB
                 </p>
-                <p className="mt-1 text-xs text-[#94a3b8]">
+                <p className="mt-1 text-xs text-[#a3a3a3]">
                   {Math.round(
                     (usageBySource.packageUsage / totalSourceGb) * 100,
                   )}

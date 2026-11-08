@@ -19,10 +19,10 @@ export function PermissionSwitch({
 }) {
   return (
     <div className="flex items-center justify-between gap-3 py-2">
-      <span className={`text-sm ${strong ? "font-bold text-[#0f172a]" : "text-[#475569]"}`}>
+      <span className={`text-sm ${strong ? "font-bold text-[#1a1a1a]" : "text-[#525252]"}`}>
         {label}
         {locked && (
-          <span className="ml-2 rounded bg-[#f1f5f9] px-1.5 py-0.5 text-[10px] font-bold uppercase text-[#94a3b8]">
+          <span className="ml-2 rounded bg-[#f4f4f4] px-1.5 py-0.5 text-[10px] font-bold uppercase text-[#a3a3a3]">
             Default
           </span>
         )}
@@ -37,10 +37,10 @@ export function PermissionSwitch({
         onClick={onToggle}
         className="flex shrink-0 items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        <span className={`w-20 text-right text-xs font-semibold ${allowed ? "text-emerald-700" : "text-[#94a3b8]"}`}>
+        <span className={`w-20 text-right text-xs font-semibold ${allowed ? "text-emerald-700" : "text-[#a3a3a3]"}`}>
           {allowed ? "Allowed" : "Not allowed"}
         </span>
-        <span className={`relative h-5 w-9 rounded-full ${allowed ? "bg-emerald-600" : "bg-[#cbd5e1]"}`}>
+        <span className={`relative h-5 w-9 rounded-full ${allowed ? "bg-emerald-600" : "bg-[#d4d4d4]"}`}>
           <span
             className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow ${allowed ? "left-[18px]" : "left-0.5"}`}
           />

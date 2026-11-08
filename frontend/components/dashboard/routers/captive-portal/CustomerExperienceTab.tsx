@@ -17,9 +17,9 @@ export function CustomerExperienceTab({
   set: <K extends keyof CaptivePortalConfig>(key: K, value: CaptivePortalConfig[K]) => void;
 }) {
   return (
-    <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
-      <h3 className="text-lg font-bold text-[#0f172a]">Customer Experience</h3>
-      <p className="mb-6 text-sm text-[#64748b]">
+    <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
+      <h3 className="text-lg font-bold text-[#1a1a1a]">Customer Experience</h3>
+      <p className="mb-6 text-sm text-[#737373]">
         Control what customers can see and do on {router.name.split(" (")[0]}&apos;s captive portal.
       </p>
       <div className="grid gap-5 md:grid-cols-2">

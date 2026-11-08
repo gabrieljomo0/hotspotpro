@@ -186,8 +186,8 @@ export function ActiveUsersCard({
   }
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)] 2xl:col-span-2">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e2e8f0] px-5 py-4">
+    <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)] 2xl:col-span-2">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e6e6e6] px-5 py-4">
         {expanded ? (
           <h3 className="text-base font-bold">
             Active Users ({users.length})
@@ -197,26 +197,26 @@ export function ActiveUsersCard({
             href="/dashboards/active-sessions"
             className="group flex items-center gap-2"
           >
-            <h3 className="text-base font-bold group-hover:text-[#2563eb]">
+            <h3 className="text-base font-bold group-hover:text-[#1a1a1a]">
               Active Users ({users.length})
             </h3>
             <Maximize2
               size={14}
-              className="text-[#94a3b8] group-hover:text-[#2563eb]"
+              className="text-[#a3a3a3] group-hover:text-[#1a1a1a]"
             />
           </Link>
         )}
         {!expanded && (
           <Link
             href="/dashboards/active-sessions"
-            className="rounded-lg border border-[#e2e8f0] px-3 py-2 text-xs font-semibold text-[#2563eb] transition hover:bg-[#ffffff]"
+            className="rounded-lg border border-[#e6e6e6] px-3 py-2 text-xs font-semibold text-[#1a1a1a] transition hover:bg-[#ffffff]"
           >
             View all
           </Link>
         )}
       </div>
 
-      <div className="flex items-center gap-4 border-b border-[#f1f5f9] px-5 py-3 text-xs">
+      <div className="flex items-center gap-4 border-b border-[#f4f4f4] px-5 py-3 text-xs">
         <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-600">
           <span className="h-2 w-2 rounded-full bg-emerald-500" />
           {onlineCount} Online
@@ -225,28 +225,28 @@ export function ActiveUsersCard({
           <span className="h-2 w-2 rounded-full bg-slate-400" />
           {offlineCount} Offline
         </span>
-        <span className="text-[#94a3b8]">= {users.length} total</span>
+        <span className="text-[#a3a3a3]">= {users.length} total</span>
       </div>
 
       {expanded && (
-        <div className="flex flex-wrap items-center gap-3 border-b border-[#f1f5f9] px-5 py-3">
+        <div className="flex flex-wrap items-center gap-3 border-b border-[#f4f4f4] px-5 py-3">
           <div className="relative">
             <Search
               size={14}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8]"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]"
             />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search phone or username..."
-              className="h-9 w-56 rounded-lg border border-[#e2e8f0] bg-white pl-8 pr-3 text-xs outline-none focus:border-[#2563eb]"
+              className="h-9 w-56 rounded-lg border border-[#e6e6e6] bg-white pl-8 pr-3 text-xs outline-none focus:border-[#1a1a1a]"
             />
           </div>
 
           <select
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
-            className="h-9 rounded-lg border border-[#e2e8f0] bg-white px-3 text-xs outline-none focus:border-[#2563eb]"
+            className="h-9 rounded-lg border border-[#e6e6e6] bg-white px-3 text-xs outline-none focus:border-[#1a1a1a]"
           >
             {(["All", "Online", "Paused", "Disconnected", "Blocked"] as StatusFilter[]).map(
               (option) => (
@@ -260,7 +260,7 @@ export function ActiveUsersCard({
           <select
             value={routerFilter}
             onChange={(event) => setRouterFilter(event.target.value)}
-            className="h-9 rounded-lg border border-[#e2e8f0] bg-white px-3 text-xs outline-none focus:border-[#2563eb]"
+            className="h-9 rounded-lg border border-[#e6e6e6] bg-white px-3 text-xs outline-none focus:border-[#1a1a1a]"
           >
             <option value="All">All Routers</option>
             {routers.map((router) => (
@@ -273,7 +273,7 @@ export function ActiveUsersCard({
           <select
             value={packageFilter}
             onChange={(event) => setPackageFilter(event.target.value)}
-            className="h-9 rounded-lg border border-[#e2e8f0] bg-white px-3 text-xs outline-none focus:border-[#2563eb]"
+            className="h-9 rounded-lg border border-[#e6e6e6] bg-white px-3 text-xs outline-none focus:border-[#1a1a1a]"
           >
             <option value="All">All Packages</option>
             {uniquePackages.map((pkgName) => (
@@ -292,13 +292,13 @@ export function ActiveUsersCard({
                 setRouterFilter("All");
                 setPackageFilter("All");
               }}
-              className="h-9 rounded-lg border border-[#e2e8f0] bg-white px-3 text-xs font-semibold text-[#64748b] hover:bg-[#ffffff]"
+              className="h-9 rounded-lg border border-[#e6e6e6] bg-white px-3 text-xs font-semibold text-[#737373] hover:bg-[#ffffff]"
             >
               Clear filters
             </button>
           )}
 
-          <span className="text-xs text-[#94a3b8]">
+          <span className="text-xs text-[#a3a3a3]">
             Showing {visibleUsers.length} of {users.length}
           </span>
         </div>
@@ -312,7 +312,7 @@ export function ActiveUsersCard({
           <select
             value={bulkAction}
             onChange={(event) => setBulkAction(event.target.value as BulkAction)}
-            className="h-9 rounded-lg border border-blue-200 bg-white px-3 text-xs outline-none focus:border-[#2563eb]"
+            className="h-9 rounded-lg border border-blue-200 bg-white px-3 text-xs outline-none focus:border-[#1a1a1a]"
           >
             {BULK_ACTIONS.map((action) => (
               <option key={action.key} value={action.key}>
@@ -327,12 +327,12 @@ export function ActiveUsersCard({
                 min={1}
                 value={extendAmount}
                 onChange={(event) => setExtendAmount(event.target.value)}
-                className="h-9 w-16 rounded-lg border border-blue-200 bg-white px-2 text-xs outline-none focus:border-[#2563eb]"
+                className="h-9 w-16 rounded-lg border border-blue-200 bg-white px-2 text-xs outline-none focus:border-[#1a1a1a]"
               />
               <select
                 value={extendUnit}
                 onChange={(event) => setExtendUnit(event.target.value)}
-                className="h-9 rounded-lg border border-blue-200 bg-white px-2 text-xs outline-none focus:border-[#2563eb]"
+                className="h-9 rounded-lg border border-blue-200 bg-white px-2 text-xs outline-none focus:border-[#1a1a1a]"
               >
                 {EXTEND_UNITS.map((unit) => (
                   <option key={unit} value={unit}>
@@ -350,7 +350,7 @@ export function ActiveUsersCard({
                 step={0.1}
                 value={topUpAmount}
                 onChange={(event) => setTopUpAmount(event.target.value)}
-                className="h-9 w-16 rounded-lg border border-blue-200 bg-white px-2 text-xs outline-none focus:border-[#2563eb]"
+                className="h-9 w-16 rounded-lg border border-blue-200 bg-white px-2 text-xs outline-none focus:border-[#1a1a1a]"
               />
               <span className="text-xs font-semibold text-blue-900">GB</span>
             </div>
@@ -386,7 +386,7 @@ export function ActiveUsersCard({
               : "w-full min-w-[1800px] text-left text-xs"
           }
         >
-          <thead className="sticky top-0 z-10 bg-[#ffffff] text-[#64748b]">
+          <thead className="sticky top-0 z-10 bg-[#ffffff] text-[#737373]">
             <tr>
               {expanded && (
                 <th className="px-4 py-4">
@@ -420,7 +420,7 @@ export function ActiveUsersCard({
           <tbody>
             {visibleUsers.length === 0 && expanded && (
               <tr>
-                <td colSpan={14} className="px-5 py-10 text-center text-[#94a3b8]">
+                <td colSpan={14} className="px-5 py-10 text-center text-[#a3a3a3]">
                   No users match this filter.
                 </td>
               </tr>
@@ -451,8 +451,8 @@ export function ActiveUsersCard({
               return (
                 <tr
                   key={user.voucherUsername}
-                  className={`border-t border-[#f1f5f9] transition hover:bg-[#f1f5f9] ${
-                    selectedIds.includes(userId) ? "bg-[#f1f5f9]" : ""
+                  className={`border-t border-[#f4f4f4] transition hover:bg-[#f4f4f4] ${
+                    selectedIds.includes(userId) ? "bg-[#f4f4f4]" : ""
                   }`}
                 >
                   {expanded && (
@@ -468,7 +468,7 @@ export function ActiveUsersCard({
                   <td className="px-4 py-4 font-semibold">
                     <span className="mr-2 inline-block h-2 w-2 rounded-full bg-emerald-500" />
                     {user.phone || (
-                      <span className="font-normal text-[#94a3b8]">
+                      <span className="font-normal text-[#a3a3a3]">
                         Not provided
                       </span>
                     )}
@@ -480,7 +480,7 @@ export function ActiveUsersCard({
                         {routerOf(userId)?.name.split(" (")[0]}
                       </span>
                     ) : (
-                      <span className="text-[#94a3b8]">—</span>
+                      <span className="text-[#a3a3a3]">—</span>
                     )}
                   </td>
 
@@ -504,7 +504,7 @@ export function ActiveUsersCard({
                     {user.voucherPassword}
                   </td>
                   <td className="px-3 py-4">{user.duration}</td>
-                  <td className="px-3 py-4 font-semibold text-[#475569]">
+                  <td className="px-3 py-4 font-semibold text-[#525252]">
                     {user.timeSpent}
                   </td>
                   <td className="px-3 py-4">
@@ -513,7 +513,7 @@ export function ActiveUsersCard({
                     </span>
                   </td>
                   <td className="px-3 py-4">{user.dataUsed}</td>
-                  <td className="px-3 py-4 font-semibold text-[#2563eb]">
+                  <td className="px-3 py-4 font-semibold text-[#1a1a1a]">
                     {user.dataLeft}
                   </td>
                   <td
@@ -535,7 +535,7 @@ export function ActiveUsersCard({
                     <button
                       type="button"
                       onClick={(event) => handleOpenActions(userId, event)}
-                      className="rounded-lg border border-[#e2e8f0] bg-white px-3 py-2 text-xs font-semibold text-[#475569] hover:bg-[#f1f5f9]"
+                      className="rounded-lg border border-[#e6e6e6] bg-white px-3 py-2 text-xs font-semibold text-[#525252] hover:bg-[#f4f4f4]"
                     >
                       Actions
                     </button>

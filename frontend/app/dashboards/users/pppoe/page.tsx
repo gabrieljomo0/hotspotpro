@@ -26,19 +26,19 @@ export default function PppoeUsersPage() {
     <section className="w-full">
       <BackLink />
       <h2 className="mb-1 flex items-center gap-2 text-3xl font-bold tracking-tight md:text-4xl">
-        <RadioTower className="text-[#2563eb]" size={30} />
+        <RadioTower className="text-[#1a1a1a]" size={30} />
         PPPoE Users
       </h2>
-      <p className="mb-6 max-w-2xl text-sm text-[#64748b] md:text-base">
+      <p className="mb-6 max-w-2xl text-sm text-[#737373] md:text-base">
         Subscription-based customers connected over PPPoE, separate from
         hotspot voucher sales ({PPPOE_USERS.length} subscribers).
       </p>
 
       <UsersNavTabs />
 
-      <article className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+      <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
         <table className="w-full text-left text-sm">
-          <thead className="bg-[#ffffff] text-xs text-[#64748b]">
+          <thead className="bg-[#ffffff] text-xs text-[#737373]">
             <tr>
               <th className="px-5 py-3 font-semibold">Username</th>
               <th className="px-5 py-3 font-semibold">Full Name</th>
@@ -50,12 +50,12 @@ export default function PppoeUsersPage() {
           </thead>
           <tbody>
             {PPPOE_USERS.map((user) => (
-              <tr key={user.username} className="border-t border-[#f1f5f9]">
-                <td className="px-5 py-3 font-mono font-semibold text-[#2563eb]">
+              <tr key={user.username} className="border-t border-[#f4f4f4]">
+                <td className="px-5 py-3 font-mono font-semibold text-[#1a1a1a]">
                   {user.username}
                 </td>
-                <td className="px-5 py-3 text-[#0f172a]">{user.fullName}</td>
-                <td className="px-5 py-3 text-[#475569]">{user.plan}</td>
+                <td className="px-5 py-3 text-[#1a1a1a]">{user.fullName}</td>
+                <td className="px-5 py-3 text-[#525252]">{user.plan}</td>
                 <td className="px-5 py-3">
                   <span
                     className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
@@ -67,8 +67,8 @@ export default function PppoeUsersPage() {
                     {user.status}
                   </span>
                 </td>
-                <td className="px-5 py-3 text-[#475569]">{localizeAmountString(user.monthlyFee)}</td>
-                <td className="px-5 py-3 text-[#64748b]">{user.nextBilling}</td>
+                <td className="px-5 py-3 text-[#525252]">{localizeAmountString(user.monthlyFee)}</td>
+                <td className="px-5 py-3 text-[#737373]">{user.nextBilling}</td>
               </tr>
             ))}
           </tbody>

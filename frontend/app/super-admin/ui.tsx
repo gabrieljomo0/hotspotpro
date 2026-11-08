@@ -70,12 +70,12 @@ export function ago(iso: string | null | undefined) {
 
 export function Card({ title, subtitle, action, children }: { title?: string; subtitle?: string; action?: ReactNode; children: ReactNode }) {
   return (
-    <section className="mb-6 overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+    <section className="mb-6 overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
       {(title || action) && (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e2e8f0] px-5 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e6e6e6] px-5 py-4">
           <div>
-            {title && <h2 className="text-lg font-bold text-[#0f172a]">{title}</h2>}
-            {subtitle && <p className="text-sm text-[#64748b]">{subtitle}</p>}
+            {title && <h2 className="text-lg font-bold text-[#1a1a1a]">{title}</h2>}
+            {subtitle && <p className="text-sm text-[#737373]">{subtitle}</p>}
           </div>
           {action}
         </div>
@@ -87,10 +87,10 @@ export function Card({ title, subtitle, action, children }: { title?: string; su
 
 export function Stat({ label, value, hint }: { label: string; value: ReactNode; hint?: ReactNode }) {
   return (
-    <div className="rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-      <p className="text-sm font-medium text-[#64748b]">{label}</p>
-      <p className="mt-1 text-2xl font-bold text-[#0f172a]">{value}</p>
-      {hint && <p className="mt-1 text-xs text-[#94a3b8]">{hint}</p>}
+    <div className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+      <p className="text-sm font-medium text-[#737373]">{label}</p>
+      <p className="mt-1 text-2xl font-bold text-[#1a1a1a]">{value}</p>
+      {hint && <p className="mt-1 text-xs text-[#a3a3a3]">{hint}</p>}
     </div>
   );
 }
@@ -110,28 +110,28 @@ export function Table({ head, children, empty }: { head: string[]; children: Rea
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[640px] text-left text-sm">
-        <thead className="bg-[#f8fafc] text-xs text-[#64748b]">
+        <thead className="bg-[#f7f7f7] text-xs text-[#737373]">
           <tr>{head.map((h) => <th key={h} className="px-5 py-3 font-semibold">{h}</th>)}</tr>
         </thead>
         <tbody>{children}</tbody>
       </table>
-      {empty && <p className="px-5 py-8 text-sm text-[#64748b]">{empty}</p>}
+      {empty && <p className="px-5 py-8 text-sm text-[#737373]">{empty}</p>}
     </div>
   );
 }
 export const Td = ({ children, className = "" }: { children: ReactNode; className?: string }) => (
-  <td className={`border-t border-[#f1f5f9] px-5 py-3 text-[#475569] ${className}`}>{children}</td>
+  <td className={`border-t border-[#f4f4f4] px-5 py-3 text-[#525252] ${className}`}>{children}</td>
 );
 
 export function Loading({ error }: { error: string | null }) {
-  return <p className={`py-10 text-center text-sm ${error ? "text-[#b91c1c]" : "text-[#64748b]"}`}>{error ?? "Loading…"}</p>;
+  return <p className={`py-10 text-center text-sm ${error ? "text-[#1a1a1a]" : "text-[#737373]"}`}>{error ?? "Loading…"}</p>;
 }
 
 export const inputClass =
-  "w-full rounded-lg border border-[#cbd5e1] bg-white px-3 py-2.5 text-sm text-[#0f172a] outline-none focus:border-[#2563eb]";
+  "w-full rounded-lg border border-[#d4d4d4] bg-white px-3 py-2.5 text-sm text-[#1a1a1a] outline-none focus:border-[#1a1a1a]";
 export const primaryButton =
-  "rounded-lg bg-[#2563eb] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8] disabled:opacity-50";
+  "rounded-lg bg-[#1a1a1a] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#111111] disabled:opacity-50";
 export const quietButton =
-  "rounded-lg border border-[#cbd5e1] bg-white px-4 py-2.5 text-sm font-bold text-[#475569] hover:bg-[#f1f5f9] disabled:opacity-50";
+  "rounded-lg border border-[#d4d4d4] bg-white px-4 py-2.5 text-sm font-bold text-[#525252] hover:bg-[#f4f4f4] disabled:opacity-50";
 export const dangerButton =
   "rounded-lg border border-red-200 bg-white px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 disabled:opacity-50";

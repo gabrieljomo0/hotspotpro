@@ -28,8 +28,8 @@ const TIER_BAR: Record<PeakChoice, number> = { "200": 22, "500": 42, "1000": 64,
 
 function Row({ label, value, testId }: { label: string; value: string; testId?: string }) {
   return (
-    <div className="flex items-baseline justify-between gap-3 border-b border-[#334155] py-2.5 last:border-b-0">
-      <dt className="text-xs font-semibold uppercase tracking-wide text-[#94a3b8]">{label}</dt>
+    <div className="flex items-baseline justify-between gap-3 border-b border-[#333333] py-2.5 last:border-b-0">
+      <dt className="text-xs font-semibold uppercase tracking-wide text-[#a3a3a3]">{label}</dt>
       <dd data-testid={testId} className="text-right font-mono text-sm font-semibold text-white">
         {value}
       </dd>
@@ -72,14 +72,14 @@ export function HotspotSizingPanel({
   }
 
   return (
-    <div data-testid="hotspot-sizing" className="mt-5 border-t border-[#e2e8f0] pt-5">
+    <div data-testid="hotspot-sizing" className="mt-5 border-t border-[#e6e6e6] pt-5">
       <div className="mb-4 flex items-center gap-2">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#2563eb] text-white">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1a1a1a] text-white">
           <Network size={16} />
         </span>
         <div>
-          <p className="text-sm font-bold text-[#0f172a]">Network size</p>
-          <p className="text-xs text-[#64748b]">Pick how many people will be online at the same time.</p>
+          <p className="text-sm font-bold text-[#1a1a1a]">Network size</p>
+          <p className="text-xs text-[#737373]">Pick how many people will be online at the same time.</p>
         </div>
       </div>
 
@@ -98,26 +98,26 @@ export function HotspotSizingPanel({
                 aria-pressed={active}
                 onClick={() => onPeak(tier.id)}
                 className={`w-full rounded-xl border-2 p-3 text-left ${
-                  active ? "border-[#2563eb] bg-[#f1f5f9]" : "border-[#e2e8f0] bg-white hover:border-[#94a3b8]"
+                  active ? "border-[#1a1a1a] bg-[#f4f4f4]" : "border-[#e6e6e6] bg-white hover:border-[#a3a3a3]"
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <span
                     className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
-                      active ? "border-[#2563eb]" : "border-[#cbd5e1]"
+                      active ? "border-[#1a1a1a]" : "border-[#d4d4d4]"
                     }`}
                   >
-                    {active && <span className="h-2.5 w-2.5 rounded-full bg-[#2563eb]" />}
+                    {active && <span className="h-2.5 w-2.5 rounded-full bg-[#1a1a1a]" />}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className={`text-sm font-bold ${active ? "text-[#1d4ed8]" : "text-[#0f172a]"}`}>{tier.label}</p>
-                    <p className="text-xs text-[#64748b]">{TIER_BLURB[tier.id]}</p>
+                    <p className={`text-sm font-bold ${active ? "text-[#111111]" : "text-[#1a1a1a]"}`}>{tier.label}</p>
+                    <p className="text-xs text-[#737373]">{TIER_BLURB[tier.id]}</p>
                   </div>
-                  <span className="shrink-0 font-mono text-xs font-semibold text-[#475569]">/{tier.lanIp.split("/")[1]}</span>
+                  <span className="shrink-0 font-mono text-xs font-semibold text-[#525252]">/{tier.lanIp.split("/")[1]}</span>
                 </div>
-                <div className="mt-2.5 h-1.5 w-full rounded-full bg-[#e2e8f0]">
+                <div className="mt-2.5 h-1.5 w-full rounded-full bg-[#e6e6e6]">
                   <div
-                    className={`h-1.5 rounded-full ${active ? "bg-[#2563eb]" : "bg-[#94a3b8]"}`}
+                    className={`h-1.5 rounded-full ${active ? "bg-[#1a1a1a]" : "bg-[#a3a3a3]"}`}
                     style={{ width: `${TIER_BAR[tier.id]}%` }}
                   />
                 </div>
@@ -127,10 +127,10 @@ export function HotspotSizingPanel({
         </div>
 
         {/* Right: the resulting address plan */}
-        <div className="flex flex-col rounded-xl bg-[#0f172a] p-4">
-          <p className="mb-1 text-xs font-bold uppercase tracking-wide text-[#94a3b8]">Address plan</p>
+        <div className="flex flex-col rounded-xl bg-[#1a1a1a] p-4">
+          <p className="mb-1 text-xs font-bold uppercase tracking-wide text-[#a3a3a3]">Address plan</p>
           {"error" in parsed ? (
-            <p data-testid="hotspot-summary" className="py-6 text-sm font-semibold text-[#fca5a5]">
+            <p data-testid="hotspot-summary" className="py-6 text-sm font-semibold text-[#f3f1ec]">
               Fix the address below to see the plan.
             </p>
           ) : (
@@ -148,13 +148,13 @@ export function HotspotSizingPanel({
                 type="button"
                 data-testid="advanced-ip-toggle"
                 onClick={() => onCustomizing(true)}
-                className="inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-xs font-bold text-[#0f172a] hover:bg-[#e2e8f0]"
+                className="inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-xs font-bold text-[#1a1a1a] hover:bg-[#e6e6e6]"
               >
                 <SlidersHorizontal size={14} />
                 Set my own address
               </button>
             ) : (
-              <div data-testid="advanced-ip" className="rounded-lg bg-[#1e293b] p-3">
+              <div data-testid="advanced-ip" className="rounded-lg bg-[#262626] p-3">
                 <div className="mb-2 flex items-center justify-between">
                   <span className="text-xs font-bold text-white">Router address</span>
                   <button
@@ -164,7 +164,7 @@ export function HotspotSizingPanel({
                       onLanIp("");
                       onCustomizing(false);
                     }}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#93c5fd] hover:text-white"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#f3f1ec] hover:text-white"
                   >
                     <RotateCcw size={12} />
                     Back to recommended
@@ -179,18 +179,18 @@ export function HotspotSizingPanel({
                         aria-label={`Address part ${index + 1}`}
                         value={value}
                         onChange={(event) => setPart(index, event.target.value)}
-                        className="h-10 w-full min-w-0 rounded-lg border border-[#475569] bg-white px-1 text-center font-mono text-sm font-semibold text-[#0f172a] outline-none focus:border-[#2563eb]"
+                        className="h-10 w-full min-w-0 rounded-lg border border-[#525252] bg-white px-1 text-center font-mono text-sm font-semibold text-[#1a1a1a] outline-none focus:border-[#1a1a1a]"
                       />
-                      {index < 3 && <span className="font-bold text-[#94a3b8]">.</span>}
+                      {index < 3 && <span className="font-bold text-[#a3a3a3]">.</span>}
                     </div>
                   ))}
-                  <span className="px-0.5 font-bold text-[#94a3b8]">/</span>
+                  <span className="px-0.5 font-bold text-[#a3a3a3]">/</span>
                   <select
                     data-testid="lan-prefix"
                     aria-label="Network size"
                     value={prefix}
                     onChange={(event) => setPrefix(event.target.value)}
-                    className="h-10 rounded-lg border border-[#475569] bg-white px-1.5 font-mono text-sm font-semibold text-[#0f172a] outline-none focus:border-[#2563eb]"
+                    className="h-10 rounded-lg border border-[#525252] bg-white px-1.5 font-mono text-sm font-semibold text-[#1a1a1a] outline-none focus:border-[#1a1a1a]"
                   >
                     {Array.from({ length: 14 }, (_, i) => 16 + i).map((n) => (
                       <option key={n} value={String(n)}>
@@ -199,16 +199,16 @@ export function HotspotSizingPanel({
                     ))}
                   </select>
                 </div>
-                <p className="mt-2 text-[11px] text-[#94a3b8]">
+                <p className="mt-2 text-[11px] text-[#a3a3a3]">
                   The router, gateway and DHCP are set up for you from this address.
                 </p>
                 {error && (
-                  <p data-testid="lan-ip-error" className="mt-2 rounded-md bg-[#fef2f2] p-2 text-xs font-semibold text-[#b91c1c]">
+                  <p data-testid="lan-ip-error" className="mt-2 rounded-md bg-[#f3f1ec] p-2 text-xs font-semibold text-[#1a1a1a]">
                     {error}
                   </p>
                 )}
                 {!error && tooSmall && (
-                  <p data-testid="lan-ip-small" className="mt-2 rounded-md bg-[#fffbeb] p-2 text-xs font-semibold text-[#92400e]">
+                  <p data-testid="lan-ip-small" className="mt-2 rounded-md bg-[#f3f1ec] p-2 text-xs font-semibold text-[#111111]">
                     Too small for {plan.label.toLowerCase()}. Some users may not get an address at busy times. Use a
                     smaller number after the slash.
                   </p>

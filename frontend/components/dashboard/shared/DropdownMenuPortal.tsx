@@ -63,7 +63,7 @@ export function DropdownMenuPortal({
         aria-hidden="true"
       />
       <div
-        className="fixed z-[210] overflow-y-auto overscroll-contain rounded-xl border border-[#e2e8f0] bg-white py-2 text-left shadow-2xl"
+        className="fixed z-[210] overflow-y-auto overscroll-contain rounded-xl border border-[#e6e6e6] bg-white py-2 text-left shadow-2xl"
         style={style}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}

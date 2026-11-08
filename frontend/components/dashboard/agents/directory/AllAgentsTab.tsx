@@ -52,11 +52,11 @@ function StatCard({
 }) {
   const body = (
     <>
-      <p className="flex items-center gap-1.5 text-xs text-[#64748b]">
+      <p className="flex items-center gap-1.5 text-xs text-[#737373]">
         {icon}
         {label}
       </p>
-      <p className="mt-1 text-xl font-black leading-tight text-[#0f172a]">{value}</p>
+      <p className="mt-1 text-xl font-black leading-tight text-[#1a1a1a]">{value}</p>
     </>
   );
   if (!onClick) {
@@ -72,7 +72,7 @@ function StatCard({
       data-testid={id}
       aria-pressed={active}
       onClick={onClick}
-      className={`rounded-xl border p-4 text-left transition hover:shadow-md ${tone} ${active ? "ring-2 ring-[#2563eb]" : ""}`}
+      className={`rounded-xl border p-4 text-left transition hover:shadow-md ${tone} ${active ? "ring-2 ring-[#1a1a1a]" : ""}`}
     >
       {body}
     </button>
@@ -196,7 +196,7 @@ export function AllAgentsTab({
       )}
 
       <div className="mb-3 flex justify-end">
-        <Link href="/dashboards/agents/tickets" data-testid="agent-tickets-link" className="rounded-lg border border-[#e2e8f0] bg-white px-3 py-1.5 text-xs font-bold text-[#475569] hover:bg-[#ffffff]">
+        <Link href="/dashboards/agents/tickets" data-testid="agent-tickets-link" className="rounded-lg border border-[#e6e6e6] bg-white px-3 py-1.5 text-xs font-bold text-[#525252] hover:bg-[#ffffff]">
           Agent support tickets
         </Link>
       </div>
@@ -210,8 +210,8 @@ export function AllAgentsTab({
               onClick={() => setStatusFilter(status)}
               className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${
                 statusFilter === status
-                  ? "border-[#2563eb] bg-[#f1f5f9] text-[#2563eb]"
-                  : "border-[#e2e8f0] bg-white text-[#475569] hover:bg-[#ffffff]"
+                  ? "border-[#1a1a1a] bg-[#f4f4f4] text-[#1a1a1a]"
+                  : "border-[#e6e6e6] bg-white text-[#525252] hover:bg-[#ffffff]"
               }`}
             >
               {status}
@@ -219,21 +219,21 @@ export function AllAgentsTab({
           ))}
         </div>
         <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8]" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" />
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search"
             aria-label="Search agents"
-            className="h-10 w-56 rounded-lg border border-[#e2e8f0] bg-white pl-8 pr-3 text-sm outline-none focus:border-[#2563eb]"
+            className="h-10 w-56 rounded-lg border border-[#e6e6e6] bg-white pl-8 pr-3 text-sm outline-none focus:border-[#1a1a1a]"
           />
         </div>
       </div>
 
-      <article className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+      <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] text-left text-sm" data-testid="agents-table">
-            <thead className="bg-[#ffffff] text-xs text-[#64748b]">
+            <thead className="bg-[#ffffff] text-xs text-[#737373]">
               <tr>
                 <th className="px-4 py-4 font-semibold">Name</th>
                 <th className="px-4 py-4 font-semibold">Phone</th>
@@ -249,7 +249,7 @@ export function AllAgentsTab({
             <tbody>
               {visible.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-4 py-10 text-center text-[#94a3b8]">
+                  <td colSpan={9} className="px-4 py-10 text-center text-[#a3a3a3]">
                     No agents match.
                   </td>
                 </tr>
@@ -262,17 +262,17 @@ export function AllAgentsTab({
                 const hasLedger = f.ledger.consignedSold > 0 || f.ledger.totalCollected > 0;
 
                 return (
-                  <tr key={agent.id} className="border-t border-[#f1f5f9] hover:bg-[#ffffff]">
+                  <tr key={agent.id} className="border-t border-[#f4f4f4] hover:bg-[#ffffff]">
                     <td className="px-4 py-4">
-                      <Link href={`/dashboards/agents/${agent.id}`} className="font-semibold text-[#0f172a] hover:text-[#2563eb]">
+                      <Link href={`/dashboards/agents/${agent.id}`} className="font-semibold text-[#1a1a1a] hover:text-[#1a1a1a]">
                         {agent.name}
                       </Link>
                       {agent.isDefault && (
                         <span className="ml-1.5 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">Owner</span>
                       )}
                     </td>
-                    <td className="px-4 py-4 text-[#475569]" data-testid="cell-phone">{agent.phone ?? "—"}</td>
-                    <td className="px-4 py-4 text-[#475569]" data-testid="cell-router">
+                    <td className="px-4 py-4 text-[#525252]" data-testid="cell-phone">{agent.phone ?? "—"}</td>
+                    <td className="px-4 py-4 text-[#525252]" data-testid="cell-router">
                       {router ? router.name.split(" (")[0] : "—"}
                     </td>
                     <td className="px-4 py-4" data-testid="cell-access">
@@ -293,28 +293,28 @@ export function AllAgentsTab({
                                   : "Turn access on"
                           }
                           onClick={() => (on ? setTurningOff(agent) : setAgentStatus(agent.id, "Active"))}
-                          className={`relative h-6 w-11 shrink-0 rounded-full transition disabled:cursor-not-allowed disabled:opacity-50 ${on ? "bg-emerald-500" : "bg-[#cbd5e1]"}`}
+                          className={`relative h-6 w-11 shrink-0 rounded-full transition disabled:cursor-not-allowed disabled:opacity-50 ${on ? "bg-emerald-500" : "bg-[#d4d4d4]"}`}
                         >
                           <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${on ? "translate-x-[22px]" : "translate-x-0.5"}`} />
                         </button>
-                        <span className={`text-xs font-semibold ${on ? "text-emerald-700" : agent.status === "Pending" ? "text-blue-700" : "text-[#94a3b8]"}`}>
+                        <span className={`text-xs font-semibold ${on ? "text-emerald-700" : agent.status === "Pending" ? "text-blue-700" : "text-[#a3a3a3]"}`}>
                           {on ? "On" : agent.status === "Pending" ? "Awaiting approval" : "Off"}
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-4 text-[#475569]" data-testid="cell-sold">{periodIsError ? 0 : f.period.count}</td>
-                    <td className="px-4 py-4 text-[#475569]" data-testid="cell-remaining">{f.stats.remaining}</td>
+                    <td className="px-4 py-4 text-[#525252]" data-testid="cell-sold">{periodIsError ? 0 : f.period.count}</td>
+                    <td className="px-4 py-4 text-[#525252]" data-testid="cell-remaining">{f.stats.remaining}</td>
                     <td className="px-4 py-4 text-right font-semibold text-emerald-700" data-testid="cell-revenue">{money(periodIsError ? 0 : f.period.value)}</td>
                     <td className="px-4 py-4 text-right" data-testid="cell-owed">
                       {hasLedger ? (
                         <>
                           <span className="font-semibold text-amber-700">{money(Math.max(0, f.ledger.balance))}</span>
-                          <span className="block text-[11px] text-[#94a3b8]">
+                          <span className="block text-[11px] text-[#a3a3a3]">
                             {f.ledger.unsettledVouchers} voucher{f.ledger.unsettledVouchers === 1 ? "" : "s"}
                           </span>
                         </>
                       ) : (
-                        <span className="text-xs text-[#94a3b8]">—</span>
+                        <span className="text-xs text-[#a3a3a3]">—</span>
                       )}
                     </td>
                     <td className="px-4 py-4 text-center">
@@ -322,7 +322,7 @@ export function AllAgentsTab({
                         type="button"
                         aria-label={`Actions for ${agent.name}`}
                         onClick={(event) => openMenuFor(agent.id, event)}
-                        className="rounded-lg border border-[#e2e8f0] bg-white p-2 text-[#475569] hover:bg-[#ffffff]"
+                        className="rounded-lg border border-[#e6e6e6] bg-white p-2 text-[#525252] hover:bg-[#ffffff]"
                       >
                         <MoreVertical size={15} />
                       </button>

@@ -21,7 +21,7 @@ export function PrimaryButton({
       type={type}
       disabled={disabled || loading}
       onClick={onClick}
-      className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#2563eb] px-5 py-3.5 text-base font-black text-white shadow-lg shadow-blue-500/20 transition hover:-translate-y-0.5 hover:bg-[#1d4ed8] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
+      className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#1a1a1a] px-5 py-3.5 text-base font-black text-white shadow-lg shadow-blue-500/20 transition hover:-translate-y-0.5 hover:bg-[#111111] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
     >
       {loading && (
         <LoaderCircle

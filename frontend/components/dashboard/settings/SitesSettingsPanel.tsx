@@ -32,31 +32,31 @@ export function SitesSettingsPanel() {
   }
 
   return (
-    <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
-      <h3 className="text-lg font-bold text-[#0f172a]">Linked Sites</h3>
-      <p className="mb-6 text-sm text-[#64748b]">
+    <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
+      <h3 className="text-lg font-bold text-[#1a1a1a]">Linked Sites</h3>
+      <p className="mb-6 text-sm text-[#737373]">
         Manage your linked hotspot sites. Switch between sites seamlessly without logging in again.
       </p>
 
-      <p className="mb-1 text-sm font-semibold text-[#475569]">Current Site</p>
-      <div className="mb-6 rounded-xl border border-[#f1f5f9] bg-[#ffffff] p-4">
-        <p className="text-base font-bold text-[#0f172a]">{sitesSettings.currentSiteName}</p>
-        <p className="text-sm text-[#64748b]">{sitesSettings.currentSiteDomain}</p>
+      <p className="mb-1 text-sm font-semibold text-[#525252]">Current Site</p>
+      <div className="mb-6 rounded-xl border border-[#f4f4f4] bg-[#ffffff] p-4">
+        <p className="text-base font-bold text-[#1a1a1a]">{sitesSettings.currentSiteName}</p>
+        <p className="text-sm text-[#737373]">{sitesSettings.currentSiteDomain}</p>
       </div>
 
-      <p className="mb-2 text-sm font-semibold text-[#475569]">Linked Sites</p>
+      <p className="mb-2 text-sm font-semibold text-[#525252]">Linked Sites</p>
       {sitesSettings.linkedSites.length === 0 ? (
-        <p className="mb-6 text-sm text-[#94a3b8]">No linked sites yet. Link an existing site or add a new one.</p>
+        <p className="mb-6 text-sm text-[#a3a3a3]">No linked sites yet. Link an existing site or add a new one.</p>
       ) : (
         <div className="mb-6 space-y-2">
           {sitesSettings.linkedSites.map((site) => (
             <div
               key={site.id}
-              className="flex items-center justify-between rounded-xl border border-[#f1f5f9] bg-[#ffffff] px-4 py-3"
+              className="flex items-center justify-between rounded-xl border border-[#f4f4f4] bg-[#ffffff] px-4 py-3"
             >
               <div>
-                <p className="text-sm font-bold text-[#0f172a]">{site.name}</p>
-                <p className="text-xs text-[#64748b]">{site.subdomain}.hotspotpro.com</p>
+                <p className="text-sm font-bold text-[#1a1a1a]">{site.name}</p>
+                <p className="text-xs text-[#737373]">{site.subdomain}.hotspotpro.com</p>
               </div>
               <button
                 type="button"
@@ -93,8 +93,8 @@ export function SitesSettingsPanel() {
           <button type="button" aria-label="Close" className="absolute inset-0" onClick={() => setAddOpen(false)} />
           <div className="relative z-10 w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-[#0f172a]">Add New Site</h3>
-              <button type="button" onClick={() => setAddOpen(false)} className="rounded-lg p-1.5 text-[#64748b] hover:bg-[#ffffff]">
+              <h3 className="text-lg font-bold text-[#1a1a1a]">Add New Site</h3>
+              <button type="button" onClick={() => setAddOpen(false)} className="rounded-lg p-1.5 text-[#737373] hover:bg-[#ffffff]">
                 <X size={18} />
               </button>
             </div>
@@ -109,7 +109,7 @@ export function SitesSettingsPanel() {
                 />
               </Field>
               <Field label="Subdomain" required hint="Lowercase letters, numbers, and hyphens only. Spaces become hyphens automatically.">
-                <div className="flex overflow-hidden rounded-xl border border-[#e2e8f0] focus-within:border-[#2563eb]">
+                <div className="flex overflow-hidden rounded-xl border border-[#e6e6e6] focus-within:border-[#1a1a1a]">
                   <input
                     required
                     value={subdomain}
@@ -117,14 +117,14 @@ export function SitesSettingsPanel() {
                     placeholder="e.g., fastnet-kasubi"
                     className="h-11 w-full px-3 text-sm outline-none"
                   />
-                  <span className="flex items-center bg-[#ffffff] px-3 text-xs font-semibold text-[#64748b]">.hotspotpro.com</span>
+                  <span className="flex items-center bg-[#ffffff] px-3 text-xs font-semibold text-[#737373]">.hotspotpro.com</span>
                 </div>
               </Field>
               <div className="flex gap-3">
                 <button type="submit" className="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-white hover:bg-emerald-600">
                   Submit
                 </button>
-                <button type="button" onClick={() => setAddOpen(false)} className="rounded-xl border border-[#e2e8f0] bg-white px-5 py-3 text-sm font-bold text-[#475569] hover:bg-[#ffffff]">
+                <button type="button" onClick={() => setAddOpen(false)} className="rounded-xl border border-[#e6e6e6] bg-white px-5 py-3 text-sm font-bold text-[#525252] hover:bg-[#ffffff]">
                   Cancel
                 </button>
               </div>
@@ -138,14 +138,14 @@ export function SitesSettingsPanel() {
           <button type="button" aria-label="Close" className="absolute inset-0" onClick={() => setLinkOpen(false)} />
           <div className="relative z-10 w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-[#0f172a]">Link Existing Site</h3>
-              <button type="button" onClick={() => setLinkOpen(false)} className="rounded-lg p-1.5 text-[#64748b] hover:bg-[#ffffff]">
+              <h3 className="text-lg font-bold text-[#1a1a1a]">Link Existing Site</h3>
+              <button type="button" onClick={() => setLinkOpen(false)} className="rounded-lg p-1.5 text-[#737373] hover:bg-[#ffffff]">
                 <X size={18} />
               </button>
             </div>
             <form onSubmit={handleLinkSite} className="space-y-4">
               <Field label="Site Subdomain" required hint="Enter the subdomain of the site you want to link to this account.">
-                <div className="flex overflow-hidden rounded-xl border border-[#e2e8f0] focus-within:border-[#2563eb]">
+                <div className="flex overflow-hidden rounded-xl border border-[#e6e6e6] focus-within:border-[#1a1a1a]">
                   <input
                     required
                     value={linkSubdomain}
@@ -153,14 +153,14 @@ export function SitesSettingsPanel() {
                     placeholder="e.g., fastnet-kasubi"
                     className="h-11 w-full px-3 text-sm outline-none"
                   />
-                  <span className="flex items-center bg-[#ffffff] px-3 text-xs font-semibold text-[#64748b]">.hotspotpro.com</span>
+                  <span className="flex items-center bg-[#ffffff] px-3 text-xs font-semibold text-[#737373]">.hotspotpro.com</span>
                 </div>
               </Field>
               <div className="flex gap-3">
                 <button type="submit" className="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-white hover:bg-emerald-600">
                   Send Link Request
                 </button>
-                <button type="button" onClick={() => setLinkOpen(false)} className="rounded-xl border border-[#e2e8f0] bg-white px-5 py-3 text-sm font-bold text-[#475569] hover:bg-[#ffffff]">
+                <button type="button" onClick={() => setLinkOpen(false)} className="rounded-xl border border-[#e6e6e6] bg-white px-5 py-3 text-sm font-bold text-[#525252] hover:bg-[#ffffff]">
                   Cancel
                 </button>
               </div>

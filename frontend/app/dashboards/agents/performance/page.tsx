@@ -36,13 +36,13 @@ export default function AgentPerformancePage() {
       <h2 className="mb-1 text-3xl font-bold tracking-tight md:text-4xl">
         Agent Performance
       </h2>
-      <p className="mb-6 max-w-2xl text-sm text-[#64748b] md:text-base">
+      <p className="mb-6 max-w-2xl text-sm text-[#737373] md:text-base">
         Compare sales, vouchers sold, and commission earned across your team.
       </p>
 
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <article className="rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+        <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
           <h3 className="mb-4 text-base font-bold">Sales by Agent</h3>
           <div className="h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -51,13 +51,13 @@ export default function AgentPerformancePage() {
                 <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip formatter={(value) => [`${sym()} ${value}`, "Sales"]} />
-                <Bar dataKey="sales" fill="#2563eb" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="sales" fill="#1a1a1a" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </article>
 
-        <article className="rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+        <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
           <h3 className="mb-4 text-base font-bold">Vouchers Sold by Agent</h3>
           <div className="h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -66,13 +66,13 @@ export default function AgentPerformancePage() {
                 <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip />
-                <Bar dataKey="vouchers" fill="#2563eb" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="vouchers" fill="#1a1a1a" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </article>
 
-        <article className="rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)] lg:col-span-2">
+        <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)] lg:col-span-2">
           <h3 className="mb-4 text-base font-bold">Commission Earned by Agent</h3>
           <div className="h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -81,7 +81,7 @@ export default function AgentPerformancePage() {
                 <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip formatter={(value) => [`${sym()} ${value}`, "Commission"]} />
-                <Bar dataKey="commission" fill="#2563eb" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="commission" fill="#1a1a1a" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

@@ -18,14 +18,14 @@ export function ResetDemoDataPanel() {
   }
 
   return (
-    <section className="mt-6 rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+    <section className="mt-6 rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-xl">
-          <h3 className="flex items-center gap-2 text-base font-bold text-[#0f172a]">
-            <RotateCcw size={16} className="text-[#64748b]" />
+          <h3 className="flex items-center gap-2 text-base font-bold text-[#1a1a1a]">
+            <RotateCcw size={16} className="text-[#737373]" />
             Start over (clear all data)
           </h3>
-          <p className="mt-1 text-sm text-[#64748b]">
+          <p className="mt-1 text-sm text-[#737373]">
             Your changes are saved in this browser and shared with any other dashboard tabs you have open (admin,
             agents, clients). Start over to clear everything and begin again with a clean workspace.
           </p>
@@ -64,7 +64,7 @@ export function ResetDemoDataPanel() {
               type="button"
               onClick={() => setConfirming(false)}
               autoFocus
-              className="rounded-xl border border-[#e2e8f0] bg-white px-4 py-2.5 text-sm font-bold text-[#475569] hover:bg-[#ffffff]"
+              className="rounded-xl border border-[#e6e6e6] bg-white px-4 py-2.5 text-sm font-bold text-[#525252] hover:bg-[#ffffff]"
             >
               Keep my data
             </button>

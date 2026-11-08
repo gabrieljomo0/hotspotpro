@@ -68,19 +68,19 @@ export function PackageGuideModal({
       />
 
       <div className="relative z-10 max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
-        <div className="sticky top-0 flex items-center justify-between border-b border-[#f1f5f9] bg-white px-6 py-5">
+        <div className="sticky top-0 flex items-center justify-between border-b border-[#f4f4f4] bg-white px-6 py-5">
           <div>
-            <h2 className="text-base font-bold text-[#0f172a]">
+            <h2 className="text-base font-bold text-[#1a1a1a]">
               Package Guide
             </h2>
-            <p className="text-xs text-[#64748b]">
+            <p className="text-xs text-[#737373]">
               Learn how to create and configure packages effectively.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-[#64748b] hover:bg-[#ffffff]"
+            className="rounded-lg p-1.5 text-[#737373] hover:bg-[#ffffff]"
           >
             <X size={18} />
           </button>
@@ -90,7 +90,7 @@ export function PackageGuideModal({
           <div className="flex gap-3 rounded-xl border border-blue-200 bg-white p-4">
             <Info size={18} className="shrink-0 text-blue-600" />
             <div>
-              <p className="text-sm font-bold text-[#0f172a]">
+              <p className="text-sm font-bold text-[#1a1a1a]">
                 What are Packages?
               </p>
               <p className="mt-1 text-sm text-blue-800">
@@ -103,7 +103,7 @@ export function PackageGuideModal({
           </div>
 
           <div>
-            <p className="mb-3 text-sm font-bold text-[#0f172a]">
+            <p className="mb-3 text-sm font-bold text-[#1a1a1a]">
               Key Settings Explained
             </p>
             <div className="space-y-3">
@@ -112,16 +112,16 @@ export function PackageGuideModal({
                 return (
                   <div
                     key={setting.title}
-                    className="rounded-xl border border-[#f1f5f9] bg-[#ffffff] p-4"
+                    className="rounded-xl border border-[#f4f4f4] bg-[#ffffff] p-4"
                   >
-                    <p className="flex items-center gap-2 text-sm font-bold text-[#0f172a]">
-                      <Icon size={15} className="text-[#2563eb]" />
+                    <p className="flex items-center gap-2 text-sm font-bold text-[#1a1a1a]">
+                      <Icon size={15} className="text-[#1a1a1a]" />
                       {setting.title}
                     </p>
-                    <p className="mt-1.5 text-sm text-[#475569]">
+                    <p className="mt-1.5 text-sm text-[#525252]">
                       {setting.body}
                     </p>
-                    <p className="mt-1.5 text-xs italic text-[#94a3b8]">
+                    <p className="mt-1.5 text-xs italic text-[#a3a3a3]">
                       Tip: {setting.tip}
                     </p>
                   </div>
@@ -131,7 +131,7 @@ export function PackageGuideModal({
           </div>
 
           <div>
-            <p className="mb-3 text-sm font-bold text-[#0f172a]">
+            <p className="mb-3 text-sm font-bold text-[#1a1a1a]">
               Advanced Features
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -140,13 +140,13 @@ export function PackageGuideModal({
                 return (
                   <div
                     key={feature.title}
-                    className="rounded-xl border border-[#f1f5f9] bg-[#ffffff] p-4"
+                    className="rounded-xl border border-[#f4f4f4] bg-[#ffffff] p-4"
                   >
-                    <p className="flex items-center gap-2 text-sm font-bold text-[#0f172a]">
+                    <p className="flex items-center gap-2 text-sm font-bold text-[#1a1a1a]">
                       <Icon size={15} className="text-red-500" />
                       {feature.title}
                     </p>
-                    <p className="mt-1.5 text-sm text-[#475569]">
+                    <p className="mt-1.5 text-sm text-[#525252]">
                       {feature.body}
                     </p>
                   </div>
@@ -155,15 +155,15 @@ export function PackageGuideModal({
             </div>
           </div>
 
-          <div className="rounded-xl border border-[#f1f5f9] bg-[#ffffff] p-4">
-            <p className="mb-2 text-sm font-bold text-[#0f172a]">
+          <div className="rounded-xl border border-[#f4f4f4] bg-[#ffffff] p-4">
+            <p className="mb-2 text-sm font-bold text-[#1a1a1a]">
               Best Practices
             </p>
             <ul className="space-y-1.5">
               {BEST_PRACTICES.map((item) => (
                 <li
                   key={item}
-                  className="flex items-start gap-2 text-sm text-[#475569]"
+                  className="flex items-start gap-2 text-sm text-[#525252]"
                 >
                   <CheckCircle2
                     size={15}
@@ -178,7 +178,7 @@ export function PackageGuideModal({
           <button
             type="button"
             onClick={onClose}
-            className="w-full rounded-xl border border-[#e2e8f0] bg-white px-5 py-3 text-sm font-bold text-[#475569] hover:bg-[#ffffff]"
+            className="w-full rounded-xl border border-[#e6e6e6] bg-white px-5 py-3 text-sm font-bold text-[#525252] hover:bg-[#ffffff]"
           >
             Close
           </button>

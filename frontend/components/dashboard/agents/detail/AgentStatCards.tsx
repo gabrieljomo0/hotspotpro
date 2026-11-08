@@ -29,9 +29,9 @@ function Card({
   icon: React.ReactNode;
 }) {
   return (
-    <div data-testid={id} className="rounded-2xl border border-[#e2e8f0] bg-white p-5">
-      <p className="text-sm text-[#64748b]">{label}</p>
-      <p className="mt-1 text-3xl font-black text-[#0f172a]">{value}</p>
+    <div data-testid={id} className="rounded-2xl border border-[#e6e6e6] bg-white p-5">
+      <p className="text-sm text-[#737373]">{label}</p>
+      <p className="mt-1 text-3xl font-black text-[#1a1a1a]">{value}</p>
       <p className={`mt-2 flex items-center gap-1.5 text-xs font-semibold ${hintClass}`}>
         <span>{hint}</span>
         {icon}
@@ -55,9 +55,9 @@ export function AgentStatCards({ stats }: { stats: AgentStats }) {
       />
       <Card id="stat-retail" label="Retail Sales Value" value={money(stats.retailSalesValue)} hint="Face value of redeemed vouchers" hintClass="text-emerald-600" icon={<Banknote size={12} />} />
       <Card id="stat-prepaid" label="Prepaid Payments" value={money(stats.prepaidPayments)} hint="Paid from their wallet when generating" hintClass="text-emerald-600" icon={<CreditCard size={12} />} />
-      <Card id="stat-today" label="Sold Today" value={String(stats.soldToday.count)} hint={`${money(stats.soldToday.value)} retail value`} hintClass="text-[#2563eb]" icon={<CalendarDays size={12} />} />
-      <Card id="stat-week" label="Sold This Week" value={String(stats.soldThisWeek.count)} hint={`${money(stats.soldThisWeek.value)} retail value`} hintClass="text-[#2563eb]" icon={<CalendarDays size={12} />} />
-      <Card id="stat-month" label="Sold This Month" value={String(stats.soldThisMonth.count)} hint={`${money(stats.soldThisMonth.value)} retail value`} hintClass="text-[#2563eb]" icon={<CalendarDays size={12} />} />
+      <Card id="stat-today" label="Sold Today" value={String(stats.soldToday.count)} hint={`${money(stats.soldToday.value)} retail value`} hintClass="text-[#1a1a1a]" icon={<CalendarDays size={12} />} />
+      <Card id="stat-week" label="Sold This Week" value={String(stats.soldThisWeek.count)} hint={`${money(stats.soldThisWeek.value)} retail value`} hintClass="text-[#1a1a1a]" icon={<CalendarDays size={12} />} />
+      <Card id="stat-month" label="Sold This Month" value={String(stats.soldThisMonth.count)} hint={`${money(stats.soldThisMonth.value)} retail value`} hintClass="text-[#1a1a1a]" icon={<CalendarDays size={12} />} />
     </div>
   );
 }

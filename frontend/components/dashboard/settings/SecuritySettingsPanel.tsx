@@ -23,9 +23,9 @@ export function SecuritySettingsPanel() {
 
   return (
     <div className="space-y-6">
-      <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
-        <h3 className="text-lg font-bold text-[#0f172a]">Two-Factor Authentication Policy</h3>
-        <p className="mb-6 text-sm text-[#64748b]">Configure 2FA requirements for your organization.</p>
+      <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
+        <h3 className="text-lg font-bold text-[#1a1a1a]">Two-Factor Authentication Policy</h3>
+        <p className="mb-6 text-sm text-[#737373]">Configure 2FA requirements for your organization.</p>
 
         <div className="space-y-5">
           <ToggleRow
@@ -68,11 +68,11 @@ export function SecuritySettingsPanel() {
         </div>
       </article>
 
-      <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
-        <h3 className="text-lg font-bold text-[#0f172a]">Your Two-Factor Authentication</h3>
-        <p className="mb-5 text-sm text-[#64748b]">Manage your personal 2FA settings.</p>
+      <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
+        <h3 className="text-lg font-bold text-[#1a1a1a]">Your Two-Factor Authentication</h3>
+        <p className="mb-5 text-sm text-[#737373]">Manage your personal 2FA settings.</p>
 
-        <p className="mb-2 text-sm font-semibold text-[#475569]">Status</p>
+        <p className="mb-2 text-sm font-semibold text-[#525252]">Status</p>
         <span
           className={`mb-5 inline-block rounded-full px-3 py-1 text-xs font-bold ${
             form.personalTwoFactorEnabled ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-700"

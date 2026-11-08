@@ -186,12 +186,12 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
       wide
     >
       <div className="mb-6 flex flex-wrap items-center gap-3">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#f1f5f9] text-[#2563eb]">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#f4f4f4] text-[#1a1a1a]">
           <Crown size={24} />
         </div>
         <div>
-          <p className="text-lg font-black text-[#0f172a]">{agent.name}</p>
-          <p className="text-xs text-[#64748b]">{agent.email} · @{agent.username}</p>
+          <p className="text-lg font-black text-[#1a1a1a]">{agent.name}</p>
+          <p className="text-xs text-[#737373]">{agent.email} · @{agent.username}</p>
         </div>
         <span className={`ml-auto rounded-full px-3 py-1.5 text-xs font-bold ${STATUS_COLOR[agent.status as AgentStatus]}`}>
           {agent.status}
@@ -204,7 +204,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
             type="button"
             data-testid="header-approve"
             onClick={() => setActiveTab("Approvals")}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#2563eb] px-3 py-2 text-xs font-bold text-white hover:bg-[#1d4ed8]"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#1a1a1a] px-3 py-2 text-xs font-bold text-white hover:bg-[#111111]"
           >
             <CheckCircle2 size={13} />
             Approve agent
@@ -215,7 +215,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
           target="_blank"
           rel="noopener noreferrer"
           title="Opens the agent's own dashboard in a separate tab"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-[#2563eb] px-3 py-2 text-xs font-bold text-white hover:bg-[#1d4ed8]"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-[#1a1a1a] px-3 py-2 text-xs font-bold text-white hover:bg-[#111111]"
         >
           Open Agent Dashboard
           <ExternalLink size={12} />
@@ -225,7 +225,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
           <button
             type="button"
             onClick={() => setModal("collect")}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#2563eb] px-3 py-2 text-xs font-bold text-white hover:bg-[#1d4ed8]"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#1a1a1a] px-3 py-2 text-xs font-bold text-white hover:bg-[#111111]"
           >
             <Wallet2 size={13} />
             Record Collection
@@ -235,7 +235,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
           type="button"
           data-testid="agent-copy-link"
           onClick={async () => showToast(await copyAgentLoginLink(agent.id, agent.name))}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-[#2563eb] px-3 py-2 text-xs font-bold text-white hover:bg-[#1d4ed8]"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-[#1a1a1a] px-3 py-2 text-xs font-bold text-white hover:bg-[#111111]"
         >
           <Link2 size={13} />
           Copy login link
@@ -243,7 +243,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
         <button
           type="button"
           onClick={() => setModal("reprint")}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-[#2563eb] px-3 py-2 text-xs font-bold text-white hover:bg-[#1d4ed8]"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-[#1a1a1a] px-3 py-2 text-xs font-bold text-white hover:bg-[#111111]"
         >
           <Printer size={13} />
           Reprint Vouchers
@@ -258,7 +258,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
               setMoreMenuRect(rect);
               setMoreMenuOpen((current) => !current);
             }}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#2563eb] px-3 py-2 text-xs font-bold text-white hover:bg-[#1d4ed8]"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#1a1a1a] px-3 py-2 text-xs font-bold text-white hover:bg-[#111111]"
           >
             <MoreVertical size={13} />
             More Actions
@@ -277,7 +277,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                   setMoreMenuOpen(false);
                   setModal("edit");
                 }}
-                className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#475569] hover:bg-[#f1f5f9]"
+                className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#525252] hover:bg-[#f4f4f4]"
               >
                 <Pencil size={13} />
                 Edit
@@ -290,7 +290,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                     if (ok) resetAgentPassword(agent.id);
                   })
                 }}
-                className="flex w-full px-4 py-2.5 text-left text-sm text-[#475569] hover:bg-[#f1f5f9]"
+                className="flex w-full px-4 py-2.5 text-left text-sm text-[#525252] hover:bg-[#f4f4f4]"
               >
                 Reset Password
               </button>
@@ -302,7 +302,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                     if (ok) resetAgentPin(agent.id);
                   })
                 }}
-                className="flex w-full px-4 py-2.5 text-left text-sm text-[#475569] hover:bg-[#f1f5f9]"
+                className="flex w-full px-4 py-2.5 text-left text-sm text-[#525252] hover:bg-[#f4f4f4]"
               >
                 Reset PIN
               </button>
@@ -314,11 +314,11 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                     if (ok) forceLogoutAgent(agent.id);
                   })
                 }}
-                className="flex w-full px-4 py-2.5 text-left text-sm text-[#475569] hover:bg-[#f1f5f9]"
+                className="flex w-full px-4 py-2.5 text-left text-sm text-[#525252] hover:bg-[#f4f4f4]"
               >
                 Force Logout (All Devices)
               </button>
-              {!agent.isDefault && agent.status !== "Pending" && <div className="my-2 border-t border-[#f1f5f9]" />}
+              {!agent.isDefault && agent.status !== "Pending" && <div className="my-2 border-t border-[#f4f4f4]" />}
               {agent.status === "Active" && !agent.isDefault && (
                 <button
                   type="button"
@@ -327,7 +327,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                     setMoreMenuOpen(false);
                     setConfirm("suspend");
                   }}
-                  className="flex w-full px-4 py-2.5 text-left text-sm font-semibold text-[#475569] hover:bg-[#f1f5f9]"
+                  className="flex w-full px-4 py-2.5 text-left text-sm font-semibold text-[#525252] hover:bg-[#f4f4f4]"
                 >
                   Suspend Agent
                 </button>
@@ -340,7 +340,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                     setMoreMenuOpen(false);
                     setConfirm("activate");
                   }}
-                  className="flex w-full px-4 py-2.5 text-left text-sm font-semibold text-[#475569] hover:bg-[#f1f5f9]"
+                  className="flex w-full px-4 py-2.5 text-left text-sm font-semibold text-[#525252] hover:bg-[#f4f4f4]"
                 >
                   Activate Agent
                 </button>
@@ -350,7 +350,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
         </div>
       </div>
 
-      <nav className="mb-6 flex flex-wrap gap-2 border-b border-[#f1f5f9] pb-4">
+      <nav className="mb-6 flex flex-wrap gap-2 border-b border-[#f4f4f4] pb-4">
         {TABS.map((tab) => (
           <button
             type="button"
@@ -358,8 +358,8 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
             onClick={() => setActiveTab(tab)}
             className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
               activeTab === tab
-                ? "bg-[#f1f5f9] text-[#2563eb]"
-                : "text-[#64748b] hover:bg-[#ffffff]"
+                ? "bg-[#f4f4f4] text-[#1a1a1a]"
+                : "text-[#737373] hover:bg-[#ffffff]"
             }`}
           >
             {tab}
@@ -373,26 +373,26 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-xl border border-blue-200 bg-white p-4">
-              <p className="text-xs text-[#64748b]">Assigned Admin</p>
-              <p className="text-sm font-bold text-[#0f172a]">{admin?.name ?? "—"}</p>
+              <p className="text-xs text-[#737373]">Assigned Admin</p>
+              <p className="text-sm font-bold text-[#1a1a1a]">{admin?.name ?? "—"}</p>
             </div>
             <div className="rounded-xl border border-blue-200 bg-white p-4">
-              <p className="text-xs text-[#64748b]">Assigned Router</p>
-              <p className="text-sm font-bold text-[#0f172a]">
+              <p className="text-xs text-[#737373]">Assigned Router</p>
+              <p className="text-sm font-bold text-[#1a1a1a]">
                 {assignedRouter ? assignedRouter.name.split(" (")[0] : "Not assigned"}
               </p>
             </div>
             <div className="rounded-xl border border-emerald-200 bg-white p-4">
-              <p className="text-xs text-[#64748b]">Last Login</p>
-              <p className="text-sm font-bold text-[#0f172a]">{agent.lastLogin}</p>
+              <p className="text-xs text-[#737373]">Last Login</p>
+              <p className="text-sm font-bold text-[#1a1a1a]">{agent.lastLogin}</p>
             </div>
             <div className="rounded-xl border border-blue-200 bg-white p-4">
-              <p className="text-xs text-[#64748b]">Vouchers Generated</p>
-              <p className="text-sm font-bold text-[#0f172a]">{agentVouchers.length}</p>
+              <p className="text-xs text-[#737373]">Vouchers Generated</p>
+              <p className="text-sm font-bold text-[#1a1a1a]">{agentVouchers.length}</p>
             </div>
             <div className="rounded-xl border border-amber-200 bg-white p-4">
-              <p className="text-xs text-[#64748b]">Since</p>
-              <p className="text-sm font-bold text-[#0f172a]">{agent.createdAt}</p>
+              <p className="text-xs text-[#737373]">Since</p>
+              <p className="text-sm font-bold text-[#1a1a1a]">{agent.createdAt}</p>
             </div>
           </div>
 
@@ -418,12 +418,12 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
         return (
           <div className="space-y-6">
             {agent.appliedViaPortal ? (
-              <p className="text-sm text-[#64748b]">
+              <p className="text-sm text-[#737373]">
                 Applied through the reseller sign-up link on the captive portal. Review everything below before
                 approving — once approved they can log in and start working from their dashboard.
               </p>
             ) : (
-              <p className="text-sm text-[#64748b]">This agent was added directly by an admin, not through a portal application.</p>
+              <p className="text-sm text-[#737373]">This agent was added directly by an admin, not through a portal application.</p>
             )}
 
             <ApplicationDetails
@@ -444,7 +444,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                     value={rejectReason}
                     onChange={(event) => setRejectReason(event.target.value)}
                     placeholder="Reason (shown if you reject — optional)"
-                    className="h-10 w-full rounded-lg border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                    className="h-10 w-full rounded-lg border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
                   />
                   <div className="flex flex-wrap gap-2">
                     <button
@@ -476,7 +476,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                   {decidedRequest.status} by {decidedRequest.decidedBy} on {decidedRequest.decidedAt}
                 </p>
                 {decidedRequest.reason && (
-                  <p className="mt-1 text-xs italic text-[#64748b]">&quot;{decidedRequest.reason}&quot;</p>
+                  <p className="mt-1 text-xs italic text-[#737373]">&quot;{decidedRequest.reason}&quot;</p>
                 )}
               </article>
             ) : null}
@@ -486,8 +486,8 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
 
       {activeTab === "Portal Access" && (
         <div className="space-y-6">
-          <div className="rounded-xl border border-[#f1f5f9] bg-[#ffffff] p-4">
-            <p className="mb-1 text-sm font-bold text-[#0f172a]">Current Status</p>
+          <div className="rounded-xl border border-[#f4f4f4] bg-[#ffffff] p-4">
+            <p className="mb-1 text-sm font-bold text-[#1a1a1a]">Current Status</p>
             {agent.accessType ? (
               <div className="flex flex-wrap items-center gap-2">
                 <span
@@ -499,7 +499,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                 >
                   {agent.accessType}
                 </span>
-                <span className="text-xs text-[#64748b]">Dispatched {agent.accessDispatchedAt}</span>
+                <span className="text-xs text-[#737373]">Dispatched {agent.accessDispatchedAt}</span>
                 {dashboardLocked && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
                     Admin access locked
@@ -507,7 +507,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                 )}
               </div>
             ) : (
-              <p className="text-sm text-[#94a3b8]">Not dispatched yet — this agent cannot log in to the agent portal.</p>
+              <p className="text-sm text-[#a3a3a3]">Not dispatched yet — this agent cannot log in to the agent portal.</p>
             )}
             {dashboardLocked && (
               <p className="mt-2 text-xs text-amber-700">
@@ -519,11 +519,11 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
 
           <div
             data-testid="agent-dashboard-access"
-            className="flex items-center justify-between gap-4 rounded-2xl border border-[#bbf7d0] bg-white p-5"
+            className="flex items-center justify-between gap-4 rounded-2xl border border-[#f3f1ec] bg-white p-5"
           >
             <div>
-              <p className="text-base font-bold text-[#0f172a]">Allow Agent Dashboard</p>
-              <p className="text-sm text-[#64748b]">
+              <p className="text-base font-bold text-[#1a1a1a]">Allow Agent Dashboard</p>
+              <p className="text-sm text-[#737373]">
                 Let {agent.name} open their own agent dashboard. Turn it off to lock them out.
               </p>
             </div>
@@ -533,7 +533,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
               aria-checked={agent.portalAccessEnabled !== false}
               data-testid="agent-dashboard-access-switch"
               onClick={() => setAgentPortalAccess(agent.id, agent.portalAccessEnabled === false)}
-              className={`relative h-6 w-11 shrink-0 rounded-full transition ${agent.portalAccessEnabled !== false ? "bg-[#2563eb]" : "bg-[#cbd5e1]"}`}
+              className={`relative h-6 w-11 shrink-0 rounded-full transition ${agent.portalAccessEnabled !== false ? "bg-[#1a1a1a]" : "bg-[#d4d4d4]"}`}
             >
               <span
                 className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${agent.portalAccessEnabled !== false ? "translate-x-5" : "translate-x-0.5"}`}
@@ -542,10 +542,10 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
           </div>
 
           {agent.isDefault && (
-            <div data-testid="admin-agent-login" className="flex items-center justify-between gap-4 rounded-xl border border-[#f1f5f9] p-4">
+            <div data-testid="admin-agent-login" className="flex items-center justify-between gap-4 rounded-xl border border-[#f4f4f4] p-4">
               <div>
-                <p className="text-sm font-bold text-[#0f172a]">Allow sign-in with the admin agent&apos;s login details</p>
-                <p className="text-xs text-[#64748b]">
+                <p className="text-sm font-bold text-[#1a1a1a]">Allow sign-in with the admin agent&apos;s login details</p>
+                <p className="text-xs text-[#737373]">
                   Off by default. While it is off, nobody can sign in with this agent&apos;s email and password
                   (you can still open its dashboard from here).
                 </p>
@@ -556,7 +556,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                 aria-checked={!!agent.portalLoginEnabled}
                 data-testid="admin-agent-login-switch"
                 onClick={() => setDefaultAgentLogin(agent.id, !agent.portalLoginEnabled)}
-                className={`relative h-6 w-11 shrink-0 rounded-full transition ${agent.portalLoginEnabled ? "bg-[#2563eb]" : "bg-[#cbd5e1]"}`}
+                className={`relative h-6 w-11 shrink-0 rounded-full transition ${agent.portalLoginEnabled ? "bg-[#1a1a1a]" : "bg-[#d4d4d4]"}`}
               >
                 <span
                   className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${agent.portalLoginEnabled ? "translate-x-5" : "translate-x-0.5"}`}
@@ -566,7 +566,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
           )}
 
           <div>
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               Assigned Router / MikroTik <span className="text-red-500">*</span>
             </span>
             <select
@@ -575,7 +575,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                 setPendingRouterIp(event.target.value);
                 updateAgentRouter(agent.id, event.target.value);
               }}
-              className="h-11 w-full max-w-md rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 w-full max-w-md rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             >
               <option value="" disabled>
                 Select a router
@@ -586,48 +586,48 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                 </option>
               ))}
             </select>
-            <p className="mt-1 text-xs text-[#94a3b8]">
+            <p className="mt-1 text-xs text-[#a3a3a3]">
               Every agent must be assigned to a specific router. Vouchers and sessions they manage are scoped to
               this router.
             </p>
           </div>
 
-          <div className="rounded-xl border border-[#f1f5f9] p-4">
-            <p className="mb-3 text-sm font-bold text-[#0f172a]">Dispatch Access</p>
+          <div className="rounded-xl border border-[#f4f4f4] p-4">
+            <p className="mb-3 text-sm font-bold text-[#1a1a1a]">Dispatch Access</p>
 
             <div className="mb-4 grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setPendingAccessType("Permanent")}
                 className={`rounded-xl border-2 p-3 text-left ${
-                  pendingAccessType === "Permanent" ? "border-[#2563eb] bg-[#f1f5f9]" : "border-[#e2e8f0] bg-white"
+                  pendingAccessType === "Permanent" ? "border-[#1a1a1a] bg-[#f4f4f4]" : "border-[#e6e6e6] bg-white"
                 }`}
               >
-                <p className="text-sm font-bold text-[#0f172a]">Permanent</p>
-                <p className="text-xs text-[#94a3b8]">Full handover. Admin access depends on the option below.</p>
+                <p className="text-sm font-bold text-[#1a1a1a]">Permanent</p>
+                <p className="text-xs text-[#a3a3a3]">Full handover. Admin access depends on the option below.</p>
               </button>
               <button
                 type="button"
                 onClick={() => setPendingAccessType("Temporary")}
                 className={`rounded-xl border-2 p-3 text-left ${
-                  pendingAccessType === "Temporary" ? "border-[#2563eb] bg-[#f1f5f9]" : "border-[#e2e8f0] bg-white"
+                  pendingAccessType === "Temporary" ? "border-[#1a1a1a] bg-[#f4f4f4]" : "border-[#e6e6e6] bg-white"
                 }`}
               >
-                <p className="text-sm font-bold text-[#0f172a]">Temporary</p>
-                <p className="text-xs text-[#94a3b8]">Same access, just a label — revoke it manually anytime.</p>
+                <p className="text-sm font-bold text-[#1a1a1a]">Temporary</p>
+                <p className="text-xs text-[#a3a3a3]">Same access, just a label — revoke it manually anytime.</p>
               </button>
             </div>
 
-            <label className="mb-4 flex items-start gap-3 rounded-xl border border-[#e2e8f0] bg-[#ffffff] p-3">
+            <label className="mb-4 flex items-start gap-3 rounded-xl border border-[#e6e6e6] bg-[#ffffff] p-3">
               <input
                 type="checkbox"
                 checked={pendingAllowAdminAccess}
                 onChange={(event) => setPendingAllowAdminAccess(event.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded border-[#e2e8f0] accent-[#2563eb]"
+                className="mt-0.5 h-4 w-4 rounded border-[#e6e6e6] accent-[#1a1a1a]"
               />
               <span>
-                <span className="block text-sm font-semibold text-[#475569]">Allow Admin / Installer Access</span>
-                <span className="block text-xs text-[#94a3b8]">
+                <span className="block text-sm font-semibold text-[#525252]">Allow Admin / Installer Access</span>
+                <span className="block text-xs text-[#a3a3a3]">
                   If enabled, you can still open this agent&apos;s dashboard at any time, even after Permanent
                   access is dispatched. If disabled and access is Permanent, you will lose access to their
                   dashboard once dispatched.
@@ -677,7 +677,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   title="Opens the agent's own dashboard in a separate tab"
-                  className="inline-flex items-center gap-2 rounded-xl border border-[#e2e8f0] bg-white px-5 py-3 text-sm font-bold text-[#475569] hover:bg-[#ffffff]"
+                  className="inline-flex items-center gap-2 rounded-xl border border-[#e6e6e6] bg-white px-5 py-3 text-sm font-bold text-[#525252] hover:bg-[#ffffff]"
                 >
                   Open Agent Dashboard
                   <ExternalLink size={14} />
@@ -691,14 +691,14 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
       {activeTab === "Activity" && (
         <div className="space-y-2">
           {agentActivity.length === 0 ? (
-            <p className="text-sm text-[#94a3b8]">No recorded activity yet.</p>
+            <p className="text-sm text-[#a3a3a3]">No recorded activity yet.</p>
           ) : (
             agentActivity.map((entry) => (
-              <div key={entry.id} className="flex items-center gap-3 rounded-lg border border-[#f1f5f9] px-4 py-2.5">
-                <History size={14} className="shrink-0 text-[#94a3b8]" />
+              <div key={entry.id} className="flex items-center gap-3 rounded-lg border border-[#f4f4f4] px-4 py-2.5">
+                <History size={14} className="shrink-0 text-[#a3a3a3]" />
                 <div>
-                  <p className="text-sm text-[#0f172a]">{entry.message}</p>
-                  <p className="text-xs text-[#94a3b8]">{entry.timestamp} · {entry.category}</p>
+                  <p className="text-sm text-[#1a1a1a]">{entry.message}</p>
+                  <p className="text-xs text-[#a3a3a3]">{entry.timestamp} · {entry.category}</p>
                 </div>
               </div>
             ))
@@ -716,15 +716,15 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
             unattributedSold={unattributedSold}
           />
 
-          <article className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white" data-testid="all-vouchers">
-            <div className="border-b border-[#f1f5f9] px-5 py-4">
-              <h3 className="text-base font-bold text-[#0f172a]">All Vouchers ({stock.held.length})</h3>
-              <p className="text-xs text-[#64748b]">
+          <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white" data-testid="all-vouchers">
+            <div className="border-b border-[#f4f4f4] px-5 py-4">
+              <h3 className="text-base font-bold text-[#1a1a1a]">All Vouchers ({stock.held.length})</h3>
+              <p className="text-xs text-[#737373]">
                 Everything this agent can sell — vouchers they generated and stock you gave them.
               </p>
             </div>
             <table className="w-full text-left text-sm">
-              <thead className="bg-[#ffffff] text-xs text-[#64748b]">
+              <thead className="bg-[#ffffff] text-xs text-[#737373]">
                 <tr>
                   <th className="px-5 py-3 font-semibold">Code</th>
                   <th className="px-5 py-3 font-semibold">Package</th>
@@ -738,18 +738,18 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
               <tbody>
                 {stock.held.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="px-5 py-8 text-center text-[#94a3b8]">
+                    <td colSpan={7} className="px-5 py-8 text-center text-[#a3a3a3]">
                       This agent doesn&apos;t have any vouchers yet.
                     </td>
                   </tr>
                 )}
                 {stock.held.map((voucher) => (
-                  <tr key={voucher.code} className="border-t border-[#f1f5f9]">
-                    <td className="px-5 py-3 font-mono text-[#2563eb]">{voucher.code}</td>
-                    <td className="px-5 py-3 text-[#475569]">{voucher.packageName}</td>
-                    <td className="px-5 py-3 text-[#475569]">{sym()} {(priceByPackage[voucher.packageName] ?? 0).toFixed(2)}</td>
-                    <td className="px-5 py-3 text-[#64748b]">{givenCodes.has(voucher.code) ? "Given by you" : "Generated by agent"}</td>
-                    <td className="px-5 py-3 text-[#475569]">{voucher.saleType}</td>
+                  <tr key={voucher.code} className="border-t border-[#f4f4f4]">
+                    <td className="px-5 py-3 font-mono text-[#1a1a1a]">{voucher.code}</td>
+                    <td className="px-5 py-3 text-[#525252]">{voucher.packageName}</td>
+                    <td className="px-5 py-3 text-[#525252]">{sym()} {(priceByPackage[voucher.packageName] ?? 0).toFixed(2)}</td>
+                    <td className="px-5 py-3 text-[#737373]">{givenCodes.has(voucher.code) ? "Given by you" : "Generated by agent"}</td>
+                    <td className="px-5 py-3 text-[#525252]">{voucher.saleType}</td>
                     <td className="px-5 py-3">
                       <span
                         className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
@@ -763,7 +763,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                         {voucher.status}
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-[#64748b]">{voucher.generatedAt}</td>
+                    <td className="px-5 py-3 text-[#737373]">{voucher.generatedAt}</td>
                   </tr>
                 ))}
               </tbody>
@@ -789,22 +789,22 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="rounded-xl border border-emerald-200 bg-white p-4">
               <Wallet size={16} className="text-emerald-600" />
-              <p className="mt-2 text-xs text-[#64748b]">Wallet Balance</p>
-              <p className="text-xl font-black text-[#0f172a]">{sym()} {agent.walletBalance.toLocaleString()}</p>
+              <p className="mt-2 text-xs text-[#737373]">Wallet Balance</p>
+              <p className="text-xl font-black text-[#1a1a1a]">{sym()} {agent.walletBalance.toLocaleString()}</p>
             </div>
             <div className="rounded-xl border border-amber-200 bg-white p-4">
-              <p className="text-xs text-[#64748b]">Pending Commission</p>
-              <p className="text-xl font-black text-[#0f172a]">{sym()} {agent.pendingCommission.toLocaleString()}</p>
+              <p className="text-xs text-[#737373]">Pending Commission</p>
+              <p className="text-xl font-black text-[#1a1a1a]">{sym()} {agent.pendingCommission.toLocaleString()}</p>
             </div>
           </div>
 
           {!agent.isDefault && (
-            <label className="flex items-start justify-between gap-3 rounded-xl border border-[#f1f5f9] bg-[#ffffff] px-4 py-3">
+            <label className="flex items-start justify-between gap-3 rounded-xl border border-[#f4f4f4] bg-[#ffffff] px-4 py-3">
               <div>
-                <span className="text-sm font-semibold text-[#475569]">
+                <span className="text-sm font-semibold text-[#525252]">
                   Require Wallet Funding Before Generating Vouchers
                 </span>
-                <p className="text-xs text-[#94a3b8]">
+                <p className="text-xs text-[#a3a3a3]">
                   When on, the number of vouchers this agent can create is
                   capped by their wallet balance ÷ the package price. Turn
                   off to give them free rein without loading money first.
@@ -814,7 +814,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                 type="button"
                 onClick={() => toggleWalletFundingRequirement(agent.id)}
                 className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-                  agent.requiresWalletFunding ? "bg-emerald-500" : "bg-[#e2e8f0]"
+                  agent.requiresWalletFunding ? "bg-emerald-500" : "bg-[#e6e6e6]"
                 }`}
               >
                 <span
@@ -826,25 +826,25 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
             </label>
           )}
 
-          <div className="rounded-xl border border-[#f1f5f9] p-4">
-            <p className="mb-3 text-sm font-bold text-[#0f172a]">Adjust Balance</p>
+          <div className="rounded-xl border border-[#f4f4f4] p-4">
+            <p className="mb-3 text-sm font-bold text-[#1a1a1a]">Adjust Balance</p>
             <div className="flex flex-wrap items-end gap-3">
               <label className="block">
-                <span className="mb-1 block text-xs font-semibold text-[#64748b]">Amount ({sym()}, use - for debit)</span>
+                <span className="mb-1 block text-xs font-semibold text-[#737373]">Amount ({sym()}, use - for debit)</span>
                 <input
                   type="number"
                   value={walletAmount}
                   onChange={(e) => setWalletAmount(e.target.value)}
-                  className="h-10 w-40 rounded-lg border border-[#e2e8f0] px-3 text-sm outline-none focus:border-[#2563eb]"
+                  className="h-10 w-40 rounded-lg border border-[#e6e6e6] px-3 text-sm outline-none focus:border-[#1a1a1a]"
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-semibold text-[#64748b]">Note</span>
+                <span className="mb-1 block text-xs font-semibold text-[#737373]">Note</span>
                 <input
                   value={walletNote}
                   onChange={(e) => setWalletNote(e.target.value)}
                   placeholder="Reason for adjustment"
-                  className="h-10 w-56 rounded-lg border border-[#e2e8f0] px-3 text-sm outline-none focus:border-[#2563eb]"
+                  className="h-10 w-56 rounded-lg border border-[#e6e6e6] px-3 text-sm outline-none focus:border-[#1a1a1a]"
                 />
               </label>
               <button
@@ -856,7 +856,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                   setWalletAmount("");
                   setWalletNote("");
                 }}
-                className="h-10 rounded-lg bg-[#2563eb] px-4 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+                className="h-10 rounded-lg bg-[#1a1a1a] px-4 text-sm font-bold text-white hover:bg-[#111111]"
               >
                 Apply
               </button>
@@ -868,24 +868,24 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
       {activeTab === "Commission" && (
         <div className="space-y-5">
           <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-xl border border-[#f1f5f9] p-4">
-              <p className="text-xs text-[#64748b]">Rate</p>
-              <p className="text-xl font-black text-[#0f172a]">{agent.commissionRatePercent}%</p>
+            <div className="rounded-xl border border-[#f4f4f4] p-4">
+              <p className="text-xs text-[#737373]">Rate</p>
+              <p className="text-xl font-black text-[#1a1a1a]">{agent.commissionRatePercent}%</p>
             </div>
-            <div className="rounded-xl border border-[#f1f5f9] p-4">
-              <p className="text-xs text-[#64748b]">Earned (all-time)</p>
-              <p className="text-xl font-black text-[#0f172a]">{sym()} {agent.earnedCommission.toLocaleString()}</p>
+            <div className="rounded-xl border border-[#f4f4f4] p-4">
+              <p className="text-xs text-[#737373]">Earned (all-time)</p>
+              <p className="text-xl font-black text-[#1a1a1a]">{sym()} {agent.earnedCommission.toLocaleString()}</p>
             </div>
-            <div className="rounded-xl border border-[#f1f5f9] p-4">
-              <p className="text-xs text-[#64748b]">Pending</p>
-              <p className="text-xl font-black text-[#0f172a]">{sym()} {agent.pendingCommission.toLocaleString()}</p>
+            <div className="rounded-xl border border-[#f4f4f4] p-4">
+              <p className="text-xs text-[#737373]">Pending</p>
+              <p className="text-xl font-black text-[#1a1a1a]">{sym()} {agent.pendingCommission.toLocaleString()}</p>
             </div>
           </div>
 
           <article className="overflow-hidden rounded-2xl border-2 border-blue-200 bg-white">
             <div className="border-b border-blue-200 px-5 py-3">
-              <p className="text-sm font-bold text-[#0f172a]">Wallet Top-Up Commission Bonus</p>
-              <p className="text-xs text-[#64748b]">
+              <p className="text-sm font-bold text-[#1a1a1a]">Wallet Top-Up Commission Bonus</p>
+              <p className="text-xs text-[#737373]">
                 When this agent tops up their wallet, this rate is added as bonus value on top of what they
                 actually pay in — e.g. at 15%, a {sym()}20 deposit credits {sym()}23. Requires the &quot;Get commission
                 bonus value when topping up their wallet&quot; permission to actually apply; the rate alone does
@@ -894,7 +894,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
             </div>
             <div className="flex flex-wrap items-end gap-3 p-5">
               <label className="block">
-                <span className="mb-1.5 block text-xs font-semibold text-[#475569]">Commission rate</span>
+                <span className="mb-1.5 block text-xs font-semibold text-[#525252]">Commission rate</span>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
@@ -902,9 +902,9 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                     max={maxAgentCommissionPercent}
                     value={commissionDraft ?? String(agent.commissionRatePercent)}
                     onChange={(event) => setCommissionDraft(event.target.value)}
-                    className="h-10 w-24 rounded-lg border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                    className="h-10 w-24 rounded-lg border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
                   />
-                  <span className="text-sm font-semibold text-[#64748b]">%</span>
+                  <span className="text-sm font-semibold text-[#737373]">%</span>
                 </div>
               </label>
               <button
@@ -928,8 +928,8 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
 
           <article className="overflow-hidden rounded-2xl border-2 border-amber-200 bg-white">
             <div className="border-b border-amber-200 px-5 py-3">
-              <p className="text-sm font-bold text-[#0f172a]">Max Resale Markup</p>
-              <p className="text-xs text-[#64748b]">
+              <p className="text-sm font-bold text-[#1a1a1a]">Max Resale Markup</p>
+              <p className="text-xs text-[#737373]">
                 The most this agent may charge a customer above a package&apos;s base price when reselling it (their
                 &quot;Agent price&quot;). Leave empty for no limit. They&apos;re shown this rule on their dashboard
                 after approval.
@@ -937,7 +937,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
             </div>
             <div className="flex flex-wrap items-end gap-3 p-5">
               <label className="block">
-                <span className="mb-1.5 block text-xs font-semibold text-[#475569]">Maximum markup</span>
+                <span className="mb-1.5 block text-xs font-semibold text-[#525252]">Maximum markup</span>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
@@ -945,9 +945,9 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                     value={markupDraft ?? (agent.maxResaleMarkupPercent === null ? "" : String(agent.maxResaleMarkupPercent))}
                     onChange={(event) => setMarkupDraft(event.target.value)}
                     placeholder="No limit"
-                    className="h-10 w-28 rounded-lg border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-amber-500"
+                    className="h-10 w-28 rounded-lg border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-amber-500"
                   />
-                  <span className="text-sm font-semibold text-[#64748b]">%</span>
+                  <span className="text-sm font-semibold text-[#737373]">%</span>
                 </div>
               </label>
               <button
@@ -964,7 +964,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
               >
                 Save Limit
               </button>
-              <span className="w-full text-xs text-[#94a3b8]">
+              <span className="w-full text-xs text-[#a3a3a3]">
                 Current: {agent.maxResaleMarkupPercent === null ? "No limit set" : `${agent.maxResaleMarkupPercent}% maximum`}
               </span>
             </div>
@@ -975,15 +975,15 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
       {activeTab === "Devices" && (
         <div className="space-y-2">
           {agent.devices.length === 0 ? (
-            <p className="text-sm text-[#94a3b8]">No devices registered yet.</p>
+            <p className="text-sm text-[#a3a3a3]">No devices registered yet.</p>
           ) : (
             agent.devices.map((device) => (
-              <div key={device.id} className="flex items-center justify-between rounded-xl border border-[#f1f5f9] p-4">
+              <div key={device.id} className="flex items-center justify-between rounded-xl border border-[#f4f4f4] p-4">
                 <div className="flex items-center gap-3">
-                  <Smartphone size={16} className="text-[#64748b]" />
+                  <Smartphone size={16} className="text-[#737373]" />
                   <div>
-                    <p className="text-sm font-semibold text-[#0f172a]">{device.deviceName}</p>
-                    <p className="text-xs text-[#94a3b8]">{device.browser} · Last active {device.lastActive}</p>
+                    <p className="text-sm font-semibold text-[#1a1a1a]">{device.deviceName}</p>
+                    <p className="text-xs text-[#a3a3a3]">{device.browser} · Last active {device.lastActive}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -997,7 +997,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                     onClick={() =>
                       setAgentDeviceStatus(agent.id, device.id, device.status === "Active" ? "Blocked" : "Active")
                     }
-                    className="rounded-lg border border-[#e2e8f0] bg-white p-2 text-[#475569] hover:bg-[#ffffff]"
+                    className="rounded-lg border border-[#e6e6e6] bg-white p-2 text-[#525252] hover:bg-[#ffffff]"
                   >
                     {device.status === "Active" ? <Ban size={14} /> : <CheckCircle2 size={14} />}
                   </button>
@@ -1063,7 +1063,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                 record so the admin can never accidentally restrict their
                 own full access. */}
             <article className="rounded-2xl border-2 border-blue-200 bg-white p-5">
-              <p className="mb-1 text-sm font-bold text-[#0f172a]">Dashboard Mode</p>
+              <p className="mb-1 text-sm font-bold text-[#1a1a1a]">Dashboard Mode</p>
               {agent.isDefault ? (
                 <p className="mb-4 flex items-center gap-1.5 text-xs font-semibold text-blue-700">
                   <Lock size={12} />
@@ -1072,7 +1072,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                 </p>
               ) : (
                 <>
-                  <p className="mb-4 text-xs text-[#64748b]">
+                  <p className="mb-4 text-xs text-[#737373]">
                     Pick one of three defaults — each sets this agent&apos;s whole
                     permission set at once. Choose &quot;Custom&quot; to fine-tune
                     everything yourself in the checklist below.
@@ -1086,8 +1086,8 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                         agent.dashboardMode === "viewOnly" ? "border-slate-400 bg-white" : "border-blue-100 bg-white hover:bg-white"
                       }`}
                     >
-                      <p className="text-sm font-bold text-[#0f172a]">Viewer Only</p>
-                      <p className="text-xs text-[#64748b]">Can look, can&apos;t create or edit anything.</p>
+                      <p className="text-sm font-bold text-[#1a1a1a]">Viewer Only</p>
+                      <p className="text-xs text-[#737373]">Can look, can&apos;t create or edit anything.</p>
                     </button>
                     <button
                       type="button"
@@ -1096,8 +1096,8 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                         agent.dashboardMode === "voucherCreator" ? "border-emerald-400 bg-white" : "border-blue-100 bg-white hover:bg-white"
                       }`}
                     >
-                      <p className="text-sm font-bold text-[#0f172a]">Voucher Creator</p>
-                      <p className="text-xs text-[#64748b]">Sells vouchers from one fixed default package only.</p>
+                      <p className="text-sm font-bold text-[#1a1a1a]">Voucher Creator</p>
+                      <p className="text-xs text-[#737373]">Sells vouchers from one fixed default package only.</p>
                     </button>
                     <button
                       type="button"
@@ -1106,14 +1106,14 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                         agent.dashboardMode === "custom" ? "border-blue-400 bg-white" : "border-blue-100 bg-white hover:bg-white"
                       }`}
                     >
-                      <p className="text-sm font-bold text-[#0f172a]">Custom</p>
-                      <p className="text-xs text-[#64748b]">Whatever you allow below — full management is possible.</p>
+                      <p className="text-sm font-bold text-[#1a1a1a]">Custom</p>
+                      <p className="text-xs text-[#737373]">Whatever you allow below — full management is possible.</p>
                     </button>
                   </div>
 
                   {agent.dashboardMode === "voucherCreator" && (
                     <label className="mb-4 block max-w-xs">
-                      <span className="mb-1.5 block text-xs font-semibold text-[#475569]">Default package</span>
+                      <span className="mb-1.5 block text-xs font-semibold text-[#525252]">Default package</span>
                       <select
                         value={agent.defaultPackageName ?? ""}
                         onChange={(event) => applyAgentDashboardMode(agent.id, "voucherCreator", event.target.value)}
@@ -1128,7 +1128,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                           </option>
                         ))}
                       </select>
-                      <span className="mt-1 block text-xs text-[#94a3b8]">
+                      <span className="mt-1 block text-xs text-[#a3a3a3]">
                         This is the only package {agent.name} can sell vouchers from.
                       </span>
                     </label>
@@ -1138,8 +1138,8 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
 
               <div className="flex items-center justify-between gap-3 rounded-xl border border-blue-200 bg-white p-4">
                 <div>
-                  <p className="text-sm font-bold text-[#0f172a]">Allow Wallet Top-Up</p>
-                  <p className="text-xs text-[#64748b]">
+                  <p className="text-sm font-bold text-[#1a1a1a]">Allow Wallet Top-Up</p>
+                  <p className="text-xs text-[#737373]">
                     Lets {agent.name} add money to their own wallet — for any of the three modes above.
                   </p>
                 </div>
@@ -1147,7 +1147,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                   type="button"
                   onClick={() => toggleAgentWalletTopUp(agent.id)}
                   className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-                    agent.allowWalletTopUp ? "bg-emerald-500" : "bg-[#e2e8f0]"
+                    agent.allowWalletTopUp ? "bg-emerald-500" : "bg-[#e6e6e6]"
                   }`}
                 >
                   <span
@@ -1162,7 +1162,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
             {agent.isDefault ? (
               <article className="flex items-center gap-3 rounded-2xl border border-blue-200 bg-white p-5">
                 <Lock size={18} className="shrink-0 text-blue-600" />
-                <p className="text-sm text-[#475569]">
+                <p className="text-sm text-[#525252]">
                   All {Object.keys(displayedPermissions).length} permissions are allowed for the account owner,
                   every module — this can&apos;t be edited here so the main admin dashboard always keeps full
                   access to everything, no matter what.
@@ -1171,19 +1171,19 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
             ) : (
               <>
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm text-[#64748b]">
+                  <p className="text-sm text-[#737373]">
                     {countByState(displayedPermissions, "Allowed")} of {Object.keys(displayedPermissions).length} permissions allowed.
                   </p>
                   <Link
                     href="/dashboards/agents/permissions"
-                    className="text-sm font-semibold text-[#2563eb] hover:underline"
+                    className="text-sm font-semibold text-[#1a1a1a] hover:underline"
                   >
                     Edit default role permissions →
                   </Link>
                 </div>
 
-                <article className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white">
-                  <div className="flex flex-wrap gap-1 border-b border-[#e2e8f0] px-3 pt-3">
+                <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white">
+                  <div className="flex flex-wrap gap-1 border-b border-[#e6e6e6] px-3 pt-3">
                     {PERMISSION_GROUPS.map((group) => {
                       const groupAllowed = group.permissions.filter((p) => displayedPermissions[p.key] === "Allowed").length;
                       return (
@@ -1194,7 +1194,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                           className={`rounded-t-lg px-3 py-2 text-left text-xs font-semibold transition ${
                             activePermGroupKey === group.key
                               ? "border-b-2 border-emerald-500 text-emerald-600"
-                              : "text-[#64748b] hover:text-[#475569]"
+                              : "text-[#737373] hover:text-[#525252]"
                           }`}
                         >
                           {group.label}
@@ -1207,7 +1207,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                   </div>
                   <div className="p-5">
                     {activePermGroup.key === "users" && (
-                      <div className="mb-3 rounded-xl border border-[#e2e8f0] bg-[#ffffff] px-4">
+                      <div className="mb-3 rounded-xl border border-[#e6e6e6] bg-[#ffffff] px-4">
                         <PermissionSwitch
                           strong
                           label="Full control over users (same as admin)"
@@ -1218,8 +1218,8 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                       </div>
                     )}
                     <div className="grid gap-x-8 sm:grid-cols-2">
-                      <div className="divide-y divide-[#f1f5f9]">{leftColumn.map(renderPermCheckbox)}</div>
-                      <div className="divide-y divide-[#f1f5f9]">{rightColumn.map(renderPermCheckbox)}</div>
+                      <div className="divide-y divide-[#f4f4f4]">{leftColumn.map(renderPermCheckbox)}</div>
+                      <div className="divide-y divide-[#f4f4f4]">{rightColumn.map(renderPermCheckbox)}</div>
                     </div>
                   </div>
                 </article>
@@ -1243,16 +1243,16 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
       {activeTab === "Limits" && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Object.entries(agent.limits).map(([key, value]) => (
-            <div key={key} className="rounded-xl border border-[#f1f5f9] p-4">
-              <p className="text-xs capitalize text-[#64748b]">
+            <div key={key} className="rounded-xl border border-[#f4f4f4] p-4">
+              <p className="text-xs capitalize text-[#737373]">
                 {key.replace(/([A-Z])/g, " $1")}
               </p>
-              <p className="text-lg font-black text-[#0f172a]">{value}</p>
+              <p className="text-lg font-black text-[#1a1a1a]">{value}</p>
             </div>
           ))}
           <a
             href="/dashboards/agents/limits"
-            className="inline-flex items-center text-sm font-semibold text-[#2563eb] hover:underline"
+            className="inline-flex items-center text-sm font-semibold text-[#1a1a1a] hover:underline"
           >
             Edit limits →
           </a>
@@ -1262,28 +1262,28 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
       {activeTab === "Approvals" && (
         <div className="space-y-2" data-testid="approvals-tab">
           {agentApprovals.length === 0 ? (
-            <p className="text-sm text-[#94a3b8]">No approval requests for this agent.</p>
+            <p className="text-sm text-[#a3a3a3]">No approval requests for this agent.</p>
           ) : (
             agentApprovals.map((request) => {
               const waiting = request.status === "Pending" || request.status === "Under Review";
               return (
-                <div key={request.id} className="rounded-lg border border-[#f1f5f9] px-4 py-3" data-testid="approval-item">
-                  <p className="text-sm font-semibold text-[#0f172a]">{request.type} — {request.status}</p>
-                  <p className="text-xs text-[#64748b]">{localizeAmountsInText(request.summary)}</p>
-                  {request.reason && !waiting && <p className="mt-1 text-xs text-[#64748b]">Note: {request.reason}</p>}
+                <div key={request.id} className="rounded-lg border border-[#f4f4f4] px-4 py-3" data-testid="approval-item">
+                  <p className="text-sm font-semibold text-[#1a1a1a]">{request.type} — {request.status}</p>
+                  <p className="text-xs text-[#737373]">{localizeAmountsInText(request.summary)}</p>
+                  {request.reason && !waiting && <p className="mt-1 text-xs text-[#737373]">Note: {request.reason}</p>}
                   {waiting && (
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       <input
                         value={rejectReason}
                         onChange={(event) => setRejectReason(event.target.value)}
                         placeholder="Reason (shown if you reject — optional)"
-                        className="h-9 min-w-[220px] flex-1 rounded-lg border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                        className="h-9 min-w-[220px] flex-1 rounded-lg border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
                       />
                       <button
                         type="button"
                         data-testid="approval-approve"
                         onClick={() => decideApproval(request.id, "Approved", rejectReason)}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-[#2563eb] px-3 py-2 text-xs font-bold text-white hover:bg-[#1d4ed8]"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-[#1a1a1a] px-3 py-2 text-xs font-bold text-white hover:bg-[#111111]"
                       >
                         <CheckCircle2 size={13} />
                         Approve
@@ -1292,7 +1292,7 @@ function AgentProfileInner({ agentId }: { agentId: string }) {
                         type="button"
                         data-testid="approval-reject"
                         onClick={() => decideApproval(request.id, "Rejected", rejectReason)}
-                        className="rounded-lg border border-[#e2e8f0] bg-white px-3 py-2 text-xs font-bold text-[#475569] hover:bg-[#ffffff]"
+                        className="rounded-lg border border-[#e6e6e6] bg-white px-3 py-2 text-xs font-bold text-[#525252] hover:bg-[#ffffff]"
                       >
                         Reject
                       </button>

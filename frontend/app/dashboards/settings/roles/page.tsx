@@ -102,12 +102,12 @@ export default function RolesPermissionsPage() {
   function renderCheckbox(perm: { key: string; label: string }) {
     const checked = permissions[perm.key] === "Allowed";
     return (
-      <label key={perm.key} className="flex cursor-pointer items-center gap-2.5 py-1.5 text-sm text-[#475569]">
+      <label key={perm.key} className="flex cursor-pointer items-center gap-2.5 py-1.5 text-sm text-[#525252]">
         <input
           type="checkbox"
           checked={checked}
           onChange={() => togglePermission(perm.key)}
-          className="h-4 w-4 shrink-0 rounded border-[#e2e8f0] accent-emerald-500"
+          className="h-4 w-4 shrink-0 rounded border-[#e6e6e6] accent-emerald-500"
         />
         {perm.label}
       </label>
@@ -119,10 +119,10 @@ export default function RolesPermissionsPage() {
       <BackLink />
       <div className="mb-6">
         <h2 className="mb-1 flex items-center gap-2 text-3xl font-bold tracking-tight md:text-4xl">
-          <ShieldCheck className="text-[#2563eb]" size={30} />
+          <ShieldCheck className="text-[#1a1a1a]" size={30} />
           Roles &amp; Permissions
         </h2>
-        <p className="max-w-2xl text-sm text-[#64748b] md:text-base">
+        <p className="max-w-2xl text-sm text-[#737373] md:text-base">
           The main permission control center for the whole site. Every
           module — users, vouchers, packages, routers, hotspot &amp; captive
           portal, agents, installers, payments, and settings itself — is
@@ -131,18 +131,18 @@ export default function RolesPermissionsPage() {
         </p>
       </div>
 
-      <article className="mb-6 rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+      <article className="mb-6 rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-bold text-[#0f172a]">Admin Team</p>
-            <p className="text-xs text-[#64748b]">
+            <p className="text-sm font-bold text-[#1a1a1a]">Admin Team</p>
+            <p className="text-xs text-[#737373]">
               Everyone with their own login to this admin dashboard, and which role governs what they can do.
             </p>
           </div>
           <button
             type="button"
             onClick={() => setAddAdminOpen((current) => !current)}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#2563eb] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#1a1a1a] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#111111]"
           >
             <UserPlus size={15} />
             Add System Admin
@@ -156,7 +156,7 @@ export default function RolesPermissionsPage() {
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               placeholder="Full name"
-              className="h-11 rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             />
             <input
               required
@@ -164,18 +164,18 @@ export default function RolesPermissionsPage() {
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
               placeholder="Email"
-              className="h-11 rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             />
             <input
               value={newPhone}
               onChange={(e) => setNewPhone(e.target.value)}
               placeholder="Phone (optional)"
-              className="h-11 rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             />
             <select
               value={newRoleKey}
               onChange={(e) => setNewRoleKey(e.target.value)}
-              className="h-11 rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             >
               {ADMIN_ROLE_PRESETS.map((role) => (
                 <option key={role.key} value={role.key}>
@@ -184,14 +184,14 @@ export default function RolesPermissionsPage() {
               ))}
             </select>
             <div className="flex gap-2 sm:col-span-2">
-              <button type="submit" className="rounded-xl bg-[#2563eb] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8]">
+              <button type="submit" className="rounded-xl bg-[#1a1a1a] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#111111]">
                 Send Invite
               </button>
-              <button type="button" onClick={() => setAddAdminOpen(false)} className="rounded-xl border border-[#e2e8f0] bg-white px-5 py-2.5 text-sm font-bold text-[#475569] hover:bg-[#ffffff]">
+              <button type="button" onClick={() => setAddAdminOpen(false)} className="rounded-xl border border-[#e6e6e6] bg-white px-5 py-2.5 text-sm font-bold text-[#525252] hover:bg-[#ffffff]">
                 Cancel
               </button>
             </div>
-            <p className="text-xs text-[#94a3b8] sm:col-span-2">
+            <p className="text-xs text-[#a3a3a3] sm:col-span-2">
               They&apos;ll appear as Pending until they accept the invite. Their permissions come entirely from the role you assign.
             </p>
           </form>
@@ -201,18 +201,18 @@ export default function RolesPermissionsPage() {
           {adminTeam.map((member) => {
             const role = ADMIN_ROLE_PRESETS.find((r) => r.key === member.roleKey);
             return (
-              <div key={member.id} className="flex items-center justify-between gap-3 rounded-xl border border-[#f1f5f9] px-4 py-3">
+              <div key={member.id} className="flex items-center justify-between gap-3 rounded-xl border border-[#f4f4f4] px-4 py-3">
                 <div className="min-w-0">
-                  <p className="flex items-center gap-2 text-sm font-bold text-[#0f172a]">
+                  <p className="flex items-center gap-2 text-sm font-bold text-[#1a1a1a]">
                     {member.name}
                     {member.isOwner && (
                       <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-bold text-white">Owner</span>
                     )}
                   </p>
-                  <p className="truncate text-xs text-[#64748b]">{member.email}</p>
+                  <p className="truncate text-xs text-[#737373]">{member.email}</p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  <span className="rounded-full bg-[#2563eb] px-2.5 py-1 text-xs font-semibold text-white">
+                  <span className="rounded-full bg-[#1a1a1a] px-2.5 py-1 text-xs font-semibold text-white">
                     {role?.label ?? member.roleKey}
                   </span>
                   <span
@@ -234,13 +234,13 @@ export default function RolesPermissionsPage() {
                           setMemberMenuRect((event.currentTarget as HTMLElement).getBoundingClientRect());
                           setOpenMemberMenuId((current) => (current === member.id ? null : member.id));
                         }}
-                        className="rounded-lg border border-[#e2e8f0] p-1.5 text-[#475569] hover:bg-[#f1f5f9]"
+                        className="rounded-lg border border-[#e6e6e6] p-1.5 text-[#525252] hover:bg-[#f4f4f4]"
                       >
                         <MoreVertical size={14} />
                       </button>
                       {openMemberMenuId === member.id && (
                         <DropdownMenuPortal anchorRect={memberMenuRect} onClose={() => setOpenMemberMenuId(null)} width={200}>
-                          <div className="border-b border-[#f1f5f9] px-4 py-2 text-[10px] font-bold uppercase text-[#94a3b8]">
+                          <div className="border-b border-[#f4f4f4] px-4 py-2 text-[10px] font-bold uppercase text-[#a3a3a3]">
                             Change Role
                           </div>
                           {ADMIN_ROLE_PRESETS.map((role) => (
@@ -251,13 +251,13 @@ export default function RolesPermissionsPage() {
                                 updateAdminTeamMemberRole(member.id, role.key);
                                 setOpenMemberMenuId(null);
                               }}
-                              className="flex w-full items-center justify-between px-4 py-2 text-left text-sm text-[#475569] hover:bg-[#f1f5f9]"
+                              className="flex w-full items-center justify-between px-4 py-2 text-left text-sm text-[#525252] hover:bg-[#f4f4f4]"
                             >
                               {role.label}
-                              {member.roleKey === role.key && <span className="text-[#2563eb]">✓</span>}
+                              {member.roleKey === role.key && <span className="text-[#1a1a1a]">✓</span>}
                             </button>
                           ))}
-                          <div className="my-1 border-t border-[#f1f5f9]" />
+                          <div className="my-1 border-t border-[#f4f4f4]" />
                           {member.status === "Active" ? (
                             <button
                               type="button"
@@ -307,7 +307,7 @@ export default function RolesPermissionsPage() {
 
       <div className="space-y-5">
         <div>
-          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-[#94a3b8]">Choose a role</p>
+          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-[#a3a3a3]">Choose a role</p>
           <div className="flex flex-wrap gap-2">
             {ADMIN_ROLE_PRESETS.map((role) => {
               const roleCount = countAdminByState(adminRolePermissions[role.key] ?? {});
@@ -319,7 +319,7 @@ export default function RolesPermissionsPage() {
                   type="button"
                   onClick={() => setSelectedRoleKey(role.key)}
                   className={`relative flex items-center gap-3 rounded-2xl border-2 px-5 py-3 text-left transition ${
-                    isSelected ? "border-[#2563eb] bg-[#f1f5f9]" : "border-[#e2e8f0] bg-white hover:bg-[#ffffff]"
+                    isSelected ? "border-[#1a1a1a] bg-[#f4f4f4]" : "border-[#e6e6e6] bg-white hover:bg-[#ffffff]"
                   }`}
                 >
                   {hasDraft && (
@@ -328,10 +328,10 @@ export default function RolesPermissionsPage() {
                     </span>
                   )}
                   <span>
-                    <span className={`block text-sm font-bold ${isSelected ? "text-[#1d4ed8]" : "text-[#0f172a]"}`}>
+                    <span className={`block text-sm font-bold ${isSelected ? "text-[#111111]" : "text-[#1a1a1a]"}`}>
                       {role.label}
                     </span>
-                    <span className="block max-w-[220px] truncate text-xs text-[#64748b]">{role.description}</span>
+                    <span className="block max-w-[220px] truncate text-xs text-[#737373]">{role.description}</span>
                   </span>
                   <span className="shrink-0 rounded-full bg-emerald-600 px-2.5 py-1 text-[11px] font-bold text-white">
                     {roleCount.allowed}/{roleCount.total}
@@ -342,25 +342,25 @@ export default function RolesPermissionsPage() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
           <div>
-            <p className="text-base font-bold text-[#0f172a]">{selectedRole.label}</p>
-            <p className="text-xs text-[#64748b]">
+            <p className="text-base font-bold text-[#1a1a1a]">{selectedRole.label}</p>
+            <p className="text-xs text-[#737373]">
               {overall.allowed} of {overall.total} permissions allowed across every module.
             </p>
           </div>
           <button
             type="button"
             onClick={handleResetToDefault}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-[#e2e8f0] bg-white px-3 py-2 text-xs font-bold text-[#475569] hover:bg-[#ffffff]"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[#e6e6e6] bg-white px-3 py-2 text-xs font-bold text-[#525252] hover:bg-[#ffffff]"
           >
             <RotateCcw size={13} />
             Reset to Default
           </button>
         </div>
 
-        <article className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
-          <div className="flex flex-wrap gap-1 overflow-x-auto border-b border-[#e2e8f0] px-4 pt-3">
+        <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+          <div className="flex flex-wrap gap-1 overflow-x-auto border-b border-[#e6e6e6] px-4 pt-3">
             {ADMIN_PERMISSION_GROUPS.map((group) => {
               const groupCount = countAdminByState(permissions, group.key);
               return (
@@ -371,7 +371,7 @@ export default function RolesPermissionsPage() {
                   className={`shrink-0 rounded-t-lg px-4 py-2.5 text-left text-sm font-semibold transition ${
                     activeGroupKey === group.key
                       ? "border-b-2 border-emerald-500 text-emerald-600"
-                      : "text-[#64748b] hover:text-[#475569]"
+                      : "text-[#737373] hover:text-[#525252]"
                   }`}
                 >
                   {group.label}
@@ -384,7 +384,7 @@ export default function RolesPermissionsPage() {
           </div>
 
           <div className="p-6 md:p-8">
-            <p className="mb-5 text-sm font-bold text-[#0f172a]">Permissions</p>
+            <p className="mb-5 text-sm font-bold text-[#1a1a1a]">Permissions</p>
             <div className="grid gap-x-10 gap-y-1 sm:grid-cols-2 xl:grid-cols-3">
               {activeGroup.permissions.map(renderCheckbox)}
             </div>

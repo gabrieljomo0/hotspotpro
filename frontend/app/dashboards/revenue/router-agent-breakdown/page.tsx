@@ -201,7 +201,7 @@ export default function RouterAgentRevenuePage() {
         </div>
 
         {routerAgents.length === 0 && !hasDirectSales ? (
-          <p className="rounded-b-xl border-2 border-t-0 border-blue-300 px-4 py-4 text-sm text-[#94a3b8]">
+          <p className="rounded-b-xl border-2 border-t-0 border-blue-300 px-4 py-4 text-sm text-[#a3a3a3]">
             No sales on this router yet for this filter.
           </p>
         ) : (
@@ -217,15 +217,15 @@ export default function RouterAgentRevenuePage() {
                 <th className="px-4 py-2.5">Revenue</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#f1f5f9]">
+            <tbody className="divide-y divide-[#f4f4f4]">
               {hasDirectSales && (
                 <tr className="bg-amber-50 hover:bg-amber-50">
                   <td className="px-4 py-2.5">
                     <span className="font-bold text-amber-800">{router.name.split(" (")[0]}</span>
                   </td>
                   <td className="px-4 py-2.5 text-amber-700">No agent — sold directly by admin on this router</td>
-                  <td className="px-4 py-2.5 font-semibold text-[#0f172a]">{directStats.generated}</td>
-                  <td className="px-4 py-2.5 font-semibold text-[#0f172a]">{directStats.sold}</td>
+                  <td className="px-4 py-2.5 font-semibold text-[#1a1a1a]">{directStats.generated}</td>
+                  <td className="px-4 py-2.5 font-semibold text-[#1a1a1a]">{directStats.sold}</td>
                   <td className="px-4 py-2.5">
                     <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">
                       {directStats.available}
@@ -248,13 +248,13 @@ export default function RouterAgentRevenuePage() {
                 return (
                   <tr key={agent.id} className="hover:bg-blue-50">
                     <td className="px-4 py-2.5">
-                      <Link href={`/dashboards/agents/${agent.id}`} className="font-bold text-[#2563eb] hover:underline">
+                      <Link href={`/dashboards/agents/${agent.id}`} className="font-bold text-[#1a1a1a] hover:underline">
                         {agent.name}
                       </Link>
                     </td>
-                    <td className="px-4 py-2.5 text-[#64748b]">{agent.role}</td>
-                    <td className="px-4 py-2.5 font-semibold text-[#0f172a]">{stats.generated}</td>
-                    <td className="px-4 py-2.5 font-semibold text-[#0f172a]">{stats.sold}</td>
+                    <td className="px-4 py-2.5 text-[#737373]">{agent.role}</td>
+                    <td className="px-4 py-2.5 font-semibold text-[#1a1a1a]">{stats.generated}</td>
+                    <td className="px-4 py-2.5 font-semibold text-[#1a1a1a]">{stats.sold}</td>
                     <td className="px-4 py-2.5">
                       <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">
                         {stats.available}
@@ -290,7 +290,7 @@ export default function RouterAgentRevenuePage() {
     <section className="w-full">
       <BackLink />
 
-      <div className="mb-6 rounded-2xl bg-[#1e3a8a] p-6  md:p-8">
+      <div className="mb-6 rounded-2xl bg-[#111111] p-6  md:p-8">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div className="text-white">
             <p className="mb-1 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-white/80">
@@ -310,14 +310,14 @@ export default function RouterAgentRevenuePage() {
               <Banknote size={13} />
               {hasFilter ? "Filtered Total" : "Grand Total"}
             </p>
-            <p className="mt-1 text-3xl font-black text-[#0f172a]">{sym()} {grandTotals.revenue.toLocaleString()}</p>
+            <p className="mt-1 text-3xl font-black text-[#1a1a1a]">{sym()} {grandTotals.revenue.toLocaleString()}</p>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="mb-6 rounded-2xl border-2 border-[#e2e8f0] bg-white p-4 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
-        <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#94a3b8]">
+      <div className="mb-6 rounded-2xl border-2 border-[#e6e6e6] bg-white p-4 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+        <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#a3a3a3]">
           <ListFilter size={14} />
           Filter this page
         </div>
@@ -384,7 +384,7 @@ export default function RouterAgentRevenuePage() {
               onChange={(event) => setFromDate(event.target.value)}
               className="h-10 rounded-lg border-2 border-amber-200 bg-white px-2.5 text-sm font-semibold text-amber-700 outline-none focus:border-amber-500"
             />
-            <span className="text-xs text-[#94a3b8]">to</span>
+            <span className="text-xs text-[#a3a3a3]">to</span>
             <input
               type="date"
               value={toDate}
@@ -413,28 +413,28 @@ export default function RouterAgentRevenuePage() {
             <Banknote size={13} />
             Revenue
           </p>
-          <p className="mt-1 text-2xl font-black text-[#0f172a]">{sym()} {grandTotals.revenue.toLocaleString()}</p>
+          <p className="mt-1 text-2xl font-black text-[#1a1a1a]">{sym()} {grandTotals.revenue.toLocaleString()}</p>
         </div>
         <div className="rounded-2xl border-2 border-blue-300 bg-white p-5">
           <p className="flex items-center gap-1.5 text-xs font-bold text-blue-700">
             <CheckCircle2 size={13} />
             Vouchers Sold
           </p>
-          <p className="mt-1 text-2xl font-black text-[#0f172a]">{grandTotals.sold}</p>
+          <p className="mt-1 text-2xl font-black text-[#1a1a1a]">{grandTotals.sold}</p>
         </div>
         <div className="rounded-2xl border-2 border-amber-300 bg-white p-5">
           <p className="flex items-center gap-1.5 text-xs font-bold text-amber-700">
             <Clock size={13} />
             Available
           </p>
-          <p className="mt-1 text-2xl font-black text-[#0f172a]">{grandTotals.available}</p>
+          <p className="mt-1 text-2xl font-black text-[#1a1a1a]">{grandTotals.available}</p>
         </div>
         <div className="rounded-2xl border-2 border-red-300 bg-red-50 p-5">
           <p className="flex items-center gap-1.5 text-xs font-bold text-red-700">
             <XCircle size={13} />
             Expired
           </p>
-          <p className="mt-1 text-2xl font-black text-[#0f172a]">{grandTotals.expired}</p>
+          <p className="mt-1 text-2xl font-black text-[#1a1a1a]">{grandTotals.expired}</p>
         </div>
       </div>
 
@@ -479,15 +479,15 @@ export default function RouterAgentRevenuePage() {
         )}
 
         {routersInScope.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-[#e2e8f0] bg-white p-10 text-center text-sm text-[#94a3b8]">
+          <div className="rounded-2xl border border-dashed border-[#e6e6e6] bg-white p-10 text-center text-sm text-[#a3a3a3]">
             No routers match this filter.
           </div>
         )}
       </div>
 
       {/* Full sale-by-sale detail */}
-      <article className="mt-8 overflow-hidden rounded-2xl border-2 border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
-        <div className="border-b-2 border-[#e2e8f0] bg-[#0f172a] px-5 py-4">
+      <article className="mt-8 overflow-hidden rounded-2xl border-2 border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+        <div className="border-b-2 border-[#e6e6e6] bg-[#1a1a1a] px-5 py-4">
           <h3 className="text-base font-bold text-white">Full Sales Details</h3>
           <p className="text-xs text-white/70">
             Every completed sale for the current filter — {fullSalesDetails.length} sale{fullSalesDetails.length === 1 ? "" : "s"}.
@@ -495,7 +495,7 @@ export default function RouterAgentRevenuePage() {
         </div>
         <div className="max-h-[520px] overflow-auto">
           <table className="w-full min-w-[900px] text-left text-sm">
-            <thead className="sticky top-0 bg-[#ffffff] text-xs text-[#64748b]">
+            <thead className="sticky top-0 bg-[#ffffff] text-xs text-[#737373]">
               <tr>
                 <th className="px-4 py-3">Date</th>
                 <th className="px-4 py-3">Agent</th>
@@ -507,7 +507,7 @@ export default function RouterAgentRevenuePage() {
                 <th className="px-4 py-3">Amount</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#f1f5f9]">
+            <tbody className="divide-y divide-[#f4f4f4]">
               {fullSalesDetails.map((v) => {
                 const soldByAgent = agents.find((a) => a.id === v.agentId);
                 // Which router this sale was actually for — from the
@@ -517,24 +517,24 @@ export default function RouterAgentRevenuePage() {
                 const soldOnRouter = routers.find((r) => saleRouterIps.includes(r.ip));
                 return (
                   <tr key={v.code} className="hover:bg-[#ffffff]">
-                    <td className="px-4 py-3 text-[#64748b]">{v.generatedAt}</td>
+                    <td className="px-4 py-3 text-[#737373]">{v.generatedAt}</td>
                     <td className="px-4 py-3">
                       {soldByAgent ? (
-                        <Link href={`/dashboards/agents/${soldByAgent.id}`} className="font-semibold text-[#2563eb] hover:underline">
+                        <Link href={`/dashboards/agents/${soldByAgent.id}`} className="font-semibold text-[#1a1a1a] hover:underline">
                           {soldByAgent.name}
                         </Link>
                       ) : (
                         "—"
                       )}
                     </td>
-                    <td className="px-4 py-3 text-[#475569]">
+                    <td className="px-4 py-3 text-[#525252]">
                       {soldOnRouter
                         ? saleRouterIps.length > 1
                           ? `${soldOnRouter.name.split(" (")[0]} +${saleRouterIps.length - 1}`
                           : soldOnRouter.name.split(" (")[0]
                         : "—"}
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-[#2563eb]">{v.code}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-[#1a1a1a]">{v.code}</td>
                     <td className="px-4 py-3">{v.packageName}</td>
                     <td className="px-4 py-3">{v.redeemerPhone ?? "—"}</td>
                     <td className="px-4 py-3">
@@ -552,7 +552,7 @@ export default function RouterAgentRevenuePage() {
               })}
               {fullSalesDetails.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-sm text-[#94a3b8]">
+                  <td colSpan={8} className="px-4 py-10 text-center text-sm text-[#a3a3a3]">
                     No sales match this filter.
                   </td>
                 </tr>

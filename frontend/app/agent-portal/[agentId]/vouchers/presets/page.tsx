@@ -186,7 +186,7 @@ export default function AgentVoucherPresetsPage({
           <section>
             <Link
               href={`/agent-portal/${agentId}/vouchers`}
-              className="mb-5 inline-flex items-center gap-2 rounded-xl bg-[#f1f5f9] px-4 py-2.5 text-sm font-semibold text-[#475569] hover:bg-[#f8fafc]"
+              className="mb-5 inline-flex items-center gap-2 rounded-xl bg-[#f4f4f4] px-4 py-2.5 text-sm font-semibold text-[#525252] hover:bg-[#f7f7f7]"
             >
               <ArrowLeft size={16} />
               Back to Vouchers
@@ -194,11 +194,11 @@ export default function AgentVoucherPresetsPage({
 
             <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h1 className="flex items-center gap-2 text-2xl font-black text-[#0f172a] md:text-3xl">
-                  <Bookmark className="text-[#2563eb]" size={26} />
+                <h1 className="flex items-center gap-2 text-2xl font-black text-[#1a1a1a] md:text-3xl">
+                  <Bookmark className="text-[#1a1a1a]" size={26} />
                   Voucher Presets
                 </h1>
-                <p className="mt-1 text-sm text-[#64748b]">
+                <p className="mt-1 text-sm text-[#737373]">
                   Your own saved setups, plus anything admin has pushed to you.
                 </p>
               </div>
@@ -207,7 +207,7 @@ export default function AgentVoucherPresetsPage({
                   type="button"
                   onClick={startCreate}
                   disabled={!canCreate}
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#2563eb] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#1a1a1a] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#111111] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Plus size={16} />
                   Create New Preset
@@ -217,30 +217,30 @@ export default function AgentVoucherPresetsPage({
 
             {creatingNew && (
               <article className="mb-4 overflow-hidden rounded-2xl border-2 bg-white shadow-sm">
-                <div className="border-b bg-[#f1f5f9] px-5 py-4">
-                  <p className="text-sm font-bold text-[#0f172a]">Create New Preset</p>
-                  <p className="text-xs text-[#64748b]">
+                <div className="border-b bg-[#f4f4f4] px-5 py-4">
+                  <p className="text-sm font-bold text-[#1a1a1a]">Create New Preset</p>
+                  <p className="text-xs text-[#737373]">
                     Set it up once, then generate from it any time. It&apos;ll apply to {agentRouterName}.
                   </p>
                 </div>
                 <div className="space-y-4 p-5">
                   <div className="grid gap-3 sm:grid-cols-2">
                     <label className="block">
-                      <span className="mb-1.5 block text-xs font-semibold text-[#475569]">Preset name</span>
+                      <span className="mb-1.5 block text-xs font-semibold text-[#525252]">Preset name</span>
                       <input
                         autoFocus
                         value={editName}
                         onChange={(event) => setEditName(event.target.value)}
                         placeholder='e.g. "Daily 50 codes"'
-                        className="h-10 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#cbd5e1]"
+                        className="h-10 w-full rounded-xl border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#d4d4d4]"
                       />
                     </label>
                     <label className="block">
-                      <span className="mb-1.5 block text-xs font-semibold text-[#475569]">Package</span>
+                      <span className="mb-1.5 block text-xs font-semibold text-[#525252]">Package</span>
                       <select
                         value={newPackageName}
                         onChange={(event) => setNewPackageName(event.target.value)}
-                        className="h-10 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#cbd5e1]"
+                        className="h-10 w-full rounded-xl border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#d4d4d4]"
                       >
                         {sellablePackages.map((pkg) => (
                           <option key={pkg.id} value={pkg.name}>
@@ -250,31 +250,31 @@ export default function AgentVoucherPresetsPage({
                       </select>
                     </label>
                     <label className="block">
-                      <span className="mb-1.5 block text-xs font-semibold text-[#475569]">Quantity</span>
+                      <span className="mb-1.5 block text-xs font-semibold text-[#525252]">Quantity</span>
                       <input
                         type="number"
                         min={1}
                         max={500}
                         value={editQuantity}
                         onChange={(event) => setEditQuantity(Number(event.target.value))}
-                        className="h-10 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#cbd5e1]"
+                        className="h-10 w-full rounded-xl border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#d4d4d4]"
                       />
                     </label>
                     <label className="block">
-                      <span className="mb-1.5 block text-xs font-semibold text-[#475569]">Prefix</span>
+                      <span className="mb-1.5 block text-xs font-semibold text-[#525252]">Prefix</span>
                       <input
                         value={editPrefix}
                         maxLength={1}
                         onChange={(event) => setEditPrefix(event.target.value)}
-                        className="h-10 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#cbd5e1]"
+                        className="h-10 w-full rounded-xl border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#d4d4d4]"
                       />
                     </label>
                     <label className="block">
-                      <span className="mb-1.5 block text-xs font-semibold text-[#475569]">Code Format</span>
+                      <span className="mb-1.5 block text-xs font-semibold text-[#525252]">Code Format</span>
                       <select
                         value={editCodeFormat}
                         onChange={(event) => setEditCodeFormat(event.target.value as VoucherCodeFormat)}
-                        className="h-10 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#cbd5e1]"
+                        className="h-10 w-full rounded-xl border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#d4d4d4]"
                       >
                         <option value="uppercase">Uppercase (A-Z, 0-9)</option>
                         <option value="lowercase">Lowercase (a-z, 0-9)</option>
@@ -283,11 +283,11 @@ export default function AgentVoucherPresetsPage({
                       </select>
                     </label>
                     <label className="block">
-                      <span className="mb-1.5 block text-xs font-semibold text-[#475569]">Code Length</span>
+                      <span className="mb-1.5 block text-xs font-semibold text-[#525252]">Code Length</span>
                       <select
                         value={editCodeLength}
                         onChange={(event) => setEditCodeLength(Number(event.target.value))}
-                        className="h-10 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#cbd5e1]"
+                        className="h-10 w-full rounded-xl border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#d4d4d4]"
                       >
                         {[4, 5, 6, 7, 8].map((len) => (
                           <option key={len} value={len}>
@@ -299,31 +299,31 @@ export default function AgentVoucherPresetsPage({
                   </div>
 
                   <div className="block">
-                    <span className="mb-1.5 block text-xs font-semibold text-[#475569]">How customers log in</span>
+                    <span className="mb-1.5 block text-xs font-semibold text-[#525252]">How customers log in</span>
                     <div className="grid gap-2 sm:grid-cols-2">
                       <button
                         type="button"
                         onClick={() => setEditLoginMethod("code")}
-                        className={`rounded-xl border-2 p-2.5 text-left text-sm transition ${ editLoginMethod === "code" ? "border-[#e2e8f0] bg-white" : "border-[#e2e8f0] bg-white" }`}
+                        className={`rounded-xl border-2 p-2.5 text-left text-sm transition ${ editLoginMethod === "code" ? "border-[#e6e6e6] bg-white" : "border-[#e6e6e6] bg-white" }`}
                       >
                         Single Code
                       </button>
                       <button
                         type="button"
                         onClick={() => setEditLoginMethod("credentials")}
-                        className={`rounded-xl border-2 p-2.5 text-left text-sm transition ${ editLoginMethod === "credentials" ? "border-[#e2e8f0] bg-white" : "border-[#e2e8f0] bg-white" }`}
+                        className={`rounded-xl border-2 p-2.5 text-left text-sm transition ${ editLoginMethod === "credentials" ? "border-[#e6e6e6] bg-white" : "border-[#e6e6e6] bg-white" }`}
                       >
                         Username &amp; Password
                       </button>
                     </div>
                   </div>
 
-                  <label className="flex items-center gap-2 text-sm text-[#475569]">
+                  <label className="flex items-center gap-2 text-sm text-[#525252]">
                     <input
                       type="checkbox"
                       checked={editIsGiveaway}
                       onChange={(event) => setEditIsGiveaway(event.target.checked)}
-                      className="h-4 w-4 rounded border-[#e2e8f0] accent-[#2563eb]"
+                      className="h-4 w-4 rounded border-[#e6e6e6] accent-[#1a1a1a]"
                     />
                     Mark as Giveaway
                   </label>
@@ -333,7 +333,7 @@ export default function AgentVoucherPresetsPage({
                       type="button"
                       onClick={submitCreate}
                       disabled={!editName.trim() || !newPackageName}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-[#2563eb] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-[#1a1a1a] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#111111] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <Check size={14} />
                       Create Preset
@@ -341,7 +341,7 @@ export default function AgentVoucherPresetsPage({
                     <button
                       type="button"
                       onClick={cancelCreate}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-[#f1f5f9] px-4 py-2.5 text-sm font-bold text-[#475569] hover:bg-[#f8fafc]"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-[#f4f4f4] px-4 py-2.5 text-sm font-bold text-[#525252] hover:bg-[#f7f7f7]"
                     >
                       <X size={14} />
                       Cancel
@@ -352,13 +352,13 @@ export default function AgentVoucherPresetsPage({
             )}
 
             {usablePresets.length === 0 && !creatingNew ? (
-              <div className="rounded-2xl bg-white p-10 text-center text-sm text-[#94a3b8]">
+              <div className="rounded-2xl bg-white p-10 text-center text-sm text-[#a3a3a3]">
                 No presets yet.{" "}
                 {canCreate ? (
                   <button
                     type="button"
                     onClick={startCreate}
-                    className="font-semibold text-[#2563eb] hover:underline"
+                    className="font-semibold text-[#1a1a1a] hover:underline"
                   >
                     Create your first one →
                   </button>
@@ -379,15 +379,15 @@ export default function AgentVoucherPresetsPage({
                       {!isEditing ? (
                         <div className="flex flex-wrap items-center justify-between gap-3 p-5">
                           <div>
-                            <p className="flex items-center gap-2 text-base font-bold text-[#0f172a]">
+                            <p className="flex items-center gap-2 text-base font-bold text-[#1a1a1a]">
                               {preset.name}
                               {!isMine && (
-                                <span className="rounded-full bg-[#f1f5f9] px-2 py-0.5 text-[10px] font-bold text-[#2563eb]">
+                                <span className="rounded-full bg-[#f4f4f4] px-2 py-0.5 text-[10px] font-bold text-[#1a1a1a]">
                                   Pushed by admin
                                 </span>
                               )}
                             </p>
-                            <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#64748b]">
+                            <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#737373]">
                               <span>{preset.packageName}</span>
                               <span>· {preset.quantity} codes</span>
                               <span>· {preset.codeFormat}, {preset.codeLength} chars</span>
@@ -399,7 +399,7 @@ export default function AgentVoucherPresetsPage({
                             <button
                               type="button"
                               onClick={() => handleGenerate(preset.id)}
-                              className="inline-flex items-center gap-1.5 rounded-xl bg-[#2563eb] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-[#1a1a1a] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#111111]"
                             >
                               <Sparkles size={14} />
                               Generate
@@ -409,7 +409,7 @@ export default function AgentVoucherPresetsPage({
                                 <button
                                   type="button"
                                   onClick={(event) => openMenu(preset.id, event)}
-                                  className="rounded-xl bg-[#f1f5f9] p-2.5 text-[#64748b] hover:bg-[#f8fafc]"
+                                  className="rounded-xl bg-[#f4f4f4] p-2.5 text-[#737373] hover:bg-[#f7f7f7]"
                                   aria-label="More actions"
                                 >
                                   <MoreVertical size={16} />
@@ -422,7 +422,7 @@ export default function AgentVoucherPresetsPage({
                                         closeMenu();
                                         startEdit(preset.id);
                                       }}
-                                      className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-[#475569] hover:bg-[#f1f5f9]"
+                                      className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-[#525252] hover:bg-[#f4f4f4]"
                                     >
                                       <Pencil size={14} /> Edit
                                     </button>
@@ -440,42 +440,42 @@ export default function AgentVoucherPresetsPage({
                           </div>
                         </div>
                       ) : (
-                        <div className="space-y-4 bg-[#f1f5f9] p-5">
+                        <div className="space-y-4 bg-[#f4f4f4] p-5">
                           <label className="block">
-                            <span className="mb-1.5 block text-xs font-semibold text-[#475569]">Preset name</span>
+                            <span className="mb-1.5 block text-xs font-semibold text-[#525252]">Preset name</span>
                             <input
                               value={editName}
                               onChange={(event) => setEditName(event.target.value)}
-                              className="h-10 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#cbd5e1]"
+                              className="h-10 w-full rounded-xl border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#d4d4d4]"
                             />
                           </label>
                           <div className="grid gap-3 sm:grid-cols-2">
                             <label className="block">
-                              <span className="mb-1.5 block text-xs font-semibold text-[#475569]">Quantity</span>
+                              <span className="mb-1.5 block text-xs font-semibold text-[#525252]">Quantity</span>
                               <input
                                 type="number"
                                 min={1}
                                 max={500}
                                 value={editQuantity}
                                 onChange={(event) => setEditQuantity(Number(event.target.value))}
-                                className="h-10 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#cbd5e1]"
+                                className="h-10 w-full rounded-xl border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#d4d4d4]"
                               />
                             </label>
                             <label className="block">
-                              <span className="mb-1.5 block text-xs font-semibold text-[#475569]">Prefix</span>
+                              <span className="mb-1.5 block text-xs font-semibold text-[#525252]">Prefix</span>
                               <input
                                 value={editPrefix}
                                 maxLength={1}
                                 onChange={(event) => setEditPrefix(event.target.value)}
-                                className="h-10 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#cbd5e1]"
+                                className="h-10 w-full rounded-xl border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#d4d4d4]"
                               />
                             </label>
                             <label className="block">
-                              <span className="mb-1.5 block text-xs font-semibold text-[#475569]">Code Format</span>
+                              <span className="mb-1.5 block text-xs font-semibold text-[#525252]">Code Format</span>
                               <select
                                 value={editCodeFormat}
                                 onChange={(event) => setEditCodeFormat(event.target.value as VoucherCodeFormat)}
-                                className="h-10 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#cbd5e1]"
+                                className="h-10 w-full rounded-xl border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#d4d4d4]"
                               >
                                 <option value="uppercase">Uppercase (A-Z, 0-9)</option>
                                 <option value="lowercase">Lowercase (a-z, 0-9)</option>
@@ -484,11 +484,11 @@ export default function AgentVoucherPresetsPage({
                               </select>
                             </label>
                             <label className="block">
-                              <span className="mb-1.5 block text-xs font-semibold text-[#475569]">Code Length</span>
+                              <span className="mb-1.5 block text-xs font-semibold text-[#525252]">Code Length</span>
                               <select
                                 value={editCodeLength}
                                 onChange={(event) => setEditCodeLength(Number(event.target.value))}
-                                className="h-10 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#cbd5e1]"
+                                className="h-10 w-full rounded-xl border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#d4d4d4]"
                               >
                                 {[4, 5, 6, 7, 8].map((len) => (
                                   <option key={len} value={len}>
@@ -499,30 +499,30 @@ export default function AgentVoucherPresetsPage({
                             </label>
                           </div>
                           <div className="block">
-                            <span className="mb-1.5 block text-xs font-semibold text-[#475569]">How customers log in</span>
+                            <span className="mb-1.5 block text-xs font-semibold text-[#525252]">How customers log in</span>
                             <div className="grid gap-2 sm:grid-cols-2">
                               <button
                                 type="button"
                                 onClick={() => setEditLoginMethod("code")}
-                                className={`rounded-xl border-2 p-2.5 text-left text-sm transition ${ editLoginMethod === "code" ? "border-[#e2e8f0] bg-white" : "border-[#e2e8f0] bg-white" }`}
+                                className={`rounded-xl border-2 p-2.5 text-left text-sm transition ${ editLoginMethod === "code" ? "border-[#e6e6e6] bg-white" : "border-[#e6e6e6] bg-white" }`}
                               >
                                 Single Code
                               </button>
                               <button
                                 type="button"
                                 onClick={() => setEditLoginMethod("credentials")}
-                                className={`rounded-xl border-2 p-2.5 text-left text-sm transition ${ editLoginMethod === "credentials" ? "border-[#e2e8f0] bg-white" : "border-[#e2e8f0] bg-white" }`}
+                                className={`rounded-xl border-2 p-2.5 text-left text-sm transition ${ editLoginMethod === "credentials" ? "border-[#e6e6e6] bg-white" : "border-[#e6e6e6] bg-white" }`}
                               >
                                 Username &amp; Password
                               </button>
                             </div>
                           </div>
-                          <label className="flex items-center gap-2 text-sm text-[#475569]">
+                          <label className="flex items-center gap-2 text-sm text-[#525252]">
                             <input
                               type="checkbox"
                               checked={editIsGiveaway}
                               onChange={(event) => setEditIsGiveaway(event.target.checked)}
-                              className="h-4 w-4 rounded border-[#e2e8f0] accent-[#2563eb]"
+                              className="h-4 w-4 rounded border-[#e6e6e6] accent-[#1a1a1a]"
                             />
                             Mark as Giveaway
                           </label>
@@ -531,7 +531,7 @@ export default function AgentVoucherPresetsPage({
                               type="button"
                               onClick={saveEdit}
                               disabled={!editName.trim()}
-                              className="inline-flex items-center gap-1.5 rounded-xl bg-[#2563eb] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50"
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-[#1a1a1a] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#111111] disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               <Check size={14} />
                               Save Changes
@@ -539,7 +539,7 @@ export default function AgentVoucherPresetsPage({
                             <button
                               type="button"
                               onClick={() => setEditingId(null)}
-                              className="inline-flex items-center gap-1.5 rounded-xl bg-[#f1f5f9] px-4 py-2.5 text-sm font-bold text-[#475569] hover:bg-[#f8fafc]"
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-[#f4f4f4] px-4 py-2.5 text-sm font-bold text-[#525252] hover:bg-[#f7f7f7]"
                             >
                               <X size={14} />
                               Cancel

@@ -71,7 +71,7 @@ export default function SystemUsersPage() {
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="mb-1 text-3xl font-bold tracking-tight md:text-4xl">Users</h2>
-          <p className="max-w-2xl text-sm text-[#64748b] md:text-base">
+          <p className="max-w-2xl text-sm text-[#737373] md:text-base">
             Everyone with their own login to this admin dashboard.
           </p>
         </div>
@@ -104,21 +104,21 @@ export default function SystemUsersPage() {
         </p>
       )}
 
-      <article className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
-        <div className="flex flex-wrap items-center justify-end gap-2 border-b border-[#e2e8f0] px-5 py-4">
+      <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+        <div className="flex flex-wrap items-center justify-end gap-2 border-b border-[#e6e6e6] px-5 py-4">
           <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8]" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search"
-              className="h-10 w-56 rounded-lg border border-[#e2e8f0] bg-white pl-8 pr-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-10 w-56 rounded-lg border border-[#e6e6e6] bg-white pl-8 pr-3 text-sm outline-none focus:border-[#1a1a1a]"
             />
           </div>
           <button
             type="button"
             onClick={() => showToast("Filters coming soon.")}
-            className="rounded-lg border border-[#e2e8f0] p-2.5 text-[#475569] hover:bg-[#ffffff]"
+            className="rounded-lg border border-[#e6e6e6] p-2.5 text-[#525252] hover:bg-[#ffffff]"
             aria-label="Filter"
           >
             <SlidersHorizontal size={16} />
@@ -126,7 +126,7 @@ export default function SystemUsersPage() {
           <button
             type="button"
             onClick={() => showToast("Column visibility coming soon.")}
-            className="rounded-lg border border-[#e2e8f0] p-2.5 text-[#475569] hover:bg-[#ffffff]"
+            className="rounded-lg border border-[#e6e6e6] p-2.5 text-[#525252] hover:bg-[#ffffff]"
             aria-label="Columns"
           >
             <Columns3 size={16} />
@@ -135,10 +135,10 @@ export default function SystemUsersPage() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-[#ffffff] text-xs text-[#64748b]">
+            <thead className="bg-[#ffffff] text-xs text-[#737373]">
               <tr>
                 <th className="w-10 px-4 py-4">
-                  <input type="checkbox" className="h-4 w-4 rounded border-[#e2e8f0]" />
+                  <input type="checkbox" className="h-4 w-4 rounded border-[#e6e6e6]" />
                 </th>
                 <th className="px-4 py-4 font-semibold">Name</th>
                 <th className="px-4 py-4 font-semibold">Email</th>
@@ -149,11 +149,11 @@ export default function SystemUsersPage() {
                 <th className="px-4 py-4 font-semibold">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#f1f5f9]">
+            <tbody className="divide-y divide-[#f4f4f4]">
               {visibleUsers.map((user) => (
                 <tr key={user.id} className="hover:bg-[#ffffff]">
                   <td className="px-4 py-4">
-                    <input type="checkbox" className="h-4 w-4 rounded border-[#e2e8f0]" />
+                    <input type="checkbox" className="h-4 w-4 rounded border-[#e6e6e6]" />
                   </td>
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-2.5">
@@ -165,21 +165,21 @@ export default function SystemUsersPage() {
                           className="h-8 w-8 shrink-0 rounded-full object-cover"
                         />
                       ) : (
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#e2e8f0] bg-[#ffffff] text-xs font-bold text-[#475569]">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#e6e6e6] bg-[#ffffff] text-xs font-bold text-[#525252]">
                           {initialsFor(user.name)}
                         </span>
                       )}
-                      <span className="font-semibold text-[#0f172a]">{user.name}</span>
+                      <span className="font-semibold text-[#1a1a1a]">{user.name}</span>
                     </div>
                   </td>
                   <td className="px-4 py-4">
-                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#e2e8f0] bg-[#ffffff] px-2.5 py-1 text-xs font-medium text-[#2563eb]">
+                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#e6e6e6] bg-[#ffffff] px-2.5 py-1 text-xs font-medium text-[#1a1a1a]">
                       <Mail size={12} />
                       {user.email}
                     </span>
                   </td>
                   <td className="px-4 py-4">
-                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#e2e8f0] bg-[#ffffff] px-2.5 py-1 text-xs font-medium text-emerald-600">
+                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#e6e6e6] bg-[#ffffff] px-2.5 py-1 text-xs font-medium text-emerald-600">
                       <Phone size={12} />
                       {user.phone || "—"}
                     </span>
@@ -190,14 +190,14 @@ export default function SystemUsersPage() {
                     </span>
                   </td>
                   <td className="px-4 py-4">
-                    <span className="rounded-full border border-[#e2e8f0] bg-blue-50 px-2.5 py-1 text-xs font-semibold text-[#2563eb]">
+                    <span className="rounded-full border border-[#e6e6e6] bg-blue-50 px-2.5 py-1 text-xs font-semibold text-[#1a1a1a]">
                       {roleLabel(user.accessRoleKey)}
                     </span>
                   </td>
                   <td className="px-4 py-4">
                     <span
                       className={`rounded-full px-2.5 py-1 text-xs font-bold ${
-                        user.twoFactorEnabled ? "bg-emerald-100 text-emerald-700" : "bg-[#f1f5f9] text-[#94a3b8]"
+                        user.twoFactorEnabled ? "bg-emerald-100 text-emerald-700" : "bg-[#f4f4f4] text-[#a3a3a3]"
                       }`}
                     >
                       {user.twoFactorEnabled ? "On" : "Off"}
@@ -208,7 +208,7 @@ export default function SystemUsersPage() {
                       <button
                         type="button"
                         onClick={() => navigate.push(`/dashboards/settings/users/${user.id}`)}
-                        className="text-[#64748b] hover:text-[#0f172a]"
+                        className="text-[#737373] hover:text-[#1a1a1a]"
                       >
                         View
                       </button>
@@ -235,7 +235,7 @@ export default function SystemUsersPage() {
               ))}
               {visibleUsers.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-sm text-[#64748b]">
+                  <td colSpan={8} className="px-4 py-10 text-center text-sm text-[#737373]">
                     No users match your search.
                   </td>
                 </tr>
@@ -244,7 +244,7 @@ export default function SystemUsersPage() {
           </table>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e2e8f0] px-5 py-3 text-sm text-[#64748b]">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e6e6e6] px-5 py-3 text-sm text-[#737373]">
           <span>
             Showing {visibleUsers.length} result{visibleUsers.length === 1 ? "" : "s"}
           </span>
@@ -253,7 +253,7 @@ export default function SystemUsersPage() {
             <select
               defaultValue={10}
               onChange={() => showToast("Pagination coming soon.")}
-              className="rounded-lg border border-[#e2e8f0] bg-white px-2 py-1.5 text-xs outline-none focus:border-[#2563eb]"
+              className="rounded-lg border border-[#e6e6e6] bg-white px-2 py-1.5 text-xs outline-none focus:border-[#1a1a1a]"
             >
               <option value={10}>10</option>
               <option value={25}>25</option>

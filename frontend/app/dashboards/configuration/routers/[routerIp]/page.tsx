@@ -99,22 +99,22 @@ function RouterDetailPageInner({
     <section className="w-full">
       <Link
         href="/dashboards/configuration/routers"
-        className="mb-4 inline-flex items-center gap-2 rounded-xl border border-[#e2e8f0] bg-white px-4 py-2.5 text-sm font-semibold text-[#475569] hover:bg-[#ffffff]"
+        className="mb-4 inline-flex items-center gap-2 rounded-xl border border-[#e6e6e6] bg-white px-4 py-2.5 text-sm font-semibold text-[#525252] hover:bg-[#ffffff]"
       >
         ← Back to Routers
       </Link>
 
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-black text-[#0f172a] md:text-3xl">{router.name}</h1>
-          <span className={`rounded-full px-3 py-1 text-xs font-bold ${isEnabled ? "bg-[#f1f5f9] text-[#1d4ed8]" : "bg-red-100 text-red-700"}`}>
+          <h1 className="text-2xl font-black text-[#1a1a1a] md:text-3xl">{router.name}</h1>
+          <span className={`rounded-full px-3 py-1 text-xs font-bold ${isEnabled ? "bg-[#f4f4f4] text-[#111111]" : "bg-red-100 text-red-700"}`}>
             {isEnabled ? "Online" : "Offline"}
           </span>
           {site && (
             <Link
               href={`/dashboards/configuration/sites/${encodeURIComponent(site.id)}`}
               data-testid="router-site-link"
-              className="rounded-full bg-[#f1f5f9] px-3 py-1 text-xs font-bold text-[#2563eb] hover:bg-white"
+              className="rounded-full bg-[#f4f4f4] px-3 py-1 text-xs font-bold text-[#1a1a1a] hover:bg-white"
             >
               {site.name}
             </Link>
@@ -126,7 +126,7 @@ function RouterDetailPageInner({
             type="button"
             data-testid="full-provision"
             onClick={() => startRouterTask("full-provision", router.ip)}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#2563eb] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#1a1a1a] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#111111]"
           >
             <Settings2 size={15} />
             Full Provision
@@ -139,7 +139,7 @@ function RouterDetailPageInner({
                 setMoreRect((event.currentTarget as HTMLElement).getBoundingClientRect());
                 setMoreOpen((current) => !current);
               }}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#2563eb] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#2563eb]"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#1a1a1a] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#1a1a1a]"
             >
               <MoreVertical size={15} />
               More Actions
@@ -163,14 +163,14 @@ function RouterDetailPageInner({
 
       {tab !== "Data Usage" && <RouterUsageStrip routerIp={router.ip} onOpen={() => setTab("Data Usage")} />}
 
-      <nav className="mb-6 flex flex-wrap gap-2 border-b border-[#f1f5f9] pb-4">
+      <nav className="mb-6 flex flex-wrap gap-2 border-b border-[#f4f4f4] pb-4">
         {TABS.map((t) => (
           <button
             key={t}
             type="button"
             onClick={() => setTab(t)}
             className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
-              tab === t ? "bg-[#f1f5f9] text-[#2563eb]" : "text-[#64748b] hover:bg-[#ffffff]"
+              tab === t ? "bg-[#f4f4f4] text-[#1a1a1a]" : "text-[#737373] hover:bg-[#ffffff]"
             }`}
           >
             {t}
@@ -215,7 +215,7 @@ export default function RouterDetailPage({
     <Suspense
       fallback={
         <div className="flex min-h-[60vh] items-center justify-center">
-          <Loader2 className="h-9 w-9 animate-spin text-[#2563eb]" />
+          <Loader2 className="h-9 w-9 animate-spin text-[#1a1a1a]" />
         </div>
       }
     >

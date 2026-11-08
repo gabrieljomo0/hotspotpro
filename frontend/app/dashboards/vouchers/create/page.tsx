@@ -219,23 +219,23 @@ export default function CreateVoucherPage() {
 
   return (
     <section className="mx-auto w-full max-w-3xl">
-      <div className="mb-4 flex items-center gap-1.5 text-xs text-[#94a3b8]">
-        <Link href="/dashboards/vouchers" className="hover:text-[#2563eb]">
+      <div className="mb-4 flex items-center gap-1.5 text-xs text-[#a3a3a3]">
+        <Link href="/dashboards/vouchers" className="hover:text-[#1a1a1a]">
           Vouchers
         </Link>
         <ChevronRight size={12} />
-        <span className="text-[#475569]">Create</span>
+        <span className="text-[#525252]">Create</span>
       </div>
 
-      <h1 className="mb-6 text-3xl font-black text-[#0f172a] md:text-4xl">
+      <h1 className="mb-6 text-3xl font-black text-[#1a1a1a] md:text-4xl">
         Generate Vouchers
       </h1>
 
       <ConnectedAgentBanner />
 
-      <form className="space-y-6 rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
+      <form className="space-y-6 rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
         <div className="block">
-          <span className="mb-2 block text-sm font-semibold text-[#475569]">
+          <span className="mb-2 block text-sm font-semibold text-[#525252]">
             How customers log in <span className="text-red-500">*</span>
           </span>
           <div className="grid gap-2 sm:grid-cols-2">
@@ -243,21 +243,21 @@ export default function CreateVoucherPage() {
               type="button"
               onClick={() => setLoginMethod("code")}
               className={`rounded-xl border-2 p-3 text-left transition ${
-                loginMethod === "code" ? "border-[#2563eb] bg-[#f1f5f9]" : "border-[#e2e8f0] bg-white hover:bg-[#ffffff]"
+                loginMethod === "code" ? "border-[#1a1a1a] bg-[#f4f4f4]" : "border-[#e6e6e6] bg-white hover:bg-[#ffffff]"
               }`}
             >
-              <p className="text-sm font-bold text-[#0f172a]">Single Code</p>
-              <p className="text-xs text-[#64748b]">One code to type in and connect.</p>
+              <p className="text-sm font-bold text-[#1a1a1a]">Single Code</p>
+              <p className="text-xs text-[#737373]">One code to type in and connect.</p>
             </button>
             <button
               type="button"
               onClick={() => setLoginMethod("credentials")}
               className={`rounded-xl border-2 p-3 text-left transition ${
-                loginMethod === "credentials" ? "border-[#2563eb] bg-[#f1f5f9]" : "border-[#e2e8f0] bg-white hover:bg-[#ffffff]"
+                loginMethod === "credentials" ? "border-[#1a1a1a] bg-[#f4f4f4]" : "border-[#e6e6e6] bg-white hover:bg-[#ffffff]"
               }`}
             >
-              <p className="text-sm font-bold text-[#0f172a]">Username &amp; Password</p>
-              <p className="text-xs text-[#64748b]">Two fields, like a PPPoE login.</p>
+              <p className="text-sm font-bold text-[#1a1a1a]">Username &amp; Password</p>
+              <p className="text-xs text-[#737373]">Two fields, like a PPPoE login.</p>
             </button>
           </div>
         </div>
@@ -265,7 +265,7 @@ export default function CreateVoucherPage() {
         <div className="grid gap-6 sm:grid-cols-2">
           <label className="block">
             <div className="mb-2 flex items-center justify-between gap-2">
-              <span className="text-sm font-semibold text-[#475569]">
+              <span className="text-sm font-semibold text-[#525252]">
                 Package <span className="text-red-500">*</span>
               </span>
               {!isLockedToDefaultPackage && (
@@ -317,7 +317,7 @@ export default function CreateVoucherPage() {
                       : `Router${selectedPackage.routerIps.length === 1 ? "" : "s"} auto-filled below from this package${selectedPackageSite ? ` (${selectedPackageSite.name})` : ""}.`}
                   </span>
                 ) : (
-                  <span className="mt-1 block text-xs text-[#94a3b8]">
+                  <span className="mt-1 block text-xs text-[#a3a3a3]">
                     Select a package for this voucher.
                   </span>
                 )}
@@ -326,7 +326,7 @@ export default function CreateVoucherPage() {
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               Number of Vouchers <span className="text-red-500">*</span>
             </span>
             <input
@@ -336,12 +336,12 @@ export default function CreateVoucherPage() {
               max={500}
               value={quantity}
               onChange={(event) => setQuantity(Number(event.target.value))}
-              className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             />
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               Voucher Prefix
             </span>
             <input
@@ -349,21 +349,21 @@ export default function CreateVoucherPage() {
               onChange={(event) => setPrefix(event.target.value)}
               maxLength={1}
               placeholder="None"
-              className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             />
-            <span className="mt-1 block text-xs text-[#94a3b8]">
+            <span className="mt-1 block text-xs text-[#a3a3a3]">
               Optional. 1 letter max.
             </span>
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               Voucher Code Length <span className="text-red-500">*</span>
             </span>
             <select
               value={codeLength}
               onChange={(event) => setCodeLength(Number(event.target.value))}
-              className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             >
               {Array.from({ length: 5 }, (_, i) => i + 4).map((len) => (
                 <option key={len} value={len}>
@@ -371,13 +371,13 @@ export default function CreateVoucherPage() {
                 </option>
               ))}
             </select>
-            <span className="mt-1 block text-xs text-[#94a3b8]">
+            <span className="mt-1 block text-xs text-[#a3a3a3]">
               Between 4–8 characters (includes prefix).
             </span>
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               Voucher Code Format <span className="text-red-500">*</span>
             </span>
             <select
@@ -385,7 +385,7 @@ export default function CreateVoucherPage() {
               onChange={(event) =>
                 setCodeFormat(event.target.value as VoucherCodeFormat)
               }
-              className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             >
               <option value="uppercase">Uppercase (A-Z, 0-9)</option>
               <option value="lowercase">Lowercase (a-z, 0-9)</option>
@@ -395,47 +395,47 @@ export default function CreateVoucherPage() {
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               Batch Reference
             </span>
             <input
               value={reference}
               onChange={(event) => setReference(event.target.value)}
               placeholder="Auto-generated if empty"
-              className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             />
-            <span className="mt-1 block text-xs text-[#94a3b8]">
+            <span className="mt-1 block text-xs text-[#a3a3a3]">
               Optional custom batch reference (e.g., &quot;Ben-Week1&quot;).
             </span>
           </label>
         </div>
 
         <div className="block" data-testid="voucher-router-picker">
-          <span className="mb-2 block text-sm font-semibold text-[#475569]">
+          <span className="mb-2 block text-sm font-semibold text-[#525252]">
             Site &amp; Router <span className="text-red-500">*</span>
           </span>
 
           {pickable.length === 0 ? (
-            <p className="rounded-xl border border-[#e2e8f0] bg-[#ffffff] p-3 text-sm text-[#94a3b8]">
+            <p className="rounded-xl border border-[#e6e6e6] bg-[#ffffff] p-3 text-sm text-[#a3a3a3]">
               No router available yet — add one first.
             </p>
           ) : onlyOneRouter ? (
-            <div data-testid="router-auto" className="rounded-xl border border-[#e2e8f0] bg-[#ffffff] p-3 text-sm text-[#475569]">
+            <div data-testid="router-auto" className="rounded-xl border border-[#e6e6e6] bg-[#ffffff] p-3 text-sm text-[#525252]">
               Router selected automatically:{" "}
-              <span className="font-semibold text-[#0f172a]">{pickable[0].name.split(" (")[0]}</span>
-              {groups[0] && groups[0].key !== "__none__" && <span className="text-[#64748b]"> · {groups[0].name}</span>}
-              <p className="mt-1 text-xs text-[#94a3b8]">Only one router is available here, so there is nothing to choose.</p>
+              <span className="font-semibold text-[#1a1a1a]">{pickable[0].name.split(" (")[0]}</span>
+              {groups[0] && groups[0].key !== "__none__" && <span className="text-[#737373]"> · {groups[0].name}</span>}
+              <p className="mt-1 text-xs text-[#a3a3a3]">Only one router is available here, so there is nothing to choose.</p>
             </div>
           ) : (
-            <div className="space-y-3 rounded-xl border border-[#e2e8f0] bg-white p-3">
+            <div className="space-y-3 rounded-xl border border-[#e6e6e6] bg-white p-3">
               {groups.length > 1 && (
                 <label className="block">
-                  <span className="mb-1 block text-xs font-semibold text-[#64748b]">Site</span>
+                  <span className="mb-1 block text-xs font-semibold text-[#737373]">Site</span>
                   <select
                     data-testid="voucher-site"
                     value={activeKey}
                     onChange={(event) => chooseSite(event.target.value)}
-                    className="h-11 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                    className="h-11 w-full rounded-xl border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
                   >
                     {groups.map((g) => (
                       <option key={g.key} value={g.key}>
@@ -448,19 +448,19 @@ export default function CreateVoucherPage() {
               )}
 
               {activeKey === "__all__" ? (
-                <p data-testid="router-all" className="text-sm text-[#475569]">
-                  These vouchers will work on <span className="font-semibold text-[#0f172a]">all {pickable.length} routers</span>.
+                <p data-testid="router-all" className="text-sm text-[#525252]">
+                  These vouchers will work on <span className="font-semibold text-[#1a1a1a]">all {pickable.length} routers</span>.
                 </p>
               ) : activeGroup && activeGroup.groupRouters.length === 1 ? (
-                <p data-testid="router-auto" className="text-sm text-[#475569]">
+                <p data-testid="router-auto" className="text-sm text-[#525252]">
                   Router selected automatically:{" "}
-                  <span className="font-semibold text-[#0f172a]">{activeGroup.groupRouters[0].name.split(" (")[0]}</span>
-                  <span className="block text-xs text-[#94a3b8]">{activeGroup.name} has only this router.</span>
+                  <span className="font-semibold text-[#1a1a1a]">{activeGroup.groupRouters[0].name.split(" (")[0]}</span>
+                  <span className="block text-xs text-[#a3a3a3]">{activeGroup.name} has only this router.</span>
                 </p>
               ) : activeGroup ? (
                 <div data-testid="router-choose">
                   <div className="mb-1.5 flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#475569]">
+                    <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#525252]">
                       <Building2 size={12} />
                       {activeGroup.name} · choose router
                     </span>
@@ -468,20 +468,20 @@ export default function CreateVoucherPage() {
                       type="button"
                       data-testid="select-site-routers"
                       onClick={() => toggleSite(activeGroup.groupRouters.map((r) => r.ip))}
-                      className="text-[11px] font-semibold text-[#2563eb] hover:underline"
+                      className="text-[11px] font-semibold text-[#1a1a1a] hover:underline"
                     >
                       {activeGroup.groupRouters.every((r) => routerIps.includes(r.ip)) ? "Unselect all" : "Select all in this site"}
                     </button>
                   </div>
                   <div className="grid gap-1.5 sm:grid-cols-2">
                     {activeGroup.groupRouters.map((r) => (
-                      <label key={r.ip} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-[#475569] hover:bg-[#f1f5f9]">
+                      <label key={r.ip} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-[#525252] hover:bg-[#f4f4f4]">
                         <input
                           type="checkbox"
                           data-testid="voucher-router"
                           checked={routerIps.includes(r.ip)}
                           onChange={() => toggleRouter(r.ip)}
-                          className="h-4 w-4 rounded border-[#e2e8f0] accent-[#2563eb]"
+                          className="h-4 w-4 rounded border-[#e6e6e6] accent-[#1a1a1a]"
                         />
                         {r.name.split(" (")[0]}
                       </label>
@@ -497,12 +497,12 @@ export default function CreateVoucherPage() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <label className="flex items-start justify-between gap-3 rounded-xl border border-[#f1f5f9] bg-[#ffffff] px-4 py-3">
+          <label className="flex items-start justify-between gap-3 rounded-xl border border-[#f4f4f4] bg-[#ffffff] px-4 py-3">
             <div>
-              <span className="text-sm font-semibold text-[#475569]">
+              <span className="text-sm font-semibold text-[#525252]">
                 Giveaway
               </span>
-              <p className="text-xs text-[#94a3b8]">
+              <p className="text-xs text-[#a3a3a3]">
                 Mark as giveaway (not counted as revenue).
               </p>
             </div>
@@ -510,7 +510,7 @@ export default function CreateVoucherPage() {
               type="button"
               onClick={() => setIsGiveaway((current) => !current)}
               className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-                isGiveaway ? "bg-emerald-500" : "bg-[#e2e8f0]"
+                isGiveaway ? "bg-emerald-500" : "bg-[#e6e6e6]"
               }`}
             >
               <span
@@ -521,12 +521,12 @@ export default function CreateVoucherPage() {
             </button>
           </label>
 
-          <label className="flex items-start justify-between gap-3 rounded-xl border border-[#f1f5f9] bg-[#ffffff] px-4 py-3">
+          <label className="flex items-start justify-between gap-3 rounded-xl border border-[#f4f4f4] bg-[#ffffff] px-4 py-3">
             <div>
-              <span className="text-sm font-semibold text-[#475569]">
+              <span className="text-sm font-semibold text-[#525252]">
                 Send Notification
               </span>
-              <p className="text-xs text-[#94a3b8]">
+              <p className="text-xs text-[#a3a3a3]">
                 Send this voucher via SMS or WhatsApp.
               </p>
             </div>
@@ -534,7 +534,7 @@ export default function CreateVoucherPage() {
               type="button"
               onClick={() => setSendNotification((current) => !current)}
               className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-                sendNotification ? "bg-emerald-500" : "bg-[#e2e8f0]"
+                sendNotification ? "bg-emerald-500" : "bg-[#e6e6e6]"
               }`}
             >
               <span
@@ -548,14 +548,14 @@ export default function CreateVoucherPage() {
 
         {sendNotification && (
           <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               Recipient phone number
             </span>
             <input
               value={notifyPhone}
               onChange={(event) => setNotifyPhone(event.target.value)}
               placeholder="e.g. 024 123 4567"
-              className="h-11 w-full max-w-xs rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 w-full max-w-xs rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             />
           </label>
         )}
@@ -564,10 +564,10 @@ export default function CreateVoucherPage() {
         <div className="rounded-xl border-2 border-blue-200 bg-white p-4">
           <label className="flex items-center justify-between">
             <div>
-              <span className="text-sm font-semibold text-[#475569]">
+              <span className="text-sm font-semibold text-[#525252]">
                 Save these settings as a preset
               </span>
-              <p className="text-xs text-[#64748b]">
+              <p className="text-xs text-[#737373]">
                 Reuse this exact package, quantity, code format and router selection next time.
               </p>
             </div>
@@ -575,7 +575,7 @@ export default function CreateVoucherPage() {
               type="button"
               onClick={() => setSaveAsPreset((current) => !current)}
               className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-                saveAsPreset ? "bg-blue-500" : "bg-[#e2e8f0]"
+                saveAsPreset ? "bg-blue-500" : "bg-[#e6e6e6]"
               }`}
             >
               <span
@@ -597,7 +597,7 @@ export default function CreateVoucherPage() {
         </div>
         )}
 
-        <div className="flex flex-wrap gap-3 border-t border-[#f1f5f9] pt-6">
+        <div className="flex flex-wrap gap-3 border-t border-[#f4f4f4] pt-6">
           <button
             type="submit"
             onClick={handleCreate}
@@ -610,13 +610,13 @@ export default function CreateVoucherPage() {
             type="button"
             onClick={handleCreateAndCreateAnother}
             disabled={routerIps.length === 0}
-            className="rounded-xl border border-[#e2e8f0] bg-white px-6 py-3 text-sm font-bold text-[#475569] hover:bg-[#ffffff] disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-xl border border-[#e6e6e6] bg-white px-6 py-3 text-sm font-bold text-[#525252] hover:bg-[#ffffff] disabled:cursor-not-allowed disabled:opacity-50"
           >
             Create &amp; create another
           </button>
           <Link
             href="/dashboards/vouchers"
-            className="rounded-xl border border-[#e2e8f0] bg-white px-6 py-3 text-sm font-bold text-[#475569] hover:bg-[#ffffff]"
+            className="rounded-xl border border-[#e6e6e6] bg-white px-6 py-3 text-sm font-bold text-[#525252] hover:bg-[#ffffff]"
           >
             Cancel
           </Link>

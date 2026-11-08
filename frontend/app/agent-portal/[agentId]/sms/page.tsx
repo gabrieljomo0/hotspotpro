@@ -50,13 +50,13 @@ function SmsBody({ agent }: { agent: AgentProfile }) {
     <section>
       <div className="mb-5">
         <h1 className="flex items-center gap-2 text-2xl font-black md:text-3xl">
-          <MessageSquare size={26} className="text-[#2563eb]" />
+          <MessageSquare size={26} className="text-[#1a1a1a]" />
           SMS
         </h1>
-        <p className="mt-1 text-sm text-[#64748b]">Messages to your customers and a record of what was sent.</p>
+        <p className="mt-1 text-sm text-[#737373]">Messages to your customers and a record of what was sent.</p>
       </div>
 
-      <p className="mb-4 flex items-start gap-2 rounded-xl bg-white px-4 py-2.5 text-xs text-[#2563eb]">
+      <p className="mb-4 flex items-start gap-2 rounded-xl bg-white px-4 py-2.5 text-xs text-[#1a1a1a]">
         <Info size={14} className="mt-0.5 shrink-0" />
         No SMS gateway is connected yet, so messages are recorded here but not delivered to the phone.
       </p>
@@ -64,67 +64,67 @@ function SmsBody({ agent }: { agent: AgentProfile }) {
       <div className="grid gap-4 lg:grid-cols-2">
         {canSend && (
           <article className="rounded-2xl bg-white p-5">
-            <h2 className="mb-3 text-sm font-bold text-[#0f172a]">Send an SMS</h2>
-            <input data-testid="sms-to" list="sms-customers" value={to} onChange={(e) => setTo(e.target.value)} placeholder="Customer phone number" className="mb-2 h-10 w-full rounded-lg border border-[#cbd5e1] px-3 text-sm outline-none focus:border-[#2563eb]" />
+            <h2 className="mb-3 text-sm font-bold text-[#1a1a1a]">Send an SMS</h2>
+            <input data-testid="sms-to" list="sms-customers" value={to} onChange={(e) => setTo(e.target.value)} placeholder="Customer phone number" className="mb-2 h-10 w-full rounded-lg border border-[#d4d4d4] px-3 text-sm outline-none focus:border-[#1a1a1a]" />
             <datalist id="sms-customers">
               {getScopedUsers(users, routers, agent.routerIp).slice(0, 30).map((u) => <option key={u.phone} value={u.phone} />)}
             </datalist>
             <div className="mb-2 flex flex-wrap gap-1.5">
               {templates.map((t) => (
-                <button key={t.id} type="button" data-testid="sms-template" onClick={() => setText(t.text)} className="rounded-full px-2.5 py-1 text-[11px] font-semibold text-[#475569] hover:bg-[#f8fafc]">
+                <button key={t.id} type="button" data-testid="sms-template" onClick={() => setText(t.text)} className="rounded-full px-2.5 py-1 text-[11px] font-semibold text-[#525252] hover:bg-[#f7f7f7]">
                   {t.name}
                 </button>
               ))}
             </div>
-            <textarea data-testid="sms-text" value={text} onChange={(e) => setText(e.target.value)} rows={4} placeholder="Type your message..." className="w-full rounded-lg border border-[#cbd5e1] px-3 py-2 text-sm outline-none focus:border-[#2563eb]" />
+            <textarea data-testid="sms-text" value={text} onChange={(e) => setText(e.target.value)} rows={4} placeholder="Type your message..." className="w-full rounded-lg border border-[#d4d4d4] px-3 py-2 text-sm outline-none focus:border-[#1a1a1a]" />
             <div className="mt-1 flex items-center justify-between text-xs">
-              <span data-testid="sms-count" className={text.length > SMS_MAX ? "font-semibold text-red-600" : "text-[#94a3b8]"}>{text.length}/{SMS_MAX}</span>
+              <span data-testid="sms-count" className={text.length > SMS_MAX ? "font-semibold text-red-600" : "text-[#a3a3a3]"}>{text.length}/{SMS_MAX}</span>
               {error && <span data-testid="sms-error" className="font-semibold text-red-600">{error}</span>}
             </div>
-            <button type="button" data-testid="sms-send" onClick={send} className="mt-3 inline-flex items-center gap-2 rounded-xl bg-[#2563eb] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8]"><Send size={14} /> Send</button>
+            <button type="button" data-testid="sms-send" onClick={send} className="mt-3 inline-flex items-center gap-2 rounded-xl bg-[#1a1a1a] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#111111]"><Send size={14} /> Send</button>
           </article>
         )}
 
         <article className="rounded-2xl bg-white p-5">
-          <h2 className="mb-3 text-sm font-bold text-[#0f172a]">History</h2>
+          <h2 className="mb-3 text-sm font-bold text-[#1a1a1a]">History</h2>
           <div data-testid="sms-history" className="max-h-80 space-y-2 overflow-y-auto">
             {history.map((r) => (
-              <div key={r.id} className="rounded-lg bg-[#f8fafc] px-3 py-2 text-sm">
-                <p className="flex justify-between text-xs text-[#64748b]"><span className="font-semibold text-[#0f172a]">{r.to}</span><span>{when(r.atMs)}</span></p>
-                <p className="text-[#475569]">{r.text}</p>
-                <p className="text-[10px] font-semibold uppercase text-[#94a3b8]">{r.kind === "voucher" ? "Voucher delivery" : "Recorded"}</p>
+              <div key={r.id} className="rounded-lg bg-[#f7f7f7] px-3 py-2 text-sm">
+                <p className="flex justify-between text-xs text-[#737373]"><span className="font-semibold text-[#1a1a1a]">{r.to}</span><span>{when(r.atMs)}</span></p>
+                <p className="text-[#525252]">{r.text}</p>
+                <p className="text-[10px] font-semibold uppercase text-[#a3a3a3]">{r.kind === "voucher" ? "Voucher delivery" : "Recorded"}</p>
               </div>
             ))}
-            {history.length === 0 && <p className="py-6 text-center text-sm text-[#94a3b8]">No messages yet.</p>}
+            {history.length === 0 && <p className="py-6 text-center text-sm text-[#a3a3a3]">No messages yet.</p>}
           </div>
         </article>
 
         {canEditTemplates && (
           <article className="rounded-2xl bg-white p-5 lg:col-span-2">
-            <h2 className="mb-3 text-sm font-bold text-[#0f172a]">Your templates</h2>
+            <h2 className="mb-3 text-sm font-bold text-[#1a1a1a]">Your templates</h2>
             <div className="grid gap-2 sm:grid-cols-3">
               {templates.map((t) => (
-                <div key={t.id} className="rounded-xl border-[#f1f5f9] p-3">
-                  <p className="flex items-center justify-between text-sm font-bold text-[#0f172a]">{t.name}
-                    <button type="button" data-testid="edit-template" onClick={() => setEditing(t)} aria-label={`Edit ${t.name}`} className="text-[#94a3b8] hover:text-[#2563eb]"><Pencil size={13} /></button>
+                <div key={t.id} className="rounded-xl border-[#f4f4f4] p-3">
+                  <p className="flex items-center justify-between text-sm font-bold text-[#1a1a1a]">{t.name}
+                    <button type="button" data-testid="edit-template" onClick={() => setEditing(t)} aria-label={`Edit ${t.name}`} className="text-[#a3a3a3] hover:text-[#1a1a1a]"><Pencil size={13} /></button>
                   </p>
-                  <p className="mt-1 text-xs text-[#64748b]">{t.text}</p>
+                  <p className="mt-1 text-xs text-[#737373]">{t.text}</p>
                 </div>
               ))}
             </div>
             {editing && (
-              <div data-testid="template-editor" className="mt-3 rounded-xl bg-[#f8fafc] p-3">
-                <textarea data-testid="template-text" value={editing.text} onChange={(e) => setEditing({ ...editing, text: e.target.value })} rows={3} className="w-full rounded-lg border border-[#cbd5e1] bg-white px-3 py-2 text-sm outline-none focus:border-[#2563eb]" />
+              <div data-testid="template-editor" className="mt-3 rounded-xl bg-[#f7f7f7] p-3">
+                <textarea data-testid="template-text" value={editing.text} onChange={(e) => setEditing({ ...editing, text: e.target.value })} rows={3} className="w-full rounded-lg border border-[#d4d4d4] bg-white px-3 py-2 text-sm outline-none focus:border-[#1a1a1a]" />
                 <div className="mt-2 flex gap-2">
-                  <button type="button" data-testid="template-save" disabled={!editing.text.trim() || editing.text.length > SMS_MAX} onClick={() => { saveTemplates(agent.id, templates.map((t) => (t.id === editing.id ? editing : t))); setEditing(null); }} className="rounded-lg bg-[#2563eb] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50">Save</button>
-                  <button type="button" onClick={() => setEditing(null)} className="rounded-lg px-3 py-1.5 text-xs font-semibold text-[#475569]">Cancel</button>
+                  <button type="button" data-testid="template-save" disabled={!editing.text.trim() || editing.text.length > SMS_MAX} onClick={() => { saveTemplates(agent.id, templates.map((t) => (t.id === editing.id ? editing : t))); setEditing(null); }} className="rounded-lg bg-[#1a1a1a] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50">Save</button>
+                  <button type="button" onClick={() => setEditing(null)} className="rounded-lg px-3 py-1.5 text-xs font-semibold text-[#525252]">Cancel</button>
                 </div>
               </div>
             )}
           </article>
         )}
       </div>
-      {!canSend && <p className="mt-3 text-xs text-[#94a3b8]">You can see your SMS history but not send messages.</p>}
+      {!canSend && <p className="mt-3 text-xs text-[#a3a3a3]">You can see your SMS history but not send messages.</p>}
     </section>
   );
 }

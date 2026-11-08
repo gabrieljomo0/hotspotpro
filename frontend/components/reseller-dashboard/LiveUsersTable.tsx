@@ -7,8 +7,8 @@ import { statusClass } from "./statusClass";
 
 export function LiveUsersTable() {
  return (
-  <article className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)] ">
-   <div className="flex flex-col gap-4 border-b border-[#e2e8f0] p-4 xl:flex-row xl:items-center">
+  <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)] ">
+   <div className="flex flex-col gap-4 border-b border-[#e6e6e6] p-4 xl:flex-row xl:items-center">
     <div className="flex items-center gap-3">
      <h3 className="font-bold">
       Live Users (Now)
@@ -23,19 +23,19 @@ export function LiveUsersTable() {
      <div className="relative flex-1 xl:w-[300px]">
       <Search
        size={16}
-       className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8]"
+       className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]"
       />
 
       <input
        type="search"
        placeholder="Search by user, IP or MAC..."
-       className="h-10 w-full rounded-lg border border-[#e2e8f0] pl-10 pr-4 text-sm outline-none focus:border-[#2563eb] "
+       className="h-10 w-full rounded-lg border border-[#e6e6e6] pl-10 pr-4 text-sm outline-none focus:border-[#1a1a1a] "
       />
      </div>
 
      <button
       type="button"
-      className="rounded-lg border border-[#e2e8f0] px-4 text-sm font-semibold "
+      className="rounded-lg border border-[#e6e6e6] px-4 text-sm font-semibold "
      >
       Filters
      </button>
@@ -44,7 +44,7 @@ export function LiveUsersTable() {
 
    <div className="overflow-x-auto">
     <table className="w-full min-w-[1050px] text-left text-xs">
-     <thead className="bg-[#ffffff] text-[#64748b] ">
+     <thead className="bg-[#ffffff] text-[#737373] ">
       <tr>
        <th className="px-4 py-3">
         User / Phone
@@ -80,7 +80,7 @@ export function LiveUsersTable() {
       {liveUsers.map((user) => (
        <tr
         key={user.phone}
-        className="border-t border-slate-100 hover:bg-[#f1f5f9] "
+        className="border-t border-slate-100 hover:bg-[#f4f4f4] "
        >
         <td className="px-4 py-3 font-semibold">
          <span
@@ -92,7 +92,7 @@ export function LiveUsersTable() {
              : user.status === "Expiring Soon"
               ? "bg-amber-500"
               : user.status === "Blocked"
-               ? "bg-[#fff4f4]0"
+               ? "bg-[#f3f1ec]0"
                : "bg-slate-400"
           }`}
          />
@@ -147,7 +147,7 @@ export function LiveUsersTable() {
           "Blocked" ? (
            <button
             type="button"
-            className="rounded-md bg-blue-100 px-2 py-1 font-semibold text-[#2563eb]"
+            className="rounded-md bg-blue-100 px-2 py-1 font-semibold text-[#1a1a1a]"
            >
             Unblock
            </button>
@@ -159,7 +159,7 @@ export function LiveUsersTable() {
           ) : (
            <button
             type="button"
-            className="rounded-md bg-[#fff4f4] px-2 py-1 font-semibold text-[#dc2626]"
+            className="rounded-md bg-[#f3f1ec] px-2 py-1 font-semibold text-[#1a1a1a]"
            >
             Disconnect
            </button>
@@ -167,7 +167,7 @@ export function LiveUsersTable() {
 
           <button
            type="button"
-           className="rounded-md border border-[#e2e8f0] p-1.5 "
+           className="rounded-md border border-[#e6e6e6] p-1.5 "
           >
            <MoreVertical size={15} />
           </button>
@@ -179,14 +179,14 @@ export function LiveUsersTable() {
     </table>
    </div>
 
-   <div className="flex items-center justify-between border-t border-[#e2e8f0] px-4 py-3 text-xs ">
-    <p className="text-[#64748b] ">
+   <div className="flex items-center justify-between border-t border-[#e6e6e6] px-4 py-3 text-xs ">
+    <p className="text-[#737373] ">
      Showing 1 to 6 of 487 users
     </p>
 
     <button
      type="button"
-     className="font-semibold text-[#2563eb] dark:text-[#60a5fa]"
+     className="font-semibold text-[#1a1a1a] dark:text-[#1a1a1a]"
     >
      View all users →
     </button>

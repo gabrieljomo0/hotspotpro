@@ -27,21 +27,21 @@ export function TopUpWalletModal({ agent, onClose }: { agent: AgentProfile; onCl
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
         <div className="mb-1 flex items-start justify-between">
-          <h3 className="flex items-center gap-2 text-lg font-bold text-[#0f172a]">
-            <Wallet size={18} className="text-[#2563eb]" />
+          <h3 className="flex items-center gap-2 text-lg font-bold text-[#1a1a1a]">
+            <Wallet size={18} className="text-[#1a1a1a]" />
             Top Up Wallet
           </h3>
-          <button type="button" onClick={onClose} className="text-[#94a3b8] hover:text-[#475569]">
+          <button type="button" onClick={onClose} className="text-[#a3a3a3] hover:text-[#525252]">
             <X size={18} />
           </button>
         </div>
-        <p className="mb-5 text-sm text-[#64748b]">
-          Current balance: <span className="font-bold text-[#0f172a]">{sym()} {agent.walletBalance.toLocaleString()}</span>
+        <p className="mb-5 text-sm text-[#737373]">
+          Current balance: <span className="font-bold text-[#1a1a1a]">{sym()} {agent.walletBalance.toLocaleString()}</span>
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold text-[#475569]">
+            <span className="mb-1.5 block text-sm font-semibold text-[#525252]">
               Amount ({sym()}) <span className="text-red-500">*</span>
             </span>
             <input
@@ -51,16 +51,16 @@ export function TopUpWalletModal({ agent, onClose }: { agent: AgentProfile; onCl
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
               placeholder="e.g. 50"
-              className="h-11 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#cbd5e1]"
+              className="h-11 w-full rounded-xl border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#d4d4d4]"
             />
           </label>
 
           <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold text-[#475569]">Payment Method</span>
+            <span className="mb-1.5 block text-sm font-semibold text-[#525252]">Payment Method</span>
             <select
               value={method}
               onChange={(event) => setMethod(event.target.value)}
-              className="h-11 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#cbd5e1]"
+              className="h-11 w-full rounded-xl border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#d4d4d4]"
             >
               {PAYMENT_METHODS.map((m) => (
                 <option key={m} value={m}>
@@ -72,12 +72,12 @@ export function TopUpWalletModal({ agent, onClose }: { agent: AgentProfile; onCl
 
           {method === "Mobile Money" && (
             <label className="block">
-              <span className="mb-1.5 block text-sm font-semibold text-[#475569]">Phone Number</span>
+              <span className="mb-1.5 block text-sm font-semibold text-[#525252]">Phone Number</span>
               <input
                 value={phone}
                 onChange={(event) => setPhone(event.target.value)}
                 placeholder="e.g. 0241234567"
-                className="h-11 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#cbd5e1]"
+                className="h-11 w-full rounded-xl border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#d4d4d4]"
               />
             </label>
           )}
@@ -85,14 +85,14 @@ export function TopUpWalletModal({ agent, onClose }: { agent: AgentProfile; onCl
           <div className="flex gap-2 pt-2">
             <button
               type="submit"
-              className="rounded-xl bg-[#2563eb] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+              className="rounded-xl bg-[#1a1a1a] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#111111]"
             >
               Top Up
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl bg-[#f1f5f9] px-5 py-2.5 text-sm font-bold text-[#475569] hover:bg-[#f8fafc]"
+              className="rounded-xl bg-[#f4f4f4] px-5 py-2.5 text-sm font-bold text-[#525252] hover:bg-[#f7f7f7]"
             >
               Cancel
             </button>

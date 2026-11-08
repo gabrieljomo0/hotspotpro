@@ -55,61 +55,61 @@ export default function LeadsPage() {
     <section className="w-full">
       <BackLink />
       <h2 className="mb-1 flex items-center gap-2 text-3xl font-bold tracking-tight md:text-4xl">
-        <UserPlus2 className="text-[#2563eb]" size={30} />
+        <UserPlus2 className="text-[#1a1a1a]" size={30} />
         Leads
       </h2>
-      <p className="mb-6 max-w-2xl text-sm text-[#64748b] md:text-base">
+      <p className="mb-6 max-w-2xl text-sm text-[#737373] md:text-base">
         Prospective customers who haven&apos;t bought yet ({leads.length}{" "}
         total).
       </p>
 
       <div className="grid gap-5 lg:grid-cols-[1fr_2fr]">
-        <article className="rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+        <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
           <h3 className="mb-4 text-base font-bold">Add Lead</h3>
           <form onSubmit={handleAdd} className="space-y-4">
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">
                 Name
               </span>
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
             </label>
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">
                 Phone
               </span>
               <input
                 value={phone}
                 onChange={(event) => setPhone(event.target.value)}
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
             </label>
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">
                 Interested In
               </span>
               <input
                 value={interest}
                 onChange={(event) => setInterest(event.target.value)}
                 placeholder="e.g. Monthly Plan"
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
             </label>
             <button
               type="submit"
-              className="w-full rounded-xl bg-[#2563eb] px-5 py-3 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+              className="w-full rounded-xl bg-[#1a1a1a] px-5 py-3 text-sm font-bold text-white hover:bg-[#111111]"
             >
               Add Lead
             </button>
           </form>
         </article>
 
-        <article className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+        <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
           <table className="w-full text-left text-sm">
-            <thead className="bg-[#ffffff] text-xs text-[#64748b]">
+            <thead className="bg-[#ffffff] text-xs text-[#737373]">
               <tr>
                 <th className="px-5 py-3 font-semibold">Name</th>
                 <th className="px-5 py-3 font-semibold">Phone</th>
@@ -119,12 +119,12 @@ export default function LeadsPage() {
             </thead>
             <tbody>
               {leads.map((lead) => (
-                <tr key={lead.id} className="border-t border-[#f1f5f9]">
-                  <td className="px-5 py-3 font-semibold text-[#0f172a]">
+                <tr key={lead.id} className="border-t border-[#f4f4f4]">
+                  <td className="px-5 py-3 font-semibold text-[#1a1a1a]">
                     {lead.name}
                   </td>
-                  <td className="px-5 py-3 text-[#475569]">{lead.phone}</td>
-                  <td className="px-5 py-3 text-[#475569]">{lead.interest}</td>
+                  <td className="px-5 py-3 text-[#525252]">{lead.phone}</td>
+                  <td className="px-5 py-3 text-[#525252]">{lead.interest}</td>
                   <td className="px-5 py-3">
                     <select
                       value={lead.status}

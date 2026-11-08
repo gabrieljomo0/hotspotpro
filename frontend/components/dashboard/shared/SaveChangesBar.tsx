@@ -26,7 +26,7 @@ export function SaveChangesBar({
     <>
       <div className="sticky bottom-4 z-30 mt-6">
         <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 rounded-2xl border-2 border-amber-300 bg-white px-5 py-4 shadow-2xl">
-          <p className="flex items-center gap-2 text-sm font-bold text-[#0f172a]">
+          <p className="flex items-center gap-2 text-sm font-bold text-[#1a1a1a]">
             <AlertTriangle size={16} className="text-amber-500" />
             {changeCount ? `${changeCount} unsaved change${changeCount === 1 ? "" : "s"}` : "You have unsaved changes"}
           </p>
@@ -34,7 +34,7 @@ export function SaveChangesBar({
             <button
               type="button"
               onClick={onDiscard}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-[#e2e8f0] bg-white px-4 py-2.5 text-sm font-bold text-[#475569] hover:bg-[#ffffff]"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-[#e6e6e6] bg-white px-4 py-2.5 text-sm font-bold text-[#525252] hover:bg-[#ffffff]"
             >
               <RotateCcw size={14} />
               Discard
@@ -59,7 +59,7 @@ export function SaveChangesBar({
             className="absolute inset-0"
             onClick={() => setConfirmOpen(false)}
           />
-          <section className="relative z-10 w-full max-w-md rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-2xl">
+          <section className="relative z-10 w-full max-w-md rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-2xl">
             <div className="mb-4 flex items-start justify-between">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-600">
                 <Save size={22} />
@@ -67,13 +67,13 @@ export function SaveChangesBar({
               <button
                 type="button"
                 onClick={() => setConfirmOpen(false)}
-                className="text-[#94a3b8] hover:text-[#475569]"
+                className="text-[#a3a3a3] hover:text-[#525252]"
               >
                 <X size={18} />
               </button>
             </div>
-            <h3 className="text-lg font-black text-[#0f172a]">Save these changes?</h3>
-            <p className="mt-2 text-sm leading-6 text-[#64748b]">
+            <h3 className="text-lg font-black text-[#1a1a1a]">Save these changes?</h3>
+            <p className="mt-2 text-sm leading-6 text-[#737373]">
               {confirmMessage ??
                 "This will apply your changes right away — everyone affected will see the update immediately."}
             </p>
@@ -81,7 +81,7 @@ export function SaveChangesBar({
               <button
                 type="button"
                 onClick={() => setConfirmOpen(false)}
-                className="rounded-xl border border-[#e2e8f0] px-5 py-3 text-sm font-semibold text-[#475569] hover:bg-[#ffffff]"
+                className="rounded-xl border border-[#e6e6e6] px-5 py-3 text-sm font-semibold text-[#525252] hover:bg-[#ffffff]"
               >
                 Cancel
               </button>

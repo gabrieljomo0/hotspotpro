@@ -40,7 +40,7 @@ export default function InstallerClientsPage() {
           <h2 className="mb-1 text-3xl font-bold tracking-tight md:text-4xl">
             Installer Clients
           </h2>
-          <p className="max-w-2xl text-sm text-[#64748b] md:text-base">
+          <p className="max-w-2xl text-sm text-[#737373] md:text-base">
             Once an installer finishes setting up a site, dispatch it here.
             The client gets their own agent dashboard — no admin configuration
             access — and the installer keeps a way to reconnect for support.
@@ -55,14 +55,14 @@ export default function InstallerClientsPage() {
         </Link>
       </div>
 
-      <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-[#64748b]">
+      <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-[#737373]">
         Ready to Dispatch ({inProgress.length})
       </h3>
       {inProgress.length === 0 ? (
-        <div className="mb-8 rounded-2xl border border-[#e2e8f0] bg-white p-6 text-center text-sm text-[#94a3b8]">
+        <div className="mb-8 rounded-2xl border border-[#e6e6e6] bg-white p-6 text-center text-sm text-[#a3a3a3]">
           No installations waiting to be dispatched. Assign an installer to a
           site from{" "}
-          <Link href="/dashboards/installers" className="font-semibold text-[#2563eb] hover:underline">
+          <Link href="/dashboards/installers" className="font-semibold text-[#1a1a1a] hover:underline">
             All Installers
           </Link>{" "}
           first.
@@ -74,15 +74,15 @@ export default function InstallerClientsPage() {
             const site = businessLocations.find((s) => s.id === dispatch.siteId);
 
             return (
-              <article key={dispatch.id} className="rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+              <article key={dispatch.id} className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div className="flex h-11 w-11 items-center justify-center rounded-full bg-amber-100 text-amber-600">
                       <UserCog size={18} />
                     </div>
                     <div>
-                      <p className="font-bold text-[#0f172a]">{site?.name ?? dispatch.siteId}</p>
-                      <p className="text-xs text-[#64748b]">Installed by {installer?.name ?? "Unknown installer"}</p>
+                      <p className="font-bold text-[#1a1a1a]">{site?.name ?? dispatch.siteId}</p>
+                      <p className="text-xs text-[#737373]">Installed by {installer?.name ?? "Unknown installer"}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -111,7 +111,7 @@ export default function InstallerClientsPage() {
                       value={clientName}
                       onChange={(e) => setClientName(e.target.value)}
                       placeholder="Client full name"
-                      className="h-11 rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                      className="h-11 rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
                     />
                     <input
                       required
@@ -119,23 +119,23 @@ export default function InstallerClientsPage() {
                       value={clientEmail}
                       onChange={(e) => setClientEmail(e.target.value)}
                       placeholder="Client email"
-                      className="h-11 rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                      className="h-11 rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
                     />
                     <input
                       value={clientPhone}
                       onChange={(e) => setClientPhone(e.target.value)}
                       placeholder="Client phone"
-                      className="h-11 rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                      className="h-11 rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
                     />
                     <div className="flex gap-2 sm:col-span-3">
-                      <button type="submit" className="rounded-xl bg-[#2563eb] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8]">
+                      <button type="submit" className="rounded-xl bg-[#1a1a1a] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#111111]">
                         Confirm Dispatch
                       </button>
-                      <button type="button" onClick={() => setDispatchingId(null)} className="rounded-xl border border-[#e2e8f0] bg-white px-5 py-2.5 text-sm font-bold text-[#475569] hover:bg-[#ffffff]">
+                      <button type="button" onClick={() => setDispatchingId(null)} className="rounded-xl border border-[#e6e6e6] bg-white px-5 py-2.5 text-sm font-bold text-[#525252] hover:bg-[#ffffff]">
                         Cancel
                       </button>
                     </div>
-                    <p className="text-xs text-[#94a3b8] sm:col-span-3">
+                    <p className="text-xs text-[#a3a3a3] sm:col-span-3">
                       This creates the client&apos;s own agent dashboard login. They&apos;ll
                       only ever see their agent dashboard — never admin
                       configuration.
@@ -148,11 +148,11 @@ export default function InstallerClientsPage() {
         </div>
       )}
 
-      <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-[#64748b]">
+      <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-[#737373]">
         Dispatched ({dispatched.length})
       </h3>
       {dispatched.length === 0 ? (
-        <div className="rounded-2xl border border-[#e2e8f0] bg-white p-6 text-center text-sm text-[#94a3b8]">
+        <div className="rounded-2xl border border-[#e6e6e6] bg-white p-6 text-center text-sm text-[#a3a3a3]">
           Nothing dispatched yet.
         </div>
       ) : (
@@ -163,18 +163,18 @@ export default function InstallerClientsPage() {
             const clientAgent = agents.find((a) => a.id === dispatch.clientAgentId);
 
             return (
-              <article key={dispatch.id} className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+              <article key={dispatch.id} className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
                       <CheckCircle2 size={18} />
                     </div>
                     <div>
-                      <p className="font-bold text-[#0f172a]">{site?.name ?? dispatch.siteId}</p>
-                      <p className="text-xs text-[#64748b]">
+                      <p className="font-bold text-[#1a1a1a]">{site?.name ?? dispatch.siteId}</p>
+                      <p className="text-xs text-[#737373]">
                         Client: {clientAgent?.name ?? "Unknown"} · Installed by {installer?.name ?? "Unknown installer"}
                       </p>
-                      <p className="text-xs text-[#94a3b8]">Dispatched {dispatch.dispatchedAt}</p>
+                      <p className="text-xs text-[#a3a3a3]">Dispatched {dispatch.dispatchedAt}</p>
                       <span
                         className={`mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
                           clientAgent?.allowAdminAccess
@@ -198,8 +198,8 @@ export default function InstallerClientsPage() {
                       aria-disabled={!clientAgent.allowAdminAccess}
                       className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold ${
                         clientAgent.allowAdminAccess
-                          ? "border-[#e2e8f0] bg-white text-[#2563eb] hover:bg-[#ffffff]"
-                          : "cursor-not-allowed border-[#f1f5f9] bg-[#ffffff] text-[#cbd5e1]"
+                          ? "border-[#e6e6e6] bg-white text-[#1a1a1a] hover:bg-[#ffffff]"
+                          : "cursor-not-allowed border-[#f4f4f4] bg-[#ffffff] text-[#d4d4d4]"
                       }`}
                     >
                       <LifeBuoy size={14} />

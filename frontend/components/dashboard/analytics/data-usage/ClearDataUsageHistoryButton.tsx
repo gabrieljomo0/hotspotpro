@@ -21,11 +21,11 @@ export function ClearDataUsageHistoryButton({
     <div className="rounded-xl border border-red-200 bg-red-50 p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="flex items-center gap-2 text-sm font-bold text-[#0f172a]">
+          <p className="flex items-center gap-2 text-sm font-bold text-[#1a1a1a]">
             <TriangleAlert size={16} className="text-red-500" />
             Data Usage History
           </p>
-          <p className="mt-1 text-xs text-[#64748b]">
+          <p className="mt-1 text-xs text-[#737373]">
             {resetAt
               ? `History was last cleared on ${resetAt}. Charts only reflect usage from this point on.`
               : "This clears all recorded data usage since the software was first set up. This cannot be undone."}
@@ -37,7 +37,7 @@ export function ClearDataUsageHistoryButton({
             <button
               type="button"
               onClick={() => setConfirming(false)}
-              className="rounded-lg border border-[#e2e8f0] bg-white px-3 py-2 text-xs font-semibold text-[#475569] hover:bg-[#ffffff]"
+              className="rounded-lg border border-[#e6e6e6] bg-white px-3 py-2 text-xs font-semibold text-[#525252] hover:bg-[#ffffff]"
             >
               Cancel
             </button>

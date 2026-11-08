@@ -3,21 +3,21 @@
 // user's connection status needs to be shown as a colored pill.
 export function statusClass(status: string) {
   if (status === "Online") {
-    return "bg-[#f1f5f9] text-[#2563eb] ";
+    return "bg-[#f4f4f4] text-[#1a1a1a] ";
   }
 
   if (status === "Idle") {
-    return "bg-[#f1f5f9] text-[#475569] dark:text-[#334155]";
+    return "bg-[#f4f4f4] text-[#525252] dark:text-[#333333]";
   }
 
   if (status === "Expiring Soon") {
-    return "bg-[#f1f5f9] text-[#2563eb] ";
+    return "bg-[#f4f4f4] text-[#1a1a1a] ";
   }
 
   if (status === "Blocked") {
-    return "bg-[#fef2f2] text-[#b91c1c] ";
+    return "bg-[#f3f1ec] text-[#1a1a1a] ";
   }
 
   // Covers "Disconnected", "Expired", and anything else not listed above.
-  return "bg-[#f1f5f9] text-[#2563eb] ";
+  return "bg-[#f4f4f4] text-[#1a1a1a] ";
 }

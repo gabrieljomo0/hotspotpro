@@ -29,10 +29,10 @@ export function InputField({
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-bold text-[#0f172a]">{label}</span>
+      <span className="mb-2 block text-sm font-bold text-[#1a1a1a]">{label}</span>
 
       <div className="relative">
-        <Icon size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#94a3b8]" />
+        <Icon size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#a3a3a3]" />
 
         <input
           required={required}
@@ -41,7 +41,7 @@ export function InputField({
           value={value}
           placeholder={placeholder}
           onChange={(event) => onChange(event.target.value)}
-          className="w-full rounded-xl border border-[#cbd5e1] bg-white py-3.5 pl-12 pr-12 text-base text-[#0f172a] outline-none transition placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-blue-100"
+          className="w-full rounded-xl border border-[#d4d4d4] bg-white py-3.5 pl-12 pr-12 text-base text-[#1a1a1a] outline-none transition placeholder:text-[#a3a3a3] focus:border-[#1a1a1a] focus:ring-4 focus:ring-blue-100"
         />
 
         {rightElement}
@@ -68,7 +68,7 @@ export function PrimaryButton({
       type={type}
       disabled={disabled || loading}
       onClick={onClick}
-      className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#2563eb] px-5 py-3.5 text-base font-black text-white shadow-lg shadow-blue-500/20 transition hover:-translate-y-0.5 hover:bg-[#1d4ed8] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
+      className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#1a1a1a] px-5 py-3.5 text-base font-black text-white shadow-lg shadow-blue-500/20 transition hover:-translate-y-0.5 hover:bg-[#111111] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
     >
       {loading && <LoaderCircle size={19} className="animate-spin" />}
       {children}
@@ -90,7 +90,7 @@ export function ModalShell({
   preventClose?: boolean;
 }) {
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-[#0f172a]/65 p-0 backdrop-blur-sm sm:items-center sm:p-4">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-[#1a1a1a]/65 p-0 backdrop-blur-sm sm:items-center sm:p-4">
       <button
         type="button"
         aria-label="Close popup background"
@@ -103,17 +103,17 @@ export function ModalShell({
       />
 
       <section className="relative z-10 flex max-h-[94vh] w-full max-w-[430px] flex-col overflow-hidden rounded-t-[28px] bg-white shadow-2xl sm:rounded-[28px]">
-        <header className="flex shrink-0 items-start gap-3 border-b border-[#cbd5e1] bg-[#f1f5f9] px-5 py-4">
+        <header className="flex shrink-0 items-start gap-3 border-b border-[#d4d4d4] bg-[#f4f4f4] px-5 py-4">
           <div className="min-w-0 flex-1">
-            <h2 className="text-lg font-black text-[#0f172a]">{title}</h2>
-            {subtitle && <p className="mt-1 text-xs leading-5 text-[#64748b]">{subtitle}</p>}
+            <h2 className="text-lg font-black text-[#1a1a1a]">{title}</h2>
+            {subtitle && <p className="mt-1 text-xs leading-5 text-[#737373]">{subtitle}</p>}
           </div>
 
           {!preventClose && (
             <button
               type="button"
               onClick={onClose}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#cbd5e1] bg-white text-[#475569] transition hover:border-[#2563eb] hover:text-[#2563eb]"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#d4d4d4] bg-white text-[#525252] transition hover:border-[#1a1a1a] hover:text-[#1a1a1a]"
               aria-label="Close popup"
             >
               <X size={19} />
@@ -148,15 +148,15 @@ export function FileCaptureField({
 
   return (
     <label htmlFor={inputId} className="block cursor-pointer">
-      <span className="mb-1.5 block text-xs font-semibold text-[#475569]">{label}</span>
-      <div className="flex items-center gap-3 rounded-xl border border-dashed border-[#cbd5e1] bg-[#ffffff] px-4 py-3">
+      <span className="mb-1.5 block text-xs font-semibold text-[#525252]">{label}</span>
+      <div className="flex items-center gap-3 rounded-xl border border-dashed border-[#d4d4d4] bg-[#ffffff] px-4 py-3">
         {preview ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={preview} alt={`${label} preview`} className="h-10 w-14 shrink-0 rounded-md object-cover" />
         ) : (
-          <Icon size={18} className="shrink-0 text-[#2563eb]" />
+          <Icon size={18} className="shrink-0 text-[#1a1a1a]" />
         )}
-        <span className="truncate text-sm text-[#64748b]">{fileName || "Tap to upload or take a photo"}</span>
+        <span className="truncate text-sm text-[#737373]">{fileName || "Tap to upload or take a photo"}</span>
       </div>
       <input
         id={inputId}

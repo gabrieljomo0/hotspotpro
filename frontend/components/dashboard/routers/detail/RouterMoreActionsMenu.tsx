@@ -39,75 +39,75 @@ export function RouterMoreActionsMenu({
       <Link
         href={`/dashboards/configuration/routers/${router.ip}?tab=multiwan`}
         onClick={() => { onClose(); onGoToMultiWan(); }}
-        className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-[#475569] hover:bg-[#f1f5f9]"
+        className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-[#525252] hover:bg-[#f4f4f4]"
       >
         <Radio size={14} /> Configure Multi-WAN
       </Link>
       <button
         type="button"
         onClick={() => { onClose(); onOpenNotifications(); }}
-        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#2563eb] hover:bg-[#f1f5f9]"
+        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#1a1a1a] hover:bg-[#f4f4f4]"
       >
         <Bell size={14} /> Notification Contacts
       </button>
       <button
         type="button"
         onClick={() => { onClose(); startRouterTask("sync-files", router.ip); }}
-        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#475569] hover:bg-[#f1f5f9]"
+        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#525252] hover:bg-[#f4f4f4]"
       >
         <Download size={14} /> Sync hotspot files
       </button>
       <button
         type="button"
         onClick={() => { onClose(); startRouterTask("sync-time", router.ip); }}
-        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#475569] hover:bg-[#f1f5f9]"
+        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#525252] hover:bg-[#f4f4f4]"
       >
         <Clock3 size={14} /> Sync Router Time
       </button>
       <button
         type="button"
         onClick={() => { onClose(); startRouterTask("snmp", router.ip); }}
-        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#475569] hover:bg-[#f1f5f9]"
+        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#525252] hover:bg-[#f4f4f4]"
       >
         <Cpu size={14} /> Configure SNMP
       </button>
       <button
         type="button"
         onClick={() => { onClose(); startRouterTask("walled-garden", router.ip); }}
-        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#475569] hover:bg-[#f1f5f9]"
+        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#525252] hover:bg-[#f4f4f4]"
       >
         <ShieldCheck size={14} /> Configure Walled Garden
       </button>
       <button
         type="button"
         onClick={() => { onClose(); startRouterTask("harden", router.ip); }}
-        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#475569] hover:bg-[#f1f5f9]"
+        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#525252] hover:bg-[#f4f4f4]"
       >
         <Lock size={14} /> Harden Services
       </button>
       <button
         type="button"
         onClick={() => { onClose(); startRouterTask("winbox", router.ip); }}
-        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#475569] hover:bg-[#f1f5f9]"
+        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#525252] hover:bg-[#f4f4f4]"
       >
         <RefreshCcw size={14} /> Regenerate winbox
       </button>
       <button
         type="button"
         onClick={() => { onClose(); downloadRouterFile(router.ip, "wireguard-config"); }}
-        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#475569] hover:bg-[#f1f5f9]"
+        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#525252] hover:bg-[#f4f4f4]"
       >
         <Download size={14} /> Download WireGuard Config
       </button>
       <button
         type="button"
         onClick={() => { onClose(); downloadRouterFile(router.ip, "provision-script"); }}
-        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#475569] hover:bg-[#f1f5f9]"
+        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#525252] hover:bg-[#f4f4f4]"
       >
         <Download size={14} /> Download Provision Script
       </button>
 
-      <div className="my-2 border-t border-[#f1f5f9]" />
+      <div className="my-2 border-t border-[#f4f4f4]" />
 
       <button
         type="button"
@@ -119,14 +119,14 @@ export function RouterMoreActionsMenu({
       <button
         type="button"
         onClick={() => { onClose(); startRouterTask("update-script", router.ip); }}
-        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#475569] hover:bg-[#f1f5f9]"
+        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#525252] hover:bg-[#f4f4f4]"
       >
         <KeyRound size={14} /> Update Script
       </button>
       <button
         type="button"
         onClick={() => { onClose(); startRouterTask("api-credentials", router.ip); }}
-        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#475569] hover:bg-[#f1f5f9]"
+        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#525252] hover:bg-[#f4f4f4]"
       >
         <KeyRound size={14} /> Regenerate API credentials
       </button>
@@ -134,7 +134,7 @@ export function RouterMoreActionsMenu({
         type="button"
         data-testid="router-edit"
         onClick={() => { onClose(); openEditRouter(router.ip); }}
-        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#475569] hover:bg-[#f1f5f9]"
+        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#525252] hover:bg-[#f4f4f4]"
       >
         <Pencil size={14} /> Edit details
       </button>
@@ -149,20 +149,20 @@ export function RouterMoreActionsMenu({
         <Trash2 size={14} /> Delete
       </button>
 
-      <div className="my-2 border-t border-[#f1f5f9]" />
+      <div className="my-2 border-t border-[#f4f4f4]" />
 
       <button
         type="button"
         onClick={() => { onClose(); startRouterTask(router.paused ? "resume" : "pause", router.ip); }}
-        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#475569] hover:bg-[#f1f5f9]"
+        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#525252] hover:bg-[#f4f4f4]"
       >
         {router.paused ? (
           <>
-            <PlayCircle size={14} className="text-[#2563eb]" /> Resume Connection
+            <PlayCircle size={14} className="text-[#1a1a1a]" /> Resume Connection
           </>
         ) : (
           <>
-            <PauseCircle size={14} className="text-[#2563eb]" /> Pause Connection
+            <PauseCircle size={14} className="text-[#1a1a1a]" /> Pause Connection
           </>
         )}
       </button>
@@ -174,11 +174,11 @@ export function RouterMoreActionsMenu({
           onClose();
           startRouterTask(isCut ? "reconnect" : "disconnect", router.ip);
         }}
-        className={`flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm hover:bg-[#f1f5f9] ${isCut ? "text-[#475569]" : "font-semibold text-red-600 hover:bg-red-50"}`}
+        className={`flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm hover:bg-[#f4f4f4] ${isCut ? "text-[#525252]" : "font-semibold text-red-600 hover:bg-red-50"}`}
       >
         {isCut ? (
           <>
-            <PlugZap size={14} className="text-[#2563eb]" /> Reconnect
+            <PlugZap size={14} className="text-[#1a1a1a]" /> Reconnect
           </>
         ) : (
           <>

@@ -50,24 +50,24 @@ export function AgentGenerateVouchersModal({
       <div className="fixed inset-0 z-[220] flex items-center justify-center bg-slate-950/50 p-4">
         <button type="button" aria-label="Close" className="absolute inset-0 cursor-default" onClick={onClose} />
         <div className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
-          <div className="flex items-center justify-between border-b border-[#f1f5f9] px-6 py-5">
+          <div className="flex items-center justify-between border-b border-[#f4f4f4] px-6 py-5">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f1f5f9] text-[#2563eb]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f4f4f4] text-[#1a1a1a]">
                 <ShieldAlert size={18} />
               </div>
-              <h2 className="text-base font-bold text-[#0f172a]">Finish Your Profile First</h2>
+              <h2 className="text-base font-bold text-[#1a1a1a]">Finish Your Profile First</h2>
             </div>
-            <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-[#64748b] hover:bg-[#f8fafc]">
+            <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-[#737373] hover:bg-[#f7f7f7]">
               <X size={18} />
             </button>
           </div>
           <div className="space-y-4 px-6 py-6">
-            <p className="text-sm text-[#475569]">
+            <p className="text-sm text-[#525252]">
               Before you can generate or sell vouchers, finish the verification items below on your profile page.
             </p>
             <ul className="space-y-1.5">
               {missingProfileFields(agent).map((field) => (
-                <li key={field} className="rounded-lg bg-[#f1f5f9] px-3 py-2 text-xs font-semibold text-[#2563eb]">
+                <li key={field} className="rounded-lg bg-[#f4f4f4] px-3 py-2 text-xs font-semibold text-[#1a1a1a]">
                   {field}
                 </li>
               ))}
@@ -75,7 +75,7 @@ export function AgentGenerateVouchersModal({
             <Link
               href={`/agent-portal/${agent.id}/profile`}
               onClick={onClose}
-              className="block w-full rounded-xl bg-[#2563eb] px-5 py-3 text-center text-sm font-bold text-white hover:bg-[#1d4ed8]"
+              className="block w-full rounded-xl bg-[#1a1a1a] px-5 py-3 text-center text-sm font-bold text-white hover:bg-[#111111]"
             >
               Complete My Profile
             </Link>
@@ -153,17 +153,17 @@ export function AgentGenerateVouchersModal({
       <button type="button" aria-label="Close" className="absolute inset-0 cursor-default" onClick={onClose} />
 
       <div className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-[#f1f5f9] px-6 py-5">
+        <div className="flex items-center justify-between border-b border-[#f4f4f4] px-6 py-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#2563eb] text-white">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1a1a1a] text-white">
               <Sparkles size={18} />
             </div>
             <div>
-              <h2 className="text-base font-bold text-[#0f172a]">Generate Vouchers</h2>
-              <p className="text-xs text-[#64748b]">Choose a package and how many you need.</p>
+              <h2 className="text-base font-bold text-[#1a1a1a]">Generate Vouchers</h2>
+              <p className="text-xs text-[#737373]">Choose a package and how many you need.</p>
             </div>
           </div>
-          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-[#64748b] hover:bg-[#f8fafc]">
+          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-[#737373] hover:bg-[#f7f7f7]">
             <X size={18} />
           </button>
         </div>
@@ -171,13 +171,13 @@ export function AgentGenerateVouchersModal({
         <form onSubmit={handleSubmit} className="space-y-5 px-6 py-6">
           <div className="block">
             <div className="mb-2 flex items-center justify-between gap-2">
-              <span className="text-sm font-semibold text-[#475569]">
+              <span className="text-sm font-semibold text-[#525252]">
                 Package <span className="text-red-500">*</span>
               </span>
               {canCreatePackage && !lockedPackage && (
                 <Link
                   href={`/agent-portal/${agent.id}/packages/create`}
-                  className="inline-flex items-center gap-1 text-xs font-bold text-[#2563eb] hover:underline"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-[#1a1a1a] hover:underline"
                 >
                   <Plus size={12} />
                   Create Package
@@ -187,15 +187,15 @@ export function AgentGenerateVouchersModal({
 
             {lockedPackage ? (
               <div className="flex items-center justify-between gap-2 rounded-xl border-2 bg-white px-4 py-3">
-                <span className="text-sm font-bold text-[#2563eb]">{lockedPackage}</span>
-                <span className="rounded-full bg-[#2563eb] px-2 py-0.5 text-[10px] font-bold text-white">
+                <span className="text-sm font-bold text-[#1a1a1a]">{lockedPackage}</span>
+                <span className="rounded-full bg-[#1a1a1a] px-2 py-0.5 text-[10px] font-bold text-white">
                   Your package
                 </span>
               </div>
             ) : sellable.length === 0 ? (
-              <div className="rounded-xl border-2 bg-[#f1f5f9] px-4 py-3 text-sm">
-                <p className="font-semibold text-[#2563eb]">No packages available to you yet.</p>
-                <p className="mt-1 text-xs text-[#2563eb]">
+              <div className="rounded-xl border-2 bg-[#f4f4f4] px-4 py-3 text-sm">
+                <p className="font-semibold text-[#1a1a1a]">No packages available to you yet.</p>
+                <p className="mt-1 text-xs text-[#1a1a1a]">
                   {canCreatePackage
                     ? "Create one using the link above."
                     : "Ask admin to push a package to you — you'll be able to generate from it straight away."}
@@ -205,7 +205,7 @@ export function AgentGenerateVouchersModal({
               <select
                 value={packageName}
                 onChange={(event) => setChosenPackage(event.target.value)}
-                className="h-11 w-full rounded-xl border-2 border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#cbd5e1]"
+                className="h-11 w-full rounded-xl border-2 border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#d4d4d4]"
               >
                 {sellable.map((pkg) => (
                   <option key={pkg.id} value={pkg.name}>
@@ -217,7 +217,7 @@ export function AgentGenerateVouchersModal({
           </div>
 
           <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               Quantity <span className="text-red-500">*</span>
             </span>
             <input
@@ -227,13 +227,13 @@ export function AgentGenerateVouchersModal({
               max={MAX_PER_BATCH}
               value={Number.isNaN(quantity) ? "" : quantity}
               onChange={(event) => setQuantity(event.target.value === "" ? NaN : Number(event.target.value))}
-              className="h-11 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 w-full rounded-xl border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             />
-            <span className="mt-1 block text-xs text-[#94a3b8]">Up to {MAX_PER_BATCH} per batch.</span>
+            <span className="mt-1 block text-xs text-[#a3a3a3]">Up to {MAX_PER_BATCH} per batch.</span>
           </label>
 
           {agent.requiresWalletFunding && selected && (
-            <p className="flex items-start gap-1.5 text-xs font-semibold text-[#2563eb]">
+            <p className="flex items-start gap-1.5 text-xs font-semibold text-[#1a1a1a]">
               <Wallet size={13} className="mt-0.5 shrink-0" />
               {maxAffordable !== null
                 ? `Your wallet (${sym()} ${agent.walletBalance.toLocaleString()}) covers up to ${maxAffordable} of this package.`
@@ -242,32 +242,32 @@ export function AgentGenerateVouchersModal({
           )}
 
           {canCustomize && (
-            <div className="space-y-3 rounded-xl border-[#f1f5f9] bg-[#f8fafc] p-4" data-testid="custom-credentials">
+            <div className="space-y-3 rounded-xl border-[#f4f4f4] bg-[#f7f7f7] p-4" data-testid="custom-credentials">
               <div>
-                <p className="text-sm font-semibold text-[#475569]">Custom login (optional)</p>
-                <p className="text-xs text-[#94a3b8]">
+                <p className="text-sm font-semibold text-[#525252]">Custom login (optional)</p>
+                <p className="text-xs text-[#a3a3a3]">
                   Leave both empty to get an automatic code. Set a password and the voucher logs in with username +
                   password.
                 </p>
               </div>
               <label className="block">
-                <span className="mb-1 block text-xs font-semibold text-[#475569]">Username</span>
+                <span className="mb-1 block text-xs font-semibold text-[#525252]">Username</span>
                 <input
                   value={customCode}
                   onChange={(event) => setCustomCode(event.target.value)}
                   aria-label="Custom username"
                   autoComplete="off"
-                  className="h-10 w-full rounded-lg border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                  className="h-10 w-full rounded-lg border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-semibold text-[#475569]">Password</span>
+                <span className="mb-1 block text-xs font-semibold text-[#525252]">Password</span>
                 <input
                   value={customPassword}
                   onChange={(event) => setCustomPassword(event.target.value)}
                   aria-label="Custom password"
                   autoComplete="off"
-                  className="h-10 w-full rounded-lg border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                  className="h-10 w-full rounded-lg border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
                 />
               </label>
               {!customCheck.ok && <p className="text-xs font-semibold text-red-600">{customCheck.error}</p>}
@@ -277,7 +277,7 @@ export function AgentGenerateVouchersModal({
           {blocker && <p className="text-xs font-semibold text-red-600">{blocker}</p>}
 
           {routerName && (
-            <p className="flex items-center gap-1.5 text-xs text-[#94a3b8]">
+            <p className="flex items-center gap-1.5 text-xs text-[#a3a3a3]">
               <RouterIcon size={12} />
               These vouchers will work on{" "}
               {agentSettings.allowViewAssignedRouters ? routerName : "your assigned router"}.
@@ -288,14 +288,14 @@ export function AgentGenerateVouchersModal({
             <button
               type="submit"
               disabled={!canSubmit}
-              className="flex-1 rounded-xl bg-[#2563eb] px-5 py-3 text-sm font-bold text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex-1 rounded-xl bg-[#1a1a1a] px-5 py-3 text-sm font-bold text-white hover:bg-[#111111] disabled:cursor-not-allowed disabled:opacity-50"
             >
               Generate Vouchers
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl bg-[#f1f5f9] px-5 py-3 text-sm font-bold text-[#475569] hover:bg-[#f8fafc]"
+              className="rounded-xl bg-[#f4f4f4] px-5 py-3 text-sm font-bold text-[#525252] hover:bg-[#f7f7f7]"
             >
               Cancel
             </button>

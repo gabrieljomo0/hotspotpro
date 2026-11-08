@@ -53,23 +53,23 @@ export function DeletePresetDialog({
         aria-labelledby="delete-preset-title"
         className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl"
       >
-        <div className="flex items-start justify-between gap-3 border-b border-[#f1f5f9] px-6 py-5">
+        <div className="flex items-start justify-between gap-3 border-b border-[#f4f4f4] px-6 py-5">
           <div className="flex items-center gap-3">
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
               <Trash2 size={20} />
             </span>
             <div>
-              <h3 id="delete-preset-title" className="text-base font-bold text-[#0f172a]">
+              <h3 id="delete-preset-title" className="text-base font-bold text-[#1a1a1a]">
                 Delete this preset?
               </h3>
-              <p className="text-sm font-semibold text-[#475569]">{preset.name}</p>
+              <p className="text-sm font-semibold text-[#525252]">{preset.name}</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onCancel}
             aria-label="Close"
-            className="rounded-lg p-1.5 text-[#64748b] hover:bg-[#ffffff]"
+            className="rounded-lg p-1.5 text-[#737373] hover:bg-[#ffffff]"
           >
             <X size={18} />
           </button>
@@ -102,9 +102,9 @@ export function DeletePresetDialog({
             </p>
           </div>
 
-          <div className="rounded-xl border border-[#e2e8f0] bg-[#ffffff] p-4">
-            <p className="font-bold text-[#0f172a]">What happens next</p>
-            <ul className="mt-1.5 list-disc space-y-1.5 pl-5 text-[#475569]">
+          <div className="rounded-xl border border-[#e6e6e6] bg-[#ffffff] p-4">
+            <p className="font-bold text-[#1a1a1a]">What happens next</p>
+            <ul className="mt-1.5 list-disc space-y-1.5 pl-5 text-[#525252]">
               <li>It disappears from the presets list straight away and can&apos;t be brought back.</li>
               <li>
                 {audience === "admin"
@@ -125,7 +125,7 @@ export function DeletePresetDialog({
           </div>
         </div>
 
-        <div className="flex gap-3 border-t border-[#f1f5f9] px-6 py-4">
+        <div className="flex gap-3 border-t border-[#f4f4f4] px-6 py-4">
           <button
             type="button"
             onClick={onConfirm}
@@ -137,7 +137,7 @@ export function DeletePresetDialog({
             type="button"
             onClick={onCancel}
             autoFocus
-            className="rounded-xl border border-[#e2e8f0] bg-white px-5 py-3 text-sm font-bold text-[#475569] hover:bg-[#ffffff]"
+            className="rounded-xl border border-[#e6e6e6] bg-white px-5 py-3 text-sm font-bold text-[#525252] hover:bg-[#ffffff]"
           >
             Keep it
           </button>

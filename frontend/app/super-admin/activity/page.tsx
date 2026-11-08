@@ -17,10 +17,10 @@ export default function ActivityPage() {
   return (
     <>
       <h1 className="mb-1 text-3xl font-bold tracking-tight">Activity</h1>
-      <p className="mb-6 text-sm text-[#64748b]">What the platform and its businesses have been doing: sign-ups and sign-ins, super admin actions, payment callbacks and SMS.</p>
+      <p className="mb-6 text-sm text-[#737373]">What the platform and its businesses have been doing: sign-ups and sign-ins, super admin actions, payment callbacks and SMS.</p>
       <div className="mb-4 flex gap-2">
         {tabs.map(([key, label]) => (
-          <button key={key} type="button" onClick={() => setTab(key)} className={`rounded-lg px-4 py-2 text-sm font-bold ${tab === key ? "bg-[#2563eb] text-white" : "border border-[#cbd5e1] bg-white text-[#475569] hover:bg-[#f1f5f9]"}`}>{label}</button>
+          <button key={key} type="button" onClick={() => setTab(key)} className={`rounded-lg px-4 py-2 text-sm font-bold ${tab === key ? "bg-[#1a1a1a] text-white" : "border border-[#d4d4d4] bg-white text-[#525252] hover:bg-[#f4f4f4]"}`}>{label}</button>
         ))}
       </div>
 

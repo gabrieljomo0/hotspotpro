@@ -66,7 +66,7 @@ export function DashboardHeader() {
           Dashboard
         </h2>
 
-        <p className="mt-2 text-sm text-[#64748b]  md:text-base">
+        <p className="mt-2 text-sm text-[#737373]  md:text-base">
           Welcome back, Admin! Here&apos;s what&apos;s happening with your
           hotspot.
         </p>
@@ -77,7 +77,7 @@ export function DashboardHeader() {
           <button
             type="button"
             onClick={() => setMenuOpen((current) => !current)}
-            className="flex items-center gap-4 rounded-xl border border-[#e2e8f0] bg-white px-4 py-3 text-sm font-semibold shadow-sm transition hover:bg-[#ffffff]   "
+            className="flex items-center gap-4 rounded-xl border border-[#e6e6e6] bg-white px-4 py-3 text-sm font-semibold shadow-sm transition hover:bg-[#ffffff]   "
           >
             {period}
             <ChevronDown size={16} />
@@ -91,7 +91,7 @@ export function DashboardHeader() {
                 className="fixed inset-0 z-40 cursor-default"
                 onClick={() => setMenuOpen(false)}
               />
-              <div className="absolute left-0 top-14 z-50 w-44 overflow-hidden rounded-xl border border-[#e2e8f0] bg-white py-2 shadow-2xl">
+              <div className="absolute left-0 top-14 z-50 w-44 overflow-hidden rounded-xl border border-[#e6e6e6] bg-white py-2 shadow-2xl">
                 {PERIODS.map((option) => (
                   <button
                     type="button"
@@ -100,11 +100,11 @@ export function DashboardHeader() {
                       setPeriod(option);
                       setMenuOpen(false);
                     }}
-                    className="flex w-full items-center justify-between px-4 py-2.5 text-sm text-[#475569] hover:bg-[#f1f5f9]"
+                    className="flex w-full items-center justify-between px-4 py-2.5 text-sm text-[#525252] hover:bg-[#f4f4f4]"
                   >
                     {option}
                     {period === option && (
-                      <Check size={15} className="text-[#2563eb]" />
+                      <Check size={15} className="text-[#1a1a1a]" />
                     )}
                   </button>
                 ))}
@@ -113,8 +113,8 @@ export function DashboardHeader() {
           )}
         </div>
 
-        <label className="flex items-center gap-3 rounded-xl border border-[#e2e8f0] bg-white px-4 py-3 text-sm font-semibold shadow-sm transition hover:bg-[#ffffff]">
-          <CalendarDays size={17} className="text-[#64748b]" />
+        <label className="flex items-center gap-3 rounded-xl border border-[#e6e6e6] bg-white px-4 py-3 text-sm font-semibold shadow-sm transition hover:bg-[#ffffff]">
+          <CalendarDays size={17} className="text-[#737373]" />
           <input
             type="date"
             value={toInputValue(selectedDate)}
@@ -130,7 +130,7 @@ export function DashboardHeader() {
               type="button"
               onClick={() => setSelectedDate(today)}
               title="Back to today"
-              className="flex items-center gap-1 rounded-lg bg-[#f1f5f9] px-2 py-1 text-xs font-bold text-[#2563eb] hover:bg-[#f1f5f9]"
+              className="flex items-center gap-1 rounded-lg bg-[#f4f4f4] px-2 py-1 text-xs font-bold text-[#1a1a1a] hover:bg-[#f4f4f4]"
             >
               <RotateCcw size={11} />
               Today
@@ -139,7 +139,7 @@ export function DashboardHeader() {
         </label>
 
         {period !== "Today" && (
-          <div className="flex items-center gap-3 rounded-xl border border-dashed border-[#e2e8f0] bg-white px-4 py-3 text-xs text-[#64748b]">
+          <div className="flex items-center gap-3 rounded-xl border border-dashed border-[#e6e6e6] bg-white px-4 py-3 text-xs text-[#737373]">
             {period} range: {range.start} – {range.end}
           </div>
         )}

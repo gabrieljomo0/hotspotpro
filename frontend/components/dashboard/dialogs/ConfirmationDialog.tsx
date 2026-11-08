@@ -49,7 +49,7 @@ export function ConfirmationDialog({
         onClick={onCancel}
       />
 
-      <section className="relative z-10 w-full max-w-md rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-2xl">
+      <section className="relative z-10 w-full max-w-md rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-2xl">
         <div
           className={`flex h-12 w-12 items-center justify-center rounded-full ${
             isEnable
@@ -60,15 +60,15 @@ export function ConfirmationDialog({
           <Router size={23} />
         </div>
 
-        <h3 className="mt-5 text-xl font-black text-[#0f172a]">{title}</h3>
+        <h3 className="mt-5 text-xl font-black text-[#1a1a1a]">{title}</h3>
 
-        <p className="mt-3 text-sm leading-6 text-[#64748b]">{description}</p>
+        <p className="mt-3 text-sm leading-6 text-[#737373]">{description}</p>
 
         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-xl border border-[#e2e8f0] px-5 py-3 text-sm font-semibold text-[#475569] hover:bg-[#ffffff]"
+            className="rounded-xl border border-[#e6e6e6] px-5 py-3 text-sm font-semibold text-[#525252] hover:bg-[#ffffff]"
           >
             Cancel
           </button>

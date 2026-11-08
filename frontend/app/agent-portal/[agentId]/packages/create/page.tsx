@@ -26,15 +26,15 @@ export default function AgentCreatePackagePage({
       featureLabel="Creating packages"
       render={(agent) => (
         <section className="mx-auto w-full max-w-3xl">
-          <div className="mb-4 flex items-center gap-1.5 text-xs text-[#94a3b8]">
-            <Link href={`/agent-portal/${agentId}/packages`} className="hover:text-[#2563eb]">
+          <div className="mb-4 flex items-center gap-1.5 text-xs text-[#a3a3a3]">
+            <Link href={`/agent-portal/${agentId}/packages`} className="hover:text-[#1a1a1a]">
               Packages
             </Link>
             <ChevronRight size={12} />
-            <span className="text-[#475569]">Create</span>
+            <span className="text-[#525252]">Create</span>
           </div>
 
-          <h1 className="mb-6 text-3xl font-black text-[#0f172a] md:text-4xl">Create Package</h1>
+          <h1 className="mb-6 text-3xl font-black text-[#1a1a1a] md:text-4xl">Create Package</h1>
 
           <PackageForm
             submitLabel="Create"
@@ -51,7 +51,7 @@ export default function AgentCreatePackagePage({
           <div className="mt-4">
             <Link
               href={`/agent-portal/${agentId}/packages`}
-              className="text-sm font-semibold text-[#64748b] hover:text-[#475569]"
+              className="text-sm font-semibold text-[#737373] hover:text-[#525252]"
             >
               Cancel
             </Link>

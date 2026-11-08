@@ -55,7 +55,7 @@ function priceText(price: string) {
 
 function Chip({ children }: { children: ReactNode }) {
   return (
-    <span className="rounded-full bg-[#f1f5f9] px-2.5 py-1 text-[11px] font-semibold text-[#475569]">{children}</span>
+    <span className="rounded-full bg-[#f4f4f4] px-2.5 py-1 text-[11px] font-semibold text-[#525252]">{children}</span>
   );
 }
 
@@ -73,7 +73,7 @@ function PackagePreview({ form }: { form: PackageInput }) {
   return (
     <div
       data-testid="package-preview"
-      className={`relative mx-auto w-full max-w-xs overflow-hidden rounded-2xl border-2 border-[#0f172a] bg-white text-[#0f172a] transition ${
+      className={`relative mx-auto w-full max-w-xs overflow-hidden rounded-2xl border-2 border-[#1a1a1a] bg-white text-[#1a1a1a] transition ${
         disabled ? "opacity-60 grayscale" : hidden ? "opacity-80" : ""
       }`}
     >
@@ -100,10 +100,10 @@ function PackagePreview({ form }: { form: PackageInput }) {
         <p className="pr-16 text-base font-black" data-testid="preview-name">
           {form.name.trim() || "Untitled package"}
         </p>
-        <p className="mt-1 text-2xl font-black text-[#2563eb]" data-testid="preview-price">
+        <p className="mt-1 text-2xl font-black text-[#1a1a1a]" data-testid="preview-price">
           {priceText(form.price)}
         </p>
-        <p className="mt-2 text-xs text-[#64748b]" data-testid="preview-meta">
+        <p className="mt-2 text-xs text-[#737373]" data-testid="preview-meta">
           {form.durationValue} {form.durationUnit} · {form.downloadMbps > 0 ? `↓ ${form.downloadMbps} / ↑ ${form.uploadMbps} Mbps` : "Best speed"} ·{" "}
           {form.devices} device{form.devices === 1 ? "" : "s"}
         </p>
@@ -114,7 +114,7 @@ function PackagePreview({ form }: { form: PackageInput }) {
             ))}
           </div>
         )}
-        <div className="mt-4 rounded-xl bg-[#0f172a] px-4 py-2.5 text-center text-sm font-bold text-white">
+        <div className="mt-4 rounded-xl bg-[#1a1a1a] px-4 py-2.5 text-center text-sm font-bold text-white">
           Get this package
         </div>
       </div>
@@ -126,25 +126,25 @@ export function PackageStorefront({ form, update }: { form: PackageInput; update
   return (
     <section
       aria-labelledby="package-storefront-title"
-      className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]"
+      className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]"
     >
-      <div className="border-b border-[#e2e8f0] px-5 py-4">
-        <h3 id="package-storefront-title" className="text-base font-bold text-[#0f172a]">
+      <div className="border-b border-[#e6e6e6] px-5 py-4">
+        <h3 id="package-storefront-title" className="text-base font-bold text-[#1a1a1a]">
           Availability &amp; Visibility
         </h3>
-        <p className="text-xs text-[#64748b]">Choose who can see this package and where it appears.</p>
+        <p className="text-xs text-[#737373]">Choose who can see this package and where it appears.</p>
       </div>
 
       <div className="grid gap-6 p-5 lg:grid-cols-[1fr_260px]">
         <div className="space-y-6">
           <div>
-            <p id="package-availability-label" className="mb-2 text-sm font-semibold text-[#475569]">
+            <p id="package-availability-label" className="mb-2 text-sm font-semibold text-[#525252]">
               Package availability <span className="text-red-500">*</span>
             </p>
             <div
               role="radiogroup"
               aria-labelledby="package-availability-label"
-              className="flex flex-wrap gap-2 rounded-xl bg-[#f1f5f9] p-1.5"
+              className="flex flex-wrap gap-2 rounded-xl bg-[#f4f4f4] p-1.5"
             >
               {STATUS_OPTIONS.map((option) => {
                 const selected = form.status === option.value;
@@ -157,7 +157,7 @@ export function PackageStorefront({ form, update }: { form: PackageInput; update
                     aria-checked={selected}
                     onClick={() => update("status", option.value)}
                     className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold transition ${
-                      selected ? option.activeClass + " shadow-sm" : "text-[#64748b] hover:bg-white"
+                      selected ? option.activeClass + " shadow-sm" : "text-[#737373] hover:bg-white"
                     }`}
                   >
                     <Icon size={13} />
@@ -166,23 +166,23 @@ export function PackageStorefront({ form, update }: { form: PackageInput; update
                 );
               })}
             </div>
-            <p className="mt-2 text-xs text-[#94a3b8]">
+            <p className="mt-2 text-xs text-[#a3a3a3]">
               {STATUS_OPTIONS.find((o) => o.value === form.status)?.blurb}
             </p>
           </div>
 
-          <label className="flex items-center justify-between gap-3 rounded-xl border border-[#f1f5f9] bg-[#ffffff] px-4 py-3">
+          <label className="flex items-center justify-between gap-3 rounded-xl border border-[#f4f4f4] bg-[#ffffff] px-4 py-3">
             <span className="flex items-center gap-3">
               <span
                 className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-                  form.featured ? "bg-amber-100 text-amber-600" : "bg-white text-[#94a3b8] ring-1 ring-[#e2e8f0]"
+                  form.featured ? "bg-amber-100 text-amber-600" : "bg-white text-[#a3a3a3] ring-1 ring-[#e6e6e6]"
                 }`}
               >
                 <Star size={16} fill={form.featured ? "currentColor" : "none"} />
               </span>
               <span className="min-w-0">
-                <span className="block text-sm font-semibold text-[#0f172a]">Feature this package</span>
-                <span className="block text-xs text-[#64748b]">
+                <span className="block text-sm font-semibold text-[#1a1a1a]">Feature this package</span>
+                <span className="block text-xs text-[#737373]">
                   Lists it first on the captive portal with a &quot;Popular&quot; badge.
                 </span>
               </span>
@@ -193,7 +193,7 @@ export function PackageStorefront({ form, update }: { form: PackageInput; update
               aria-checked={form.featured}
               onClick={() => update("featured", !form.featured)}
               className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-                form.featured ? "bg-amber-500" : "bg-[#e2e8f0]"
+                form.featured ? "bg-amber-500" : "bg-[#e6e6e6]"
               }`}
             >
               <span
@@ -205,16 +205,16 @@ export function PackageStorefront({ form, update }: { form: PackageInput; update
           </label>
 
           <div>
-            <p id="package-order-label" className="mb-1.5 text-sm font-semibold text-[#475569]">
+            <p id="package-order-label" className="mb-1.5 text-sm font-semibold text-[#525252]">
               Display order
             </p>
             <div className="flex flex-wrap items-center gap-3">
-              <div className="inline-flex items-center overflow-hidden rounded-xl border border-[#e2e8f0]">
+              <div className="inline-flex items-center overflow-hidden rounded-xl border border-[#e6e6e6]">
                 <button
                   type="button"
                   aria-label="Decrease display order"
                   onClick={() => update("displayOrder", form.displayOrder - 1)}
-                  className="h-10 w-10 text-lg font-bold text-[#475569] hover:bg-[#ffffff]"
+                  className="h-10 w-10 text-lg font-bold text-[#525252] hover:bg-[#ffffff]"
                 >
                   −
                 </button>
@@ -223,31 +223,31 @@ export function PackageStorefront({ form, update }: { form: PackageInput; update
                   aria-labelledby="package-order-label"
                   value={form.displayOrder}
                   onChange={(event) => update("displayOrder", Number(event.target.value))}
-                  className="h-10 w-16 border-x border-[#e2e8f0] text-center text-sm font-bold text-[#0f172a] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  className="h-10 w-16 border-x border-[#e6e6e6] text-center text-sm font-bold text-[#1a1a1a] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
                 <button
                   type="button"
                   aria-label="Increase display order"
                   onClick={() => update("displayOrder", form.displayOrder + 1)}
-                  className="h-10 w-10 text-lg font-bold text-[#475569] hover:bg-[#ffffff]"
+                  className="h-10 w-10 text-lg font-bold text-[#525252] hover:bg-[#ffffff]"
                 >
                   +
                 </button>
               </div>
-              <p className="max-w-[16rem] text-xs text-[#94a3b8]">
+              <p className="max-w-[16rem] text-xs text-[#a3a3a3]">
                 Optional tie-breaker when packages cost the same. Cheapest usually shows first.
               </p>
             </div>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-dashed border-[#e2e8f0] bg-[#ffffff] p-4">
-          <p className="mb-3 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-[#94a3b8]">
+        <div className="rounded-2xl border border-dashed border-[#e6e6e6] bg-[#ffffff] p-4">
+          <p className="mb-3 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-[#a3a3a3]">
             <Smartphone size={12} />
             How customers will see it
           </p>
           <PackagePreview form={form} />
-          <p className="mt-3 text-center text-xs text-[#94a3b8]" data-testid="preview-caption">
+          <p className="mt-3 text-center text-xs text-[#a3a3a3]" data-testid="preview-caption">
             {form.status === "Active"
               ? form.featured
                 ? "Listed first, ahead of the cheaper packages."

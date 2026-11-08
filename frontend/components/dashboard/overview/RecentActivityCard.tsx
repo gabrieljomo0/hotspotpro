@@ -50,8 +50,8 @@ export function RecentActivityCard() {
     .slice(0, 6);
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e2e8f0] px-5 py-4">
+    <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e6e6e6] px-5 py-4">
         <div className="flex gap-2">
           <button
             type="button"
@@ -59,7 +59,7 @@ export function RecentActivityCard() {
             className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-bold transition ${
               view === "transactions"
                 ? "bg-emerald-500 text-white shadow"
-                : "bg-[#ffffff] text-[#64748b] hover:bg-[#f1f5f9]"
+                : "bg-[#ffffff] text-[#737373] hover:bg-[#f4f4f4]"
             }`}
           >
             <Receipt size={15} />
@@ -70,8 +70,8 @@ export function RecentActivityCard() {
             onClick={() => setView("activities")}
             className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-bold transition ${
               view === "activities"
-                ? "bg-[#2563eb] text-white shadow"
-                : "bg-[#ffffff] text-[#64748b] hover:bg-[#f1f5f9]"
+                ? "bg-[#1a1a1a] text-white shadow"
+                : "bg-[#ffffff] text-[#737373] hover:bg-[#f4f4f4]"
             }`}
           >
             <Clock size={15} />
@@ -81,7 +81,7 @@ export function RecentActivityCard() {
 
         <Link
           href={view === "transactions" ? "/dashboards/revenue/router-agent-breakdown" : "/dashboards/settings/activity-logs"}
-          className="text-xs font-semibold text-[#2563eb] hover:underline"
+          className="text-xs font-semibold text-[#1a1a1a] hover:underline"
         >
           {view === "transactions" ? "View all transactions" : "View full history"}
         </Link>
@@ -89,11 +89,11 @@ export function RecentActivityCard() {
 
       {view === "transactions" ? (
         recentTransactions.length === 0 ? (
-          <p className="px-5 py-8 text-center text-sm text-[#94a3b8]">
+          <p className="px-5 py-8 text-center text-sm text-[#a3a3a3]">
             {resolved.filtered ? "No sales for this view yet." : "No sales yet. Completed voucher sales will show up here."}
           </p>
         ) : (
-          <div className="divide-y divide-[#f1f5f9]">
+          <div className="divide-y divide-[#f4f4f4]">
             {recentTransactions.map((v) => {
               const agent = agents.find((a) => a.id === v.agentId);
               return (
@@ -102,7 +102,7 @@ export function RecentActivityCard() {
                     <Receipt size={14} />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm text-[#475569]">
+                    <p className="truncate text-sm text-[#525252]">
                       {v.packageName} · {v.redeemerPhone ?? "Walk-in"}
                       {agent ? ` · ${agent.name}` : ""}
                     </p>
@@ -116,11 +116,11 @@ export function RecentActivityCard() {
           </div>
         )
       ) : recentActivity.length === 0 ? (
-        <p className="px-5 py-8 text-center text-sm text-[#94a3b8]">
+        <p className="px-5 py-8 text-center text-sm text-[#a3a3a3]">
           {resolved.filtered ? "No activity for this view yet." : "No activity yet. Actions you take will show up here."}
         </p>
       ) : (
-        <div className="divide-y divide-[#f1f5f9]">
+        <div className="divide-y divide-[#f4f4f4]">
           {recentActivity.map((entry: ActivityLogEntry) => {
             const Icon = CATEGORY_ICON[entry.category];
 
@@ -131,10 +131,10 @@ export function RecentActivityCard() {
                 >
                   <Icon size={14} />
                 </div>
-                <p className="min-w-0 flex-1 truncate text-sm text-[#475569]">
+                <p className="min-w-0 flex-1 truncate text-sm text-[#525252]">
                   {entry.message}
                 </p>
-                <span className="shrink-0 text-xs text-[#94a3b8]">
+                <span className="shrink-0 text-xs text-[#a3a3a3]">
                   {entry.timestamp}
                 </span>
               </div>

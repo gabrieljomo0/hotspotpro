@@ -21,17 +21,17 @@ export function CommissionSettingsPanel() {
   }
 
   return (
-    <article className="mt-6 rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
+    <article className="mt-6 rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
             <Percent size={20} />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-[#0f172a]">
+            <h3 className="text-lg font-bold text-[#1a1a1a]">
               Agent Commission
             </h3>
-            <p className="text-sm text-[#64748b]">
+            <p className="text-sm text-[#737373]">
               Show expected commission per agent on the Analytics page.
             </p>
           </div>
@@ -41,7 +41,7 @@ export function CommissionSettingsPanel() {
           type="button"
           onClick={handleToggle}
           className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
-            form.enabled ? "bg-emerald-500" : "bg-[#e2e8f0]"
+            form.enabled ? "bg-emerald-500" : "bg-[#e6e6e6]"
           }`}
           aria-pressed={form.enabled}
           aria-label="Toggle agent commission"
@@ -56,7 +56,7 @@ export function CommissionSettingsPanel() {
 
       <form onSubmit={handleSubmit} className="mt-6 flex items-end gap-4">
         <label className="block">
-          <span className="mb-2 block text-sm font-semibold text-[#475569]">
+          <span className="mb-2 block text-sm font-semibold text-[#525252]">
             Commission rate (%)
           </span>
           <input
@@ -67,13 +67,13 @@ export function CommissionSettingsPanel() {
             onChange={(event) =>
               setForm({ ...form, ratePercent: Number(event.target.value) })
             }
-            className="h-11 w-40 rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+            className="h-11 w-40 rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
           />
         </label>
 
         <button
           type="submit"
-          className="h-11 rounded-xl bg-[#2563eb] px-5 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+          className="h-11 rounded-xl bg-[#1a1a1a] px-5 text-sm font-bold text-white hover:bg-[#111111]"
         >
           Save
         </button>

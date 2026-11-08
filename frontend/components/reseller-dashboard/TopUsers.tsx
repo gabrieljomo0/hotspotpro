@@ -6,7 +6,7 @@ import { topUsers } from "./mockData";
 
 export function TopUsers() {
  return (
-  <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] ">
+  <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] ">
    <div className="flex items-center justify-between">
     <h3 className="font-bold">
      Top Users by Data Usage
@@ -14,7 +14,7 @@ export function TopUsers() {
 
     <button
      type="button"
-     className="text-xs font-semibold text-[#2563eb]"
+     className="text-xs font-semibold text-[#1a1a1a]"
     >
      View all
     </button>
@@ -26,7 +26,7 @@ export function TopUsers() {
       key={user.phone}
       className="grid grid-cols-[28px_1fr_auto] items-center gap-3 text-sm"
      >
-      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-[#2563eb]">
+      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-[#1a1a1a]">
        {index + 1}
       </span>
 

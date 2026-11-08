@@ -20,31 +20,31 @@ export function AgentNotesCard({ notes, onSave }: { notes: string; onSave: (note
   const tooLong = draft.length > MAX;
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white" data-testid="agent-notes">
+    <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white" data-testid="agent-notes">
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
         aria-expanded={open}
         className="flex w-full items-center justify-between px-5 py-4 text-left"
       >
-        <span className="text-base font-bold text-[#0f172a]">Notes</span>
-        <ChevronDown size={18} className={`text-[#94a3b8] transition ${open ? "rotate-180" : ""}`} />
+        <span className="text-base font-bold text-[#1a1a1a]">Notes</span>
+        <ChevronDown size={18} className={`text-[#a3a3a3] transition ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div className="border-t border-[#f1f5f9] px-5 py-4">
+        <div className="border-t border-[#f4f4f4] px-5 py-4">
           <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold text-[#475569]">Notes</span>
+            <span className="mb-1.5 block text-sm font-semibold text-[#525252]">Notes</span>
             <textarea
               rows={4}
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
               placeholder="Additional notes about this agent…"
               aria-label="Agent notes"
-              className="w-full rounded-xl border border-[#e2e8f0] bg-white px-3.5 py-2.5 text-sm outline-none focus:border-[#2563eb]"
+              className="w-full rounded-xl border border-[#e6e6e6] bg-white px-3.5 py-2.5 text-sm outline-none focus:border-[#1a1a1a]"
             />
           </label>
           <div className="mt-1 flex items-center justify-between text-xs">
-            <span className={tooLong ? "font-semibold text-red-600" : "text-[#94a3b8]"}>
+            <span className={tooLong ? "font-semibold text-red-600" : "text-[#a3a3a3]"}>
               {draft.length} / {MAX} · only your team sees this, never the agent
             </span>
           </div>
@@ -53,7 +53,7 @@ export function AgentNotesCard({ notes, onSave }: { notes: string; onSave: (note
               type="button"
               disabled={!dirty || tooLong}
               onClick={() => onSave(draft.trim())}
-              className="rounded-xl bg-[#2563eb] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-xl bg-[#1a1a1a] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#111111] disabled:cursor-not-allowed disabled:opacity-50"
             >
               Save changes
             </button>
@@ -61,7 +61,7 @@ export function AgentNotesCard({ notes, onSave }: { notes: string; onSave: (note
               type="button"
               disabled={!dirty}
               onClick={() => setDraft(notes)}
-              className="rounded-xl border border-[#e2e8f0] bg-white px-5 py-2.5 text-sm font-semibold text-[#475569] hover:bg-[#ffffff] disabled:opacity-50"
+              className="rounded-xl border border-[#e6e6e6] bg-white px-5 py-2.5 text-sm font-semibold text-[#525252] hover:bg-[#ffffff] disabled:opacity-50"
             >
               Cancel
             </button>

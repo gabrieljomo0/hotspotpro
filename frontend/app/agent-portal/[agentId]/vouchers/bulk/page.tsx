@@ -87,48 +87,48 @@ function BulkBody({ agent }: { agent: AgentProfile }) {
 
   return (
     <section>
-      <Link href={`/agent-portal/${agent.id}/vouchers`} className="mb-3 inline-flex items-center gap-1 text-xs font-semibold text-[#64748b] hover:text-[#2563eb]">
+      <Link href={`/agent-portal/${agent.id}/vouchers`} className="mb-3 inline-flex items-center gap-1 text-xs font-semibold text-[#737373] hover:text-[#1a1a1a]">
         Vouchers <ChevronRight size={12} /> Bulk actions
       </Link>
       <h1 className="flex items-center gap-2 text-2xl font-black md:text-3xl">
-        <Layers size={26} className="text-[#2563eb]" />
+        <Layers size={26} className="text-[#1a1a1a]" />
         Bulk Actions
       </h1>
-      <p className="mb-4 mt-1 text-sm text-[#64748b]">Pick several vouchers, then act on them together.</p>
+      <p className="mb-4 mt-1 text-sm text-[#737373]">Pick several vouchers, then act on them together.</p>
 
       <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl bg-white p-3">
         <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8]" />
-          <input data-testid="bulk-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search code, package or phone..." className="h-10 w-64 rounded-lg border border-[#cbd5e1] pl-8 pr-3 text-sm outline-none focus:border-[#2563eb]" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" />
+          <input data-testid="bulk-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search code, package or phone..." className="h-10 w-64 rounded-lg border border-[#d4d4d4] pl-8 pr-3 text-sm outline-none focus:border-[#1a1a1a]" />
         </div>
-        <select data-testid="bulk-status" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="h-10 rounded-lg border border-[#cbd5e1] bg-white px-3 text-sm outline-none">
+        <select data-testid="bulk-status" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="h-10 rounded-lg border border-[#d4d4d4] bg-white px-3 text-sm outline-none">
           <option value="All">All statuses</option>
           <option>Available</option>
           <option>Used</option>
           <option>Expired</option>
         </select>
-        <select data-testid="bulk-batch" value={batchFilter} onChange={(e) => setBatchFilter(e.target.value)} className="h-10 rounded-lg border border-[#cbd5e1] bg-white px-3 text-sm outline-none">
+        <select data-testid="bulk-batch" value={batchFilter} onChange={(e) => setBatchFilter(e.target.value)} className="h-10 rounded-lg border border-[#d4d4d4] bg-white px-3 text-sm outline-none">
           <option value="All">All batches</option>
           {batchesHere.map((id) => (
             <option key={id} value={id}>{batchById.get(id)?.reference ?? id}</option>
           ))}
         </select>
-        <span className="ml-auto text-xs text-[#94a3b8]">{visible.length} shown</span>
+        <span className="ml-auto text-xs text-[#a3a3a3]">{visible.length} shown</span>
       </div>
 
       <div data-testid="bulk-bar" className="mb-3 flex flex-wrap items-center gap-2 rounded-xl bg-white px-4 py-2.5">
-        <span data-testid="bulk-selected" className="text-sm font-semibold text-[#0f172a]">{selected.length} selected</span>
+        <span data-testid="bulk-selected" className="text-sm font-semibold text-[#1a1a1a]">{selected.length} selected</span>
         <div className="ml-auto flex flex-wrap gap-2">
-          <button type="button" data-testid="bulk-copy" disabled={selected.length === 0} onClick={copyCodes} className="inline-flex items-center gap-1.5 rounded-lg bg-[#f1f5f9] px-3 py-2 text-xs font-semibold text-[#475569] hover:bg-[#f8fafc] disabled:opacity-50">
+          <button type="button" data-testid="bulk-copy" disabled={selected.length === 0} onClick={copyCodes} className="inline-flex items-center gap-1.5 rounded-lg bg-[#f4f4f4] px-3 py-2 text-xs font-semibold text-[#525252] hover:bg-[#f7f7f7] disabled:opacity-50">
             <Copy size={13} /> Copy codes
           </button>
           {canPrint && (
-            <button type="button" data-testid="bulk-csv" disabled={selected.length === 0} onClick={exportCsv} className="inline-flex items-center gap-1.5 rounded-lg bg-[#f1f5f9] px-3 py-2 text-xs font-semibold text-[#475569] hover:bg-[#f8fafc] disabled:opacity-50">
+            <button type="button" data-testid="bulk-csv" disabled={selected.length === 0} onClick={exportCsv} className="inline-flex items-center gap-1.5 rounded-lg bg-[#f4f4f4] px-3 py-2 text-xs font-semibold text-[#525252] hover:bg-[#f7f7f7] disabled:opacity-50">
               <Download size={13} /> Download CSV
             </button>
           )}
           {canCancel && (
-            <button type="button" data-testid="bulk-expire" disabled={expirable.length === 0} onClick={() => setConfirmExpire(true)} className="inline-flex items-center gap-1.5 rounded-lg border-red-200 bg-[#f1f5f9] px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50">
+            <button type="button" data-testid="bulk-expire" disabled={expirable.length === 0} onClick={() => setConfirmExpire(true)} className="inline-flex items-center gap-1.5 rounded-lg border-red-200 bg-[#f4f4f4] px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50">
               <Ban size={13} /> Expire unused{expirable.length > 0 ? ` (${expirable.length})` : ""}
             </button>
           )}
@@ -138,10 +138,10 @@ function BulkBody({ agent }: { agent: AgentProfile }) {
       <article className="overflow-hidden rounded-2xl bg-white">
         <div className="max-h-[520px] overflow-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="sticky top-0 bg-[#f8fafc] text-xs text-[#64748b]">
+            <thead className="sticky top-0 bg-[#f7f7f7] text-xs text-[#737373]">
               <tr>
                 <th className="w-10 px-4 py-3">
-                  <input type="checkbox" data-testid="bulk-all" aria-label="Select all shown" checked={allVisiblePicked} onChange={toggleAll} className="h-4 w-4 accent-[#2563eb]" />
+                  <input type="checkbox" data-testid="bulk-all" aria-label="Select all shown" checked={allVisiblePicked} onChange={toggleAll} className="h-4 w-4 accent-[#1a1a1a]" />
                 </th>
                 <th className="px-4 py-3">Voucher code</th>
                 <th className="px-4 py-3">Package</th>
@@ -150,22 +150,22 @@ function BulkBody({ agent }: { agent: AgentProfile }) {
                 <th className="px-4 py-3">Sold to</th>
               </tr>
             </thead>
-            <tbody data-testid="bulk-rows" className="divide-y divide-[#f1f5f9]">
+            <tbody data-testid="bulk-rows" className="divide-y divide-[#f4f4f4]">
               {visible.map((v) => (
-                <tr key={v.code} className="hover:bg-[#f8fafc]">
+                <tr key={v.code} className="hover:bg-[#f7f7f7]">
                   <td className="px-4 py-2.5">
-                    <input type="checkbox" data-testid="bulk-pick" aria-label={`Select ${v.code}`} checked={picked.includes(v.code)} onChange={() => toggle(v.code)} className="h-4 w-4 accent-[#2563eb]" />
+                    <input type="checkbox" data-testid="bulk-pick" aria-label={`Select ${v.code}`} checked={picked.includes(v.code)} onChange={() => toggle(v.code)} className="h-4 w-4 accent-[#1a1a1a]" />
                   </td>
-                  <td className="px-4 py-2.5 font-mono text-xs text-[#2563eb]">{v.code}</td>
+                  <td className="px-4 py-2.5 font-mono text-xs text-[#1a1a1a]">{v.code}</td>
                   <td className="px-4 py-2.5">{v.packageName}</td>
-                  <td className="px-4 py-2.5 text-[#64748b]">{batchById.get(v.batchId ?? "")?.reference ?? "—"}</td>
+                  <td className="px-4 py-2.5 text-[#737373]">{batchById.get(v.batchId ?? "")?.reference ?? "—"}</td>
                   <td className="px-4 py-2.5">{v.status}</td>
                   <td className="px-4 py-2.5">{v.redeemerPhone ?? "—"}</td>
                 </tr>
               ))}
               {visible.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-sm text-[#94a3b8]">
+                  <td colSpan={6} className="px-4 py-10 text-center text-sm text-[#a3a3a3]">
                     {mine.length === 0 ? "No vouchers yet." : "No vouchers match these filters."}
                   </td>
                 </tr>

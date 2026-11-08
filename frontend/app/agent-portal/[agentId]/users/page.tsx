@@ -30,8 +30,8 @@ const BULK_ACTIONS: Array<{ key: BulkAction; label: string }> = [
 ];
 
 const STATUS_COLOR: Record<string, { text: string; dot: string }> = {
-  Online: { text: "text-[#2563eb]", dot: "bg-[#2563eb]" },
-  Paused: { text: "text-[#2563eb]", dot: "bg-[#2563eb]" },
+  Online: { text: "text-[#1a1a1a]", dot: "bg-[#1a1a1a]" },
+  Paused: { text: "text-[#1a1a1a]", dot: "bg-[#1a1a1a]" },
   Disconnected: { text: "text-slate-500", dot: "bg-slate-400" },
   Blocked: { text: "text-red-600", dot: "bg-red-500" },
 };
@@ -117,7 +117,7 @@ function AgentUsersTable({ agent }: { agent: AgentProfile }) {
     openUserActions(userId);
   }
 
-  const selectClass = "h-9 rounded-lg border border-[#cbd5e1] bg-white px-3 text-xs outline-none focus:border-[#2563eb]";
+  const selectClass = "h-9 rounded-lg border border-[#d4d4d4] bg-white px-3 text-xs outline-none focus:border-[#1a1a1a]";
 
   return (
     <article
@@ -127,8 +127,8 @@ function AgentUsersTable({ agent }: { agent: AgentProfile }) {
       <div className="flex flex-wrap items-center justify-between gap-3 border-b px-5 py-4">
         <h3 className="text-base font-bold">Active Users ({scoped.length})</h3>
         <div className="flex items-center gap-4 text-xs">
-          <span data-testid="users-online" className="inline-flex items-center gap-1.5 font-semibold text-[#2563eb]">
-            <span className="h-2 w-2 rounded-full bg-[#2563eb]" />
+          <span data-testid="users-online" className="inline-flex items-center gap-1.5 font-semibold text-[#1a1a1a]">
+            <span className="h-2 w-2 rounded-full bg-[#1a1a1a]" />
             {onlineCount} Online
           </span>
           <span className="inline-flex items-center gap-1.5 font-semibold text-slate-500">
@@ -138,15 +138,15 @@ function AgentUsersTable({ agent }: { agent: AgentProfile }) {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 border-b border-[#f1f5f9] px-5 py-3">
+      <div className="flex flex-wrap items-center gap-3 border-b border-[#f4f4f4] px-5 py-3">
         <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8]" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" />
           <input
             data-testid="users-search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search phone or username..."
-            className="h-9 w-56 rounded-lg border border-[#cbd5e1] bg-white pl-8 pr-3 text-xs outline-none focus:border-[#2563eb]"
+            className="h-9 w-56 rounded-lg border border-[#d4d4d4] bg-white pl-8 pr-3 text-xs outline-none focus:border-[#1a1a1a]"
           />
         </div>
         <select
@@ -174,19 +174,19 @@ function AgentUsersTable({ agent }: { agent: AgentProfile }) {
             </option>
           ))}
         </select>
-        <span className="text-xs text-[#94a3b8]">
+        <span className="text-xs text-[#a3a3a3]">
           Showing {visible.length} of {scoped.length}
         </span>
       </div>
 
       {full && selectedIds.length > 0 && (
-        <div data-testid="users-bulk-bar" className="flex flex-wrap items-center gap-3 border-b bg-[#f1f5f9] px-5 py-3">
-          <strong className="text-sm text-[#2563eb]">{selectedIds.length} user(s) selected</strong>
+        <div data-testid="users-bulk-bar" className="flex flex-wrap items-center gap-3 border-b bg-[#f4f4f4] px-5 py-3">
+          <strong className="text-sm text-[#1a1a1a]">{selectedIds.length} user(s) selected</strong>
           <select
             data-testid="users-bulk-action"
             value={bulkAction}
             onChange={(event) => setBulkAction(event.target.value as BulkAction)}
-            className="h-9 rounded-lg border border-[#cbd5e1] bg-white px-3 text-xs outline-none focus:border-[#2563eb]"
+            className="h-9 rounded-lg border border-[#d4d4d4] bg-white px-3 text-xs outline-none focus:border-[#1a1a1a]"
           >
             {BULK_ACTIONS.map((action) => (
               <option key={action.key} value={action.key}>
@@ -201,12 +201,12 @@ function AgentUsersTable({ agent }: { agent: AgentProfile }) {
                 min={1}
                 value={extendAmount}
                 onChange={(event) => setExtendAmount(event.target.value)}
-                className="h-9 w-16 rounded-lg border border-[#cbd5e1] bg-white px-2 text-xs outline-none focus:border-[#2563eb]"
+                className="h-9 w-16 rounded-lg border border-[#d4d4d4] bg-white px-2 text-xs outline-none focus:border-[#1a1a1a]"
               />
               <select
                 value={extendUnit}
                 onChange={(event) => setExtendUnit(event.target.value)}
-                className="h-9 rounded-lg border border-[#cbd5e1] bg-white px-2 text-xs outline-none focus:border-[#2563eb]"
+                className="h-9 rounded-lg border border-[#d4d4d4] bg-white px-2 text-xs outline-none focus:border-[#1a1a1a]"
               >
                 {["Minutes", "Hours", "Days"].map((unit) => (
                   <option key={unit} value={unit}>
@@ -224,20 +224,20 @@ function AgentUsersTable({ agent }: { agent: AgentProfile }) {
                 step={0.1}
                 value={topUpAmount}
                 onChange={(event) => setTopUpAmount(event.target.value)}
-                className="h-9 w-16 rounded-lg border border-[#cbd5e1] bg-white px-2 text-xs outline-none focus:border-[#2563eb]"
+                className="h-9 w-16 rounded-lg border border-[#d4d4d4] bg-white px-2 text-xs outline-none focus:border-[#1a1a1a]"
               />
-              <span className="text-xs font-semibold text-[#2563eb]">GB</span>
+              <span className="text-xs font-semibold text-[#1a1a1a]">GB</span>
             </div>
           )}
           <button
             type="button"
             data-testid="users-bulk-apply"
             onClick={applyBulk}
-            className="h-9 rounded-lg bg-[#2563eb] px-4 text-xs font-bold text-white hover:bg-[#1d4ed8]"
+            className="h-9 rounded-lg bg-[#1a1a1a] px-4 text-xs font-bold text-white hover:bg-[#111111]"
           >
             Apply Action
           </button>
-          <button type="button" onClick={() => setSelectedIds([])} className="ml-auto text-xs font-semibold text-[#2563eb] hover:underline">
+          <button type="button" onClick={() => setSelectedIds([])} className="ml-auto text-xs font-semibold text-[#1a1a1a] hover:underline">
             Clear selection
           </button>
         </div>
@@ -245,7 +245,7 @@ function AgentUsersTable({ agent }: { agent: AgentProfile }) {
 
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
-          <thead className="bg-[#f8fafc] text-[#64748b]">
+          <thead className="bg-[#f7f7f7] text-[#737373]">
             <tr>
               {full && (
                 <th className="px-4 py-3">
@@ -282,7 +282,7 @@ function AgentUsersTable({ agent }: { agent: AgentProfile }) {
                 <tr
                   key={u.voucherUsername}
                   data-testid="users-row"
-                  className={`border-t hover:bg-[#f1f5f9] ${selectedIds.includes(id) ? "bg-[#f1f5f9]" : ""}`}
+                  className={`border-t hover:bg-[#f4f4f4] ${selectedIds.includes(id) ? "bg-[#f4f4f4]" : ""}`}
                 >
                   {full && (
                     <td className="px-4 py-3">
@@ -297,15 +297,15 @@ function AgentUsersTable({ agent }: { agent: AgentProfile }) {
                     </td>
                   )}
                   <td className="px-4 py-3 font-semibold">
-                    <Link href={routes.href(id, "details")} data-testid="users-open" className="text-[#0f172a] hover:text-[#2563eb] hover:underline">
-                      {u.phone || <span className="font-normal text-[#94a3b8]">Not provided</span>}
+                    <Link href={routes.href(id, "details")} data-testid="users-open" className="text-[#1a1a1a] hover:text-[#1a1a1a] hover:underline">
+                      {u.phone || <span className="font-normal text-[#a3a3a3]">Not provided</span>}
                     </Link>
                   </td>
                   <td className="px-3 py-3">{u.package}</td>
                   {full && <td className="px-3 py-3 font-mono font-semibold">{u.voucherUsername}</td>}
                   {canSeeSessions && <td className="px-3 py-3">{u.timeLeft}</td>}
                   {canSeeSessions && <td className="px-3 py-3">{u.dataUsed}</td>}
-                  {canSeeSessions && <td className="px-3 py-3 font-semibold text-[#2563eb]">{u.dataLeft}</td>}
+                  {canSeeSessions && <td className="px-3 py-3 font-semibold text-[#1a1a1a]">{u.dataLeft}</td>}
                   {canSeeSessions && <td className="px-3 py-3 whitespace-nowrap">{u.expiresAt}</td>}
                   <td className="px-3 py-3">
                     <span className={`inline-flex items-center gap-2 font-semibold ${color.text}`}>
@@ -319,7 +319,7 @@ function AgentUsersTable({ agent }: { agent: AgentProfile }) {
                         type="button"
                         data-testid="users-actions"
                         onClick={(event) => openMenu(id, event)}
-                        className="rounded-lg bg-[#f1f5f9] px-3 py-2 text-xs font-semibold text-[#475569] hover:bg-[#f1f5f9]"
+                        className="rounded-lg bg-[#f4f4f4] px-3 py-2 text-xs font-semibold text-[#525252] hover:bg-[#f4f4f4]"
                       >
                         Actions
                       </button>
@@ -333,7 +333,7 @@ function AgentUsersTable({ agent }: { agent: AgentProfile }) {
             })}
             {visible.length === 0 && (
               <tr>
-                <td colSpan={10} className="px-5 py-10 text-center text-[#94a3b8]">
+                <td colSpan={10} className="px-5 py-10 text-center text-[#a3a3a3]">
                   {scoped.length === 0 ? "No users on your router yet." : "No users match this filter."}
                 </td>
               </tr>
@@ -361,10 +361,10 @@ export default function AgentUsersPage({
         <section>
           <div className="mb-5">
             <h1 className="flex items-center gap-2 text-2xl font-black md:text-3xl">
-              <UsersIcon size={26} className="text-[#2563eb]" />
+              <UsersIcon size={26} className="text-[#1a1a1a]" />
               Active Users
             </h1>
-            <p className="mt-1 text-sm text-[#64748b]">
+            <p className="mt-1 text-sm text-[#737373]">
               Everyone on your router.
               {hasFullUserControl(agent) ? " You have full control — the same tools as the admin." : ""}
             </p>

@@ -31,8 +31,8 @@ export function DataQuotaSection({
     <div id="data-quota" className="mb-6 rounded-xl border border-blue-200 bg-white p-5 scroll-mt-20">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Gauge size={18} className="text-[#2563eb]" />
-          <p className="text-sm font-bold text-[#0f172a]">
+          <Gauge size={18} className="text-[#1a1a1a]" />
+          <p className="text-sm font-bold text-[#1a1a1a]">
             Voucher Data Quota
           </p>
         </div>
@@ -64,27 +64,27 @@ export function DataQuotaSection({
             <Tooltip formatter={(value) => [`${value} GB used`, ""]} />
             <ReferenceLine
               y={quotaGb}
-              stroke="#ef4444"
+              stroke="#1a1a1a"
               strokeDasharray="4 4"
               label={{
                 value: `${quotaGb} GB limit`,
                 position: "insideTopRight",
                 fontSize: 11,
-                fill: "#ef4444",
+                fill: "#1a1a1a",
               }}
             />
             <Area
               type="monotone"
               dataKey="usedGb"
-              stroke={isFullyUsed ? "#ef4444" : "#2563eb"}
+              stroke={isFullyUsed ? "#1a1a1a" : "#1a1a1a"}
               strokeWidth={3}
-              fill={isFullyUsed ? "#ef4444" : "#2563eb"}
+              fill={isFullyUsed ? "#1a1a1a" : "#1a1a1a"}
               fillOpacity={0.15}
             />
           </AreaChart>
         </ResponsiveContainer>
       </div>
-      <p className="mt-2 text-xs text-[#64748b]">
+      <p className="mt-2 text-xs text-[#737373]">
         This voucher was issued for {quotaGb} GB. The line fills up as{" "}
         {userLabel} uses their data, until it reaches the limit.
       </p>

@@ -55,30 +55,30 @@ export default function FeedbackPage() {
     <section className="w-full">
       <BackLink />
       <h2 className="mb-1 flex items-center gap-2 text-3xl font-bold tracking-tight md:text-4xl">
-        <MessageSquare className="text-[#2563eb]" size={30} />
+        <MessageSquare className="text-[#1a1a1a]" size={30} />
         Feedback
       </h2>
-      <p className="mb-6 max-w-2xl text-sm text-[#64748b] md:text-base">
+      <p className="mb-6 max-w-2xl text-sm text-[#737373] md:text-base">
         {feedback.length} review{feedback.length === 1 ? "" : "s"} · Average
         rating {avgRating.toFixed(1)} / 5
       </p>
 
       <div className="grid gap-5 lg:grid-cols-[1fr_2fr]">
-        <article className="rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+        <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
           <h3 className="mb-4 text-base font-bold">Log Feedback</h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">
                 Customer Name
               </span>
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
             </label>
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">
                 Rating
               </span>
               <div className="flex gap-1">
@@ -94,7 +94,7 @@ export default function FeedbackPage() {
                       className={
                         value <= rating
                           ? "fill-amber-400 text-amber-400"
-                          : "text-[#e2e8f0]"
+                          : "text-[#e6e6e6]"
                       }
                     />
                   </button>
@@ -102,19 +102,19 @@ export default function FeedbackPage() {
               </div>
             </label>
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">
                 Comment
               </span>
               <textarea
                 value={comment}
                 onChange={(event) => setComment(event.target.value)}
                 rows={3}
-                className="w-full rounded-xl border border-[#e2e8f0] bg-white px-3 py-2.5 text-sm outline-none focus:border-[#2563eb]"
+                className="w-full rounded-xl border border-[#e6e6e6] bg-white px-3 py-2.5 text-sm outline-none focus:border-[#1a1a1a]"
               />
             </label>
             <button
               type="submit"
-              className="w-full rounded-xl bg-[#2563eb] px-5 py-3 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+              className="w-full rounded-xl bg-[#1a1a1a] px-5 py-3 text-sm font-bold text-white hover:bg-[#111111]"
             >
               Add Feedback
             </button>
@@ -125,13 +125,13 @@ export default function FeedbackPage() {
           {feedback.map((entry) => (
             <article
               key={entry.id}
-              className="rounded-2xl border border-[#e2e8f0] bg-white p-4 shadow-[0_8px_24px_rgba(37,99,235,0.06)]"
+              className="rounded-2xl border border-[#e6e6e6] bg-white p-4 shadow-[0_8px_24px_rgba(26,26,26,0.06)]"
             >
               <div className="flex items-center justify-between">
-                <p className="font-bold text-[#0f172a]">
+                <p className="font-bold text-[#1a1a1a]">
                   {entry.customerName}
                 </p>
-                <span className="text-xs text-[#94a3b8]">{entry.date}</span>
+                <span className="text-xs text-[#a3a3a3]">{entry.date}</span>
               </div>
               <div className="mt-1 flex gap-0.5">
                 {[1, 2, 3, 4, 5].map((value) => (
@@ -141,12 +141,12 @@ export default function FeedbackPage() {
                     className={
                       value <= entry.rating
                         ? "fill-amber-400 text-amber-400"
-                        : "text-[#e2e8f0]"
+                        : "text-[#e6e6e6]"
                     }
                   />
                 ))}
               </div>
-              <p className="mt-2 text-sm text-[#475569]">{entry.comment}</p>
+              <p className="mt-2 text-sm text-[#525252]">{entry.comment}</p>
             </article>
           ))}
         </div>

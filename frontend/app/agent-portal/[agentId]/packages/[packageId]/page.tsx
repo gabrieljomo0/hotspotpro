@@ -29,7 +29,7 @@ export default function AgentEditPackagePage({
       render={(agent) => {
         if (!pkg) {
           return (
-            <div className="rounded-2xl bg-white p-10 text-center text-sm text-[#94a3b8]">
+            <div className="rounded-2xl bg-white p-10 text-center text-sm text-[#a3a3a3]">
               This package may have been deleted.
             </div>
           );
@@ -43,8 +43,8 @@ export default function AgentEditPackagePage({
         if (!rights.canEdit) {
           return (
             <section className="mx-auto w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-sm">
-              <h1 className="mb-2 text-lg font-bold text-[#0f172a]">You can&apos;t edit this package</h1>
-              <p className="text-sm text-[#64748b]">
+              <h1 className="mb-2 text-lg font-bold text-[#1a1a1a]">You can&apos;t edit this package</h1>
+              <p className="text-sm text-[#737373]">
                 {rights.isOwn
                   ? "Admin hasn't allowed you to edit packages you create."
                   : "This package belongs to admin, and you haven't been given permission to edit it."}{" "}
@@ -52,7 +52,7 @@ export default function AgentEditPackagePage({
               </p>
               <Link
                 href={`/agent-portal/${agentId}/packages`}
-                className="mt-5 inline-block text-sm font-semibold text-[#2563eb] hover:underline"
+                className="mt-5 inline-block text-sm font-semibold text-[#1a1a1a] hover:underline"
               >
                 ← Back to Packages
               </Link>
@@ -62,16 +62,16 @@ export default function AgentEditPackagePage({
 
         return (
           <section className="mx-auto w-full max-w-3xl">
-            <div className="mb-4 flex items-center gap-1.5 text-xs text-[#94a3b8]">
-              <Link href={`/agent-portal/${agentId}/packages`} className="hover:text-[#2563eb]">
+            <div className="mb-4 flex items-center gap-1.5 text-xs text-[#a3a3a3]">
+              <Link href={`/agent-portal/${agentId}/packages`} className="hover:text-[#1a1a1a]">
                 Packages
               </Link>
               <ChevronRight size={12} />
-              <span className="text-[#475569]">{pkg.name}</span>
+              <span className="text-[#525252]">{pkg.name}</span>
             </div>
 
-            <h1 className="mb-1 text-3xl font-black text-[#0f172a] md:text-4xl">{pkg.name}</h1>
-            <p className="mb-6 text-sm text-[#64748b]">
+            <h1 className="mb-1 text-3xl font-black text-[#1a1a1a] md:text-4xl">{pkg.name}</h1>
+            <p className="mb-6 text-sm text-[#737373]">
               Currently {pkg.status.toLowerCase()} · {pkg.customers} customers on this plan
             </p>
 

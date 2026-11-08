@@ -73,11 +73,11 @@ export function DashboardTopbar({
     .toUpperCase();
 
   return (
-    <header className="sticky top-0 z-30 flex h-20 items-center border-b border-[#e2e8f0] bg-white px-4 transition-colors   md:px-6">
+    <header className="sticky top-0 z-30 flex h-20 items-center border-b border-[#e6e6e6] bg-white px-4 transition-colors   md:px-6">
       <button
         type="button"
         onClick={onOpenMobile}
-        className="mr-3 rounded-xl p-2.5 text-[#475569] transition hover:bg-[#f1f5f9]   lg:hidden"
+        className="mr-3 rounded-xl p-2.5 text-[#525252] transition hover:bg-[#f4f4f4]   lg:hidden"
         aria-label="Open sidebar"
       >
         <Menu size={24} />
@@ -86,16 +86,16 @@ export function DashboardTopbar({
       <div className="relative hidden w-full max-w-md md:block">
         <Search
           size={19}
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-[#94a3b8]"
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-[#a3a3a3]"
         />
 
         <input
           type="search"
           placeholder="Search users, routers or transactions..."
-          className="h-12 w-full rounded-xl border border-[#e2e8f0] bg-[#ffffff] pl-12 pr-20 text-sm text-[#1f4732] outline-none transition focus:border-[#2563eb] focus:bg-white focus:ring-4 focus:ring-blue-100    "
+          className="h-12 w-full rounded-xl border border-[#e6e6e6] bg-[#ffffff] pl-12 pr-20 text-sm text-[#1a1a1a] outline-none transition focus:border-[#1a1a1a] focus:bg-white focus:ring-4 focus:ring-blue-100    "
         />
 
-        <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md border border-[#e2e8f0] bg-white px-2 py-1 text-xs text-[#64748b]   ">
+        <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md border border-[#e6e6e6] bg-white px-2 py-1 text-xs text-[#737373]   ">
           CTRL + K
         </span>
       </div>
@@ -103,10 +103,10 @@ export function DashboardTopbar({
       <div className="ml-auto flex items-center gap-3">
         <Link
           href="/dashboards/shop"
-          className="flex items-center gap-2 rounded-xl border border-[#e2e8f0] bg-white px-4 py-3 text-sm font-semibold text-[#475569] transition hover:bg-[#ffffff]"
+          className="flex items-center gap-2 rounded-xl border border-[#e6e6e6] bg-white px-4 py-3 text-sm font-semibold text-[#525252] transition hover:bg-[#ffffff]"
           title="WemaMart"
         >
-          <ShoppingBag size={19} className="text-[#2563eb]" />
+          <ShoppingBag size={19} className="text-[#1a1a1a]" />
           <span>Shop</span>
         </Link>
 
@@ -126,7 +126,7 @@ export function DashboardTopbar({
               setAlertsMenuRect((event.currentTarget as HTMLElement).getBoundingClientRect());
               setAlertsMenuOpen((current) => !current);
             }}
-            className="relative rounded-xl p-3 text-[#475569] transition hover:bg-[#f1f5f9]  "
+            className="relative rounded-xl p-3 text-[#525252] transition hover:bg-[#f4f4f4]  "
             aria-label="Notifications"
           >
             <Bell size={22} />
@@ -146,14 +146,14 @@ export function DashboardTopbar({
               onMouseEnter={cancelCloseAlertsMenu}
               onMouseLeave={scheduleCloseAlertsMenu}
             >
-              <div className="flex items-center justify-between border-b border-[#f1f5f9] px-4 py-2.5">
-                <span className="text-xs font-bold uppercase text-[#94a3b8]">Alerts</span>
-                <Link href="/dashboards/settings/alerts" onClick={() => setAlertsMenuOpen(false)} className="text-xs font-semibold text-[#2563eb] hover:underline">
+              <div className="flex items-center justify-between border-b border-[#f4f4f4] px-4 py-2.5">
+                <span className="text-xs font-bold uppercase text-[#a3a3a3]">Alerts</span>
+                <Link href="/dashboards/settings/alerts" onClick={() => setAlertsMenuOpen(false)} className="text-xs font-semibold text-[#1a1a1a] hover:underline">
                   Configure
                 </Link>
               </div>
               {adminAlerts.length === 0 ? (
-                <p className="px-4 py-6 text-center text-xs text-[#94a3b8]">No alerts yet.</p>
+                <p className="px-4 py-6 text-center text-xs text-[#a3a3a3]">No alerts yet.</p>
               ) : (
                 <div className="max-h-80 overflow-y-auto">
                   {adminAlerts.slice(0, 15).map((alert) => (
@@ -161,12 +161,12 @@ export function DashboardTopbar({
                       key={alert.id}
                       type="button"
                       onClick={() => markAlertRead(alert.id)}
-                      className={`block w-full border-b border-[#f1f5f9] px-4 py-2.5 text-left text-xs last:border-0 ${
-                        alert.read ? "text-[#94a3b8]" : "font-semibold text-[#0f172a]"
+                      className={`block w-full border-b border-[#f4f4f4] px-4 py-2.5 text-left text-xs last:border-0 ${
+                        alert.read ? "text-[#a3a3a3]" : "font-semibold text-[#1a1a1a]"
                       } hover:bg-[#ffffff]`}
                     >
                       <p>{alert.message}</p>
-                      <p className="mt-0.5 text-[10px] text-[#94a3b8]">{alert.timestamp}</p>
+                      <p className="mt-0.5 text-[10px] text-[#a3a3a3]">{alert.timestamp}</p>
                     </button>
                   ))}
                 </div>
@@ -185,23 +185,23 @@ export function DashboardTopbar({
             onClick={() => setProfileOpen((current) => !current)}
             className="flex items-center gap-3 rounded-xl p-2 transition hover:bg-[#ffffff] "
           >
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#2563eb] text-sm font-bold text-white ring-2 ring-[#e2e8f0]">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1a1a1a] text-sm font-bold text-white ring-2 ring-[#e6e6e6]">
               {initials || "AU"}
             </div>
 
             <div className="hidden text-left sm:block">
-              <p className="text-sm font-semibold text-[#0f172a] ">
+              <p className="text-sm font-semibold text-[#1a1a1a] ">
                 {currentAgent.name}
               </p>
 
-              <p className="mt-0.5 text-xs text-[#64748b] ">
+              <p className="mt-0.5 text-xs text-[#737373] ">
                 {currentAgent.role}
               </p>
             </div>
 
             <ChevronDown
               size={16}
-              className="hidden text-[#64748b] sm:block"
+              className="hidden text-[#737373] sm:block"
             />
           </button>
 
@@ -214,20 +214,20 @@ export function DashboardTopbar({
                 onClick={() => setProfileOpen(false)}
               />
 
-              <div className="absolute right-0 top-16 z-50 w-56 overflow-hidden rounded-xl border border-[#e2e8f0] bg-white py-2 text-left shadow-2xl">
+              <div className="absolute right-0 top-16 z-50 w-56 overflow-hidden rounded-xl border border-[#e6e6e6] bg-white py-2 text-left shadow-2xl">
                 <div className="px-4 py-2.5">
-                  <p className="text-sm font-bold text-[#0f172a]">
+                  <p className="text-sm font-bold text-[#1a1a1a]">
                     {currentAgent.name}
                   </p>
-                  <p className="text-xs text-[#64748b]">{currentAgent.email}</p>
+                  <p className="text-xs text-[#737373]">{currentAgent.email}</p>
                 </div>
 
-                <div className="my-1 border-t border-[#f1f5f9]" />
+                <div className="my-1 border-t border-[#f4f4f4]" />
 
                 <Link
                   href="/dashboards/account"
                   onClick={() => setProfileOpen(false)}
-                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#475569] hover:bg-[#f1f5f9]"
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#525252] hover:bg-[#f4f4f4]"
                 >
                   <UserCircle2 size={16} />
                   Profile Settings
@@ -235,7 +235,7 @@ export function DashboardTopbar({
                 <Link
                   href={`/agent-portal/${currentAgent.id}`}
                   onClick={() => setProfileOpen(false)}
-                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#475569] hover:bg-[#f1f5f9]"
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#525252] hover:bg-[#f4f4f4]"
                 >
                   <LayoutDashboard size={16} />
                   My Agent Dashboard
@@ -243,7 +243,7 @@ export function DashboardTopbar({
                 <Link
                   href="/dashboards/agents"
                   onClick={() => setProfileOpen(false)}
-                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#475569] hover:bg-[#f1f5f9]"
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#525252] hover:bg-[#f4f4f4]"
                 >
                   <Users2 size={16} />
                   Switch Agent Profile
@@ -251,13 +251,13 @@ export function DashboardTopbar({
                 <Link
                   href="/dashboards/settings"
                   onClick={() => setProfileOpen(false)}
-                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#475569] hover:bg-[#f1f5f9]"
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#525252] hover:bg-[#f4f4f4]"
                 >
                   <Settings size={16} />
                   Business Settings
                 </Link>
 
-                <div className="my-1 border-t border-[#f1f5f9]" />
+                <div className="my-1 border-t border-[#f4f4f4]" />
 
                 <button
                   type="button"

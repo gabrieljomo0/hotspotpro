@@ -8,7 +8,7 @@ export default function UsageReportsPage() {
       <h2 className="mb-1 text-3xl font-bold tracking-tight md:text-4xl">
         Usage Reports
       </h2>
-      <p className="mb-6 max-w-2xl text-sm text-[#64748b] md:text-base">
+      <p className="mb-6 max-w-2xl text-sm text-[#737373] md:text-base">
         Detailed per-customer data and time usage breakdowns.
       </p>
 

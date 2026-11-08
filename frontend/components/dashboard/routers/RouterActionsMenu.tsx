@@ -31,9 +31,9 @@ export function RouterActionsMenu({
   const isCut = router.status === "Offline" || !!router.disconnected;
   const detailHref = `/dashboards/configuration/routers/${encodeURIComponent(router.ip)}`;
   const itemClass =
-    "flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-[#475569] hover:bg-[#f1f5f9]";
+    "flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-[#525252] hover:bg-[#f4f4f4]";
   const linkClass =
-    "flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-[#475569] hover:bg-[#f1f5f9]";
+    "flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-[#525252] hover:bg-[#f4f4f4]";
 
   function run(action: () => void) {
     action();
@@ -58,7 +58,7 @@ export function RouterActionsMenu({
   return (
     <DropdownMenuPortal anchorRect={anchorRect} onClose={onClose} width={220}>
       <Link href={detailHref} className={linkClass} onClick={onClose}>
-        <Eye size={14} className="text-[#2563eb]" /> View
+        <Eye size={14} className="text-[#1a1a1a]" /> View
       </Link>
 
 
@@ -67,11 +67,11 @@ export function RouterActionsMenu({
         className={itemClass}
         onClick={() => run(() => startRouterTask("reboot", router.ip))}
       >
-        <Power size={14} className="text-[#2563eb]" /> Reboot
+        <Power size={14} className="text-[#1a1a1a]" /> Reboot
       </button>
 
       <button type="button" className={itemClass} onClick={handleRemoteWinbox}>
-        <Monitor size={14} className="text-[#2563eb]" /> Remote Winbox
+        <Monitor size={14} className="text-[#1a1a1a]" /> Remote Winbox
       </button>
 
       <button
@@ -79,17 +79,17 @@ export function RouterActionsMenu({
         className={itemClass}
         onClick={() => run(() => startRouterTask("full-provision", router.ip))}
       >
-        <RefreshCcw size={14} className="text-[#2563eb]" /> Reprovision router
+        <RefreshCcw size={14} className="text-[#1a1a1a]" /> Reprovision router
       </button>
 
       <button type="button" data-testid="router-edit-identity" className={itemClass} onClick={handleEditIdentity}>
-        <Pencil size={14} className="text-[#2563eb]" /> Edit Identity
+        <Pencil size={14} className="text-[#1a1a1a]" /> Edit Identity
       </button>
 
-      <div className="my-2 border-t border-[#f1f5f9]" />
+      <div className="my-2 border-t border-[#f4f4f4]" />
 
       <Link href={`${detailHref}?action=notifications`} className={linkClass} onClick={onClose}>
-        <Bell size={14} className="text-[#2563eb]" /> Notification Contacts
+        <Bell size={14} className="text-[#1a1a1a]" /> Notification Contacts
       </Link>
 
       <button
@@ -97,7 +97,7 @@ export function RouterActionsMenu({
         className={itemClass}
         onClick={() => run(() => startRouterTask("winbox", router.ip))}
       >
-        <KeyRound size={14} className="text-[#2563eb]" /> Regenerate winbox
+        <KeyRound size={14} className="text-[#1a1a1a]" /> Regenerate winbox
       </button>
 
       <button
@@ -105,7 +105,7 @@ export function RouterActionsMenu({
         className={itemClass}
         onClick={() => run(() => startRouterTask("sync-files", router.ip))}
       >
-        <FolderSync size={14} className="text-[#2563eb]" /> Sync hotspot files
+        <FolderSync size={14} className="text-[#1a1a1a]" /> Sync hotspot files
       </button>
 
       <button
@@ -113,7 +113,7 @@ export function RouterActionsMenu({
         className={itemClass}
         onClick={() => run(() => startRouterTask("sync-time", router.ip))}
       >
-        <Clock3 size={14} className="text-[#2563eb]" /> Sync Router Time
+        <Clock3 size={14} className="text-[#1a1a1a]" /> Sync Router Time
       </button>
 
       <button
@@ -121,10 +121,10 @@ export function RouterActionsMenu({
         className={itemClass}
         onClick={() => run(() => startRouterTask("update-script", router.ip))}
       >
-        <FileCode2 size={14} className="text-[#2563eb]" /> Update Script
+        <FileCode2 size={14} className="text-[#1a1a1a]" /> Update Script
       </button>
 
-      <div className="my-2 border-t border-[#f1f5f9]" />
+      <div className="my-2 border-t border-[#f4f4f4]" />
 
       <button
         type="button"
@@ -141,7 +141,7 @@ export function RouterActionsMenu({
         <Trash2 size={14} /> Delete
       </button>
 
-      <div className="my-2 border-t border-[#f1f5f9]" />
+      <div className="my-2 border-t border-[#f4f4f4]" />
 
       <button
         type="button"
@@ -150,11 +150,11 @@ export function RouterActionsMenu({
       >
         {router.paused ? (
           <>
-            <PlayCircle size={14} className="text-[#2563eb]" /> Resume Connection
+            <PlayCircle size={14} className="text-[#1a1a1a]" /> Resume Connection
           </>
         ) : (
           <>
-            <PauseCircle size={14} className="text-[#2563eb]" /> Pause Connection
+            <PauseCircle size={14} className="text-[#1a1a1a]" /> Pause Connection
           </>
         )}
       </button>
@@ -168,7 +168,7 @@ export function RouterActionsMenu({
       >
         {isCut ? (
           <>
-            <PlugZap size={14} className="text-[#2563eb]" /> Reconnect
+            <PlugZap size={14} className="text-[#1a1a1a]" /> Reconnect
           </>
         ) : (
           <>

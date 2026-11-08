@@ -26,10 +26,10 @@ export function LiveRoutersStatusTable({
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
           <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
         </span>
-        <p className="text-sm font-bold text-[#0f172a]">
+        <p className="text-sm font-bold text-[#1a1a1a]">
           Live Data Status — All Connected Routers
         </p>
-        <span className="flex items-center gap-1 text-xs text-[#94a3b8]">
+        <span className="flex items-center gap-1 text-xs text-[#a3a3a3]">
           <Radio size={12} />
           Updates every 2 seconds
         </span>
@@ -37,7 +37,7 @@ export function LiveRoutersStatusTable({
 
       <div className="overflow-x-auto rounded-xl bg-white">
         <table className="w-full text-left text-sm">
-          <thead className="bg-[#ffffff] text-xs text-[#64748b]">
+          <thead className="bg-[#ffffff] text-xs text-[#737373]">
             <tr>
               <th className="px-4 py-2.5 font-semibold">Router</th>
               <th className="px-4 py-2.5 font-semibold">Status</th>
@@ -65,8 +65,8 @@ export function LiveRoutersStatusTable({
                 : 0;
 
               return (
-                <tr key={router.ip} className="border-t border-[#f1f5f9]">
-                  <td className="px-4 py-2.5 font-semibold text-[#0f172a]">
+                <tr key={router.ip} className="border-t border-[#f4f4f4]">
+                  <td className="px-4 py-2.5 font-semibold text-[#1a1a1a]">
                     {router.name.split(" (")[0]}
                   </td>
                   <td className="px-4 py-2.5">
@@ -85,19 +85,19 @@ export function LiveRoutersStatusTable({
                       {online ? "Online" : "Offline"}
                     </span>
                   </td>
-                  <td className="px-4 py-2.5 text-[#475569]">{clients}</td>
-                  <td className="px-4 py-2.5 text-[#475569]">
+                  <td className="px-4 py-2.5 text-[#525252]">{clients}</td>
+                  <td className="px-4 py-2.5 text-[#525252]">
                     {throughput} Mbps
                   </td>
                   <td className="px-4 py-2.5">
-                    <span className="inline-flex items-center gap-1 text-[#475569]">
-                      <Cpu size={12} className="text-[#94a3b8]" />
+                    <span className="inline-flex items-center gap-1 text-[#525252]">
+                      <Cpu size={12} className="text-[#a3a3a3]" />
                       {cpuPct}%
                     </span>
                   </td>
                   <td className="px-4 py-2.5">
-                    <span className="inline-flex items-center gap-1 text-[#475569]">
-                      <MemoryStick size={12} className="text-[#94a3b8]" />
+                    <span className="inline-flex items-center gap-1 text-[#525252]">
+                      <MemoryStick size={12} className="text-[#a3a3a3]" />
                       {memoryPct}%
                     </span>
                   </td>

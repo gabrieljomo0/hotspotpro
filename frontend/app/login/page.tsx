@@ -51,6 +51,7 @@ function LoginForm() {
   const registerMode =
     searchParams.get("mode") === "register";
 
+  const [dark, setDark] = useState(false);
   const [showPassword, setShowPassword] =
     useState(false);
 
@@ -72,6 +73,10 @@ function LoginForm() {
   // Asks the server whether the owner account still has to be created (first visit
   // to a new site) and whether it needs the server's setup code.
   const [setup, setSetup] = useState<{ firstAccount: boolean; signupOpen: boolean; needsSetupCode: boolean } | null>(null);
+  useEffect(() => {
+    const stored = localStorage.getItem("hotspotpro-theme") ?? localStorage.getItem("hotspotpro-public-theme");
+    setDark(stored === "dark");
+  }, []);
   useEffect(() => {
     if (agentLinkId) return;
     let cancelled = false;
@@ -216,14 +221,14 @@ function LoginForm() {
   }
 
   const input =
-    "w-full rounded-lg border border-[#cbd5e1] bg-white px-3 py-3 text-base text-[#0f172a] outline-none focus:border-[#2563eb]";
+    "w-full rounded-lg border border-[#d4d4d4] bg-white px-3 py-3 text-base text-[#1a1a1a] outline-none focus:border-[#1a1a1a]";
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#f1f5f9] px-5 py-10">
-      <div className="w-full max-w-sm rounded-lg border border-[#e2e8f0] bg-white p-8">
-        <p className="text-lg font-bold text-[#0f172a]">HotspotPro</p>
+    <main id="dashboard-root" className={`flex min-h-screen items-center justify-center bg-[#f4f4f4] px-5 py-10 text-[#1a1a1a] ${dark ? "dark" : ""}`}>
+      <div className="w-full max-w-sm rounded-lg border border-[#e6e6e6] bg-white p-8">
+        <p className="text-lg font-bold text-[#1a1a1a]">HotspotPro</p>
 
-        <h1 className="mt-6 text-2xl font-bold text-[#0f172a]">
+        <h1 className="mt-6 text-2xl font-bold text-[#1a1a1a]">
           {registerMode
             ? signupClosed
               ? "Sign-up is closed"
@@ -238,20 +243,20 @@ function LoginForm() {
         </h1>
 
         {agentLinkMode && (
-          <p className="mt-1 text-sm text-[#64748b]">Enter your password to continue.</p>
+          <p className="mt-1 text-sm text-[#737373]">Enter your password to continue.</p>
         )}
 
         {agentLinkMode && storeReady && !linkedAgent && (
           <div
             data-testid="agent-link-invalid"
-            className="mt-5 rounded-lg border border-red-200 bg-[#fef2f2] p-3 text-sm text-[#b91c1c]"
+            className="mt-5 rounded-lg border border-red-200 bg-[#f3f1ec] p-3 text-sm text-[#1a1a1a]"
           >
             This link isn&apos;t valid on this device. Ask your admin for a new one.
           </div>
         )}
 
         {registerMode && !signupClosed && (
-          <p className="mt-1 text-sm text-[#64748b]">
+          <p className="mt-1 text-sm text-[#737373]">
             {setup?.firstAccount
               ? "This is the first sign-up on this site, so this account becomes the super admin. You still sign in to your normal dashboard; the super admin area is the link in the landing page footer."
               : "Create your own WiFi business account. Your routers, vouchers, agents and payments stay completely separate from everyone else's."}
@@ -259,20 +264,20 @@ function LoginForm() {
         )}
 
         {reasonMessage && !error && (
-          <p className="mt-5 rounded-lg bg-[#fef2f2] p-3 text-sm text-[#b91c1c]">{reasonMessage}</p>
+          <p className="mt-5 rounded-lg bg-[#f3f1ec] p-3 text-sm text-[#1a1a1a]">{reasonMessage}</p>
         )}
 
         {signupClosed && (
-          <div className="mt-5 rounded-lg border border-[#cbd5e1] bg-[#f8fafc] p-3 text-sm text-[#475569]">
+          <div className="mt-5 rounded-lg border border-[#d4d4d4] bg-[#f7f7f7] p-3 text-sm text-[#525252]">
             New sign-ups are switched off on this site. Sign in if you already have an account, or ask the administrator
             to create one for you.
           </div>
         )}
 
         {!registerMode && !agentLinkMode && setup?.firstAccount && (
-          <div className="mt-5 rounded-lg border border-[#cbd5e1] bg-[#f8fafc] p-3 text-sm text-[#475569]">
+          <div className="mt-5 rounded-lg border border-[#d4d4d4] bg-[#f7f7f7] p-3 text-sm text-[#525252]">
             No account exists yet.{" "}
-            <Link href="/login?mode=register" className="font-semibold text-[#2563eb] hover:underline">
+            <Link href="/login?mode=register" className="font-semibold text-[#1a1a1a] hover:underline">
               Create your account
             </Link>{" "}
             to get started.
@@ -283,7 +288,7 @@ function LoginForm() {
           {registerMode && (
             <>
               <label className="block">
-                <span className="mb-1 block text-sm text-[#475569]">Full name</span>
+                <span className="mb-1 block text-sm text-[#525252]">Full name</span>
                 <input
                   required
                   autoComplete="name"
@@ -293,7 +298,7 @@ function LoginForm() {
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-sm text-[#475569]">Business name (optional)</span>
+                <span className="mb-1 block text-sm text-[#525252]">Business name (optional)</span>
                 <input
                   autoComplete="organization"
                   value={form.businessName}
@@ -305,7 +310,7 @@ function LoginForm() {
           )}
 
           <label className="block">
-            <span className="mb-1 block text-sm text-[#475569]">Email</span>
+            <span className="mb-1 block text-sm text-[#525252]">Email</span>
             <input
               required
               type="email"
@@ -313,12 +318,12 @@ function LoginForm() {
               readOnly={agentLinkMode}
               value={agentLinkMode ? linkedAgent?.email ?? "" : form.email}
               onChange={(event) => setForm({ ...form, email: event.target.value })}
-              className={`${input} ${agentLinkMode ? "bg-[#f8fafc] text-[#64748b]" : ""}`}
+              className={`${input} ${agentLinkMode ? "bg-[#f7f7f7] text-[#737373]" : ""}`}
             />
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-sm text-[#475569]">Password</span>
+            <span className="mb-1 block text-sm text-[#525252]">Password</span>
             <div className="relative">
               <input
                 required
@@ -333,7 +338,7 @@ function LoginForm() {
               <button
                 type="button"
                 onClick={() => setShowPassword((current) => !current)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94a3b8] hover:text-[#475569]"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a3a3a3] hover:text-[#525252]"
                 aria-label="Show or hide password"
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -343,7 +348,7 @@ function LoginForm() {
 
           {registerMode && (
             <label className="block">
-              <span className="mb-1 block text-sm text-[#475569]">Confirm password</span>
+              <span className="mb-1 block text-sm text-[#525252]">Confirm password</span>
               <input
                 required
                 type={showPassword ? "text" : "password"}
@@ -352,27 +357,27 @@ function LoginForm() {
                 onChange={(event) => setForm({ ...form, confirmPassword: event.target.value })}
                 className={input}
               />
-              <span className="mt-1 block text-xs text-[#94a3b8]">At least 8 characters.</span>
+              <span className="mt-1 block text-xs text-[#a3a3a3]">At least 8 characters.</span>
             </label>
           )}
 
           {registerMode && setup?.needsSetupCode && (
             <label className="block">
-              <span className="mb-1 block text-sm text-[#475569]">Setup code</span>
+              <span className="mb-1 block text-sm text-[#525252]">Setup code</span>
               <input
                 required
                 value={form.setupCode}
                 onChange={(event) => setForm({ ...form, setupCode: event.target.value })}
                 className={input}
               />
-              <span className="mt-1 block text-xs text-[#94a3b8]">
+              <span className="mt-1 block text-xs text-[#a3a3a3]">
                 The HOTSPOTPRO_SETUP_CODE the server was started with.
               </span>
             </label>
           )}
 
           {error && (
-            <p className="flex items-start gap-2 rounded-lg border border-red-200 bg-[#fef2f2] p-3 text-sm text-[#b91c1c]">
+            <p className="flex items-start gap-2 rounded-lg border border-red-200 bg-[#f3f1ec] p-3 text-sm text-[#1a1a1a]">
               <AlertCircle size={16} className="mt-0.5 shrink-0" />
               {error}
             </p>
@@ -381,7 +386,7 @@ function LoginForm() {
           <button
             type="submit"
             disabled={loading || (agentLinkMode && !linkedAgent)}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#2563eb] px-4 py-3 text-base font-semibold text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#1a1a1a] px-4 py-3 text-base font-semibold text-white hover:bg-[#111111] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading && <Loader2 size={18} className="animate-spin" />}
             {registerMode ? "Create account" : "Sign in"}
@@ -389,12 +394,12 @@ function LoginForm() {
         </form>
 
         {!agentLinkMode && (
-          <p className="mt-5 text-center text-sm text-[#64748b]">
+          <p className="mt-5 text-center text-sm text-[#737373]">
             {registerMode ? "Have an account? " : setup?.signupOpen === false ? "" : "No account? "}
             {(registerMode || setup?.signupOpen !== false) && (
               <Link
                 href={registerMode ? "/login" : "/login?mode=register"}
-                className="font-semibold text-[#2563eb] hover:underline"
+                className="font-semibold text-[#1a1a1a] hover:underline"
               >
                 {registerMode ? "Sign in" : "Create one"}
               </Link>
@@ -410,8 +415,8 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-[#f1f5f9]">
-          <Loader2 className="h-9 w-9 animate-spin text-[#2563eb]" />
+        <div className="flex min-h-screen items-center justify-center bg-[#f4f4f4]">
+          <Loader2 className="h-9 w-9 animate-spin text-[#1a1a1a]" />
         </div>
       }
     >

@@ -97,24 +97,24 @@ export function RouterCaptivePortalPanel({
 
   return (
     <div className="space-y-5">
-      <p className="text-sm text-[#64748b]">
+      <p className="text-sm text-[#737373]">
         {section === "hotspot"
           ? "Configure the network and free-trial/ads behaviour for"
           : "Design and customize the customer login page for"}{" "}
-        <strong data-testid="portal-scope-name" className="text-[#0f172a]">{businessName}</strong>.
+        <strong data-testid="portal-scope-name" className="text-[#1a1a1a]">{businessName}</strong>.
         The preview on the right updates live as you make changes.
       </p>
 
       {locked && subTab !== "Clean-up" && (
-        <div data-testid="master-lock-banner" className="flex items-start gap-3 rounded-xl border border-[#2563eb] bg-white p-4">
-          <Crown size={18} className="mt-0.5 shrink-0 text-[#2563eb]" />
-          <div className="text-sm text-[#475569]">
-            <p className="font-bold text-[#0f172a]">Controlled by your Master {section === "hotspot" ? "Hotspot" : "Captive Portal"} Settings</p>
+        <div data-testid="master-lock-banner" className="flex items-start gap-3 rounded-xl border border-[#1a1a1a] bg-white p-4">
+          <Crown size={18} className="mt-0.5 shrink-0 text-[#1a1a1a]" />
+          <div className="text-sm text-[#525252]">
+            <p className="font-bold text-[#1a1a1a]">Controlled by your Master {section === "hotspot" ? "Hotspot" : "Captive Portal"} Settings</p>
             <p>
               These values come from Settings → {section === "hotspot" ? "Hotspot" : "Captive Portal"} and apply to every router, so they can&apos;t be edited here.
               This router&apos;s own settings are kept and come back when the master is switched off.
             </p>
-            <Link href={`/dashboards/settings/${section === "hotspot" ? "hotspot" : "captive-portal"}`} className="mt-1 inline-block font-bold text-[#2563eb] hover:underline">
+            <Link href={`/dashboards/settings/${section === "hotspot" ? "hotspot" : "captive-portal"}`} className="mt-1 inline-block font-bold text-[#1a1a1a] hover:underline">
               Open master settings
             </Link>
           </div>
@@ -123,14 +123,14 @@ export function RouterCaptivePortalPanel({
 
       <div className={subTab === "Clean-up" ? "" : "grid gap-6 lg:grid-cols-[1fr_360px]"}>
         <div className="min-w-0 space-y-5">
-          <nav className="flex flex-wrap gap-2 border-b border-[#f1f5f9] pb-4">
+          <nav className="flex flex-wrap gap-2 border-b border-[#f4f4f4] pb-4">
             {SUB_TABS.map((t) => (
               <button
                 key={t}
                 type="button"
                 onClick={() => setSubTab(t)}
                 className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
-                  subTab === t ? "bg-[#f1f5f9] text-[#2563eb]" : "text-[#64748b] hover:bg-[#ffffff]"
+                  subTab === t ? "bg-[#f4f4f4] text-[#1a1a1a]" : "text-[#737373] hover:bg-[#ffffff]"
                 }`}
               >
                 {t}
@@ -156,7 +156,7 @@ export function RouterCaptivePortalPanel({
 
         {subTab !== "Clean-up" && (
         <div className="lg:sticky lg:top-4 lg:self-start">
-          <p className="mb-2 text-center text-xs font-bold uppercase tracking-wide text-[#94a3b8]">
+          <p className="mb-2 text-center text-xs font-bold uppercase tracking-wide text-[#a3a3a3]">
             Live Preview
           </p>
           <LivePreview config={form} businessName={businessName} />
@@ -171,7 +171,7 @@ export function RouterCaptivePortalPanel({
           onClick={save}
           disabled={locked}
           data-testid="router-portal-save"
-          className="rounded-xl bg-[#2563eb] px-6 py-3 text-sm font-bold text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-xl bg-[#1a1a1a] px-6 py-3 text-sm font-bold text-white hover:bg-[#111111] disabled:cursor-not-allowed disabled:opacity-50"
         >
           Save Captive Portal Settings
         </button>

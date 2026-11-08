@@ -42,7 +42,7 @@ export default function PauseUserPage({
         state.paused ? "paused" : "active"
       }`}
     >
-      <p className="text-sm leading-6 text-[#64748b]">
+      <p className="text-sm leading-6 text-[#737373]">
         {state.paused
           ? "The user will regain internet access immediately."
           : "The user will temporarily lose internet access until the connection is resumed."}

@@ -14,28 +14,28 @@ export const PRINT_DESIGNS: Array<{
     name: "Micro Strip",
     description: "Dense horizontal strip — the most codes per printed page.",
     tags: ["100 / page", "Lowest cost"],
-    accent: "#2563eb",
+    accent: "#1a1a1a",
   },
   {
     id: "classic-card",
     name: "Classic Card",
     description: "A clean bordered card with your brand color across the top.",
     tags: ["48 / page", "Most readable"],
-    accent: "#2563eb",
+    accent: "#1a1a1a",
   },
   {
     id: "bold-ribbon",
     name: "Bold Ribbon",
     description: "A diagonal ribbon badge makes the package pop at a glance.",
     tags: ["54 / page", "Eye-catching"],
-    accent: "#059669",
+    accent: "#1a1a1a",
   },
   {
     id: "minimal-frame",
     name: "Minimal Frame",
     description: "Thin outline, monospace code, nothing extra.",
     tags: ["60 / page", "Minimalist"],
-    accent: "#d97706",
+    accent: "#1a1a1a",
   },
 ];
 
@@ -62,7 +62,7 @@ export function VoucherCardPreview({
       <span
         data-testid="voucher-number"
         style={{ WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" }}
-        className="pointer-events-none absolute right-2 top-2 rounded border border-[#0f172a] bg-white px-1.5 py-0.5 font-mono text-[11px] font-bold leading-none text-[#0f172a]"
+        className="pointer-events-none absolute right-2 top-2 rounded border border-[#1a1a1a] bg-white px-1.5 py-0.5 font-mono text-[11px] font-bold leading-none text-[#1a1a1a]"
       >
         No. {number}
       </span>
@@ -78,7 +78,7 @@ function VoucherCardBody({
   price,
   businessName = "HotspotPro",
 }: CardProps) {
-  const accent = PRINT_DESIGNS.find((d) => d.id === design)?.accent ?? "#2563eb";
+  const accent = PRINT_DESIGNS.find((d) => d.id === design)?.accent ?? "#1a1a1a";
 
   if (design === "classic-card") {
     return (
@@ -89,15 +89,15 @@ function VoucherCardBody({
         <div className="px-4 py-4 text-center">
           {password ? (
             <div className="space-y-1">
-              <p className="text-[9px] font-bold uppercase tracking-wide text-[#94a3b8]">User / Pass</p>
-              <p className="font-mono text-lg font-black text-[#0f172a]">{code}</p>
-              <p className="font-mono text-lg font-black text-[#0f172a]">{password}</p>
+              <p className="text-[9px] font-bold uppercase tracking-wide text-[#a3a3a3]">User / Pass</p>
+              <p className="font-mono text-lg font-black text-[#1a1a1a]">{code}</p>
+              <p className="font-mono text-lg font-black text-[#1a1a1a]">{password}</p>
             </div>
           ) : (
-            <p className="font-mono text-xl font-black text-[#0f172a]">{code}</p>
+            <p className="font-mono text-xl font-black text-[#1a1a1a]">{code}</p>
           )}
-          <p className="mt-2 text-xs font-semibold text-[#475569]">{packageName}</p>
-          <p className="text-xs text-[#64748b]">{price}</p>
+          <p className="mt-2 text-xs font-semibold text-[#525252]">{packageName}</p>
+          <p className="text-xs text-[#737373]">{price}</p>
         </div>
       </div>
     );
@@ -105,7 +105,7 @@ function VoucherCardBody({
 
   if (design === "bold-ribbon") {
     return (
-      <div className="relative w-56 overflow-hidden rounded-xl border border-[#f1f5f9] bg-white p-4 text-center shadow-sm">
+      <div className="relative w-56 overflow-hidden rounded-xl border border-[#f4f4f4] bg-white p-4 text-center shadow-sm">
         <div
           className="absolute -right-10 top-3 w-32 rotate-45 py-1 text-center text-[9px] font-bold uppercase text-white"
           style={{ background: accent }}
@@ -114,16 +114,16 @@ function VoucherCardBody({
         </div>
         {password ? (
           <div className="mt-4 space-y-0.5">
-            <p className="font-mono text-lg font-black text-[#0f172a]">U: {code}</p>
-            <p className="font-mono text-lg font-black text-[#0f172a]">P: {password}</p>
+            <p className="font-mono text-lg font-black text-[#1a1a1a]">U: {code}</p>
+            <p className="font-mono text-lg font-black text-[#1a1a1a]">P: {password}</p>
           </div>
         ) : (
-          <p className="mt-4 font-mono text-xl font-black text-[#0f172a]">{code}</p>
+          <p className="mt-4 font-mono text-xl font-black text-[#1a1a1a]">{code}</p>
         )}
         <p className="mt-2 text-xs font-semibold" style={{ color: accent }}>
           {price}
         </p>
-        <p className="text-[10px] text-[#94a3b8]">{businessName}</p>
+        <p className="text-[10px] text-[#a3a3a3]">{businessName}</p>
       </div>
     );
   }
@@ -133,15 +133,15 @@ function VoucherCardBody({
       <div className="w-56 rounded-lg border border-dashed p-4 text-center" style={{ borderColor: accent }}>
         {password ? (
           <div className="space-y-0.5">
-            <p className="font-mono text-base font-bold tracking-wider text-[#0f172a]">{code}</p>
-            <p className="font-mono text-base font-bold tracking-wider text-[#0f172a]">{password}</p>
+            <p className="font-mono text-base font-bold tracking-wider text-[#1a1a1a]">{code}</p>
+            <p className="font-mono text-base font-bold tracking-wider text-[#1a1a1a]">{password}</p>
           </div>
         ) : (
-          <p className="font-mono text-lg font-bold tracking-wider text-[#0f172a]">
+          <p className="font-mono text-lg font-bold tracking-wider text-[#1a1a1a]">
             {code}
           </p>
         )}
-        <div className="mt-2 flex items-center justify-center gap-2 text-[10px] text-[#64748b]">
+        <div className="mt-2 flex items-center justify-center gap-2 text-[10px] text-[#737373]">
           <span>{packageName}</span>
           <span>·</span>
           <span>{price}</span>
@@ -152,7 +152,7 @@ function VoucherCardBody({
 
   // micro-strip (default) — dense single-line strip
   return (
-    <div className="w-56 overflow-hidden rounded-lg border border-[#f1f5f9] bg-white shadow-sm">
+    <div className="w-56 overflow-hidden rounded-lg border border-[#f4f4f4] bg-white shadow-sm">
       <div className="flex items-center justify-between px-3 py-1" style={{ background: `${accent}15` }}>
         <span className="text-[9px] font-bold uppercase" style={{ color: accent }}>
           {businessName}
@@ -163,13 +163,13 @@ function VoucherCardBody({
       </div>
       <div className="px-3 py-2.5">
         {password ? (
-          <p className="font-mono text-sm font-black text-[#0f172a]">
+          <p className="font-mono text-sm font-black text-[#1a1a1a]">
             {code} / {password}
           </p>
         ) : (
-          <p className="font-mono text-base font-black text-[#0f172a]">{code}</p>
+          <p className="font-mono text-base font-black text-[#1a1a1a]">{code}</p>
         )}
-        <p className="text-[9px] text-[#94a3b8]">{packageName}</p>
+        <p className="text-[9px] text-[#a3a3a3]">{packageName}</p>
       </div>
     </div>
   );

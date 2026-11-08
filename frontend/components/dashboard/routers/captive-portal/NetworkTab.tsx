@@ -27,9 +27,9 @@ export function NetworkTab({
   const sharedSsid = hotspotSettings.ssidStrategy === "same" && !masterSsid;
 
   return (
-    <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
-      <h3 className="text-lg font-bold text-[#0f172a]">Hotspot Network</h3>
-      <p className="mb-6 text-sm text-[#64748b]">
+    <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
+      <h3 className="text-lg font-bold text-[#1a1a1a]">Hotspot Network</h3>
+      <p className="mb-6 text-sm text-[#737373]">
         The WiFi network customers connect to on {router.name.split(" (")[0]}.
       </p>
 
@@ -82,11 +82,11 @@ export function NetworkTab({
         </Field>
       </div>
 
-      <div className="mt-6 rounded-xl border border-[#f1f5f9] bg-[#ffffff] p-4">
+      <div className="mt-6 rounded-xl border border-[#f4f4f4] bg-[#ffffff] p-4">
         <label className="mb-4 flex items-center justify-between gap-3">
           <div>
-            <span className="text-sm font-bold text-[#0f172a]">Default data throttle</span>
-            <p className="text-xs text-[#94a3b8]">
+            <span className="text-sm font-bold text-[#1a1a1a]">Default data throttle</span>
+            <p className="text-xs text-[#a3a3a3]">
               Applies to any package that doesn't set its own
               throttle rule. A package's own
               throttle setting (under Packages) always takes priority
@@ -97,7 +97,7 @@ export function NetworkTab({
             type="button"
             onClick={() => set("defaultThrottleEnabled", !form.defaultThrottleEnabled)}
             className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-              form.defaultThrottleEnabled ? "bg-[#2563eb]" : "bg-[#e2e8f0]"
+              form.defaultThrottleEnabled ? "bg-[#1a1a1a]" : "bg-[#e6e6e6]"
             }`}
           >
             <span
@@ -111,7 +111,7 @@ export function NetworkTab({
         {form.defaultThrottleEnabled && (
           <div className="grid gap-4 sm:grid-cols-3">
             <label className="block">
-              <span className="mb-2 block text-xs font-semibold text-[#475569]">Throttle at</span>
+              <span className="mb-2 block text-xs font-semibold text-[#525252]">Throttle at</span>
               <input
                 type="number"
                 min={0}
@@ -123,29 +123,29 @@ export function NetworkTab({
                   )
                 }
                 placeholder="e.g. 10"
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
             </label>
             <label className="block">
-              <span className="mb-2 block text-xs font-semibold text-[#475569]">Unit</span>
+              <span className="mb-2 block text-xs font-semibold text-[#525252]">Unit</span>
               <select
                 value={form.defaultThrottleAtUnit}
                 onChange={(e) => set("defaultThrottleAtUnit", e.target.value as "MB" | "GB")}
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               >
                 <option value="MB">MB</option>
                 <option value="GB">GB</option>
               </select>
             </label>
             <label className="block">
-              <span className="mb-2 block text-xs font-semibold text-[#475569]">Throttled speed (Mbps)</span>
+              <span className="mb-2 block text-xs font-semibold text-[#525252]">Throttled speed (Mbps)</span>
               <input
                 type="number"
                 min={0.5}
                 step={0.5}
                 value={form.defaultThrottleSpeedMbps}
                 onChange={(e) => set("defaultThrottleSpeedMbps", Number(e.target.value))}
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
             </label>
           </div>

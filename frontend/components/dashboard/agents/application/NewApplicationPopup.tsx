@@ -46,57 +46,57 @@ export function NewApplicationPopup() {
           <Bell size={17} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold text-[#0f172a]" data-testid="popup-title">
+          <p className="text-sm font-bold text-[#1a1a1a]" data-testid="popup-title">
             {fresh.length === 1 ? "New reseller application" : `${fresh.length} new reseller applications`}
           </p>
-          <p className="text-xs text-[#64748b]">Someone applied on the captive portal.</p>
+          <p className="text-xs text-[#737373]">Someone applied on the captive portal.</p>
         </div>
         <button
           type="button"
           aria-label="Dismiss"
           onClick={() => markApplicationsNotified(ids)}
-          className="rounded-lg p-1 text-[#94a3b8] hover:bg-amber-100 hover:text-[#475569]"
+          className="rounded-lg p-1 text-[#a3a3a3] hover:bg-amber-100 hover:text-[#525252]"
         >
           <X size={16} />
         </button>
       </div>
 
-      <ul className="divide-y divide-[#f1f5f9]">
+      <ul className="divide-y divide-[#f4f4f4]">
         {shown.map((request) => {
           const agent = agents.find((a) => a.id === request.agentId);
           const router_ = agent ? routers.find((r) => r.ip === agent.routerIp) : undefined;
           return (
             <li key={request.id} data-testid="popup-application" className="px-4 py-3">
-              <p className="text-sm font-semibold text-[#0f172a]">{request.agentName}</p>
-              <p className="text-xs text-[#64748b]">
+              <p className="text-sm font-semibold text-[#1a1a1a]">{request.agentName}</p>
+              <p className="text-xs text-[#737373]">
                 {[agent?.phone, agent?.location, router_ ? `from ${router_.name.split(" (")[0]}` : null]
                   .filter(Boolean)
                   .join(" · ")}
               </p>
-              <p className="text-[11px] text-[#94a3b8]">{request.createdAt}</p>
+              <p className="text-[11px] text-[#a3a3a3]">{request.createdAt}</p>
             </li>
           );
         })}
         {fresh.length > SHOWN && (
-          <li className="px-4 py-2 text-xs text-[#94a3b8]">+ {fresh.length - SHOWN} more</li>
+          <li className="px-4 py-2 text-xs text-[#a3a3a3]">+ {fresh.length - SHOWN} more</li>
         )}
       </ul>
 
-      <div className="flex gap-2 border-t border-[#f1f5f9] px-4 py-3">
+      <div className="flex gap-2 border-t border-[#f4f4f4] px-4 py-3">
         <button
           type="button"
           onClick={() => {
             markApplicationsNotified(ids);
             router.push("/dashboards/agents?tab=applications");
           }}
-          className="flex-1 rounded-lg bg-[#2563eb] px-3 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+          className="flex-1 rounded-lg bg-[#1a1a1a] px-3 py-2.5 text-sm font-bold text-white hover:bg-[#111111]"
         >
           {fresh.length === 1 ? "Review application" : "Review applications"}
         </button>
         <button
           type="button"
           onClick={() => markApplicationsNotified(ids)}
-          className="rounded-lg border border-[#e2e8f0] bg-white px-4 py-2.5 text-sm font-semibold text-[#475569] hover:bg-[#ffffff]"
+          className="rounded-lg border border-[#e6e6e6] bg-white px-4 py-2.5 text-sm font-semibold text-[#525252] hover:bg-[#ffffff]"
         >
           Dismiss
         </button>

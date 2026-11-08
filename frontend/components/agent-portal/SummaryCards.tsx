@@ -35,28 +35,28 @@ export function SummaryCards({
       value: String(online),
       subtitle: "Now connected",
       icon: Users,
-      iconClass: "bg-[#f1f5f9] text-[#2563eb]",
+      iconClass: "bg-[#f4f4f4] text-[#1a1a1a]",
     },
     {
       title: "Total Sessions",
       value: String(totalSessions),
       subtitle: "On this router",
       icon: Wifi,
-      iconClass: "bg-[#f1f5f9] text-[#2563eb]",
+      iconClass: "bg-[#f4f4f4] text-[#1a1a1a]",
     },
     {
       title: "Active Data Usage",
       value: formatGB(totalDataGb),
       subtitle: "This router, all-time",
       icon: Activity,
-      iconClass: "bg-[#f1f5f9] text-[#475569]",
+      iconClass: "bg-[#f4f4f4] text-[#525252]",
     },
     {
       title: "Expiring Soon",
       value: String(expiringSoon),
       subtitle: "Within 30 minutes",
       icon: CircleDot,
-      iconClass: "bg-[#f1f5f9] text-[#2563eb]",
+      iconClass: "bg-[#f4f4f4] text-[#1a1a1a]",
     },
   ].filter((card) => !(salesCard && (card.title === "Total Sessions" || card.title === "Expiring Soon")));
 
@@ -67,27 +67,27 @@ export function SummaryCards({
     >
       <div className="flex items-start gap-2.5">
         <div
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${ routerUp === false ? "bg-red-50 text-red-600" : "bg-[#f1f5f9] text-[#2563eb]" }`}
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${ routerUp === false ? "bg-red-50 text-red-600" : "bg-[#f4f4f4] text-[#1a1a1a]" }`}
         >
           <Signal size={18} />
         </div>
         <div className="min-w-0">
-          <p className="truncate text-xs text-[#64748b]">Router Status</p>
+          <p className="truncate text-xs text-[#737373]">Router Status</p>
           <p className="mt-0.5 flex items-baseline gap-1.5">
             <span data-testid="router-percent" className="text-lg font-black leading-tight">
               {router ? (routerUp ? "99.8%" : "0%") : "—"}
             </span>
             <span
               data-testid="router-state"
-              className={`inline-flex items-center gap-1 text-[11px] font-bold ${ routerUp === null ? "text-[#94a3b8]" : routerUp ? "text-[#2563eb]" : "text-red-600" }`}
+              className={`inline-flex items-center gap-1 text-[11px] font-bold ${ routerUp === null ? "text-[#a3a3a3]" : routerUp ? "text-[#1a1a1a]" : "text-red-600" }`}
             >
               <span
-                className={`h-1.5 w-1.5 rounded-full ${ routerUp === null ? "bg-slate-400" : routerUp ? "bg-[#2563eb]" : "bg-red-500" }`}
+                className={`h-1.5 w-1.5 rounded-full ${ routerUp === null ? "bg-slate-400" : routerUp ? "bg-[#1a1a1a]" : "bg-red-500" }`}
               />
               {routerLabel}
             </span>
           </p>
-          <p className="mt-0.5 truncate text-[11px] text-[#64748b]">{routerName}</p>
+          <p className="mt-0.5 truncate text-[11px] text-[#737373]">{routerName}</p>
         </div>
       </div>
     </article>
@@ -121,9 +121,9 @@ function SmallCard({
           <Icon size={18} />
         </div>
         <div className="min-w-0">
-          <p className="truncate text-xs text-[#64748b]">{card.title}</p>
+          <p className="truncate text-xs text-[#737373]">{card.title}</p>
           <p className="mt-0.5 truncate text-lg font-black leading-tight">{card.value}</p>
-          <p className="mt-0.5 truncate text-[11px] text-[#64748b]">{card.subtitle}</p>
+          <p className="mt-0.5 truncate text-[11px] text-[#737373]">{card.subtitle}</p>
         </div>
       </div>
     </article>

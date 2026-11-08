@@ -27,14 +27,14 @@ export function AgentUsageBreakdown({ agents }: { agents: AgentProfile[] }) {
   }));
 
   return (
-    <div className="rounded-xl border border-[#f1f5f9] p-5">
+    <div className="rounded-xl border border-[#f4f4f4] p-5">
       <div className="mb-1 flex items-center gap-2">
         <UserCog size={18} className="text-emerald-600" />
-        <p className="text-sm font-bold text-[#0f172a]">
+        <p className="text-sm font-bold text-[#1a1a1a]">
           Data Usage per Agent / Reseller ({agents.length})
         </p>
       </div>
-      <p className="mb-4 text-xs text-[#94a3b8]">
+      <p className="mb-4 text-xs text-[#a3a3a3]">
         Every agent shows automatically — one line per traffic type.
       </p>
 
@@ -49,7 +49,7 @@ export function AgentUsageBreakdown({ agents }: { agents: AgentProfile[] }) {
               type="monotone"
               dataKey="download"
               name="Download"
-              stroke="#2563eb"
+              stroke="#1a1a1a"
               strokeWidth={2.5}
               dot={{ r: 4 }}
             />
@@ -57,7 +57,7 @@ export function AgentUsageBreakdown({ agents }: { agents: AgentProfile[] }) {
               type="monotone"
               dataKey="upload"
               name="Upload"
-              stroke="#93c5fd"
+              stroke="#f3f1ec"
               strokeWidth={2.5}
               dot={{ r: 4 }}
             />
@@ -66,12 +66,12 @@ export function AgentUsageBreakdown({ agents }: { agents: AgentProfile[] }) {
       </div>
 
       <div className="mt-3 flex gap-4 text-xs">
-        <span className="inline-flex items-center gap-1.5 text-[#475569]">
-          <span className="h-0.5 w-4 bg-[#2563eb]" />
+        <span className="inline-flex items-center gap-1.5 text-[#525252]">
+          <span className="h-0.5 w-4 bg-[#1a1a1a]" />
           Download — green
         </span>
-        <span className="inline-flex items-center gap-1.5 text-[#475569]">
-          <span className="h-0.5 w-4 bg-[#93c5fd]" />
+        <span className="inline-flex items-center gap-1.5 text-[#525252]">
+          <span className="h-0.5 w-4 bg-[#f3f1ec]" />
           Upload — teal
         </span>
       </div>

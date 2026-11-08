@@ -17,7 +17,7 @@ import { EVERYTHING } from "./dashboardScope";
 import { useDashboardScope } from "./useDashboardScope";
 
 const selectClass =
-  "h-10 rounded-xl border border-[#e2e8f0] bg-white px-3.5 text-sm font-semibold text-[#0f172a] shadow-sm outline-none transition hover:bg-[#ffffff] focus:border-[#2563eb] focus:ring-2 focus:ring-[#2563eb]/25";
+  "h-10 rounded-xl border border-[#e6e6e6] bg-white px-3.5 text-sm font-semibold text-[#1a1a1a] shadow-sm outline-none transition hover:bg-[#ffffff] focus:border-[#1a1a1a] focus:ring-2 focus:ring-[#1a1a1a]/25";
 
 export function DashboardScopeFilter() {
   const { options, scope, resolved, setScope } = useDashboardScope();
@@ -33,14 +33,14 @@ export function DashboardScopeFilter() {
         href={`/dashboards/revenue/router-agent-breakdown?${
           onlyRouter ? `router=${encodeURIComponent(onlyRouter.ip)}` : `site=${encodeURIComponent(onlySite.id)}`
         }`}
-        className="flex items-center gap-3 rounded-xl border border-[#e2e8f0] bg-white px-4 py-3 text-sm font-semibold shadow-sm transition hover:bg-[#ffffff]"
+        className="flex items-center gap-3 rounded-xl border border-[#e6e6e6] bg-white px-4 py-3 text-sm font-semibold shadow-sm transition hover:bg-[#ffffff]"
       >
-        <LayoutGrid size={16} className="text-[#64748b]" />
+        <LayoutGrid size={16} className="text-[#737373]" />
         {onlyRouter ? onlyRouter.name : onlySite.name}
         {onlyRouter && (onlyRouter.siteName ?? onlySite?.name) && (
-          <span className="text-xs font-medium text-[#94a3b8]">· {onlyRouter.siteName ?? onlySite.name}</span>
+          <span className="text-xs font-medium text-[#a3a3a3]">· {onlyRouter.siteName ?? onlySite.name}</span>
         )}
-        <ArrowRight size={14} className="text-[#2563eb]" />
+        <ArrowRight size={14} className="text-[#1a1a1a]" />
       </Link>
     );
   }
@@ -145,14 +145,14 @@ export function DashboardScopeFilter() {
           aria-label="Clear filter"
           title="Show everything again"
           onClick={() => setScope(EVERYTHING)}
-          className="flex h-10 w-[36px] items-center justify-center rounded-xl text-[#2563eb] transition hover:bg-[#f1f5f9]"
+          className="flex h-10 w-[36px] items-center justify-center rounded-xl text-[#1a1a1a] transition hover:bg-[#f4f4f4]"
         >
           <X size={20} />
         </button>
       )}
 
       {breakdownHref && (
-        <Link href={breakdownHref} className="hidden items-center gap-1 text-xs font-semibold text-[#2563eb] hover:underline xl:inline-flex">
+        <Link href={breakdownHref} className="hidden items-center gap-1 text-xs font-semibold text-[#1a1a1a] hover:underline xl:inline-flex">
           Full breakdown <ArrowRight size={12} />
         </Link>
       )}
@@ -168,13 +168,13 @@ export function DashboardScopeNotes() {
   return (
     <div className="mb-4 space-y-1">
       {resolved.isAdminDirect && (
-        <p data-testid="scope-note" className="flex items-start gap-1.5 text-xs text-[#94a3b8]">
+        <p data-testid="scope-note" className="flex items-start gap-1.5 text-xs text-[#a3a3a3]">
           <Info size={13} className="mt-0.5 shrink-0" />
           Sales are your own. Users, routers and network can&apos;t be split by seller, so they show the whole network.
         </p>
       )}
       {resolved.filtered && !resolved.agentId && unattributedVouchers > 0 && (
-        <p data-testid="scope-note" className="flex items-start gap-1.5 text-xs text-[#94a3b8]">
+        <p data-testid="scope-note" className="flex items-start gap-1.5 text-xs text-[#a3a3a3]">
           <Info size={13} className="mt-0.5 shrink-0" />
           {unattributedVouchers} voucher{unattributedVouchers === 1 ? "" : "s"} aren&apos;t tied to a router, so{" "}
           {unattributedVouchers === 1 ? "it only counts" : "they only count"} in Everything and agent views.

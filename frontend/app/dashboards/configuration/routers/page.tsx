@@ -85,7 +85,7 @@ export default function RoutersPage() {
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="mb-1 text-3xl font-bold tracking-tight md:text-4xl">Routers</h2>
-          <p className="max-w-2xl text-sm text-[#64748b] md:text-base">
+          <p className="max-w-2xl text-sm text-[#737373] md:text-base">
             {routers.length} router{routers.length === 1 ? "" : "s"} on your account · {onlineCount} online, {offlineCount} offline.
           </p>
         </div>
@@ -94,7 +94,7 @@ export default function RoutersPage() {
           <button
             type="button"
             onClick={() => showToast("Tutorial video coming soon.")}
-            className="inline-flex items-center gap-2 rounded-xl border border-[#e2e8f0] bg-white px-4 py-2.5 text-sm font-semibold text-[#475569] hover:bg-[#ffffff]"
+            className="inline-flex items-center gap-2 rounded-xl border border-[#e6e6e6] bg-white px-4 py-2.5 text-sm font-semibold text-[#525252] hover:bg-[#ffffff]"
           >
             <PlayCircle size={16} />
             Watch Tutorial
@@ -102,7 +102,7 @@ export default function RoutersPage() {
           <button
             type="button"
             onClick={() => setAddSiteOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl border border-[#e2e8f0] bg-white px-4 py-2.5 text-sm font-semibold text-[#475569] hover:bg-[#ffffff]"
+            className="inline-flex items-center gap-2 rounded-xl border border-[#e6e6e6] bg-white px-4 py-2.5 text-sm font-semibold text-[#525252] hover:bg-[#ffffff]"
           >
             <Plus size={16} />
             Add New Site
@@ -110,7 +110,7 @@ export default function RoutersPage() {
           <button
             type="button"
             onClick={() => setDeviceChooserOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#2563eb] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#1a1a1a] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#111111]"
           >
             <Plus size={16} />
             Add Router
@@ -118,8 +118,8 @@ export default function RoutersPage() {
         </div>
       </div>
 
-      <article className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
-        <div className="flex flex-wrap items-center gap-3 border-b border-[#e2e8f0] px-5 py-4">
+      <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+        <div className="flex flex-wrap items-center gap-3 border-b border-[#e6e6e6] px-5 py-4">
           <div className="flex gap-1.5">
             {(["All", "Online", "Offline", "Pending", "Error"] as StatusFilter[]).map((status) => (
               <button
@@ -128,8 +128,8 @@ export default function RoutersPage() {
                 onClick={() => setStatusFilter(status)}
                 className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
                   statusFilter === status
-                    ? "bg-[#f1f5f9] text-[#2563eb]"
-                    : "text-[#64748b] hover:bg-[#ffffff]"
+                    ? "bg-[#f4f4f4] text-[#1a1a1a]"
+                    : "text-[#737373] hover:bg-[#ffffff]"
                 }`}
               >
                 {status}
@@ -149,19 +149,19 @@ export default function RoutersPage() {
           </div>
 
           <div className="relative ml-auto">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8]" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search routers..."
-              className="h-10 w-60 rounded-lg border border-[#e2e8f0] bg-white pl-8 pr-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-10 w-60 rounded-lg border border-[#e6e6e6] bg-white pl-8 pr-3 text-sm outline-none focus:border-[#1a1a1a]"
             />
           </div>
         </div>
 
         <div>
           <table className="w-full table-fixed text-left text-sm">
-            <thead className="bg-[#ffffff] text-xs text-[#64748b]">
+            <thead className="bg-[#ffffff] text-xs text-[#737373]">
               <tr>
                 <th className="px-4 py-4 font-semibold">Router</th>
                 <th className="hidden px-4 py-4 font-semibold sm:table-cell">Provisioning</th>
@@ -177,7 +177,7 @@ export default function RoutersPage() {
             <tbody>
               {visibleRouters.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-5 py-10 text-center text-[#94a3b8]">
+                  <td colSpan={9} className="px-5 py-10 text-center text-[#a3a3a3]">
                     No routers match this filter.
                   </td>
                 </tr>
@@ -190,10 +190,10 @@ export default function RoutersPage() {
                   <tr
                     key={router.ip}
                     onClick={() => navigate.push(detailHref)}
-                    className="cursor-pointer border-t border-[#f1f5f9] hover:bg-[#ffffff]"
+                    className="cursor-pointer border-t border-[#f4f4f4] hover:bg-[#ffffff]"
                   >
                     <td className="px-4 py-4">
-                      <span className="truncate font-semibold text-[#0f172a]">{router.name}</span>
+                      <span className="truncate font-semibold text-[#1a1a1a]">{router.name}</span>
                       <ConnectionBadge router={router} control={control[router.ip]} />
                       {router.lastError && (
                         <p className="mt-0.5 truncate text-xs text-red-600">{router.lastError}</p>
@@ -203,29 +203,29 @@ export default function RoutersPage() {
                       <span
                         className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
                           router.provisioningStatus === "Provisioned"
-                            ? "bg-[#f1f5f9] text-[#1d4ed8]"
+                            ? "bg-[#f4f4f4] text-[#111111]"
                             : router.provisioningStatus === "Pending"
-                              ? "bg-[#f1f5f9] text-[#1d4ed8]"
+                              ? "bg-[#f4f4f4] text-[#111111]"
                               : "bg-slate-200 text-slate-700"
                         }`}
                       >
                         {router.provisioningStatus}
                       </span>
                     </td>
-                    <td className="hidden px-4 py-4 font-semibold text-[#1d4ed8] md:table-cell">{router.cpu}%</td>
-                    <td className="hidden px-4 py-4 font-semibold text-[#1d4ed8] md:table-cell">{router.memory}%</td>
+                    <td className="hidden px-4 py-4 font-semibold text-[#111111] md:table-cell">{router.cpu}%</td>
+                    <td className="hidden px-4 py-4 font-semibold text-[#111111] md:table-cell">{router.memory}%</td>
                     <td className="px-4 py-4">
                       <span
                         className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
-                          isOnline ? "bg-[#f1f5f9] text-[#1d4ed8]" : "bg-red-100 text-red-700"
+                          isOnline ? "bg-[#f4f4f4] text-[#111111]" : "bg-red-100 text-red-700"
                         }`}
                       >
-                        <span className={`h-1.5 w-1.5 rounded-full ${isOnline ? "bg-[#2563eb]" : "bg-red-500"}`} />
+                        <span className={`h-1.5 w-1.5 rounded-full ${isOnline ? "bg-[#1a1a1a]" : "bg-red-500"}`} />
                         {isOnline ? "Online" : "Offline"}
                       </span>
                     </td>
                     <td className="hidden px-4 py-4 lg:table-cell">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-[#f1f5f9] px-2.5 py-1 text-xs font-bold text-[#1d4ed8]">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-bold text-[#111111]">
                         ✨ {router.connectionMode}
                       </span>
                     </td>
@@ -236,13 +236,13 @@ export default function RoutersPage() {
                         aria-pressed={router.remoteAccessEnabled}
                         className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-bold shadow-sm transition ${
                           router.remoteAccessEnabled
-                            ? "bg-[#2563eb] text-white hover:bg-[#2563eb]"
+                            ? "bg-[#1a1a1a] text-white hover:bg-[#1a1a1a]"
                             : "bg-slate-300 text-slate-700 hover:bg-slate-400"
                         }`}
                       >
                         <span
                           className={`flex h-4 w-8 items-center rounded-full p-0.5 transition ${
-                            router.remoteAccessEnabled ? "justify-end bg-[#1d4ed8]" : "justify-start bg-white"
+                            router.remoteAccessEnabled ? "justify-end bg-[#111111]" : "justify-start bg-white"
                           }`}
                         >
                           <span className="h-3 w-3 rounded-full bg-white shadow" />
@@ -250,14 +250,14 @@ export default function RoutersPage() {
                         {router.remoteAccessEnabled ? "ON" : "OFF"}
                       </button>
                     </td>
-                    <td className="hidden truncate px-4 py-4 font-mono text-xs text-[#2563eb] xl:table-cell">
+                    <td className="hidden truncate px-4 py-4 font-mono text-xs text-[#1a1a1a] xl:table-cell">
                       {router.remoteAccessEnabled ? router.winboxAddress || "assigning…" : "—"}
                     </td>
                     <td className="px-4 py-4 text-center" onClick={(event) => event.stopPropagation()}>
                       <button
                         type="button"
                         onClick={(event) => handleOpenMenu(router.ip, event)}
-                        className="rounded-lg border border-[#e2e8f0] p-2 text-[#475569] hover:bg-[#f1f5f9]"
+                        className="rounded-lg border border-[#e6e6e6] p-2 text-[#525252] hover:bg-[#f4f4f4]"
                         aria-label="Router actions"
                       >
                         <MoreVertical size={16} />
@@ -278,7 +278,7 @@ export default function RoutersPage() {
           </table>
         </div>
 
-        <div className="border-t border-[#e2e8f0] px-5 py-3 text-sm text-[#64748b]">
+        <div className="border-t border-[#e6e6e6] px-5 py-3 text-sm text-[#737373]">
           Showing {visibleRouters.length} result{visibleRouters.length === 1 ? "" : "s"}
         </div>
       </article>
@@ -289,33 +289,33 @@ export default function RoutersPage() {
             <button type="button" aria-label="Close" className="absolute inset-0" onClick={() => setDeviceChooserOpen(false)} />
             <div className="relative z-10 w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
               <div className="mb-1 flex items-center justify-between">
-                <h3 className="text-lg font-bold text-[#0f172a]">Device Configuration</h3>
-                <button type="button" onClick={() => setDeviceChooserOpen(false)} className="rounded-lg p-1.5 text-[#64748b] hover:bg-[#ffffff]">
+                <h3 className="text-lg font-bold text-[#1a1a1a]">Device Configuration</h3>
+                <button type="button" onClick={() => setDeviceChooserOpen(false)} className="rounded-lg p-1.5 text-[#737373] hover:bg-[#ffffff]">
                   <X size={18} />
                 </button>
               </div>
-              <p className="mb-5 text-sm text-[#64748b]">Choose the type of device you want to connect.</p>
+              <p className="mb-5 text-sm text-[#737373]">Choose the type of device you want to connect.</p>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => handleChooseDevice("MikroTik")}
-                  className="flex flex-col items-center gap-2 rounded-xl border-2 border-[#e2e8f0] p-5 text-center hover:border-[#2563eb] hover:bg-[#ffffff]"
+                  className="flex flex-col items-center gap-2 rounded-xl border-2 border-[#e6e6e6] p-5 text-center hover:border-[#1a1a1a] hover:bg-[#ffffff]"
                 >
-                  <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#f1f5f9] text-sm font-black text-[#1d4ed8]">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#f4f4f4] text-sm font-black text-[#111111]">
                     MT
                   </span>
-                  <span className="text-sm font-bold text-[#0f172a]">MikroTik</span>
+                  <span className="text-sm font-bold text-[#1a1a1a]">MikroTik</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleChooseDevice("Ruijie")}
-                  className="flex flex-col items-center gap-2 rounded-xl border-2 border-[#e2e8f0] p-5 text-center hover:border-[#2563eb] hover:bg-[#ffffff]"
+                  className="flex flex-col items-center gap-2 rounded-xl border-2 border-[#e6e6e6] p-5 text-center hover:border-[#1a1a1a] hover:bg-[#ffffff]"
                 >
-                  <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#f1f5f9] text-sm font-black text-[#1d4ed8]">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#f4f4f4] text-sm font-black text-[#111111]">
                     R
                   </span>
-                  <span className="text-sm font-bold text-[#0f172a]">Ruijie</span>
-                  <span className="text-[10px] font-semibold text-[#94a3b8]">Coming soon</span>
+                  <span className="text-sm font-bold text-[#1a1a1a]">Ruijie</span>
+                  <span className="text-[10px] font-semibold text-[#a3a3a3]">Coming soon</span>
                 </button>
               </div>
             </div>
@@ -329,18 +329,18 @@ export default function RoutersPage() {
             <button type="button" aria-label="Close" className="absolute inset-0" onClick={() => setAddSiteOpen(false)} />
             <div className="relative z-10 w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
               <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-lg font-bold text-[#0f172a]">Add New Site</h3>
-                <button type="button" onClick={() => setAddSiteOpen(false)} className="rounded-lg p-1.5 text-[#64748b] hover:bg-[#ffffff]">
+                <h3 className="text-lg font-bold text-[#1a1a1a]">Add New Site</h3>
+                <button type="button" onClick={() => setAddSiteOpen(false)} className="rounded-lg p-1.5 text-[#737373] hover:bg-[#ffffff]">
                   <X size={18} />
                 </button>
               </div>
-              <p className="mb-4 text-sm text-[#64748b]">
+              <p className="mb-4 text-sm text-[#737373]">
                 Create another hotspot site under your account, then add a
                 router there.
               </p>
               <form onSubmit={handleCreateSite} data-testid="add-site-form" className="space-y-4">
                 <label className="block">
-                  <span className="mb-2 block text-sm font-semibold text-[#475569]">
+                  <span className="mb-2 block text-sm font-semibold text-[#525252]">
                     Site Name <span className="text-red-500">*</span>
                   </span>
                   <input
@@ -348,14 +348,14 @@ export default function RoutersPage() {
                     value={siteName}
                     onChange={(event) => setSiteName(event.target.value)}
                     placeholder="e.g., FastNet Kasubi"
-                    className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                    className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-2 block text-sm font-semibold text-[#475569]">
+                  <span className="mb-2 block text-sm font-semibold text-[#525252]">
                     Subdomain <span className="text-red-500">*</span>
                   </span>
-                  <div className="flex overflow-hidden rounded-xl border border-[#e2e8f0] focus-within:border-[#2563eb]">
+                  <div className="flex overflow-hidden rounded-xl border border-[#e6e6e6] focus-within:border-[#1a1a1a]">
                     <input
                       required
                       value={subdomain}
@@ -363,16 +363,16 @@ export default function RoutersPage() {
                       placeholder="e.g., fastnet-kasubi"
                       className="h-11 w-full px-3 text-sm outline-none"
                     />
-                    <span className="flex items-center bg-[#ffffff] px-3 text-xs font-semibold text-[#64748b]">
+                    <span className="flex items-center bg-[#ffffff] px-3 text-xs font-semibold text-[#737373]">
                       .hotspotpro.com
                     </span>
                   </div>
                 </label>
                 <div className="flex gap-3">
-                  <button type="submit" className="rounded-xl bg-[#2563eb] px-5 py-3 text-sm font-bold text-white hover:bg-[#1d4ed8]">
+                  <button type="submit" className="rounded-xl bg-[#1a1a1a] px-5 py-3 text-sm font-bold text-white hover:bg-[#111111]">
                     Create Site
                   </button>
-                  <button type="button" onClick={() => setAddSiteOpen(false)} className="rounded-xl border border-[#e2e8f0] bg-white px-5 py-3 text-sm font-bold text-[#475569] hover:bg-[#ffffff]">
+                  <button type="button" onClick={() => setAddSiteOpen(false)} className="rounded-xl border border-[#e6e6e6] bg-white px-5 py-3 text-sm font-bold text-[#525252] hover:bg-[#ffffff]">
                     Cancel
                   </button>
                 </div>

@@ -99,28 +99,28 @@ export function SmsSettingsPanel() {
   return (
     <div data-testid="sms-panel" className="space-y-6 pb-24">
       <section className="rounded-2xl bg-white">
-        <header className="border-b border-[#e2e8f0] px-6 py-5">
-          <h3 className="text-lg font-bold text-[#0f172a]">SMS Gateway Configuration</h3>
-          <p className="text-sm text-[#64748b]">Configure the SMS gateway used to send notifications to customers.</p>
+        <header className="border-b border-[#e6e6e6] px-6 py-5">
+          <h3 className="text-lg font-bold text-[#1a1a1a]">SMS Gateway Configuration</h3>
+          <p className="text-sm text-[#737373]">Configure the SMS gateway used to send notifications to customers.</p>
         </header>
         <div className="space-y-6 p-6">
           <div>
             <div className="flex items-center gap-3">
               <Toggle checked={view.enabled} onChange={() => edit({ enabled: !view.enabled })} />
-              <span data-testid="sms-enabled-label" className="text-sm font-bold text-[#0f172a]">
+              <span data-testid="sms-enabled-label" className="text-sm font-bold text-[#1a1a1a]">
                 Enable SMS Notifications
               </span>
             </div>
-            <p className="mt-2 text-xs text-[#64748b]">Turn this on to send SMS notifications to customers.</p>
+            <p className="mt-2 text-xs text-[#737373]">Turn this on to send SMS notifications to customers.</p>
           </div>
 
           <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold text-[#475569]">SMS Gateway</span>
+            <span className="mb-1.5 block text-sm font-semibold text-[#525252]">SMS Gateway</span>
             <select
               data-testid="sms-gateway"
               value={view.gateway}
               onChange={(event) => edit({ gateway: event.target.value })}
-              className="h-11 w-full rounded-lg border border-[#cbd5e1] bg-white px-3 text-sm text-[#0f172a] outline-none focus:border-[#2563eb]"
+              className="h-11 w-full rounded-lg border border-[#d4d4d4] bg-white px-3 text-sm text-[#1a1a1a] outline-none focus:border-[#1a1a1a]"
             >
               {SMS_GATEWAYS.map((g) => (
                 <option key={g.id} value={g.id}>
@@ -128,20 +128,20 @@ export function SmsSettingsPanel() {
                 </option>
               ))}
             </select>
-            <span className="mt-1 block text-xs text-[#94a3b8]">{gateway.blurb}</span>
+            <span className="mt-1 block text-xs text-[#a3a3a3]">{gateway.blurb}</span>
           </label>
         </div>
       </section>
 
       <section className="rounded-2xl bg-white" data-testid="sms-credentials">
-        <header className="border-b border-[#e2e8f0] px-6 py-5">
-          <h3 className="text-lg font-bold text-[#0f172a]">{gateway.label.replace(/ \(.*\)/, "")} Settings</h3>
-          <p className="text-sm text-[#64748b]">Enter your {gateway.label.replace(/ \(.*\)/, "")} credentials. {gateway.blurb}</p>
+        <header className="border-b border-[#e6e6e6] px-6 py-5">
+          <h3 className="text-lg font-bold text-[#1a1a1a]">{gateway.label.replace(/ \(.*\)/, "")} Settings</h3>
+          <p className="text-sm text-[#737373]">Enter your {gateway.label.replace(/ \(.*\)/, "")} credentials. {gateway.blurb}</p>
         </header>
         <div className="space-y-6 p-6">
-          <div className="rounded-lg bg-[#f1f5f9] p-4">
-            <p className="mb-2 text-sm font-bold text-[#0f172a]">How to get your credentials</p>
-            <ol className="list-decimal space-y-1 pl-5 text-sm text-[#475569]">
+          <div className="rounded-lg bg-[#f4f4f4] p-4">
+            <p className="mb-2 text-sm font-bold text-[#1a1a1a]">How to get your credentials</p>
+            <ol className="list-decimal space-y-1 pl-5 text-sm text-[#525252]">
               <li>
                 Create a {gateway.label.replace(/ \(.*\)/, "")} account
                 {gateway.signupUrl ? (
@@ -152,7 +152,7 @@ export function SmsSettingsPanel() {
                       target="_blank"
                       rel="noopener noreferrer"
                       data-testid="sms-signup-link"
-                      className="font-bold text-[#2563eb] underline hover:text-[#1d4ed8]"
+                      className="font-bold text-[#1a1a1a] underline hover:text-[#111111]"
                     >
                       Sign up here
                     </a>
@@ -173,50 +173,50 @@ export function SmsSettingsPanel() {
               const visible = !field.secret || shown[key];
               return (
                 <label key={key} className="block">
-                  <span className="mb-1.5 block text-sm font-semibold text-[#475569]">
+                  <span className="mb-1.5 block text-sm font-semibold text-[#525252]">
                     {field.label} {field.required && <span className="text-red-500">*</span>}
                   </span>
-                  <div className="flex h-11 items-center rounded-lg border border-[#cbd5e1] bg-white focus-within:border-[#2563eb]">
+                  <div className="flex h-11 items-center rounded-lg border border-[#d4d4d4] bg-white focus-within:border-[#1a1a1a]">
                     <input
                       data-testid={`sms-${field.key}`}
                       type={visible ? "text" : "password"}
                       value={creds[field.key]}
                       onChange={(event) => editCred(field.key, event.target.value)}
                       autoComplete="off"
-                      className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm text-[#0f172a] outline-none"
+                      className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm text-[#1a1a1a] outline-none"
                     />
                     {field.secret && (
                       <button
                         type="button"
                         aria-label={shown[key] ? "Hide" : "Show"}
                         onClick={() => setShown((c) => ({ ...c, [key]: !c[key] }))}
-                        className="flex h-full w-11 items-center justify-center border-l border-[#e2e8f0] text-[#64748b] hover:bg-[#f1f5f9]"
+                        className="flex h-full w-11 items-center justify-center border-l border-[#e6e6e6] text-[#737373] hover:bg-[#f4f4f4]"
                       >
                         {shown[key] ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     )}
                   </div>
-                  <span className="mt-1 block text-xs text-[#94a3b8]">{field.hint}</span>
+                  <span className="mt-1 block text-xs text-[#a3a3a3]">{field.hint}</span>
                 </label>
               );
             })}
             <label className="block">
-              <span className="mb-1.5 block text-sm font-semibold text-[#475569]">Sender ID</span>
+              <span className="mb-1.5 block text-sm font-semibold text-[#525252]">Sender ID</span>
               <input
                 data-testid="sms-sender"
                 value={view.senderId}
                 maxLength={11}
                 onChange={(event) => edit({ senderId: event.target.value })}
-                className="h-11 w-full rounded-lg border border-[#cbd5e1] bg-white px-3 text-sm text-[#0f172a] outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-lg border border-[#d4d4d4] bg-white px-3 text-sm text-[#1a1a1a] outline-none focus:border-[#1a1a1a]"
               />
-              <span className="mt-1 block text-xs text-[#94a3b8]">
+              <span className="mt-1 block text-xs text-[#a3a3a3]">
                 Optional. Any word or registered Sender ID (max 11 characters). If left empty, your company name is used.
               </span>
             </label>
           </div>
 
           {errors.length > 0 && (
-            <div data-testid="sms-errors" className="rounded-lg bg-[#fef2f2] px-3 py-2 text-xs font-semibold text-[#b91c1c]">
+            <div data-testid="sms-errors" className="rounded-lg bg-[#f3f1ec] px-3 py-2 text-xs font-semibold text-[#1a1a1a]">
               {errors.map((e) => (
                 <p key={e}>{e}</p>
               ))}
@@ -227,7 +227,7 @@ export function SmsSettingsPanel() {
             type="button"
             data-testid="sms-save"
             onClick={save}
-            className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#2563eb] px-5 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+            className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#1a1a1a] px-5 text-sm font-bold text-white hover:bg-[#111111]"
           >
             <Check size={16} /> Save Settings
           </button>
@@ -237,18 +237,18 @@ export function SmsSettingsPanel() {
       {dirty && (
         <div
           data-testid="sms-unsaved"
-          className="fixed bottom-6 left-1/2 z-40 flex w-[min(92vw,34rem)] -translate-x-1/2 items-center justify-between gap-4 rounded-xl border border-[#cbd5e1] bg-white px-5 py-3 shadow-lg"
+          className="fixed bottom-6 left-1/2 z-40 flex w-[min(92vw,34rem)] -translate-x-1/2 items-center justify-between gap-4 rounded-xl border border-[#d4d4d4] bg-white px-5 py-3 shadow-lg"
         >
           <div>
-            <p className="text-sm font-bold text-[#0f172a]">Unsaved changes</p>
-            <p className="text-xs text-[#64748b]">Save before leaving this page.</p>
+            <p className="text-sm font-bold text-[#1a1a1a]">Unsaved changes</p>
+            <p className="text-xs text-[#737373]">Save before leaving this page.</p>
           </div>
           <div className="flex gap-2">
             <button
               type="button"
               data-testid="sms-discard"
               onClick={discard}
-              className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#cbd5e1] bg-white px-4 text-sm font-bold text-[#475569] hover:bg-[#f1f5f9]"
+              className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#d4d4d4] bg-white px-4 text-sm font-bold text-[#525252] hover:bg-[#f4f4f4]"
             >
               <RotateCcw size={14} /> Discard
             </button>
@@ -256,7 +256,7 @@ export function SmsSettingsPanel() {
               type="button"
               data-testid="sms-bar-save"
               onClick={save}
-              className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#2563eb] px-4 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+              className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#1a1a1a] px-4 text-sm font-bold text-white hover:bg-[#111111]"
             >
               <Check size={14} /> Save
             </button>

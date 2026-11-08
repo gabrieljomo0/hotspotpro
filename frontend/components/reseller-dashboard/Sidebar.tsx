@@ -28,7 +28,7 @@ export function Sidebar({
    )}
 
    <aside
-    className={`fixed inset-y-0 left-0 z-50 flex w-[228px] flex-col overflow-y-auto border-r border-[#cbd5e1] bg-[#f1f5f9] text-[#0f172a] transition-all duration-300 lg:sticky lg:top-0 lg:h-screen ${
+    className={`fixed inset-y-0 left-0 z-50 flex w-[228px] flex-col overflow-y-auto border-r border-[#d4d4d4] bg-[#f4f4f4] text-[#1a1a1a] transition-all duration-300 lg:sticky lg:top-0 lg:h-screen ${
      mobileOpen ? "translate-x-0" : "-translate-x-full"
     } ${
      desktopCollapsed ? "lg:w-[84px]" : "lg:w-[228px]"
@@ -44,16 +44,16 @@ export function Sidebar({
      {!desktopCollapsed && (
       <div className="flex min-w-0 items-center gap-3">
        <Wifi
-        className="h-10 w-10 shrink-0 text-[#2563eb]"
+        className="h-10 w-10 shrink-0 text-[#1a1a1a]"
         strokeWidth={3}
        />
 
        <div className="min-w-0 overflow-hidden whitespace-nowrap">
         <p className="truncate text-xl font-bold">
-         Hotspot<span className="text-[#2563eb]">Pro</span>
+         Hotspot<span className="text-[#1a1a1a]">Pro</span>
         </p>
 
-        <p className="text-xs text-[#64748b]">
+        <p className="text-xs text-[#737373]">
          Billing System
         </p>
        </div>
@@ -69,7 +69,7 @@ export function Sidebar({
         onToggleDesktop();
        }
       }}
-      className={`flex shrink-0 items-center justify-center bg-transparent p-0 text-[#475569] transition hover:text-[#2563eb] focus:outline-none ${
+      className={`flex shrink-0 items-center justify-center bg-transparent p-0 text-[#525252] transition hover:text-[#1a1a1a] focus:outline-none ${
        desktopCollapsed ? "h-11 w-11" : "h-10 w-10"
       }`}
       aria-label={
@@ -99,7 +99,7 @@ export function Sidebar({
        className="mb-6"
       >
        <p
-        className={`mb-2 overflow-hidden whitespace-nowrap px-2 text-[11px] font-semibold uppercase tracking-widest text-[#94a3b8] transition-all duration-300 ${
+        className={`mb-2 overflow-hidden whitespace-nowrap px-2 text-[11px] font-semibold uppercase tracking-widest text-[#a3a3a3] transition-all duration-300 ${
          desktopCollapsed
           ? "lg:h-0 lg:mb-0 lg:opacity-0"
           : ""
@@ -123,8 +123,8 @@ export function Sidebar({
            }
            className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition ${
             item.active
-             ? "bg-white font-semibold text-[#2563eb] shadow-sm ring-1 ring-[#cbd5e1]"
-             : "text-[#475569] hover:bg-[#f1f5f9] hover:text-[#0f172a]"
+             ? "bg-white font-semibold text-[#1a1a1a] shadow-sm ring-1 ring-[#d4d4d4]"
+             : "text-[#525252] hover:bg-[#f4f4f4] hover:text-[#1a1a1a]"
            } ${
             desktopCollapsed
              ? "lg:justify-center lg:px-2"
@@ -152,19 +152,19 @@ export function Sidebar({
       </section>
      ))}
 
-     <section className="border-t border-[#cbd5e1] pt-5">
+     <section className="border-t border-[#d4d4d4] pt-5">
       {desktopCollapsed ? (
        <button
         type="button"
         title={`Wallet Balance: ${sym()} 1,245.50`}
-        className="hidden w-full items-center justify-center rounded-xl border border-[#cbd5e1] p-3 text-[#2563eb] transition hover:bg-[#f1f5f9] lg:flex"
+        className="hidden w-full items-center justify-center rounded-xl border border-[#d4d4d4] p-3 text-[#1a1a1a] transition hover:bg-[#f4f4f4] lg:flex"
        >
         <Banknote size={22} />
        </button>
       ) : null}
 
       <div
-       className={`rounded-xl border border-[#cbd5e1] p-4 ${
+       className={`rounded-xl border border-[#d4d4d4] p-4 ${
         desktopCollapsed
          ? "lg:hidden"
          : ""
@@ -173,18 +173,18 @@ export function Sidebar({
        <div className="flex items-center gap-2 text-sm font-semibold">
         <Banknote
          size={18}
-         className="text-[#2563eb]"
+         className="text-[#1a1a1a]"
         />
         Wallet Balance
        </div>
 
-       <p className="mt-4 text-2xl font-black text-[#059669]">
+       <p className="mt-4 text-2xl font-black text-[#1a1a1a]">
         {sym()} 1,245.50
        </p>
 
        <button
         type="button"
-        className="mt-4 w-full rounded-lg bg-[#2563eb] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#1d4ed8]"
+        className="mt-4 w-full rounded-lg bg-[#1a1a1a] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#111111]"
        >
         Fund Wallet
        </button>
@@ -198,7 +198,7 @@ export function Sidebar({
         ? "Logout"
         : undefined
       }
-      className={`mt-6 flex w-full items-center gap-3 border-t border-[#cbd5e1] px-3 pt-6 text-left text-sm font-semibold text-red-400 ${
+      className={`mt-6 flex w-full items-center gap-3 border-t border-[#d4d4d4] px-3 pt-6 text-left text-sm font-semibold text-red-400 ${
        desktopCollapsed
         ? "lg:justify-center lg:px-2"
         : ""

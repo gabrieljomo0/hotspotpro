@@ -15,7 +15,7 @@ export function Toggle({
       onClick={onChange}
       aria-pressed={checked}
       className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-        checked ? "bg-emerald-500" : "bg-[#e2e8f0]"
+        checked ? "bg-emerald-500" : "bg-[#e6e6e6]"
       }`}
     >
       <span
@@ -40,12 +40,12 @@ export function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-semibold text-[#475569]">
+      <span className="mb-2 block text-sm font-semibold text-[#525252]">
         {label}
         {required && <span className="ml-0.5 text-red-500">*</span>}
       </span>
       {children}
-      {hint && <span className="mt-1 block text-xs text-[#94a3b8]">{hint}</span>}
+      {hint && <span className="mt-1 block text-xs text-[#a3a3a3]">{hint}</span>}
     </label>
   );
 }
@@ -64,8 +64,8 @@ export function ToggleRow({
   return (
     <div className="flex items-center justify-between gap-3">
       <div>
-        <p className="text-sm font-semibold text-[#475569]">{title}</p>
-        {hint && <p className="text-xs text-[#94a3b8]">{hint}</p>}
+        <p className="text-sm font-semibold text-[#525252]">{title}</p>
+        {hint && <p className="text-xs text-[#a3a3a3]">{hint}</p>}
       </div>
       <Toggle checked={checked} onChange={onChange} />
     </div>
@@ -88,7 +88,7 @@ export function SettingsCard({
   children?: ReactNode;
 }) {
   return (
-    <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
+    <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
       <div className="mb-6 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           {icon && (
@@ -97,8 +97,8 @@ export function SettingsCard({
             </div>
           )}
           <div>
-            <h3 className="text-lg font-bold text-[#0f172a]">{title}</h3>
-            {description && <p className="text-sm text-[#64748b]">{description}</p>}
+            <h3 className="text-lg font-bold text-[#1a1a1a]">{title}</h3>
+            {description && <p className="text-sm text-[#737373]">{description}</p>}
           </div>
         </div>
         {action}
@@ -109,7 +109,7 @@ export function SettingsCard({
 }
 
 export const inputClass =
-  "h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]";
+  "h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]";
 
 export const textareaClass =
-  "w-full rounded-xl border border-[#e2e8f0] bg-white px-3 py-2.5 text-sm outline-none focus:border-[#2563eb]";
+  "w-full rounded-xl border border-[#e6e6e6] bg-white px-3 py-2.5 text-sm outline-none focus:border-[#1a1a1a]";

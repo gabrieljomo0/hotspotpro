@@ -11,7 +11,7 @@ export function SummaryCards() {
     return (
      <article
       key={card.title}
-      className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] "
+      className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] "
      >
       <div className="flex items-start gap-4">
        <div
@@ -21,7 +21,7 @@ export function SummaryCards() {
        </div>
 
        <div className="min-w-0">
-        <p className="text-sm text-[#64748b] ">
+        <p className="text-sm text-[#737373] ">
          {card.title}
         </p>
 
@@ -29,7 +29,7 @@ export function SummaryCards() {
          {card.value}
         </p>
 
-        <p className="mt-1 text-sm text-[#64748b] ">
+        <p className="mt-1 text-sm text-[#737373] ">
          {card.subtitle}
         </p>
 
@@ -42,7 +42,7 @@ export function SummaryCards() {
         >
          {card.positive ? "↑" : "↓"}{" "}
          {card.change}
-         <span className="ml-2 font-normal text-[#64748b] ">
+         <span className="ml-2 font-normal text-[#737373] ">
           from yesterday
          </span>
         </p>

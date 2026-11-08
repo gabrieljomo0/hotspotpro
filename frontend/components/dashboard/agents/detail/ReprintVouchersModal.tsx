@@ -74,7 +74,7 @@ export function ReprintVouchersModal({
   }, [printing]);
 
   const selectClass =
-    "h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3.5 text-sm outline-none focus:border-[#2563eb]";
+    "h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3.5 text-sm outline-none focus:border-[#1a1a1a]";
 
   return (
     <>
@@ -85,7 +85,7 @@ export function ReprintVouchersModal({
         testId="reprint-modal"
       >
         {unsold.length === 0 ? (
-          <p data-testid="reprint-empty" className="rounded-xl bg-[#f8fafc] px-4 py-6 text-center text-sm text-[#64748b]">
+          <p data-testid="reprint-empty" className="rounded-xl bg-[#f7f7f7] px-4 py-6 text-center text-sm text-[#737373]">
             {agentName} has no unsold vouchers to print.
           </p>
         ) : (
@@ -97,7 +97,7 @@ export function ReprintVouchersModal({
             }}
           >
             <label className="block">
-              <span className="mb-1.5 block text-sm font-semibold text-[#475569]">
+              <span className="mb-1.5 block text-sm font-semibold text-[#525252]">
                 Package <span className="text-red-500">*</span>
               </span>
               <select value={packageName} onChange={(event) => setPackageName(event.target.value)} aria-label="Package" className={selectClass}>
@@ -108,11 +108,11 @@ export function ReprintVouchersModal({
                   </option>
                 ))}
               </select>
-              <span className="mt-1 block text-xs text-[#94a3b8]">Select which package vouchers to print</span>
+              <span className="mt-1 block text-xs text-[#a3a3a3]">Select which package vouchers to print</span>
             </label>
 
             <label className="block">
-              <span className="mb-1.5 block text-sm font-semibold text-[#475569]">Batch</span>
+              <span className="mb-1.5 block text-sm font-semibold text-[#525252]">Batch</span>
               <select value={batchKey} onChange={(event) => setBatchKey(event.target.value)} aria-label="Batch" className={selectClass}>
                 <option value="all">All Batches ({countFor(packageName, "all")} vouchers)</option>
                 {batchOptions.map((option) => (
@@ -121,11 +121,11 @@ export function ReprintVouchersModal({
                   </option>
                 ))}
               </select>
-              <span className="mt-1 block text-xs text-[#94a3b8]">Filter by batch (optional)</span>
+              <span className="mt-1 block text-xs text-[#a3a3a3]">Filter by batch (optional)</span>
             </label>
 
             <label className="block">
-              <span className="mb-1.5 block text-sm font-semibold text-[#475569]">
+              <span className="mb-1.5 block text-sm font-semibold text-[#525252]">
                 Print Template <span className="text-red-500">*</span>
               </span>
               <select value={design} onChange={(event) => setDesign(event.target.value as PrintDesignId)} aria-label="Print template" className={selectClass}>
@@ -138,7 +138,7 @@ export function ReprintVouchersModal({
             </label>
 
             <label className="block">
-              <span className="mb-1.5 block text-sm font-semibold text-[#475569]">Output</span>
+              <span className="mb-1.5 block text-sm font-semibold text-[#525252]">Output</span>
               <select aria-label="Output" defaultValue="browser" className={selectClass}>
                 <option value="browser">Print in Browser</option>
                 <option value="pdf" disabled>
@@ -155,7 +155,7 @@ export function ReprintVouchersModal({
               >
                 {selected.length > 0 ? `Print ${selected.length} voucher${selected.length === 1 ? "" : "s"}` : "Nothing to print"}
               </button>
-              <button type="button" onClick={onClose} className="rounded-xl border border-[#e2e8f0] bg-white px-5 py-3 text-sm font-semibold text-[#475569] hover:bg-[#ffffff]">
+              <button type="button" onClick={onClose} className="rounded-xl border border-[#e6e6e6] bg-white px-5 py-3 text-sm font-semibold text-[#525252] hover:bg-[#ffffff]">
                 Cancel
               </button>
             </div>

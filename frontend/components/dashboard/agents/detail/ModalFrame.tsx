@@ -42,18 +42,18 @@ export function ModalFrame({
         aria-modal="true"
         aria-label={title}
         data-testid={testId}
-        className={`w-full ${widthClass} rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-2xl`}
+        className={`w-full ${widthClass} rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-2xl`}
       >
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-lg font-bold text-[#0f172a]">{title}</h3>
-            {subtitle && <p className="mt-0.5 text-sm text-[#64748b]">{subtitle}</p>}
+            <h3 className="text-lg font-bold text-[#1a1a1a]">{title}</h3>
+            {subtitle && <p className="mt-0.5 text-sm text-[#737373]">{subtitle}</p>}
           </div>
           <button
             type="button"
             aria-label="Close"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-[#94a3b8] hover:bg-[#f1f5f9] hover:text-[#475569]"
+            className="rounded-lg p-1.5 text-[#a3a3a3] hover:bg-[#f4f4f4] hover:text-[#525252]"
           >
             <X size={18} />
           </button>

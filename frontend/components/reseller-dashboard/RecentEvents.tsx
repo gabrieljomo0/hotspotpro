@@ -4,7 +4,7 @@ import { recentEvents } from "./mockData";
 
 export function RecentEvents() {
  return (
-  <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] ">
+  <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] ">
    <div className="flex items-center justify-between">
     <h3 className="font-bold">
      Recent Events
@@ -12,7 +12,7 @@ export function RecentEvents() {
 
     <button
      type="button"
-     className="text-xs font-semibold text-[#2563eb]"
+     className="text-xs font-semibold text-[#1a1a1a]"
     >
      View all
     </button>
@@ -38,12 +38,12 @@ export function RecentEvents() {
          {event.title}
         </p>
 
-        <p className="mt-1 truncate text-[11px] text-[#64748b] ">
+        <p className="mt-1 truncate text-[11px] text-[#737373] ">
          {event.subtitle}
         </p>
        </div>
 
-       <span className="whitespace-nowrap text-[11px] text-[#64748b]">
+       <span className="whitespace-nowrap text-[11px] text-[#737373]">
         {event.time}
        </span>
       </div>

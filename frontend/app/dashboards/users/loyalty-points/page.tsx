@@ -22,7 +22,7 @@ export default function LoyaltyPointsPage() {
         <Gift className="text-amber-500" size={30} />
         Loyalty Points
       </h2>
-      <p className="mb-6 max-w-2xl text-sm text-[#64748b] md:text-base">
+      <p className="mb-6 max-w-2xl text-sm text-[#737373] md:text-base">
         {loyaltySettings.enabled
           ? `Programme active — ${loyaltySettings.pointsToVoucherThreshold} points redeems a free ${loyaltySettings.rewardPackageName} voucher.`
           : "The loyalty programme is currently disabled in Settings → Loyalty Programme."}
@@ -30,9 +30,9 @@ export default function LoyaltyPointsPage() {
 
       <UsersNavTabs />
 
-      <article className="overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+      <article className="overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
         <table className="w-full text-left text-sm">
-          <thead className="bg-[#ffffff] text-xs text-[#64748b]">
+          <thead className="bg-[#ffffff] text-xs text-[#737373]">
             <tr>
               <th className="px-5 py-3 font-semibold">User</th>
               <th className="px-5 py-3 font-semibold">Package</th>
@@ -52,11 +52,11 @@ export default function LoyaltyPointsPage() {
               );
 
               return (
-                <tr key={userId} className="border-t border-[#f1f5f9]">
-                  <td className="px-5 py-3 font-semibold text-[#0f172a]">
+                <tr key={userId} className="border-t border-[#f4f4f4]">
+                  <td className="px-5 py-3 font-semibold text-[#1a1a1a]">
                     {user.phone || user.voucherUsername}
                   </td>
-                  <td className="px-5 py-3 text-[#475569]">{user.package}</td>
+                  <td className="px-5 py-3 text-[#525252]">{user.package}</td>
                   <td className="px-5 py-3">
                     <span className="inline-flex items-center gap-1 font-semibold text-amber-700">
                       <Star size={13} />
@@ -74,7 +74,7 @@ export default function LoyaltyPointsPage() {
                   <td className="px-5 py-3">
                     <Link
                       href={userActionHref(userId, "advanced-details")}
-                      className="text-xs font-semibold text-[#2563eb] hover:underline"
+                      className="text-xs font-semibold text-[#1a1a1a] hover:underline"
                     >
                       View / Redeem
                     </Link>

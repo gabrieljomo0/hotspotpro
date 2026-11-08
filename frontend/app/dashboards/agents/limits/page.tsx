@@ -43,20 +43,20 @@ export default function LimitsPoliciesPage() {
       <h2 className="mb-1 text-3xl font-bold tracking-tight md:text-4xl">
         Limits &amp; Policies
       </h2>
-      <p className="mb-6 max-w-2xl text-sm text-[#64748b] md:text-base">
+      <p className="mb-6 max-w-2xl text-sm text-[#737373] md:text-base">
         Keep every agent within a safe operating scope — sales caps, voucher
         limits, device counts, credit, and refund thresholds.
       </p>
 
 
       <label className="mb-5 block max-w-xs">
-        <span className="mb-2 block text-xs font-semibold text-[#64748b]">
+        <span className="mb-2 block text-xs font-semibold text-[#737373]">
           Editing limits for
         </span>
         <select
           value={selectedAgentId}
           onChange={(event) => handleSelect(event.target.value)}
-          className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+          className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
         >
           {agents.map((agent) => (
             <option key={agent.id} value={agent.id}>
@@ -68,8 +68,8 @@ export default function LimitsPoliciesPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {LIMIT_FIELDS.map((field) => (
-          <label key={field.key} className="block rounded-xl border border-[#f1f5f9] bg-white p-4">
-            <span className="mb-2 block text-xs font-semibold text-[#64748b]">
+          <label key={field.key} className="block rounded-xl border border-[#f4f4f4] bg-white p-4">
+            <span className="mb-2 block text-xs font-semibold text-[#737373]">
               {field.label}
             </span>
             <div className="flex items-center gap-2">
@@ -80,9 +80,9 @@ export default function LimitsPoliciesPage() {
                 onChange={(event) =>
                   setDraft((current) => ({ ...current, [field.key]: Number(event.target.value) }))
                 }
-                className="h-10 w-full rounded-lg border border-[#e2e8f0] px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-10 w-full rounded-lg border border-[#e6e6e6] px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
-              <span className="shrink-0 text-xs text-[#94a3b8]">{field.unit === "CUR" ? sym() : field.unit}</span>
+              <span className="shrink-0 text-xs text-[#a3a3a3]">{field.unit === "CUR" ? sym() : field.unit}</span>
             </div>
           </label>
         ))}
@@ -91,7 +91,7 @@ export default function LimitsPoliciesPage() {
       <button
         type="button"
         onClick={() => updateAgentLimits(selectedAgentId, draft)}
-        className="mt-6 rounded-xl bg-[#2563eb] px-6 py-3 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+        className="mt-6 rounded-xl bg-[#1a1a1a] px-6 py-3 text-sm font-bold text-white hover:bg-[#111111]"
       >
         Save Limits for {selectedAgent?.name}
       </button>

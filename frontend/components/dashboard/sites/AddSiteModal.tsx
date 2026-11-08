@@ -29,20 +29,20 @@ export function AddSiteModal({
       <button type="button" aria-label="Close" className="absolute inset-0" onClick={onClose} />
       <div className="relative z-10 w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-bold text-[#0f172a]">Add Site</h3>
-          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-[#64748b] hover:bg-[#ffffff]">
+          <h3 className="text-lg font-bold text-[#1a1a1a]">Add Site</h3>
+          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-[#737373] hover:bg-[#ffffff]">
             <X size={18} />
           </button>
         </div>
         <form onSubmit={handleAddSite} className="space-y-4">
           <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold text-[#475569]">Site / business name</span>
+            <span className="mb-1.5 block text-sm font-semibold text-[#525252]">Site / business name</span>
             <input
               required
               value={newSiteName}
               onChange={(event) => setNewSiteName(event.target.value)}
               placeholder="e.g. Accra Mall Branch"
-              className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-blue-500"
+              className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-blue-500"
             />
           </label>
           <div className="flex gap-3">
@@ -52,7 +52,7 @@ export function AddSiteModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border border-[#e2e8f0] bg-white px-5 py-3 text-sm font-bold text-[#475569] hover:bg-[#ffffff]"
+              className="rounded-xl border border-[#e6e6e6] bg-white px-5 py-3 text-sm font-bold text-[#525252] hover:bg-[#ffffff]"
             >
               Cancel
             </button>

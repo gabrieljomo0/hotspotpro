@@ -16,7 +16,7 @@ export default function ActiveSessionsPage() {
       <h2 className="mb-1 text-3xl font-bold tracking-tight md:text-4xl">
         Active Sessions
       </h2>
-      <p className="mb-6 max-w-2xl text-sm text-[#64748b] md:text-base">
+      <p className="mb-6 max-w-2xl text-sm text-[#737373] md:text-base">
         Every customer currently connected to your network ({users.length}{" "}
         online). Click Actions on any row to manage a session.
       </p>

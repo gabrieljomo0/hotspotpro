@@ -7,11 +7,11 @@ export function TimelineSection({
 }) {
   return (
     <div id="timeline" className="mb-6 rounded-xl border border-emerald-200 bg-white p-5 scroll-mt-20">
-      <p className="mb-3 text-sm font-bold text-[#0f172a]">
+      <p className="mb-3 text-sm font-bold text-[#1a1a1a]">
         Today&apos;s Online / Offline Timeline
       </p>
 
-      <div className="flex justify-between text-[11px] text-[#94a3b8]">
+      <div className="flex justify-between text-[11px] text-[#a3a3a3]">
         <span>{segments[0]?.startLabel}</span>
         <span>{segments[segments.length - 1]?.endLabel}</span>
       </div>
@@ -35,8 +35,8 @@ export function TimelineSection({
               } ${index > 0 ? "border-l border-white/50" : ""}`}
             />
 
-            <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden w-max max-w-[180px] -translate-x-1/2 rounded-lg border border-[#e2e8f0] bg-white px-3 py-2 text-xs shadow-lg group-hover:block">
-              <p className="font-bold text-[#0f172a]">
+            <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden w-max max-w-[180px] -translate-x-1/2 rounded-lg border border-[#e6e6e6] bg-white px-3 py-2 text-xs shadow-lg group-hover:block">
+              <p className="font-bold text-[#1a1a1a]">
                 {segment.startLabel} – {segment.endLabel}
               </p>
               <p
@@ -49,7 +49,7 @@ export function TimelineSection({
                 {segment.status} · {segment.durationLabel}
               </p>
               {segment.status === "Online" && (
-                <p className="text-[#64748b]">
+                <p className="text-[#737373]">
                   Data used: {segment.dataMb} MB
                 </p>
               )}
@@ -59,15 +59,15 @@ export function TimelineSection({
       </div>
 
       <div className="mt-3 flex gap-4 text-xs">
-        <span className="inline-flex items-center gap-1.5 text-[#475569]">
+        <span className="inline-flex items-center gap-1.5 text-[#525252]">
           <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
           Online
         </span>
-        <span className="inline-flex items-center gap-1.5 text-[#475569]">
+        <span className="inline-flex items-center gap-1.5 text-[#525252]">
           <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
           Offline (even brief drops of a few seconds show up)
         </span>
-        <span className="ml-auto text-[#94a3b8]">
+        <span className="ml-auto text-[#a3a3a3]">
           Hover any point on the line for the exact time
         </span>
       </div>

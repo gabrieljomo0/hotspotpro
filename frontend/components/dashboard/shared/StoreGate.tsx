@@ -13,7 +13,7 @@ export function StoreGate({ children }: { children: ReactNode }) {
 
   if (!storeReady) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f1f5f9] text-sm text-[#64748b]">
+      <div className="flex min-h-screen items-center justify-center bg-[#f4f4f4] text-sm text-[#737373]">
         Loading your dashboard…
       </div>
     );

@@ -36,10 +36,10 @@ export default function AgentPackagesPage({
             <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h1 className="flex items-center gap-2 text-2xl font-black md:text-3xl">
-                  <PackageIcon size={26} className="text-[#2563eb]" />
+                  <PackageIcon size={26} className="text-[#1a1a1a]" />
                   Packages
                 </h1>
-                <p className="mt-1 text-sm text-[#64748b]">
+                <p className="mt-1 text-sm text-[#737373]">
                   What&apos;s available to sell on your router — {availablePackages.length} package
                   {availablePackages.length === 1 ? "" : "s"}.
                 </p>
@@ -50,14 +50,14 @@ export default function AgentPackagesPage({
                     type="button"
                     data-testid="quick-create-btn"
                     onClick={() => setQuickOpen(true)}
-                    className="inline-flex items-center gap-2 rounded-xl border-2 bg-[#f1f5f9] px-4 py-2.5 text-sm font-bold text-[#2563eb] hover:bg-white"
+                    className="inline-flex items-center gap-2 rounded-xl border-2 bg-[#f4f4f4] px-4 py-2.5 text-sm font-bold text-[#1a1a1a] hover:bg-white"
                   >
                     <Zap size={16} />
                     Quick Create
                   </button>
                   <Link
                     href={`/agent-portal/${agentId}/packages/create`}
-                    className="inline-flex items-center gap-2 rounded-xl bg-[#2563eb] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+                    className="inline-flex items-center gap-2 rounded-xl bg-[#1a1a1a] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#111111]"
                   >
                     <Plus size={16} />
                     Create Package
@@ -76,12 +76,12 @@ export default function AgentPackagesPage({
                   className="rounded-2xl bg-white p-5 shadow-sm"
                 >
                   <div className="mb-2 flex items-center justify-between">
-                    <p className="font-bold text-[#0f172a]">{pkg.name}</p>
+                    <p className="font-bold text-[#1a1a1a]">{pkg.name}</p>
                     <div className="flex items-center gap-1.5">
                       {pkg.pushedToAgentIds.includes(agent.id) &&
                         !pkg.applyToAllSites &&
                         !(agent.routerIp && pkg.routerIps.includes(agent.routerIp)) && (
-                          <span className="rounded-full bg-[#f1f5f9] px-2 py-0.5 text-[10px] font-bold text-[#2563eb]">
+                          <span className="rounded-full bg-[#f4f4f4] px-2 py-0.5 text-[10px] font-bold text-[#1a1a1a]">
                             Pushed to you
                           </span>
                         )}
@@ -90,23 +90,23 @@ export default function AgentPackagesPage({
                           Managed by admin
                         </span>
                       )}
-                      {pkg.featured && <Zap size={14} className="text-[#2563eb]" />}
+                      {pkg.featured && <Zap size={14} className="text-[#1a1a1a]" />}
                     </div>
                   </div>
-                  <p className="mb-3 text-xs text-[#64748b]">{pkg.description || pkg.validity}</p>
+                  <p className="mb-3 text-xs text-[#737373]">{pkg.description || pkg.validity}</p>
                   <div className="mb-3 flex items-center justify-between text-sm">
-                    <span className="text-[#64748b]">{pkg.validity} · {pkg.download}</span>
-                    {canViewPricing && <span className="font-black text-[#2563eb]">{localizeAmountString(pkg.price)}</span>}
+                    <span className="text-[#737373]">{pkg.validity} · {pkg.download}</span>
+                    {canViewPricing && <span className="font-black text-[#1a1a1a]">{localizeAmountString(pkg.price)}</span>}
                   </div>
                   {canViewSubscribers && (
-                    <p className="mb-3 text-xs text-[#94a3b8]">{pkg.customers} customer{pkg.customers === 1 ? "" : "s"} subscribed</p>
+                    <p className="mb-3 text-xs text-[#a3a3a3]">{pkg.customers} customer{pkg.customers === 1 ? "" : "s"} subscribed</p>
                   )}
                   {hasRowActions && (
-                    <div className="flex items-center gap-2 border-t border-[#f1f5f9] pt-3">
+                    <div className="flex items-center gap-2 border-t border-[#f4f4f4] pt-3">
                       {rights.canEdit && (
                         <Link
                           href={`/agent-portal/${agentId}/packages/${pkg.id}`}
-                          className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#475569] hover:bg-[#f8fafc]"
+                          className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#525252] hover:bg-[#f7f7f7]"
                         >
                           <Pencil size={12} />
                           Edit
@@ -116,7 +116,7 @@ export default function AgentPackagesPage({
                         <button
                           type="button"
                           onClick={() => duplicatePackage(pkg.id)}
-                          className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#475569] hover:bg-[#f8fafc]"
+                          className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#525252] hover:bg-[#f7f7f7]"
                         >
                           <Copy size={12} />
                           Duplicate
@@ -138,7 +138,7 @@ export default function AgentPackagesPage({
                 );
               })}
               {availablePackages.length === 0 && (
-                <div className="col-span-full rounded-2xl bg-white p-10 text-center text-sm text-[#94a3b8]">
+                <div className="col-span-full rounded-2xl bg-white p-10 text-center text-sm text-[#a3a3a3]">
                   No packages available to you yet.{" "}
                   {canCreate
                     ? "Use Quick Create or Create Package above to add one, or ask admin to push you one."

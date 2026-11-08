@@ -49,14 +49,14 @@ export function HotspotPolicySettingsPanel() {
       <MasterPortalSettings section="hotspot" />
 
       {/* Hotspot / voucher settings */}
-      <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
+      <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
         <div className="mb-6 flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
             <Wifi size={20} />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-[#0f172a]">Hotspot Settings</h3>
-            <p className="text-sm text-[#64748b]">Configure your hotspot voucher settings.</p>
+            <h3 className="text-lg font-bold text-[#1a1a1a]">Hotspot Settings</h3>
+            <p className="text-sm text-[#737373]">Configure your hotspot voucher settings.</p>
           </div>
         </div>
 
@@ -181,27 +181,27 @@ export function HotspotPolicySettingsPanel() {
       </article>
 
       {/* Agent settings */}
-      <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
+      <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
         <div className="mb-6 flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
             <Users size={20} />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-[#0f172a]">Agent Settings</h3>
-            <p className="text-sm text-[#64748b]">
+            <h3 className="text-lg font-bold text-[#1a1a1a]">Agent Settings</h3>
+            <p className="text-sm text-[#737373]">
               Configure agent portal access, voucher visibility, and agent voucher reselling in one place.
             </p>
           </div>
         </div>
 
         <div className="space-y-5">
-          <div className="rounded-xl border border-[#f1f5f9] bg-[#ffffff] p-4">
-            <p className="mb-4 text-sm font-bold text-[#0f172a]">Agent Portal</p>
+          <div className="rounded-xl border border-[#f4f4f4] bg-[#ffffff] p-4">
+            <p className="mb-4 text-sm font-bold text-[#1a1a1a]">Agent Portal</p>
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-[#475569]">Enable Agent Portal</p>
-                  <p className="text-xs text-[#94a3b8]">
+                  <p className="text-sm font-semibold text-[#525252]">Enable Agent Portal</p>
+                  <p className="text-xs text-[#a3a3a3]">
                     When enabled, agents with dispatched access can log in to view their performance dashboard.
                   </p>
                 </div>
@@ -212,8 +212,8 @@ export function HotspotPolicySettingsPanel() {
               </div>
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-[#475569]">Allow Agents to View Voucher Codes</p>
-                  <p className="text-xs text-[#94a3b8]">
+                  <p className="text-sm font-semibold text-[#525252]">Allow Agents to View Voucher Codes</p>
+                  <p className="text-xs text-[#a3a3a3]">
                     When enabled, agents can see their assigned voucher codes in the agent portal.
                   </p>
                 </div>
@@ -224,29 +224,29 @@ export function HotspotPolicySettingsPanel() {
               </div>
 
               <div>
-                <span className="mb-2 block text-sm font-semibold text-[#475569]">Agent Portal URL</span>
-                <div className="flex overflow-hidden rounded-xl border border-[#e2e8f0] bg-white">
-                  <span className="flex-1 truncate px-3 py-2.5 text-sm text-[#475569]">{origin}/agent-portal</span>
+                <span className="mb-2 block text-sm font-semibold text-[#525252]">Agent Portal URL</span>
+                <div className="flex overflow-hidden rounded-xl border border-[#e6e6e6] bg-white">
+                  <span className="flex-1 truncate px-3 py-2.5 text-sm text-[#525252]">{origin}/agent-portal</span>
                   <button
                     type="button"
                     onClick={handleCopyAgentPortalUrl}
-                    className="flex items-center gap-1.5 border-l border-[#e2e8f0] bg-[#ffffff] px-3 text-xs font-bold text-[#2563eb] hover:bg-[#f1f5f9]"
+                    className="flex items-center gap-1.5 border-l border-[#e6e6e6] bg-[#ffffff] px-3 text-xs font-bold text-[#1a1a1a] hover:bg-[#f4f4f4]"
                   >
                     <Copy size={13} /> Copy
                   </button>
                 </div>
-                <span className="mt-1 block text-xs text-[#94a3b8]">
+                <span className="mt-1 block text-xs text-[#a3a3a3]">
                   Share this URL with your agents. Access must be dispatched per-agent from the Agents page.
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="rounded-xl border border-[#f1f5f9] bg-[#ffffff] p-4">
+          <div className="rounded-xl border border-[#f4f4f4] bg-[#ffffff] p-4">
             <div className="mb-4 flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-bold text-[#0f172a]">Voucher Reselling</p>
-                <p className="text-xs text-[#94a3b8]">
+                <p className="text-sm font-bold text-[#1a1a1a]">Voucher Reselling</p>
+                <p className="text-xs text-[#a3a3a3]">
                   When enabled, agents see a &quot;Buy Vouchers&quot; page in their portal where they can purchase
                   vouchers using mobile money.
                 </p>
@@ -292,10 +292,10 @@ export function HotspotPolicySettingsPanel() {
                     />
                   </Field>
                 </div>
-                <div className="sm:col-span-2 flex items-center justify-between gap-3 rounded-xl border border-[#e2e8f0] bg-white p-3">
+                <div className="sm:col-span-2 flex items-center justify-between gap-3 rounded-xl border border-[#e6e6e6] bg-white p-3">
                   <div>
-                    <p className="text-sm font-semibold text-[#475569]">Enable SMS Voucher Sales</p>
-                    <p className="text-xs text-[#94a3b8]">
+                    <p className="text-sm font-semibold text-[#525252]">Enable SMS Voucher Sales</p>
+                    <p className="text-xs text-[#a3a3a3]">
                       Agents can sell from dedicated SMS-only voucher batches using this site&apos;s own SMS gateway.
                     </p>
                   </div>
@@ -311,15 +311,15 @@ export function HotspotPolicySettingsPanel() {
       </article>
 
       {/* PPPoE self-registration */}
-      <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
+      <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
               <UserPlus size={20} />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-[#0f172a]">PPPoE Self-Registration</h3>
-              <p className="text-sm text-[#64748b]">
+              <h3 className="text-lg font-bold text-[#1a1a1a]">PPPoE Self-Registration</h3>
+              <p className="text-sm text-[#737373]">
                 Allow potential customers to register online for PPPoE internet service. You will review and
                 activate them manually.
               </p>
@@ -331,22 +331,22 @@ export function HotspotPolicySettingsPanel() {
           />
         </div>
         {form.pppoeSelfRegistrationEnabled && (
-          <p className="mt-4 rounded-xl bg-[#ffffff] p-3 text-xs text-[#64748b]">
+          <p className="mt-4 rounded-xl bg-[#ffffff] p-3 text-xs text-[#737373]">
             A public registration page is available at <code className="rounded bg-white px-1">/pppoe/register</code> on your domain.
           </p>
         )}
       </article>
 
       {/* Tethering protection */}
-      <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
+      <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
         <div className="mb-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-100 text-red-600">
               <ShieldAlert size={20} />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-[#0f172a]">Tethering Protection</h3>
-              <p className="text-sm text-[#64748b]">Prevent users from sharing their WiFi connection via mobile hotspot.</p>
+              <h3 className="text-lg font-bold text-[#1a1a1a]">Tethering Protection</h3>
+              <p className="text-sm text-[#737373]">Prevent users from sharing their WiFi connection via mobile hotspot.</p>
             </div>
           </div>
           <Toggle
@@ -372,7 +372,7 @@ export function HotspotPolicySettingsPanel() {
         <button
           type="button"
           onClick={save}
-          className="rounded-xl bg-[#2563eb] px-6 py-3 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+          className="rounded-xl bg-[#1a1a1a] px-6 py-3 text-sm font-bold text-white hover:bg-[#111111]"
         >
           Save Hotspot Settings
         </button>

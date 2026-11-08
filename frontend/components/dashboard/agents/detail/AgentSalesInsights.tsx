@@ -20,7 +20,7 @@ import {
 
 import { timeAgo, type BatchRow, type PackageRow, type RouterRow } from "../agentLedger";
 
-const COLORS = ["#2563eb", "#3b82f6", "#60a5fa", "#93c5fd", "#1d4ed8", "#1e40af", "#bfdbfe", "#1e3a8a"];
+const COLORS = ["#1a1a1a", "#1a1a1a", "#1a1a1a", "#f3f1ec", "#111111", "#111111", "#f3f1ec", "#111111"];
 
 function money(value: number) {
   return `${sym()} ${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -28,9 +28,9 @@ function money(value: number) {
 
 function Section({ title, children, testId }: { title: string; children: React.ReactNode; testId?: string }) {
   return (
-    <article data-testid={testId} className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white">
-      <div className="border-b border-[#f1f5f9] px-5 py-4">
-        <h3 className="text-base font-bold text-[#0f172a]">{title}</h3>
+    <article data-testid={testId} className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white">
+      <div className="border-b border-[#f4f4f4] px-5 py-4">
+        <h3 className="text-base font-bold text-[#1a1a1a]">{title}</h3>
       </div>
       {children}
     </article>
@@ -38,7 +38,7 @@ function Section({ title, children, testId }: { title: string; children: React.R
 }
 
 function Empty({ children }: { children: string }) {
-  return <p className="px-5 py-8 text-center text-sm text-[#94a3b8]">{children}</p>;
+  return <p className="px-5 py-8 text-center text-sm text-[#a3a3a3]">{children}</p>;
 }
 
 export function AgentSalesInsights({
@@ -68,13 +68,13 @@ export function AgentSalesInsights({
             <div className="h-[280px] p-4">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={barData}>
-                  <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#cbd5e1" opacity={0.7} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#475569" }} />
-                  <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#475569" }} />
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#d4d4d4" opacity={0.7} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#525252" }} />
+                  <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#525252" }} />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="Sold" stackId="a" fill="#10b981" />
-                  <Bar dataKey="Remaining" stackId="a" fill="#f59e0b" />
+                  <Bar dataKey="Sold" stackId="a" fill="#1a1a1a" />
+                  <Bar dataKey="Remaining" stackId="a" fill="#1a1a1a" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -107,7 +107,7 @@ export function AgentSalesInsights({
           <Empty>No vouchers yet.</Empty>
         ) : (
           <table className="w-full text-left text-sm">
-            <thead className="bg-[#ffffff] text-xs text-[#64748b]">
+            <thead className="bg-[#ffffff] text-xs text-[#737373]">
               <tr>
                 <th className="px-5 py-3 font-semibold">Package</th>
                 <th className="px-5 py-3 font-semibold">Batch</th>
@@ -119,12 +119,12 @@ export function AgentSalesInsights({
             </thead>
             <tbody>
               {byPackage.map((row) => (
-                <tr key={row.packageName} className="border-t border-[#f1f5f9]">
-                  <td className="px-5 py-3 font-semibold text-[#0f172a]">{row.packageName}</td>
-                  <td className="px-5 py-3 text-[#64748b]">{row.batches.length > 0 ? row.batches.join(", ") : "—"}</td>
-                  <td className="px-5 py-3 text-[#475569]">{row.given}</td>
-                  <td className="px-5 py-3 text-[#475569]">{row.sold}</td>
-                  <td className="px-5 py-3 text-[#475569]">{row.remaining}</td>
+                <tr key={row.packageName} className="border-t border-[#f4f4f4]">
+                  <td className="px-5 py-3 font-semibold text-[#1a1a1a]">{row.packageName}</td>
+                  <td className="px-5 py-3 text-[#737373]">{row.batches.length > 0 ? row.batches.join(", ") : "—"}</td>
+                  <td className="px-5 py-3 text-[#525252]">{row.given}</td>
+                  <td className="px-5 py-3 text-[#525252]">{row.sold}</td>
+                  <td className="px-5 py-3 text-[#525252]">{row.remaining}</td>
                   <td className="px-5 py-3 text-right font-bold text-emerald-700">{money(row.retailValue)}</td>
                 </tr>
               ))}
@@ -138,7 +138,7 @@ export function AgentSalesInsights({
           <Empty>No vouchers yet.</Empty>
         ) : (
           <table className="w-full text-left text-sm">
-            <thead className="bg-[#ffffff] text-xs text-[#64748b]">
+            <thead className="bg-[#ffffff] text-xs text-[#737373]">
               <tr>
                 <th className="px-5 py-3 font-semibold">Batch</th>
                 <th className="px-5 py-3 font-semibold">Given</th>
@@ -150,12 +150,12 @@ export function AgentSalesInsights({
             </thead>
             <tbody>
               {byBatch.map((row) => (
-                <tr key={row.key} className="border-t border-[#f1f5f9]">
-                  <td className="px-5 py-3 font-semibold text-[#0f172a]">{row.reference}</td>
-                  <td className="px-5 py-3 text-[#475569]">{row.given}</td>
-                  <td className="px-5 py-3 text-[#64748b]">{row.delivery}</td>
-                  <td className="px-5 py-3 text-[#475569]">{row.sold}</td>
-                  <td className="px-5 py-3 text-[#475569]">{row.remaining}</td>
+                <tr key={row.key} className="border-t border-[#f4f4f4]">
+                  <td className="px-5 py-3 font-semibold text-[#1a1a1a]">{row.reference}</td>
+                  <td className="px-5 py-3 text-[#525252]">{row.given}</td>
+                  <td className="px-5 py-3 text-[#737373]">{row.delivery}</td>
+                  <td className="px-5 py-3 text-[#525252]">{row.sold}</td>
+                  <td className="px-5 py-3 text-[#525252]">{row.remaining}</td>
                   <td className="px-5 py-3 text-right font-bold text-emerald-700">{money(row.retailValue)}</td>
                 </tr>
               ))}
@@ -169,7 +169,7 @@ export function AgentSalesInsights({
           <Empty>No sales on any router yet.</Empty>
         ) : (
           <table className="w-full text-left text-sm">
-            <thead className="bg-[#ffffff] text-xs text-[#64748b]">
+            <thead className="bg-[#ffffff] text-xs text-[#737373]">
               <tr>
                 <th className="px-5 py-3 font-semibold">Router</th>
                 <th className="px-5 py-3 font-semibold">Vouchers Sold</th>
@@ -179,10 +179,10 @@ export function AgentSalesInsights({
             </thead>
             <tbody>
               {byRouter.map((row) => (
-                <tr key={row.ip} className="border-t border-[#f1f5f9]">
-                  <td className="px-5 py-3 font-semibold text-[#0f172a]">{row.name}</td>
-                  <td className="px-5 py-3 text-[#475569]">{row.vouchersSold}</td>
-                  <td className="px-5 py-3 text-[#64748b]">
+                <tr key={row.ip} className="border-t border-[#f4f4f4]">
+                  <td className="px-5 py-3 font-semibold text-[#1a1a1a]">{row.name}</td>
+                  <td className="px-5 py-3 text-[#525252]">{row.vouchersSold}</td>
+                  <td className="px-5 py-3 text-[#737373]">
                     {new Date(row.latestSaleMs).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                   </td>
                   <td className="px-5 py-3 text-right font-bold text-emerald-700">{money(row.retailValue)}</td>
@@ -192,7 +192,7 @@ export function AgentSalesInsights({
           </table>
         )}
         {unattributedSold > 0 && (
-          <p data-testid="router-note" className="border-t border-[#f1f5f9] px-5 py-3 text-xs text-[#94a3b8]">
+          <p data-testid="router-note" className="border-t border-[#f4f4f4] px-5 py-3 text-xs text-[#a3a3a3]">
             {unattributedSold} sold voucher{unattributedSold === 1 ? "" : "s"} aren&apos;t part of a batch, so{" "}
             {unattributedSold === 1 ? "it can't" : "they can't"} be placed on a router.
           </p>
@@ -204,7 +204,7 @@ export function AgentSalesInsights({
           <Empty>No sales yet.</Empty>
         ) : (
           <table className="w-full text-left text-sm">
-            <thead className="bg-[#ffffff] text-xs text-[#64748b]">
+            <thead className="bg-[#ffffff] text-xs text-[#737373]">
               <tr>
                 <th className="px-5 py-3 font-semibold">Voucher Code</th>
                 <th className="px-5 py-3 font-semibold">Package</th>
@@ -214,10 +214,10 @@ export function AgentSalesInsights({
             </thead>
             <tbody>
               {recent.map((sale) => (
-                <tr key={sale.code} className="border-t border-[#f1f5f9]">
-                  <td className="px-5 py-3 font-mono font-semibold text-[#2563eb]">{sale.code}</td>
-                  <td className="px-5 py-3 text-[#475569]">{sale.packageName}</td>
-                  <td className="px-5 py-3 text-[#64748b]">{timeAgo(sale.usedAtMs)}</td>
+                <tr key={sale.code} className="border-t border-[#f4f4f4]">
+                  <td className="px-5 py-3 font-mono font-semibold text-[#1a1a1a]">{sale.code}</td>
+                  <td className="px-5 py-3 text-[#525252]">{sale.packageName}</td>
+                  <td className="px-5 py-3 text-[#737373]">{timeAgo(sale.usedAtMs)}</td>
                   <td className="px-5 py-3 text-right font-bold text-emerald-700">{money(sale.amount)}</td>
                 </tr>
               ))}

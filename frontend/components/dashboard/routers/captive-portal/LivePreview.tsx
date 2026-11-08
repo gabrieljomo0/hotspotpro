@@ -364,14 +364,14 @@ export function LivePreview({
 
   // ---- Pieces -----------------------------------------------------------
   const buttonColor = `${template.color} hover:opacity-90`;
-  const fieldClass = "flex items-center gap-2 rounded-xl border border-[#e2e8f0] bg-white px-3 py-2.5";
-  const inputClass = "w-full min-w-0 bg-transparent text-sm text-[#0f172a] outline-none placeholder:text-[#94a3b8]";
+  const fieldClass = "flex items-center gap-2 rounded-xl border border-[#e6e6e6] bg-white px-3 py-2.5";
+  const inputClass = "w-full min-w-0 bg-transparent text-sm text-[#1a1a1a] outline-none placeholder:text-[#a3a3a3]";
   const trialButton = config.freeTrialEnabled && (
     <button
       type="button"
       data-testid="preview-free-trial"
       onClick={startTrial}
-      className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#f1f5f9] py-2.5 text-sm font-bold text-[#0f172a] hover:bg-[#e2e8f0]"
+      className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#f4f4f4] py-2.5 text-sm font-bold text-[#1a1a1a] hover:bg-[#e6e6e6]"
     >
       <Gift size={14} />
       {config.freeTrialButtonText.trim() || "Free trial"}
@@ -382,14 +382,14 @@ export function LivePreview({
     <button
       type="button"
       onClick={goLogin}
-      className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-[#64748b] hover:text-[#0f172a]"
+      className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-[#737373] hover:text-[#1a1a1a]"
     >
       <ArrowLeft size={12} /> Back
     </button>
   );
 
   const errorBox = error && (
-    <p data-testid="preview-error" className="rounded-lg bg-[#fef2f2] px-3 py-2 text-xs font-semibold text-[#b91c1c]">
+    <p data-testid="preview-error" className="rounded-lg bg-[#f3f1ec] px-3 py-2 text-xs font-semibold text-[#1a1a1a]">
       {error}
     </p>
   );
@@ -398,7 +398,7 @@ export function LivePreview({
     <div>
       <div
         data-testid="live-preview"
-        className="mx-auto w-full max-w-sm overflow-hidden rounded-[2rem] border-4 border-[#0f172a] bg-white bg-cover bg-center shadow-xl"
+        className="mx-auto w-full max-w-sm overflow-hidden rounded-[2rem] border-4 border-[#1a1a1a] bg-white bg-cover bg-center shadow-xl"
         style={config.backgroundImageDataUrl ? { backgroundImage: `url(${config.backgroundImageDataUrl})` } : undefined}
       >
         <div
@@ -442,9 +442,9 @@ export function LivePreview({
               <form onSubmit={handleLogin} className="space-y-2" data-testid="preview-login-form">
                 {config.authMethod === "PIN Only" ? (
                   <div>
-                    <p className="mb-1.5 text-xs font-bold text-[#64748b]">Enter your PIN</p>
+                    <p className="mb-1.5 text-xs font-bold text-[#737373]">Enter your PIN</p>
                     <div className={fieldClass}>
-                      <KeyRound size={15} className="text-[#94a3b8]" />
+                      <KeyRound size={15} className="text-[#a3a3a3]" />
                       <input
                         data-testid="preview-code"
                         value={code}
@@ -459,7 +459,7 @@ export function LivePreview({
                 ) : (
                   <>
                     <div className={fieldClass}>
-                      <UserRound size={15} className="text-[#94a3b8]" />
+                      <UserRound size={15} className="text-[#a3a3a3]" />
                       <input
                         data-testid="preview-code"
                         value={code}
@@ -470,7 +470,7 @@ export function LivePreview({
                       />
                     </div>
                     <div className={fieldClass}>
-                      <KeyRound size={15} className="text-[#94a3b8]" />
+                      <KeyRound size={15} className="text-[#a3a3a3]" />
                       <input
                         data-testid="preview-password"
                         type="password"
@@ -486,7 +486,7 @@ export function LivePreview({
 
                 {config.phoneCollectionOnActivation !== "Off" && (
                   <div className={fieldClass}>
-                    <Smartphone size={15} className="text-[#94a3b8]" />
+                    <Smartphone size={15} className="text-[#a3a3a3]" />
                     <input
                       data-testid="preview-phone"
                       value={phone}
@@ -499,7 +499,7 @@ export function LivePreview({
                 )}
 
                 {config.showDeviceMac && (
-                  <div className="rounded-lg bg-[#f8fafc] px-3 py-2 font-mono text-[10px] text-[#64748b]">
+                  <div className="rounded-lg bg-[#f7f7f7] px-3 py-2 font-mono text-[10px] text-[#737373]">
                     Device: A4:C3:F0:XX:XX:XX
                   </div>
                 )}
@@ -518,15 +518,15 @@ export function LivePreview({
               {config.freeTrialEnabled && config.freeTrialButtonPosition !== "Top" && trialButton}
 
               {config.adsEnabled && (
-                <div data-testid="preview-ad" className="rounded-lg bg-[#f1f5f9] px-3 py-3 text-center text-[10px] text-[#64748b]">
-                  <span className="font-bold uppercase tracking-wide text-[#94a3b8]">Sponsored</span>
-                  <p className="mt-0.5 text-xs font-semibold text-[#0f172a]">Your advert shows here</p>
+                <div data-testid="preview-ad" className="rounded-lg bg-[#f4f4f4] px-3 py-3 text-center text-[10px] text-[#737373]">
+                  <span className="font-bold uppercase tracking-wide text-[#a3a3a3]">Sponsored</span>
+                  <p className="mt-0.5 text-xs font-semibold text-[#1a1a1a]">Your advert shows here</p>
                 </div>
               )}
 
               {config.showPackages && shownPackages.length > 0 && (
                 <div>
-                  <p className="mb-1.5 flex items-center gap-1.5 text-xs font-bold text-[#64748b]">
+                  <p className="mb-1.5 flex items-center gap-1.5 text-xs font-bold text-[#737373]">
                     <Ticket size={12} /> Packages
                   </p>
                   <div className="space-y-1.5">
@@ -546,28 +546,28 @@ export function LivePreview({
                             );
                           }
                         }}
-                        className="block w-full rounded-lg bg-[#f8fafc] px-3 py-2 text-left text-xs hover:bg-[#f1f5f9]"
+                        className="block w-full rounded-lg bg-[#f7f7f7] px-3 py-2 text-left text-xs hover:bg-[#f4f4f4]"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-semibold text-[#0f172a]">
+                          <span className="font-semibold text-[#1a1a1a]">
                             {pkg.name}
-                            {config.showPackageTime && <span className="ml-1 font-normal text-[#94a3b8]">· {pkg.validity}</span>}
+                            {config.showPackageTime && <span className="ml-1 font-normal text-[#a3a3a3]">· {pkg.validity}</span>}
                           </span>
                           <span className="flex items-center gap-1.5">
-                            <span className="font-bold text-[#2563eb]">{localizeAmountString(pkg.price)}</span>
+                            <span className="font-bold text-[#1a1a1a]">{localizeAmountString(pkg.price)}</span>
                             {config.allowOnlinePurchases && (
-                              <span className="rounded-full bg-[#2563eb] px-1.5 py-0.5 text-[9px] font-bold text-white">Buy</span>
+                              <span className="rounded-full bg-[#1a1a1a] px-1.5 py-0.5 text-[9px] font-bold text-white">Buy</span>
                             )}
                           </span>
                         </div>
                         {config.showPackageDeviceLimits && (
-                          <p className="mt-0.5 text-[10px] text-[#94a3b8]">Up to {pkg.devices} device{pkg.devices === 1 ? "" : "s"}</p>
+                          <p className="mt-0.5 text-[10px] text-[#a3a3a3]">Up to {pkg.devices} device{pkg.devices === 1 ? "" : "s"}</p>
                         )}
                       </button>
                     ))}
                   </div>
                   {notice && (
-                    <p data-testid="preview-notice" className="mt-2 rounded-lg bg-[#f1f5f9] px-3 py-2 text-[11px] text-[#475569]">
+                    <p data-testid="preview-notice" className="mt-2 rounded-lg bg-[#f4f4f4] px-3 py-2 text-[11px] text-[#525252]">
                       {notice}
                     </p>
                   )}
@@ -575,7 +575,7 @@ export function LivePreview({
               )}
 
               {config.physicalVoucherLocation.trim() && (
-                <p className="rounded-lg bg-[#f1f5f9] px-3 py-2 text-[10px] text-[#475569]">
+                <p className="rounded-lg bg-[#f4f4f4] px-3 py-2 text-[10px] text-[#525252]">
                   📍 {config.physicalVoucherLocation}
                 </p>
               )}
@@ -586,7 +586,7 @@ export function LivePreview({
                     type="button"
                     data-testid="preview-buy-online"
                     onClick={() => (shownPackages[0] ? openBuy(shownPackages[0]) : undefined)}
-                    className="inline-flex items-center gap-1 rounded-full bg-[#f1f5f9] px-2.5 py-1 text-[10px] font-bold text-[#2563eb] hover:bg-[#e2e8f0]"
+                    className="inline-flex items-center gap-1 rounded-full bg-[#f4f4f4] px-2.5 py-1 text-[10px] font-bold text-[#1a1a1a] hover:bg-[#e6e6e6]"
                   >
                     <ShoppingCart size={10} /> Buy Voucher Online
                   </button>
@@ -599,7 +599,7 @@ export function LivePreview({
                       setError("");
                       setScreen("reseller");
                     }}
-                    className="inline-flex items-center gap-1 rounded-full bg-[#f1f5f9] px-2.5 py-1 text-[10px] font-bold text-[#2563eb] hover:bg-[#e2e8f0]"
+                    className="inline-flex items-center gap-1 rounded-full bg-[#f4f4f4] px-2.5 py-1 text-[10px] font-bold text-[#1a1a1a] hover:bg-[#e6e6e6]"
                   >
                     <UsersRound size={10} /> Apply as Reseller
                   </button>
@@ -612,7 +612,7 @@ export function LivePreview({
                       setError("");
                       setScreen("feedback");
                     }}
-                    className="inline-flex items-center gap-1 rounded-full bg-[#f1f5f9] px-2.5 py-1 text-[10px] font-bold text-[#475569] hover:bg-[#e2e8f0]"
+                    className="inline-flex items-center gap-1 rounded-full bg-[#f4f4f4] px-2.5 py-1 text-[10px] font-bold text-[#525252] hover:bg-[#e6e6e6]"
                   >
                     <MessageSquareText size={10} /> Feedback
                   </button>
@@ -625,9 +625,9 @@ export function LivePreview({
           {screen === "otp" && (
             <div className="space-y-3" data-testid="preview-otp">
               {back}
-              <p className="text-sm font-bold text-[#0f172a]">Verify your phone</p>
+              <p className="text-sm font-bold text-[#1a1a1a]">Verify your phone</p>
               <div className={fieldClass}>
-                <Smartphone size={15} className="text-[#94a3b8]" />
+                <Smartphone size={15} className="text-[#a3a3a3]" />
                 <input
                   data-testid="preview-otp-phone"
                   value={phone}
@@ -643,11 +643,11 @@ export function LivePreview({
                 </button>
               ) : (
                 <>
-                  <p data-testid="preview-otp-hint" className="rounded-lg bg-[#f1f5f9] px-3 py-2 text-[11px] text-[#475569]">
+                  <p data-testid="preview-otp-hint" className="rounded-lg bg-[#f4f4f4] px-3 py-2 text-[11px] text-[#525252]">
                     An SMS would be sent to {phone}. Preview code: <strong>{otpSent}</strong>
                   </p>
                   <div className={fieldClass}>
-                    <KeyRound size={15} className="text-[#94a3b8]" />
+                    <KeyRound size={15} className="text-[#a3a3a3]" />
                     <input
                       data-testid="preview-otp-code"
                       value={otpEntered}
@@ -670,14 +670,14 @@ export function LivePreview({
           {screen === "buy" && buyPackage && (
             <form onSubmit={pay} className="space-y-3" data-testid="preview-buy">
               {back}
-              <div className="rounded-lg bg-[#f8fafc] px-3 py-2 text-xs">
-                <p className="font-bold text-[#0f172a]">{buyPackage.name}</p>
-                <p className="text-[#64748b]">
+              <div className="rounded-lg bg-[#f7f7f7] px-3 py-2 text-xs">
+                <p className="font-bold text-[#1a1a1a]">{buyPackage.name}</p>
+                <p className="text-[#737373]">
                   {buyPackage.validity} · {localizeAmountString(buyPackage.price)}
                 </p>
               </div>
               <div className={fieldClass}>
-                <Smartphone size={15} className="text-[#94a3b8]" />
+                <Smartphone size={15} className="text-[#a3a3a3]" />
                 <input
                   data-testid="preview-buy-phone"
                   value={buyPhone}
@@ -687,9 +687,9 @@ export function LivePreview({
                   className={inputClass}
                 />
               </div>
-              {networkOf(buyPhone) && <p className="text-[11px] font-semibold text-[#475569]">Pay with {networkOf(buyPhone)}</p>}
+              {networkOf(buyPhone) && <p className="text-[11px] font-semibold text-[#525252]">Pay with {networkOf(buyPhone)}</p>}
               {config.buyForOtherDevice && (
-                <label className="flex items-center gap-2 text-[11px] text-[#475569]">
+                <label className="flex items-center gap-2 text-[11px] text-[#525252]">
                   <input
                     type="checkbox"
                     data-testid="preview-other-device"
@@ -702,7 +702,7 @@ export function LivePreview({
               )}
               {config.buyForOtherDevice && otherDevice && (
                 <div className={fieldClass}>
-                  <Wifi size={15} className="text-[#94a3b8]" />
+                  <Wifi size={15} className="text-[#a3a3a3]" />
                   <input
                     data-testid="preview-device-mac"
                     value={deviceMac}
@@ -721,19 +721,19 @@ export function LivePreview({
 
           {screen === "pay" && (
             <div className="space-y-2 py-4 text-center" data-testid="preview-paying">
-              <span className="mx-auto block h-8 w-8 animate-spin rounded-full border-4 border-[#e2e8f0] border-t-[#2563eb]" />
-              <p className="text-sm font-bold text-[#0f172a]">Approve the payment on your phone</p>
-              <p className="text-xs text-[#64748b]">Waiting for {networkOf(buyPhone) || "mobile money"} to confirm…</p>
+              <span className="mx-auto block h-8 w-8 animate-spin rounded-full border-4 border-[#e6e6e6] border-t-[#1a1a1a]" />
+              <p className="text-sm font-bold text-[#1a1a1a]">Approve the payment on your phone</p>
+              <p className="text-xs text-[#737373]">Waiting for {networkOf(buyPhone) || "mobile money"} to confirm…</p>
             </div>
           )}
 
           {screen === "bought" && paidCode && buyPackage && (
             <div className="space-y-3 text-center" data-testid="preview-bought">
-              <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#2563eb] text-white">
+              <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#1a1a1a] text-white">
                 <Check size={20} />
               </span>
-              <p className="text-sm font-bold text-[#0f172a]">Payment received</p>
-              <div className="rounded-lg bg-[#f8fafc] px-3 py-2 text-left text-xs">
+              <p className="text-sm font-bold text-[#1a1a1a]">Payment received</p>
+              <div className="rounded-lg bg-[#f7f7f7] px-3 py-2 text-left text-xs">
                 <p>
                   Voucher: <strong data-testid="preview-paid-code" className="font-mono">{paidCode.code}</strong>
                 </p>
@@ -742,7 +742,7 @@ export function LivePreview({
                     Password: <strong data-testid="preview-paid-password" className="font-mono">{paidCode.password}</strong>
                   </p>
                 )}
-                <p className="mt-1 text-[10px] text-[#94a3b8]">A copy would also be sent to {buyPhone} by SMS.</p>
+                <p className="mt-1 text-[10px] text-[#a3a3a3]">A copy would also be sent to {buyPhone} by SMS.</p>
               </div>
               <button type="button" data-testid="preview-connect-bought" onClick={connectBought} className={`w-full rounded-xl py-2.5 text-sm font-bold text-white ${buttonColor}`}>
                 {otherDevice ? "Activate on that device" : "Connect now"}
@@ -754,13 +754,13 @@ export function LivePreview({
           {screen === "reseller" && (
             <form onSubmit={sendReseller} className="space-y-3" data-testid="preview-reseller-form">
               {back}
-              <p className="text-sm font-bold text-[#0f172a]">Apply as a reseller</p>
+              <p className="text-sm font-bold text-[#1a1a1a]">Apply as a reseller</p>
               <div className={fieldClass}>
-                <UserRound size={15} className="text-[#94a3b8]" />
+                <UserRound size={15} className="text-[#a3a3a3]" />
                 <input data-testid="preview-reseller-name" value={resellerName} onChange={(e) => setResellerName(e.target.value)} placeholder="Full name" className={inputClass} />
               </div>
               <div className={fieldClass}>
-                <Smartphone size={15} className="text-[#94a3b8]" />
+                <Smartphone size={15} className="text-[#a3a3a3]" />
                 <input data-testid="preview-reseller-phone" value={resellerPhone} onChange={(e) => setResellerPhone(e.target.value)} inputMode="tel" placeholder="Phone number" className={inputClass} />
               </div>
               {errorBox}
@@ -774,14 +774,14 @@ export function LivePreview({
           {screen === "feedback" && (
             <form onSubmit={sendFeedback} className="space-y-3" data-testid="preview-feedback-form">
               {back}
-              <p className="text-sm font-bold text-[#0f172a]">Tell us how we're doing</p>
+              <p className="text-sm font-bold text-[#1a1a1a]">Tell us how we're doing</p>
               <textarea
                 data-testid="preview-feedback-text"
                 value={feedback}
                 onChange={(e) => setFeedback(e.target.value)}
                 rows={3}
                 placeholder="Your message"
-                className="w-full rounded-xl border border-[#e2e8f0] bg-white px-3 py-2.5 text-sm text-[#0f172a] outline-none placeholder:text-[#94a3b8]"
+                className="w-full rounded-xl border border-[#e6e6e6] bg-white px-3 py-2.5 text-sm text-[#1a1a1a] outline-none placeholder:text-[#a3a3a3]"
               />
               {errorBox}
               <button type="submit" data-testid="preview-feedback-send" className={`w-full rounded-xl py-2.5 text-sm font-bold text-white ${buttonColor}`}>
@@ -792,11 +792,11 @@ export function LivePreview({
 
           {screen === "sent" && (
             <div className="space-y-3 py-2 text-center" data-testid="preview-sent">
-              <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#2563eb] text-white">
+              <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#1a1a1a] text-white">
                 <Check size={20} />
               </span>
-              <p className="text-sm font-semibold text-[#0f172a]">{sentMessage}</p>
-              <button type="button" onClick={goLogin} className="text-xs font-bold text-[#2563eb] hover:underline">
+              <p className="text-sm font-semibold text-[#1a1a1a]">{sentMessage}</p>
+              <button type="button" onClick={goLogin} className="text-xs font-bold text-[#1a1a1a] hover:underline">
                 Back to login
               </button>
             </div>
@@ -805,13 +805,13 @@ export function LivePreview({
           {/* ---------------- Connected ---------------- */}
           {screen === "connected" && session && (
             <div className="space-y-3 text-center" data-testid="preview-connected">
-              <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#2563eb] text-white">
+              <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#1a1a1a] text-white">
                 <Wifi size={22} />
               </span>
-              <p className="text-base font-black text-[#0f172a]">Connected</p>
-              <div className="rounded-lg bg-[#f8fafc] px-3 py-2 text-left text-xs text-[#475569]">
+              <p className="text-base font-black text-[#1a1a1a]">Connected</p>
+              <div className="rounded-lg bg-[#f7f7f7] px-3 py-2 text-left text-xs text-[#525252]">
                 <p>
-                  Package: <strong data-testid="preview-session-package" className="text-[#0f172a]">{session.packageName}</strong>
+                  Package: <strong data-testid="preview-session-package" className="text-[#1a1a1a]">{session.packageName}</strong>
                 </p>
                 {session.validity && <p>Valid for: {session.validity}</p>}
                 {(session.down || session.up) && (
@@ -822,18 +822,18 @@ export function LivePreview({
                 <p>Devices: up to {session.devices}</p>
                 <p>Via: {session.source}</p>
               </div>
-              <p data-testid="preview-timer" className="font-mono text-lg font-bold text-[#0f172a]">{clock(elapsed)}</p>
+              <p data-testid="preview-timer" className="font-mono text-lg font-bold text-[#1a1a1a]">{clock(elapsed)}</p>
               {config.redirectUrlAfterLogin.trim() && (
-                <p data-testid="preview-redirect" className="rounded-lg bg-[#f1f5f9] px-3 py-2 text-[11px] text-[#475569]">
+                <p data-testid="preview-redirect" className="rounded-lg bg-[#f4f4f4] px-3 py-2 text-[11px] text-[#525252]">
                   {redirectIn !== null && redirectIn > 0
                     ? `Taking you to ${config.redirectUrlAfterLogin.trim()} in ${redirectIn}…`
                     : `Redirected to ${config.redirectUrlAfterLogin.trim()} (a real phone would leave this page now).`}
                 </p>
               )}
               {config.adsEnabled && (
-                <div className="rounded-lg bg-[#f1f5f9] px-3 py-3 text-center text-[10px] text-[#64748b]">
-                  <span className="font-bold uppercase tracking-wide text-[#94a3b8]">Sponsored</span>
-                  <p className="mt-0.5 text-xs font-semibold text-[#0f172a]">Your advert shows here</p>
+                <div className="rounded-lg bg-[#f4f4f4] px-3 py-3 text-center text-[10px] text-[#737373]">
+                  <span className="font-bold uppercase tracking-wide text-[#a3a3a3]">Sponsored</span>
+                  <p className="mt-0.5 text-xs font-semibold text-[#1a1a1a]">Your advert shows here</p>
                 </div>
               )}
               <button
@@ -845,7 +845,7 @@ export function LivePreview({
                   setPassword("");
                   goLogin();
                 }}
-                className="w-full rounded-xl bg-[#f1f5f9] py-2.5 text-sm font-bold text-[#0f172a] hover:bg-[#e2e8f0]"
+                className="w-full rounded-xl bg-[#f4f4f4] py-2.5 text-sm font-bold text-[#1a1a1a] hover:bg-[#e6e6e6]"
               >
                 Disconnect
               </button>
@@ -854,13 +854,13 @@ export function LivePreview({
         </div>
       </div>
 
-      <div className="mt-3 flex items-center justify-center gap-3 text-[11px] text-[#64748b]">
+      <div className="mt-3 flex items-center justify-center gap-3 text-[11px] text-[#737373]">
         <span>Try it — nothing here is saved or uses a real voucher.</span>
         <button
           type="button"
           data-testid="preview-reset"
           onClick={reset}
-          className="inline-flex items-center gap-1 font-bold text-[#2563eb] hover:underline"
+          className="inline-flex items-center gap-1 font-bold text-[#1a1a1a] hover:underline"
         >
           <RotateCcw size={11} /> Reset
         </button>

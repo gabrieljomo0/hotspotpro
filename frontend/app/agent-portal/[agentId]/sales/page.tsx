@@ -137,10 +137,10 @@ export default function AgentSalesPage({
             <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h1 className="flex items-center gap-2 text-2xl font-black md:text-3xl">
-                  <ShoppingCart size={26} className="text-[#2563eb]" />
+                  <ShoppingCart size={26} className="text-[#1a1a1a]" />
                   Sales
                 </h1>
-                <p className="mt-1 text-sm text-[#64748b]">
+                <p className="mt-1 text-sm text-[#737373]">
                   {canViewTeam ? "Every voucher sold by your team" : "Every voucher you've sold"} — pulled from real
                   voucher records.
                 </p>
@@ -151,7 +151,7 @@ export default function AgentSalesPage({
                   data-testid="sales-export"
                   onClick={handleExport}
                   disabled={sales.length === 0}
-                  className="inline-flex items-center gap-2 rounded-xl border-2 px-4 py-2.5 text-sm font-bold text-[#2563eb] hover:bg-[#e2e8f0] disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-xl border-2 px-4 py-2.5 text-sm font-bold text-[#1a1a1a] hover:bg-[#e6e6e6] disabled:opacity-50"
                 >
                   <Download size={16} />
                   Export CSV
@@ -169,30 +169,30 @@ export default function AgentSalesPage({
 
             <div className={`mb-5 grid gap-3 ${showCommission ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
               <div className="rounded-xl bg-white p-4">
-                <p className="flex items-center gap-1.5 text-xs font-semibold text-[#2563eb]">
+                <p className="flex items-center gap-1.5 text-xs font-semibold text-[#1a1a1a]">
                   <Banknote size={13} />
                   Total Sales
                 </p>
-                <p data-testid="sales-total" className="mt-1 text-xl font-black text-[#0f172a]">
+                <p data-testid="sales-total" className="mt-1 text-xl font-black text-[#1a1a1a]">
                   {sym()} {money(error ? 0 : totalRevenue)}
                 </p>
               </div>
               <div className="rounded-xl bg-white p-4">
-                <p className="flex items-center gap-1.5 text-xs font-semibold text-[#64748b]">
+                <p className="flex items-center gap-1.5 text-xs font-semibold text-[#737373]">
                   {canViewTeam && <Users size={13} />}
                   Vouchers Sold
                 </p>
-                <p data-testid="sales-count" className="mt-1 text-xl font-black text-[#0f172a]">
+                <p data-testid="sales-count" className="mt-1 text-xl font-black text-[#1a1a1a]">
                   {error ? 0 : sales.length}
                 </p>
               </div>
               {showCommission && (
                 <div className="rounded-xl bg-white p-4">
-                  <p className="flex items-center gap-1.5 text-xs font-semibold text-[#64748b]">
+                  <p className="flex items-center gap-1.5 text-xs font-semibold text-[#737373]">
                     <Percent size={13} />
                     Commission ({rate}%)
                   </p>
-                  <p data-testid="sales-commission" className="mt-1 text-xl font-black text-[#0f172a]">
+                  <p data-testid="sales-commission" className="mt-1 text-xl font-black text-[#1a1a1a]">
                     {sym()} {money(error ? 0 : commission)}
                   </p>
                 </div>
@@ -201,20 +201,20 @@ export default function AgentSalesPage({
 
             <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl bg-white p-3">
               <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8]" />
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" />
                 <input
                   data-testid="sales-search"
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder={canSeeHistory ? "Search code, package or phone..." : "Search code or package..."}
-                  className="h-10 w-64 rounded-lg border border-[#cbd5e1] bg-white pl-8 pr-3 text-sm outline-none focus:border-[#2563eb]"
+                  className="h-10 w-64 rounded-lg border border-[#d4d4d4] bg-white pl-8 pr-3 text-sm outline-none focus:border-[#1a1a1a]"
                 />
               </div>
               <select
                 data-testid="sales-package"
                 value={packageFilter}
                 onChange={(event) => setPackageFilter(event.target.value)}
-                className="h-10 rounded-lg border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-10 rounded-lg border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               >
                 <option value="All">All packages</option>
                 {packageNames.map((n) => (
@@ -227,7 +227,7 @@ export default function AgentSalesPage({
                 data-testid="sales-saletype"
                 value={saleTypeFilter}
                 onChange={(event) => setSaleTypeFilter(event.target.value)}
-                className="h-10 rounded-lg border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-10 rounded-lg border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               >
                 <option value="All">All sale types</option>
                 {saleTypes.map((n) => (
@@ -236,7 +236,7 @@ export default function AgentSalesPage({
                   </option>
                 ))}
               </select>
-              <span className="ml-auto text-xs text-[#94a3b8]">
+              <span className="ml-auto text-xs text-[#a3a3a3]">
                 {error ? "Fix the filter above" : `${sales.length} of ${allSales.length} sales · ${periodLabel(period)}`}
               </span>
             </div>
@@ -244,7 +244,7 @@ export default function AgentSalesPage({
             <article className="overflow-hidden rounded-2xl bg-white shadow-sm">
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[700px] text-left text-sm">
-                  <thead className="bg-[#f8fafc] text-xs text-[#64748b]">
+                  <thead className="bg-[#f7f7f7] text-xs text-[#737373]">
                     <tr>
                       {columns.map((c) => (
                         <th key={c} className="px-4 py-3">
@@ -253,10 +253,10 @@ export default function AgentSalesPage({
                       ))}
                     </tr>
                   </thead>
-                  <tbody data-testid="sales-rows" className="divide-y divide-[#f1f5f9]">
+                  <tbody data-testid="sales-rows" className="divide-y divide-[#f4f4f4]">
                     {(error ? [] : sales).map(({ voucher: v, seller, when, amount }) => (
-                      <tr key={v.code} className="hover:bg-[#f8fafc]">
-                        <td className="px-4 py-3 font-mono text-xs text-[#2563eb]">{v.code}</td>
+                      <tr key={v.code} className="hover:bg-[#f7f7f7]">
+                        <td className="px-4 py-3 font-mono text-xs text-[#1a1a1a]">{v.code}</td>
                         <td className="px-4 py-3">{v.packageName}</td>
                         {canSeeHistory && <td className="px-4 py-3">{v.redeemerPhone ?? "—"}</td>}
                         {canViewTeam && <td className="px-4 py-3">{agentName(seller)}</td>}
@@ -265,27 +265,27 @@ export default function AgentSalesPage({
                             {v.saleType}
                           </span>
                         </td>
-                        <td className="px-4 py-3 font-semibold text-[#2563eb]">
+                        <td className="px-4 py-3 font-semibold text-[#1a1a1a]">
                           {sym()} {money(amount)}
                         </td>
                         {showCommission && (
-                          <td className="px-4 py-3 text-[#475569]">
+                          <td className="px-4 py-3 text-[#525252]">
                             {sym()} {money((amount * rate) / 100)}
                           </td>
                         )}
                         {canSeePayment && (
                           <td className="px-4 py-3">
-                            <span className="rounded-full bg-[#f1f5f9] px-2.5 py-1 text-xs font-semibold text-[#2563eb]">
+                            <span className="rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-semibold text-[#1a1a1a]">
                               Paid
                             </span>
                           </td>
                         )}
-                        <td className="px-4 py-3 text-[#64748b]">{formatWhen(when)}</td>
+                        <td className="px-4 py-3 text-[#737373]">{formatWhen(when)}</td>
                       </tr>
                     ))}
                     {(error || sales.length === 0) && (
                       <tr>
-                        <td colSpan={columns.length} className="px-4 py-10 text-center text-sm text-[#94a3b8]">
+                        <td colSpan={columns.length} className="px-4 py-10 text-center text-sm text-[#a3a3a3]">
                           {error
                             ? error
                             : allSales.length === 0

@@ -88,7 +88,7 @@ export const summaryCards = [
   positive: true,
   icon: Users,
   iconClass:
-   "bg-[#f1f5f9] text-[#2563eb] ",
+   "bg-[#f4f4f4] text-[#1a1a1a] ",
  },
  {
   title: "Total Sessions",
@@ -98,7 +98,7 @@ export const summaryCards = [
   positive: true,
   icon: Wifi,
   iconClass:
-   "bg-[#e9fbf3] text-[#0f9f6e] ",
+   "bg-[#f3f1ec] text-[#1a1a1a] ",
  },
  {
   title: "Active Data Usage",
@@ -108,7 +108,7 @@ export const summaryCards = [
   positive: true,
   icon: Activity,
   iconClass:
-   "bg-[#f1f5f9] text-[#475569] dark:text-[#475569]",
+   "bg-[#f4f4f4] text-[#525252] dark:text-[#525252]",
  },
  {
   title: "Expiring Soon",
@@ -118,7 +118,7 @@ export const summaryCards = [
   positive: false,
   icon: CircleDot,
   iconClass:
-   "bg-[#fff5e8] text-[#d97706] ",
+   "bg-[#f3f1ec] text-[#1a1a1a] ",
  },
  {
   title: "Network Uptime",
@@ -128,7 +128,7 @@ export const summaryCards = [
   positive: true,
   icon: Signal,
   iconClass:
-   "bg-[#f1f5f9] text-[#475569] dark:text-[#475569]",
+   "bg-[#f4f4f4] text-[#525252] dark:text-[#525252]",
  },
 ];
 
@@ -215,31 +215,31 @@ export const statusData = [
   name: "Online",
   value: 487,
   percentage: "65.4%",
-  color: "#10b981",
+  color: "#1a1a1a",
  },
  {
   name: "Idle",
   value: 121,
   percentage: "16.2%",
-  color: "#2563eb",
+  color: "#1a1a1a",
  },
  {
   name: "Expiring Soon",
   value: 22,
   percentage: "2.9%",
-  color: "#f59e0b",
+  color: "#1a1a1a",
  },
  {
   name: "Disconnected",
   value: 98,
   percentage: "13.1%",
-  color: "#94a3b8",
+  color: "#a3a3a3",
  },
  {
   name: "Blocked",
   value: 12,
   percentage: "1.6%",
-  color: "#ef4444",
+  color: "#1a1a1a",
  },
 ];
 
@@ -272,35 +272,35 @@ export const recentEvents = [
   subtitle: "IP: 192.168.88.45 · Main Router",
   time: "10:35 AM",
   icon: UserRound,
-  iconClass: "bg-[#e9fbf3] text-[#0f9f6e]",
+  iconClass: "bg-[#f3f1ec] text-[#1a1a1a]",
  },
  {
   title: "User 050 765 4321 package will expire soon",
   subtitle: "Voucher HS-9PLM-22XB",
   time: "11:20 AM",
   icon: Ticket,
-  iconClass: "bg-[#fff5e8] text-[#d97706]",
+  iconClass: "bg-[#f3f1ec] text-[#1a1a1a]",
  },
  {
   title: "User 024 987 6543 logged in",
   subtitle: "IP: 192.168.88.23 · Floor 2 Router",
   time: "09:50 AM",
   icon: Users,
-  iconClass: "bg-[#f1f5f9] text-[#2563eb]",
+  iconClass: "bg-[#f4f4f4] text-[#1a1a1a]",
  },
  {
   title: "User 020 112 3344 disconnected",
   subtitle: "Session expired",
   time: "Yesterday, 11:45 PM",
   icon: Router,
-  iconClass: "bg-[#f1f5f9] text-[#64748b]",
+  iconClass: "bg-[#f4f4f4] text-[#737373]",
  },
  {
   title: "User 024 556 7788 blocked",
   subtitle: "Blocked by administrator",
   time: "May 11, 10:05 PM",
   icon: LockKeyhole,
-  iconClass: "bg-[#fff0f0] text-[#dc2626]",
+  iconClass: "bg-[#f3f1ec] text-[#1a1a1a]",
  },
 ];
 

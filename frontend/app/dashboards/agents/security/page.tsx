@@ -15,7 +15,7 @@ export default function PinSecurityPage() {
       <h2 className="mb-1 text-3xl font-bold tracking-tight md:text-4xl">
         PIN &amp; Security
       </h2>
-      <p className="mb-6 max-w-2xl text-sm text-[#64748b] md:text-base">
+      <p className="mb-6 max-w-2xl text-sm text-[#737373] md:text-base">
         PINs and passwords are hashed and never shown in plaintext after
         assignment. Resets here securely issue new credentials without
         revealing the old ones.
@@ -31,9 +31,9 @@ export default function PinSecurityPage() {
         </p>
       </div>
 
-      <article className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+      <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
         <table className="w-full text-left text-sm">
-          <thead className="bg-[#ffffff] text-xs text-[#64748b]">
+          <thead className="bg-[#ffffff] text-xs text-[#737373]">
             <tr>
               <th className="px-5 py-3 font-semibold">Agent</th>
               <th className="px-5 py-3 font-semibold">Username</th>
@@ -43,16 +43,16 @@ export default function PinSecurityPage() {
           </thead>
           <tbody>
             {agents.map((agent) => (
-              <tr key={agent.id} className="border-t border-[#f1f5f9]">
-                <td className="px-5 py-3 font-semibold text-[#0f172a]">{agent.name}</td>
-                <td className="px-5 py-3 font-mono text-[#475569]">{agent.username}</td>
-                <td className="px-5 py-3 text-[#64748b]">{agent.lastLogin}</td>
+              <tr key={agent.id} className="border-t border-[#f4f4f4]">
+                <td className="px-5 py-3 font-semibold text-[#1a1a1a]">{agent.name}</td>
+                <td className="px-5 py-3 font-mono text-[#525252]">{agent.username}</td>
+                <td className="px-5 py-3 text-[#737373]">{agent.lastLogin}</td>
                 <td className="px-5 py-3">
                   <div className="flex items-center justify-center gap-2">
                     <button
                       type="button"
                       onClick={() => resetAgentPassword(agent.id)}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-[#e2e8f0] bg-white px-3 py-2 text-xs font-semibold text-[#475569] hover:bg-[#ffffff]"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-[#e6e6e6] bg-white px-3 py-2 text-xs font-semibold text-[#525252] hover:bg-[#ffffff]"
                     >
                       <KeyRound size={13} />
                       Reset Password
@@ -60,7 +60,7 @@ export default function PinSecurityPage() {
                     <button
                       type="button"
                       onClick={() => resetAgentPin(agent.id)}
-                      className="rounded-lg border border-[#e2e8f0] bg-white px-3 py-2 text-xs font-semibold text-[#475569] hover:bg-[#ffffff]"
+                      className="rounded-lg border border-[#e6e6e6] bg-white px-3 py-2 text-xs font-semibold text-[#525252] hover:bg-[#ffffff]"
                     >
                       Reset PIN
                     </button>

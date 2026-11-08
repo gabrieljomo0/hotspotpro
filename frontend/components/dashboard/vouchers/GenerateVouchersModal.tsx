@@ -222,16 +222,16 @@ export function GenerateVouchersModal({
       />
 
       <div className="relative z-10 max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
-        <div className="sticky top-0 flex items-center justify-between border-b border-[#f1f5f9] bg-white px-6 py-5">
+        <div className="sticky top-0 flex items-center justify-between border-b border-[#f4f4f4] bg-white px-6 py-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#2563eb] text-white">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1a1a1a] text-white">
               <Sparkles size={18} />
             </div>
             <div>
-              <h2 className="text-base font-bold text-[#0f172a]">
+              <h2 className="text-base font-bold text-[#1a1a1a]">
                 Generate Vouchers
               </h2>
-              <p className="text-xs text-[#64748b]">
+              <p className="text-xs text-[#737373]">
                 {isAgentMode
                   ? "Pick a package and how many vouchers you need."
                   : "Create the batch here. You'll choose a print design next."}
@@ -241,7 +241,7 @@ export function GenerateVouchersModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-[#64748b] hover:bg-[#ffffff]"
+            className="rounded-lg p-1.5 text-[#737373] hover:bg-[#ffffff]"
           >
             <X size={18} />
           </button>
@@ -250,7 +250,7 @@ export function GenerateVouchersModal({
         <form onSubmit={handleSubmit} className="space-y-5 px-6 py-6">
           <label className="block">
             <div className="mb-2 flex items-center justify-between gap-2">
-              <span className="text-sm font-semibold text-[#475569]">
+              <span className="text-sm font-semibold text-[#525252]">
                 Package <span className="text-red-500">*</span>
               </span>
               {!isLockedToDefaultPackage &&
@@ -319,7 +319,7 @@ export function GenerateVouchersModal({
 
           {!isAgentMode && (
           <div className="block">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               How customers log in <span className="text-red-500">*</span>
             </span>
             <div className="grid gap-2 sm:grid-cols-2">
@@ -327,21 +327,21 @@ export function GenerateVouchersModal({
                 type="button"
                 onClick={() => setLoginMethod("code")}
                 className={`rounded-xl border-2 p-3 text-left transition ${
-                  loginMethod === "code" ? "border-[#2563eb] bg-[#f1f5f9]" : "border-[#e2e8f0] bg-white hover:bg-[#ffffff]"
+                  loginMethod === "code" ? "border-[#1a1a1a] bg-[#f4f4f4]" : "border-[#e6e6e6] bg-white hover:bg-[#ffffff]"
                 }`}
               >
-                <p className="text-sm font-bold text-[#0f172a]">Single Code</p>
-                <p className="text-xs text-[#64748b]">One code to type in and connect.</p>
+                <p className="text-sm font-bold text-[#1a1a1a]">Single Code</p>
+                <p className="text-xs text-[#737373]">One code to type in and connect.</p>
               </button>
               <button
                 type="button"
                 onClick={() => setLoginMethod("credentials")}
                 className={`rounded-xl border-2 p-3 text-left transition ${
-                  loginMethod === "credentials" ? "border-[#2563eb] bg-[#f1f5f9]" : "border-[#e2e8f0] bg-white hover:bg-[#ffffff]"
+                  loginMethod === "credentials" ? "border-[#1a1a1a] bg-[#f4f4f4]" : "border-[#e6e6e6] bg-white hover:bg-[#ffffff]"
                 }`}
               >
-                <p className="text-sm font-bold text-[#0f172a]">Username &amp; Password</p>
-                <p className="text-xs text-[#64748b]">Two fields, like a PPPoE login.</p>
+                <p className="text-sm font-bold text-[#1a1a1a]">Username &amp; Password</p>
+                <p className="text-xs text-[#737373]">Two fields, like a PPPoE login.</p>
               </button>
             </div>
           </div>
@@ -350,21 +350,21 @@ export function GenerateVouchersModal({
           <div className={`grid gap-4 ${isAgentMode ? "" : "sm:grid-cols-2"}`}>
             {!isAgentMode && (
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">
                 Batch Reference
               </span>
               <input
                 value={reference}
                 onChange={(event) => setReference(event.target.value)}
                 placeholder="Generated automatically when empty"
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
             </label>
             )}
 
             {!isAgentMode && (
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">
                 Prefix
               </span>
               <input
@@ -372,9 +372,9 @@ export function GenerateVouchersModal({
                 onChange={(event) => setPrefix(event.target.value)}
                 maxLength={1}
                 placeholder="None"
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
-              <span className="mt-1 block text-xs text-[#94a3b8]">
+              <span className="mt-1 block text-xs text-[#a3a3a3]">
                 Optional. 1 letter max.
               </span>
             </label>
@@ -382,7 +382,7 @@ export function GenerateVouchersModal({
 
             {!isAgentMode && (
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">
                 Code Format <span className="text-red-500">*</span>
               </span>
               <select
@@ -390,7 +390,7 @@ export function GenerateVouchersModal({
                 onChange={(event) =>
                   setCodeFormat(event.target.value as VoucherCodeFormat)
                 }
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               >
                 <option value="uppercase">Uppercase (A-Z, 0-9)</option>
                 <option value="lowercase">Lowercase (a-z, 0-9)</option>
@@ -402,13 +402,13 @@ export function GenerateVouchersModal({
 
             {!isAgentMode && (
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">
                 Code Length <span className="text-red-500">*</span>
               </span>
               <select
                 value={codeLength}
                 onChange={(event) => setCodeLength(Number(event.target.value))}
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               >
                 {[4, 5, 6, 7, 8].map((len) => (
                   <option key={len} value={len}>
@@ -416,14 +416,14 @@ export function GenerateVouchersModal({
                   </option>
                 ))}
               </select>
-              <span className="mt-1 block text-xs text-[#94a3b8]">
+              <span className="mt-1 block text-xs text-[#a3a3a3]">
                 Longer codes are harder to guess.
               </span>
             </label>
             )}
 
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">
                 Quantity <span className="text-red-500">*</span>
               </span>
               <input
@@ -433,9 +433,9 @@ export function GenerateVouchersModal({
                 max={500}
                 value={quantity}
                 onChange={(event) => setQuantity(Number(event.target.value))}
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
-              <span className="mt-1 block text-xs text-[#94a3b8]">
+              <span className="mt-1 block text-xs text-[#a3a3a3]">
                 {isAgentMode
                   ? agentRouterName
                     ? `Created for your router: ${agentRouterName}.`
@@ -447,7 +447,7 @@ export function GenerateVouchersModal({
 
           {!isAgentMode && (
           <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               Batch Note
             </span>
             <textarea
@@ -455,7 +455,7 @@ export function GenerateVouchersModal({
               onChange={(event) => setNote(event.target.value)}
               rows={2}
               placeholder="Optional message printed by..."
-              className="w-full rounded-xl border border-[#e2e8f0] bg-white px-3 py-2.5 text-sm outline-none focus:border-[#2563eb]"
+              className="w-full rounded-xl border border-[#e6e6e6] bg-white px-3 py-2.5 text-sm outline-none focus:border-[#1a1a1a]"
             />
           </label>
           )}
@@ -464,11 +464,11 @@ export function GenerateVouchersModal({
             <>
           <div className="block">
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm font-semibold text-[#475569]">
+              <span className="text-sm font-semibold text-[#525252]">
                 Site &amp; Routers <span className="text-red-500">*</span>
               </span>
               {agents.length > 1 && (
-                <div className="flex gap-3 text-xs font-semibold text-[#2563eb]">
+                <div className="flex gap-3 text-xs font-semibold text-[#1a1a1a]">
                   <button type="button" onClick={() => setRouterIps(routers.map((r) => r.ip))} className="hover:underline">
                     Select all
                   </button>
@@ -477,28 +477,28 @@ export function GenerateVouchersModal({
             </div>
 
             {agents.length <= 1 ? (
-              <div className="rounded-xl border border-[#e2e8f0] bg-[#ffffff] p-2.5">
+              <div className="rounded-xl border border-[#e6e6e6] bg-[#ffffff] p-2.5">
                 {routerIps.length > 0 ? (
-                  <p className="text-xs text-[#475569]">
+                  <p className="text-xs text-[#525252]">
                     Using your router{routerIps.length === 1 ? "" : "s"}:{" "}
-                    <span className="font-semibold text-[#0f172a]">
+                    <span className="font-semibold text-[#1a1a1a]">
                       {routerIps
                         .map((ip) => routers.find((r) => r.ip === ip)?.name.split(" (")[0] ?? ip)
                         .join(", ")}
                     </span>
                   </p>
                 ) : (
-                  <p className="text-xs text-[#94a3b8]">No router available yet — add one first.</p>
+                  <p className="text-xs text-[#a3a3a3]">No router available yet — add one first.</p>
                 )}
               </div>
             ) : (
-            <div className="max-h-48 space-y-2 overflow-y-auto rounded-xl border border-[#e2e8f0] bg-white p-2.5">
+            <div className="max-h-48 space-y-2 overflow-y-auto rounded-xl border border-[#e6e6e6] bg-white p-2.5">
               {sites.map(({ site, siteRouters }) => {
                 const allSelected = siteRouters.length > 0 && siteRouters.every((r) => routerIps.includes(r.ip));
                 return (
-                  <div key={site.id} className="rounded-lg border border-[#f1f5f9] p-2">
+                  <div key={site.id} className="rounded-lg border border-[#f4f4f4] p-2">
                     <div className="mb-1 flex items-center justify-between gap-2">
-                      <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-[#475569]">
+                      <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-[#525252]">
                         <Building2 size={11} />
                         {site.name}
                       </span>
@@ -506,23 +506,23 @@ export function GenerateVouchersModal({
                         <button
                           type="button"
                           onClick={() => toggleSite(siteRouters.map((r) => r.ip))}
-                          className="text-[10px] font-semibold text-[#2563eb] hover:underline"
+                          className="text-[10px] font-semibold text-[#1a1a1a] hover:underline"
                         >
                           {allSelected ? "Unselect site" : "Select whole site"}
                         </button>
                       )}
                     </div>
                     {siteRouters.length === 0 ? (
-                      <p className="px-1 text-xs text-[#94a3b8]">No routers here yet.</p>
+                      <p className="px-1 text-xs text-[#a3a3a3]">No routers here yet.</p>
                     ) : (
                       <div className="grid gap-1 sm:grid-cols-2">
                         {siteRouters.map((r) => (
-                          <label key={r.ip} className="flex items-center gap-2 rounded px-1.5 py-1 text-xs text-[#475569] hover:bg-[#ffffff]">
+                          <label key={r.ip} className="flex items-center gap-2 rounded px-1.5 py-1 text-xs text-[#525252] hover:bg-[#ffffff]">
                             <input
                               type="checkbox"
                               checked={routerIps.includes(r.ip)}
                               onChange={() => toggleRouter(r.ip)}
-                              className="h-3.5 w-3.5 rounded border-[#e2e8f0] accent-[#2563eb]"
+                              className="h-3.5 w-3.5 rounded border-[#e6e6e6] accent-[#1a1a1a]"
                             />
                             {r.name.split(" (")[0]}
                           </label>
@@ -533,18 +533,18 @@ export function GenerateVouchersModal({
                 );
               })}
               {unassignedRouters.length > 0 && (
-                <div className="rounded-lg border border-[#f1f5f9] p-2">
-                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-[#475569]">
+                <div className="rounded-lg border border-[#f4f4f4] p-2">
+                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-[#525252]">
                     No site assigned
                   </span>
                   <div className="grid gap-1 sm:grid-cols-2">
                     {unassignedRouters.map((r) => (
-                      <label key={r.ip} className="flex items-center gap-2 rounded px-1.5 py-1 text-xs text-[#475569] hover:bg-[#ffffff]">
+                      <label key={r.ip} className="flex items-center gap-2 rounded px-1.5 py-1 text-xs text-[#525252] hover:bg-[#ffffff]">
                         <input
                           type="checkbox"
                           checked={routerIps.includes(r.ip)}
                           onChange={() => toggleRouter(r.ip)}
-                          className="h-3.5 w-3.5 rounded border-[#e2e8f0] accent-[#2563eb]"
+                          className="h-3.5 w-3.5 rounded border-[#e6e6e6] accent-[#1a1a1a]"
                         />
                         {r.name.split(" (")[0]}
                       </label>
@@ -552,7 +552,7 @@ export function GenerateVouchersModal({
                   </div>
                 </div>
               )}
-              {routers.length === 0 && <p className="text-xs text-[#94a3b8]">No routers available yet.</p>}
+              {routers.length === 0 && <p className="text-xs text-[#a3a3a3]">No routers available yet.</p>}
             </div>
             )}
             {routerIps.length === 0 && (
@@ -560,12 +560,12 @@ export function GenerateVouchersModal({
             )}
           </div>
 
-          <label className="flex items-center justify-between rounded-xl border border-[#f1f5f9] bg-[#ffffff] px-4 py-3">
+          <label className="flex items-center justify-between rounded-xl border border-[#f4f4f4] bg-[#ffffff] px-4 py-3">
             <div>
-              <span className="text-sm font-semibold text-[#475569]">
+              <span className="text-sm font-semibold text-[#525252]">
                 Mark as Giveaway
               </span>
-              <p className="text-xs text-[#94a3b8]">
+              <p className="text-xs text-[#a3a3a3]">
                 Giveaway vouchers are excluded from revenue.
               </p>
             </div>
@@ -573,7 +573,7 @@ export function GenerateVouchersModal({
               type="button"
               onClick={() => setIsGiveaway((current) => !current)}
               className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-                isGiveaway ? "bg-emerald-500" : "bg-[#e2e8f0]"
+                isGiveaway ? "bg-emerald-500" : "bg-[#e6e6e6]"
               }`}
             >
               <span
@@ -590,10 +590,10 @@ export function GenerateVouchersModal({
           <div className="rounded-xl border-2 border-blue-200 bg-white p-4">
             <label className="flex items-center justify-between">
               <div>
-                <span className="text-sm font-semibold text-[#475569]">
+                <span className="text-sm font-semibold text-[#525252]">
                   Save these settings as a preset
                 </span>
-                <p className="text-xs text-[#64748b]">
+                <p className="text-xs text-[#737373]">
                   Reuse this exact package, quantity, code format and router selection next time.
                 </p>
               </div>
@@ -601,7 +601,7 @@ export function GenerateVouchersModal({
                 type="button"
                 onClick={() => setSaveAsPreset((current) => !current)}
                 className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-                  saveAsPreset ? "bg-blue-500" : "bg-[#e2e8f0]"
+                  saveAsPreset ? "bg-blue-500" : "bg-[#e6e6e6]"
                 }`}
               >
                 <span
@@ -641,7 +641,7 @@ export function GenerateVouchersModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border border-[#e2e8f0] bg-white px-5 py-3 text-sm font-bold text-[#475569] hover:bg-[#ffffff]"
+              className="rounded-xl border border-[#e6e6e6] bg-white px-5 py-3 text-sm font-bold text-[#525252] hover:bg-[#ffffff]"
             >
               Cancel
             </button>

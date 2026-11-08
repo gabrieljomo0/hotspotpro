@@ -31,14 +31,14 @@ export function RevenueSettingsModal({ onClose }: { onClose: () => void }) {
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <section className="my-8 w-full max-w-xl rounded-2xl bg-[#f1f5f9] p-5 shadow-xl">
+      <section className="my-8 w-full max-w-xl rounded-2xl bg-[#f4f4f4] p-5 shadow-xl">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
-            <h2 className="flex items-center gap-2 text-xl font-bold text-[#0f172a]">
-              <Settings2 className="text-[#2563eb]" size={22} />
+            <h2 className="flex items-center gap-2 text-xl font-bold text-[#1a1a1a]">
+              <Settings2 className="text-[#1a1a1a]" size={22} />
               Revenue Settings
             </h2>
-            <p className="mt-1 text-xs text-[#64748b]">
+            <p className="mt-1 text-xs text-[#737373]">
               What the Revenue page opens showing, what it flags, and what counts toward the numbers.
             </p>
           </div>
@@ -47,16 +47,16 @@ export function RevenueSettingsModal({ onClose }: { onClose: () => void }) {
             data-testid="revenue-settings-close"
             aria-label="Close"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-[#64748b] hover:bg-white"
+            className="rounded-lg p-1.5 text-[#737373] hover:bg-white"
           >
             <X size={18} />
           </button>
         </div>
 
         <div className="space-y-5">
-        <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
-          <p className="mb-1 text-sm font-bold text-[#0f172a]">Default View</p>
-          <p className="mb-4 text-xs text-[#64748b]">Which timeframe the Revenue page opens showing.</p>
+        <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+          <p className="mb-1 text-sm font-bold text-[#1a1a1a]">Default View</p>
+          <p className="mb-4 text-xs text-[#737373]">Which timeframe the Revenue page opens showing.</p>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {(["Today", "Daily", "Monthly", "Yearly"] as const).map((tf) => (
               <button
@@ -65,8 +65,8 @@ export function RevenueSettingsModal({ onClose }: { onClose: () => void }) {
                 onClick={() => updateRevenueSettings({ defaultTimeframe: tf })}
                 className={`rounded-xl border-2 px-3 py-2.5 text-sm font-bold transition ${
                   revenueSettings.defaultTimeframe === tf
-                    ? "border-[#2563eb] bg-[#f1f5f9] text-[#2563eb]"
-                    : "border-[#e2e8f0] bg-white text-[#475569] hover:bg-[#ffffff]"
+                    ? "border-[#1a1a1a] bg-[#f4f4f4] text-[#1a1a1a]"
+                    : "border-[#e6e6e6] bg-white text-[#525252] hover:bg-[#ffffff]"
                 }`}
               >
                 {tf}
@@ -82,15 +82,15 @@ export function RevenueSettingsModal({ onClose }: { onClose: () => void }) {
                 <AlertTriangle size={16} />
               </span>
               <div>
-                <p className="text-sm font-bold text-[#0f172a]">Low Revenue Alert</p>
-                <p className="text-xs text-[#64748b]">Flag a day whose revenue falls below a threshold.</p>
+                <p className="text-sm font-bold text-[#1a1a1a]">Low Revenue Alert</p>
+                <p className="text-xs text-[#737373]">Flag a day whose revenue falls below a threshold.</p>
               </div>
             </div>
             <button
               type="button"
               onClick={() => updateRevenueSettings({ lowRevenueAlertEnabled: !revenueSettings.lowRevenueAlertEnabled })}
               className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-                revenueSettings.lowRevenueAlertEnabled ? "bg-amber-500" : "bg-[#e2e8f0]"
+                revenueSettings.lowRevenueAlertEnabled ? "bg-amber-500" : "bg-[#e6e6e6]"
               }`}
             >
               <span
@@ -102,7 +102,7 @@ export function RevenueSettingsModal({ onClose }: { onClose: () => void }) {
           </div>
           {revenueSettings.lowRevenueAlertEnabled && (
             <label className="block max-w-xs">
-              <span className="mb-1.5 block text-xs font-semibold text-[#475569]">Alert below ({sym()})</span>
+              <span className="mb-1.5 block text-xs font-semibold text-[#525252]">Alert below ({sym()})</span>
               <input
                 type="number"
                 min={0}
@@ -120,12 +120,12 @@ export function RevenueSettingsModal({ onClose }: { onClose: () => void }) {
               <Target size={16} />
             </span>
             <div>
-              <p className="text-sm font-bold text-[#0f172a]">Monthly Revenue Goal</p>
-              <p className="text-xs text-[#64748b]">Used to show progress toward a target on the Revenue page.</p>
+              <p className="text-sm font-bold text-[#1a1a1a]">Monthly Revenue Goal</p>
+              <p className="text-xs text-[#737373]">Used to show progress toward a target on the Revenue page.</p>
             </div>
           </div>
           <label className="block max-w-xs">
-            <span className="mb-1.5 block text-xs font-semibold text-[#475569]">Goal ({sym()} / month)</span>
+            <span className="mb-1.5 block text-xs font-semibold text-[#525252]">Goal ({sym()} / month)</span>
             <input
               type="number"
               min={0}
@@ -142,8 +142,8 @@ export function RevenueSettingsModal({ onClose }: { onClose: () => void }) {
               <Gift size={16} />
             </span>
             <div>
-              <p className="text-sm font-bold text-[#0f172a]">Include Giveaways in Reports</p>
-              <p className="text-xs text-[#64748b]">
+              <p className="text-sm font-bold text-[#1a1a1a]">Include Giveaways in Reports</p>
+              <p className="text-xs text-[#737373]">
                 Count giveaway vouchers toward "Vouchers Sold" and revenue totals.
               </p>
             </div>
@@ -152,7 +152,7 @@ export function RevenueSettingsModal({ onClose }: { onClose: () => void }) {
             type="button"
             onClick={() => updateRevenueSettings({ includeGiveawaysInReports: !revenueSettings.includeGiveawaysInReports })}
             className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-              revenueSettings.includeGiveawaysInReports ? "bg-blue-500" : "bg-[#e2e8f0]"
+              revenueSettings.includeGiveawaysInReports ? "bg-blue-500" : "bg-[#e6e6e6]"
             }`}
           >
             <span
@@ -166,14 +166,14 @@ export function RevenueSettingsModal({ onClose }: { onClose: () => void }) {
         <Link
           href="/dashboards/settings"
           onClick={onClose}
-          className="flex items-center gap-3 rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] hover:bg-[#ffffff]"
+          className="flex items-center gap-3 rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] hover:bg-[#ffffff]"
         >
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#2563eb] text-white">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1a1a1a] text-white">
             <Percent size={16} />
           </span>
           <div>
-            <p className="text-sm font-bold text-[#0f172a]">Commission Settings</p>
-            <p className="text-xs text-[#64748b]">Manage agent commission rates on General Settings →</p>
+            <p className="text-sm font-bold text-[#1a1a1a]">Commission Settings</p>
+            <p className="text-xs text-[#737373]">Manage agent commission rates on General Settings →</p>
           </div>
         </Link>
 

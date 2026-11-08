@@ -207,13 +207,13 @@ export function VouchersTable({
   }
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e2e8f0] px-5 py-4">
+    <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e6e6e6] px-5 py-4">
         <div>
           <h3 className="text-base font-bold">
             Voucher List ({vouchers.length})
           </h3>
-          <p className="mt-1 text-xs text-[#64748b]">
+          <p className="mt-1 text-xs text-[#737373]">
             Vouchers currently in use show the full session actions menu.
           </p>
         </div>
@@ -221,13 +221,13 @@ export function VouchersTable({
         <div className="relative">
           <Search
             size={14}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8]"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]"
           />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search code or package..."
-            className="h-10 w-60 rounded-lg border border-[#e2e8f0] bg-white pl-8 pr-3 text-sm outline-none focus:border-[#2563eb]"
+            className="h-10 w-60 rounded-lg border border-[#e6e6e6] bg-white pl-8 pr-3 text-sm outline-none focus:border-[#1a1a1a]"
           />
         </div>
       </div>
@@ -241,7 +241,7 @@ export function VouchersTable({
           <select
             value={bulkAction}
             onChange={(event) => setBulkAction(event.target.value as VoucherBulkAction)}
-            className="h-9 rounded-lg border border-blue-200 bg-white px-3 text-xs outline-none focus:border-[#2563eb]"
+            className="h-9 rounded-lg border border-blue-200 bg-white px-3 text-xs outline-none focus:border-[#1a1a1a]"
           >
             {VOUCHER_BULK_ACTIONS.map((action) => (
               <option key={action.key} value={action.key}>
@@ -257,12 +257,12 @@ export function VouchersTable({
                 min={1}
                 value={extendAmount}
                 onChange={(event) => setExtendAmount(event.target.value)}
-                className="h-9 w-16 rounded-lg border border-blue-200 bg-white px-2 text-xs outline-none focus:border-[#2563eb]"
+                className="h-9 w-16 rounded-lg border border-blue-200 bg-white px-2 text-xs outline-none focus:border-[#1a1a1a]"
               />
               <select
                 value={extendUnit}
                 onChange={(event) => setExtendUnit(event.target.value)}
-                className="h-9 rounded-lg border border-blue-200 bg-white px-2 text-xs outline-none focus:border-[#2563eb]"
+                className="h-9 rounded-lg border border-blue-200 bg-white px-2 text-xs outline-none focus:border-[#1a1a1a]"
               >
                 {EXTEND_UNITS.map((unit) => (
                   <option key={unit} value={unit}>
@@ -280,7 +280,7 @@ export function VouchersTable({
                 step={0.1}
                 value={topUpAmount}
                 onChange={(event) => setTopUpAmount(event.target.value)}
-                className="h-9 w-16 rounded-lg border border-blue-200 bg-white px-2 text-xs outline-none focus:border-[#2563eb]"
+                className="h-9 w-16 rounded-lg border border-blue-200 bg-white px-2 text-xs outline-none focus:border-[#1a1a1a]"
               />
               <span className="text-xs font-semibold text-blue-900">GB</span>
             </div>
@@ -310,7 +310,7 @@ export function VouchersTable({
 
       <div className="overflow-x-auto">
         <table className="w-full min-w-[1300px] text-left text-sm">
-          <thead className="bg-[#ffffff] text-[#64748b]">
+          <thead className="bg-[#ffffff] text-[#737373]">
             <tr>
               <th className="px-5 py-4">
                 <input
@@ -338,7 +338,7 @@ export function VouchersTable({
               <tr>
                 <td
                   colSpan={11}
-                  className="px-5 py-10 text-center text-sm text-[#94a3b8]"
+                  className="px-5 py-10 text-center text-sm text-[#a3a3a3]"
                 >
                   No vouchers match this filter.
                 </td>
@@ -355,7 +355,7 @@ export function VouchersTable({
               return (
                 <tr
                   key={voucher.code}
-                  className={`border-t border-[#f1f5f9] transition hover:bg-[#ffffff] ${
+                  className={`border-t border-[#f4f4f4] transition hover:bg-[#ffffff] ${
                     selectedCodes.includes(voucher.code) ? "bg-[#ffffff]" : ""
                   }`}
                 >
@@ -367,7 +367,7 @@ export function VouchersTable({
                       aria-label={`Select ${voucher.code}`}
                     />
                   </td>
-                  <td className="px-4 py-4 font-mono font-semibold text-[#2563eb]">
+                  <td className="px-4 py-4 font-mono font-semibold text-[#1a1a1a]">
                     {voucher.code}
                   </td>
                   <td className="px-4 py-4">
@@ -389,23 +389,23 @@ export function VouchersTable({
                     </span>
                   </td>
                   <td className="px-4 py-4">
-                    <span className="rounded-full border border-[#e2e8f0] px-2.5 py-1 text-xs font-semibold text-[#475569]">
+                    <span className="rounded-full border border-[#e6e6e6] px-2.5 py-1 text-xs font-semibold text-[#525252]">
                       {voucher.delivery}
                     </span>
                   </td>
-                  <td className="px-4 py-4 text-[#475569]">
+                  <td className="px-4 py-4 text-[#525252]">
                     {voucher.saleType}
                   </td>
-                  <td className="px-4 py-4 font-mono text-[#475569]">
+                  <td className="px-4 py-4 font-mono text-[#525252]">
                     {voucher.usedByCustomerId ?? "—"}
                   </td>
-                  <td className="px-4 py-4 text-[#475569]">
+                  <td className="px-4 py-4 text-[#525252]">
                     {voucher.redeemerPhone ?? "—"}
                   </td>
-                  <td className="px-4 py-4 text-[#475569]">
+                  <td className="px-4 py-4 text-[#525252]">
                     {agent?.name ?? "—"}
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-[#64748b]">
+                  <td className="px-4 py-4 whitespace-nowrap text-[#737373]">
                     {voucher.generatedAt}
                   </td>
                   <td className="px-4 py-4 text-center">
@@ -413,7 +413,7 @@ export function VouchersTable({
                       <button
                         type="button"
                         onClick={() => handleCopy(voucher.code)}
-                        className="rounded-lg border border-[#e2e8f0] p-2 text-[#475569] hover:bg-[#f1f5f9]"
+                        className="rounded-lg border border-[#e6e6e6] p-2 text-[#525252] hover:bg-[#f4f4f4]"
                         aria-label="Copy voucher code"
                         title="Copy code"
                       >
@@ -427,7 +427,7 @@ export function VouchersTable({
                       <button
                         type="button"
                         onClick={(event) => handleOpenMenu(voucher.code, event)}
-                        className="rounded-lg border border-[#e2e8f0] p-2 text-[#475569] hover:bg-[#f1f5f9]"
+                        className="rounded-lg border border-[#e6e6e6] p-2 text-[#525252] hover:bg-[#f4f4f4]"
                         aria-label="More actions"
                       >
                         <MoreVertical size={16} />

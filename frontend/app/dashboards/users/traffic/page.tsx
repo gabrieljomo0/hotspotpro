@@ -51,7 +51,7 @@ export default function TrafficAnalyticsPage() {
     <section className="w-full">
       <BackLink />
       <h2 className="mb-1 text-3xl font-bold tracking-tight md:text-4xl">Traffic analytics</h2>
-      <p className="mb-5 max-w-2xl text-sm text-[#64748b] md:text-base">
+      <p className="mb-5 max-w-2xl text-sm text-[#737373] md:text-base">
         See data usage by website and by user, for the routers you switch tracking on for.
       </p>
 
@@ -64,16 +64,16 @@ export default function TrafficAnalyticsPage() {
           { label: "Users", value: String(traffic.userCount), hint: "Vouchers or devices" },
           { label: "Named", value: `${traffic.namedPct}%`, hint: "Website names only" },
         ].map((card) => (
-          <div key={card.label} className="rounded-xl border border-[#e2e8f0] bg-white p-4">
-            <p className="text-sm text-[#64748b]">{card.label}</p>
-            <p className="mt-1 text-2xl font-black text-[#0f172a]">{card.value}</p>
-            <p className="mt-1 text-xs text-[#94a3b8]">{card.hint}</p>
+          <div key={card.label} className="rounded-xl border border-[#e6e6e6] bg-white p-4">
+            <p className="text-sm text-[#737373]">{card.label}</p>
+            <p className="mt-1 text-2xl font-black text-[#1a1a1a]">{card.value}</p>
+            <p className="mt-1 text-xs text-[#a3a3a3]">{card.hint}</p>
           </div>
         ))}
       </div>
 
       <div className="mb-5 flex flex-wrap items-center gap-3">
-        <div className="inline-flex rounded-xl bg-[#f1f5f9] p-1">
+        <div className="inline-flex rounded-xl bg-[#f4f4f4] p-1">
           {(["today", "7days"] as TrafficWindow[]).map((option) => (
             <button
               type="button"
@@ -81,7 +81,7 @@ export default function TrafficAnalyticsPage() {
               onClick={() => setRange(option)}
               aria-pressed={range === option}
               className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                range === option ? "bg-[#2563eb] text-white shadow-sm" : "text-[#64748b] hover:text-[#475569]"
+                range === option ? "bg-[#1a1a1a] text-white shadow-sm" : "text-[#737373] hover:text-[#525252]"
               }`}
             >
               {option === "today" ? "Today" : "7 days"}
@@ -93,7 +93,7 @@ export default function TrafficAnalyticsPage() {
           value={routerFilter}
           onChange={(event) => setRouterFilter(event.target.value)}
           aria-label="Router"
-          className="h-11 rounded-xl border border-[#e2e8f0] bg-white px-4 text-sm outline-none focus:border-[#2563eb]"
+          className="h-11 rounded-xl border border-[#e6e6e6] bg-white px-4 text-sm outline-none focus:border-[#1a1a1a]"
         >
           <option value="All">All routers</option>
           {routers.map((router) => (
@@ -104,13 +104,13 @@ export default function TrafficAnalyticsPage() {
         </select>
 
         <div className="relative">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94a3b8]" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#a3a3a3]" />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search a site"
             aria-label="Search a site"
-            className="h-11 w-64 rounded-xl border border-[#e2e8f0] bg-white pl-9 pr-3 text-sm outline-none focus:border-[#2563eb]"
+            className="h-11 w-64 rounded-xl border border-[#e6e6e6] bg-white pl-9 pr-3 text-sm outline-none focus:border-[#1a1a1a]"
           />
         </div>
       </div>
@@ -123,10 +123,10 @@ export default function TrafficAnalyticsPage() {
       )}
 
       <div className="mb-5 grid gap-4 lg:grid-cols-[2fr_1fr]">
-        <article className="rounded-2xl border border-[#e2e8f0] bg-white p-5">
-          <h3 className="text-base font-bold text-[#0f172a]">Top sites</h3>
+        <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5">
+          <h3 className="text-base font-bold text-[#1a1a1a]">Top sites</h3>
           {traffic.sites.length === 0 ? (
-            <p className="py-8 text-sm text-[#94a3b8]">
+            <p className="py-8 text-sm text-[#a3a3a3]">
               {traffic.anyTracking && query
                 ? "No site matches that search."
                 : "Nothing yet. Turn tracking on for a MikroTik router. Only website names are listed."}
@@ -136,14 +136,14 @@ export default function TrafficAnalyticsPage() {
               {traffic.sites.slice(0, 10).map((entry) => (
                 <li key={entry.site}>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-semibold text-[#0f172a]">{entry.site}</span>
-                    <span className="text-[#64748b]">
+                    <span className="font-semibold text-[#1a1a1a]">{entry.site}</span>
+                    <span className="text-[#737373]">
                       {formatMb(entry.mb)} · {entry.users} user{entry.users === 1 ? "" : "s"}
                     </span>
                   </div>
-                  <div className="mt-1.5 h-2 rounded-full bg-[#f1f5f9]">
+                  <div className="mt-1.5 h-2 rounded-full bg-[#f4f4f4]">
                     <div
-                      className="h-2 rounded-full bg-[#2563eb]"
+                      className="h-2 rounded-full bg-[#1a1a1a]"
                       style={{ width: `${Math.max(3, (entry.mb / topSiteMb) * 100)}%` }}
                     />
                   </div>
@@ -153,26 +153,26 @@ export default function TrafficAnalyticsPage() {
           )}
         </article>
 
-        <article className="rounded-2xl border border-[#e2e8f0] bg-white p-5">
-          <h3 className="text-base font-bold text-[#0f172a]">Busiest users</h3>
+        <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5">
+          <h3 className="text-base font-bold text-[#1a1a1a]">Busiest users</h3>
           {traffic.users.length === 0 ? (
-            <p className="py-8 text-sm text-[#94a3b8]">No users yet.</p>
+            <p className="py-8 text-sm text-[#a3a3a3]">No users yet.</p>
           ) : (
             <ul className="mt-4 space-y-3">
               {traffic.users.slice(0, 8).map((row) => (
                 <li key={row.id}>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="truncate font-semibold text-[#0f172a]">{row.label}</span>
-                    <span className="ml-3 shrink-0 text-[#64748b]">{formatMb(row.mb)}</span>
+                    <span className="truncate font-semibold text-[#1a1a1a]">{row.label}</span>
+                    <span className="ml-3 shrink-0 text-[#737373]">{formatMb(row.mb)}</span>
                   </div>
                   <div className="mt-1 flex items-center gap-2">
-                    <div className="h-1.5 flex-1 rounded-full bg-[#f1f5f9]">
+                    <div className="h-1.5 flex-1 rounded-full bg-[#f4f4f4]">
                       <div
                         className="h-1.5 rounded-full bg-emerald-500"
                         style={{ width: `${Math.max(3, (row.mb / topUserMb) * 100)}%` }}
                       />
                     </div>
-                    <span className="text-[11px] text-[#94a3b8]">{row.routerName}</span>
+                    <span className="text-[11px] text-[#a3a3a3]">{row.routerName}</span>
                   </div>
                 </li>
               ))}
@@ -181,11 +181,11 @@ export default function TrafficAnalyticsPage() {
         </article>
       </div>
 
-      <article className="rounded-2xl border border-[#e2e8f0] bg-white p-5">
+      <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h3 className="text-base font-bold text-[#0f172a]">Tracking on routers</h3>
-            <p className="mt-1 text-sm text-[#64748b]">
+            <h3 className="text-base font-bold text-[#1a1a1a]">Tracking on routers</h3>
+            <p className="mt-1 text-sm text-[#737373]">
               Tick a router, then Turn on. Addresses that can&apos;t be named are left out.
             </p>
           </div>
@@ -194,7 +194,7 @@ export default function TrafficAnalyticsPage() {
               type="button"
               onClick={() => setTicked(allTicked ? [] : tickable)}
               disabled={tickable.length === 0}
-              className="rounded-lg border border-[#e2e8f0] bg-white px-3 py-2 text-xs font-semibold text-[#475569] hover:bg-[#ffffff] disabled:opacity-50"
+              className="rounded-lg border border-[#e6e6e6] bg-white px-3 py-2 text-xs font-semibold text-[#525252] hover:bg-[#ffffff] disabled:opacity-50"
             >
               {allTicked ? "Clear selection" : "Select all"}
             </button>
@@ -202,7 +202,7 @@ export default function TrafficAnalyticsPage() {
               type="button"
               onClick={() => apply(true)}
               disabled={ticked.length === 0}
-              className="rounded-lg bg-[#2563eb] px-4 py-2 text-xs font-bold text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-lg bg-[#1a1a1a] px-4 py-2 text-xs font-bold text-white hover:bg-[#111111] disabled:cursor-not-allowed disabled:opacity-50"
             >
               Turn on
             </button>
@@ -210,15 +210,15 @@ export default function TrafficAnalyticsPage() {
               type="button"
               onClick={() => apply(false)}
               disabled={ticked.length === 0}
-              className="rounded-lg border border-[#e2e8f0] bg-white px-4 py-2 text-xs font-bold text-[#475569] hover:bg-[#ffffff] disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-lg border border-[#e6e6e6] bg-white px-4 py-2 text-xs font-bold text-[#525252] hover:bg-[#ffffff] disabled:cursor-not-allowed disabled:opacity-50"
             >
               Turn off
             </button>
           </div>
         </div>
 
-        <ul className="mt-4 divide-y divide-[#f1f5f9]">
-          {routers.length === 0 && <li className="py-6 text-sm text-[#94a3b8]">No routers added yet.</li>}
+        <ul className="mt-4 divide-y divide-[#f4f4f4]">
+          {routers.length === 0 && <li className="py-6 text-sm text-[#a3a3a3]">No routers added yet.</li>}
           {routers.map((router) => {
             const up = routerIsUp(router);
             const on = isTracking(router.ip);
@@ -230,16 +230,16 @@ export default function TrafficAnalyticsPage() {
                   onChange={() => toggleTick(router.ip)}
                   disabled={!up}
                   aria-label={`Select ${router.name.split(" (")[0]}`}
-                  className="h-4 w-4 accent-[#2563eb]"
+                  className="h-4 w-4 accent-[#1a1a1a]"
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-[#0f172a]">{router.name.split(" (")[0]}</p>
-                  <p className={`text-xs ${on ? "font-semibold text-emerald-600" : "text-[#94a3b8]"}`}>
+                  <p className="font-semibold text-[#1a1a1a]">{router.name.split(" (")[0]}</p>
+                  <p className={`text-xs ${on ? "font-semibold text-emerald-600" : "text-[#a3a3a3]"}`}>
                     {on ? "On" : "Off"}
                     {!up && " · router is down"}
                   </p>
                 </div>
-                <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-[#2563eb]">MikroTik</span>
+                <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-[#1a1a1a]">MikroTik</span>
               </li>
             );
           })}

@@ -46,27 +46,27 @@ export const paymentNetworks: Record<
     id: "mtn",
     name: "MTN Mobile Money",
     shortName: "MTN",
-    badgeClass: "bg-[#ffcc00] text-[#0f172a]",
-    borderClass: "border-[#bfdbfe]",
-    backgroundClass: "bg-[#f1f5f9]",
+    badgeClass: "bg-[#1a1a1a] text-[#1a1a1a]",
+    borderClass: "border-[#f3f1ec]",
+    backgroundClass: "bg-[#f4f4f4]",
   },
 
   telecel: {
     id: "telecel",
     name: "Telecel Cash",
     shortName: "TC",
-    badgeClass: "bg-red-600 text-[#0f172a]",
+    badgeClass: "bg-red-600 text-[#1a1a1a]",
     borderClass: "border-red-200",
-    backgroundClass: "bg-[#fff4f4]",
+    backgroundClass: "bg-[#f3f1ec]",
   },
 
   "at-money": {
     id: "at-money",
     name: "AT Money",
     shortName: "AT",
-    badgeClass: "bg-[#fff7ed]0 text-[#0f172a]",
+    badgeClass: "bg-[#f3f1ec]0 text-[#1a1a1a]",
     borderClass: "border-amber-200",
-    backgroundClass: "bg-[#fff7ed]",
+    backgroundClass: "bg-[#f3f1ec]",
   },
 
   unknown: {

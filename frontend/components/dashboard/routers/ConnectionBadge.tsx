@@ -21,9 +21,9 @@ export function ConnectionBadge({
     <span
       data-testid="router-connection-badge"
       data-kind={indicator.kind}
-      className={`ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${red ? "bg-[#fef2f2] text-[#b91c1c]" : "bg-[#ecfdf5] text-[#047857]"}`}
+      className={`ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${red ? "bg-[#f3f1ec] text-[#1a1a1a]" : "bg-[#f3f1ec] text-[#111111]"}`}
     >
-      <span className={`h-1.5 w-1.5 rounded-full ${red ? "bg-[#dc2626]" : "bg-[#10b981]"}`} />
+      <span className={`h-1.5 w-1.5 rounded-full ${red ? "bg-[#1a1a1a]" : "bg-[#1a1a1a]"}`} />
       {label}
     </span>
   );

@@ -49,8 +49,8 @@ export function AgentMessagesPanel({ hideTitle = false }: { hideTitle?: boolean 
     <section className="w-full" data-testid="agents-messages-panel">
       {!hideTitle && (
         <>
-          <h3 className="mb-1 text-xl font-bold text-[#0f172a]">SMS &amp; Email</h3>
-          <p className="mb-6 max-w-2xl text-sm text-[#64748b]">
+          <h3 className="mb-1 text-xl font-bold text-[#1a1a1a]">SMS &amp; Email</h3>
+          <p className="mb-6 max-w-2xl text-sm text-[#737373]">
             Send a message to your customers, filtered by audience.
           </p>
         </>
@@ -59,28 +59,28 @@ export function AgentMessagesPanel({ hideTitle = false }: { hideTitle?: boolean 
       <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
         <form
           onSubmit={handleSend}
-          className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)]"
+          className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)]"
         >
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#f1f5f9] text-[#2563eb]">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#f4f4f4] text-[#1a1a1a]">
               <MessageSquare size={20} />
             </div>
             <div>
               <h3 className="text-base font-bold">Compose Message</h3>
-              <p className="text-xs text-[#64748b]">
+              <p className="text-xs text-[#737373]">
                 {recipientCount} recipient(s) selected
               </p>
             </div>
           </div>
 
           <label className="mt-5 block">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               Audience
             </span>
             <select
               value={audience}
               onChange={(event) => setAudience(event.target.value)}
-              className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             >
               {AUDIENCES.map((option) => (
                 <option key={option} value={option}>
@@ -91,7 +91,7 @@ export function AgentMessagesPanel({ hideTitle = false }: { hideTitle?: boolean 
           </label>
 
           <label className="mt-4 block">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               Message
             </span>
             <textarea
@@ -100,27 +100,27 @@ export function AgentMessagesPanel({ hideTitle = false }: { hideTitle?: boolean 
               value={message}
               onChange={(event) => setMessage(event.target.value)}
               placeholder="e.g. Your voucher expires in 24 hours — renew now to stay connected!"
-              className="w-full rounded-xl border border-[#e2e8f0] bg-white px-3 py-2.5 text-sm outline-none focus:border-[#2563eb]"
+              className="w-full rounded-xl border border-[#e6e6e6] bg-white px-3 py-2.5 text-sm outline-none focus:border-[#1a1a1a]"
             />
           </label>
 
           <button
             type="submit"
-            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#2563eb] px-5 py-3 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#1a1a1a] px-5 py-3 text-sm font-bold text-white hover:bg-[#111111]"
           >
             <Send size={16} />
             Send to {recipientCount} recipient(s)
           </button>
         </form>
 
-        <div className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
-          <h3 className="text-sm font-bold text-[#0f172a]">Last sent</h3>
+        <div className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+          <h3 className="text-sm font-bold text-[#1a1a1a]">Last sent</h3>
           {sent ? (
             <div className="mt-3 rounded-xl bg-emerald-50 p-4 text-sm text-emerald-800">
               {sent}
             </div>
           ) : (
-            <p className="mt-3 text-sm text-[#94a3b8]">
+            <p className="mt-3 text-sm text-[#a3a3a3]">
               Nothing sent yet this session.
             </p>
           )}

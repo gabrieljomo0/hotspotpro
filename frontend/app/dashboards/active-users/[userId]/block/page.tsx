@@ -42,7 +42,7 @@ export default function BlockUserPage({
         state.blocked ? "blocked" : "not blocked"
       }`}
     >
-      <p className="text-sm leading-6 text-[#64748b]">
+      <p className="text-sm leading-6 text-[#737373]">
         {state.blocked
           ? "The user will be allowed to connect and authenticate again."
           : "The user will be blocked and disconnected. They will not regain access until unblocked."}

@@ -12,7 +12,7 @@ export default function SmsEmailPage() {
     <section className="w-full">
       <BackLink />
       <h2 className="mb-1 text-3xl font-bold tracking-tight md:text-4xl">SMS &amp; Email</h2>
-      <p className="mb-6 max-w-2xl text-sm text-[#64748b] md:text-base">
+      <p className="mb-6 max-w-2xl text-sm text-[#737373] md:text-base">
         Message your customers, and set the messages agents receive when they apply, are approved or are suspended.
       </p>
       <AgentMessagesPanel hideTitle />

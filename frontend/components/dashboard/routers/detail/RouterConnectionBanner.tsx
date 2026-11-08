@@ -69,7 +69,7 @@ export function RouterConnectionBanner({ router, onReconnect }: { router: Router
 
   if (indicator.kind === "back") {
     return (
-      <div data-testid="router-banner" data-kind="back" className="mb-6 flex items-start gap-3 rounded-xl border border-[#a7f3d0] bg-[#ecfdf5] px-5 py-4 text-[#065f46]">
+      <div data-testid="router-banner" data-kind="back" className="mb-6 flex items-start gap-3 rounded-xl border border-[#f3f1ec] bg-[#f3f1ec] px-5 py-4 text-[#111111]">
         <PlugZap size={22} className="mt-0.5 shrink-0" />
         <div className="flex-1">
           <p className="text-base font-black">Back online</p>
@@ -79,22 +79,22 @@ export function RouterConnectionBanner({ router, onReconnect }: { router: Router
             {indicator.how === "reconnected" ? " Internet is restored; customers can log in again." : ""}
           </p>
         </div>
-        <button type="button" aria-label="Dismiss" onClick={() => setDismissed(key)} className="rounded-lg p-1 hover:bg-[#d1fae5]"><X size={16} /></button>
+        <button type="button" aria-label="Dismiss" onClick={() => setDismissed(key)} className="rounded-lg p-1 hover:bg-[#f3f1ec]"><X size={16} /></button>
       </div>
     );
   }
 
   const lost = indicator.kind === "lost";
   return (
-    <div data-testid="router-banner" data-kind={indicator.kind} className="mb-6 rounded-xl border border-[#fecaca] bg-[#fef2f2] px-5 py-4 text-[#7f1d1d]">
+    <div data-testid="router-banner" data-kind={indicator.kind} className="mb-6 rounded-xl border border-[#f3f1ec] bg-[#f3f1ec] px-5 py-4 text-[#111111]">
       <div className="flex flex-wrap items-start gap-3">
         <span className="relative mt-1 flex h-3 w-3 shrink-0">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#ef4444] opacity-75" />
-          <span className="relative inline-flex h-3 w-3 rounded-full bg-[#dc2626]" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#1a1a1a] opacity-75" />
+          <span className="relative inline-flex h-3 w-3 rounded-full bg-[#1a1a1a]" />
         </span>
-        <WifiOff size={22} className="mt-0.5 shrink-0 text-[#b91c1c]" />
+        <WifiOff size={22} className="mt-0.5 shrink-0 text-[#1a1a1a]" />
         <div className="min-w-[240px] flex-1">
-          <p className="text-base font-black text-[#b91c1c]">{lost ? "Router lost internet" : "Router disconnected — internet is cut"}</p>
+          <p className="text-base font-black text-[#1a1a1a]">{lost ? "Router lost internet" : "Router disconnected — internet is cut"}</p>
           <p className="text-sm">
             {lost
               ? `${router.name} hasn't contacted HotspotPro for ${indicator.since ? fmtDuration((tick - Date.parse(indicator.since)) / 1000) : "a while"} (last contact ${since}). It may have lost its internet connection or power, so customers on it are offline.`
@@ -107,7 +107,7 @@ export function RouterConnectionBanner({ router, onReconnect }: { router: Router
             type="button"
             data-testid="router-banner-reconnect"
             onClick={onReconnect}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#2563eb] px-4 py-2 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#1a1a1a] px-4 py-2 text-sm font-bold text-white hover:bg-[#111111]"
           >
             <PlugZap size={15} /> Reconnect
           </button>
@@ -117,11 +117,11 @@ export function RouterConnectionBanner({ router, onReconnect }: { router: Router
       {!lost && info && (
         <div className="mt-3 text-sm" data-testid="router-banner-enforcement">
           {info.enforced ? (
-            <p className="flex items-center gap-2 text-[#047857]">
+            <p className="flex items-center gap-2 text-[#111111]">
               <Check size={15} /> The router is following this — it last asked {ago(tick - Date.parse(info.lastCheckInAt ?? new Date(tick).toISOString()))} and checks every 30 seconds.
             </p>
           ) : (
-            <div className="rounded-lg bg-[#fffbeb] p-4 text-[#92400e]">
+            <div className="rounded-lg bg-[#f3f1ec] p-4 text-[#111111]">
               <p className="flex items-start gap-2 font-semibold">
                 <TriangleAlert size={16} className="mt-0.5 shrink-0" />
                 {!info.hasToken
@@ -129,17 +129,17 @@ export function RouterConnectionBanner({ router, onReconnect }: { router: Router
                   : "The router hasn't picked this up. New logins are already refused, but to cut everyone, run this one command on the router, once."}
               </p>
               {info.hasToken && (
-                <div className="mt-3 text-[#0f172a]">
-                  <p className="text-xs text-[#92400e]">In WinBox open New Terminal, paste this, press Enter. The router must be able to reach this address:</p>
+                <div className="mt-3 text-[#1a1a1a]">
+                  <p className="text-xs text-[#111111]">In WinBox open New Terminal, paste this, press Enter. The router must be able to reach this address:</p>
                   {origins.length > 1 && (
-                    <select value={origin} onChange={(e) => setOrigin(e.target.value)} aria-label="Server address the router should use" className="mt-2 rounded-lg border border-[#cbd5e1] bg-white px-3 py-1.5 text-sm">
+                    <select value={origin} onChange={(e) => setOrigin(e.target.value)} aria-label="Server address the router should use" className="mt-2 rounded-lg border border-[#d4d4d4] bg-white px-3 py-1.5 text-sm">
                       {origins.map((o) => <option key={o} value={o}>{o}</option>)}
                     </select>
                   )}
                   {command ? (
                     <div className="mt-2 flex items-start gap-2">
                       <code data-testid="router-banner-command" className="block flex-1 break-all rounded-lg bg-white p-3 text-xs">{command}</code>
-                      <button type="button" onClick={() => void copy()} className="inline-flex items-center gap-1.5 rounded-lg bg-[#2563eb] px-3 py-2 text-xs font-bold text-white hover:bg-[#1d4ed8]">
+                      <button type="button" onClick={() => void copy()} className="inline-flex items-center gap-1.5 rounded-lg bg-[#1a1a1a] px-3 py-2 text-xs font-bold text-white hover:bg-[#111111]">
                         {copied ? <Check size={13} /> : <Copy size={13} />} {copied ? "Copied" : "Copy"}
                       </button>
                     </div>

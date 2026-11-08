@@ -20,7 +20,7 @@ const AgentGenerateVouchersModal = dynamic(
 );
 
 const STATUS_CLASS: Record<string, string> = {
-  Available: "bg-[#f1f5f9] text-[#2563eb]",
+  Available: "bg-[#f4f4f4] text-[#1a1a1a]",
   Used: "bg-slate-200 text-slate-700",
   Expired: "bg-red-100 text-red-700",
 };
@@ -99,10 +99,10 @@ function AgentVouchersView({ agent, agentId }: { agent: AgentProfile; agentId: s
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-black md:text-3xl">
-            <Ticket size={26} className="text-[#2563eb]" />
+            <Ticket size={26} className="text-[#1a1a1a]" />
             Vouchers
           </h1>
-          <p className="mt-1 text-sm text-[#64748b]">
+          <p className="mt-1 text-sm text-[#737373]">
             Batches you&apos;ve generated or that were pushed to you by admin — with every voucher listed below.
           </p>
         </div>
@@ -111,7 +111,7 @@ function AgentVouchersView({ agent, agentId }: { agent: AgentProfile; agentId: s
             <Link
               href={`/agent-portal/${agentId}/vouchers/bulk`}
               data-testid="bulk-actions-link"
-              className="inline-flex items-center gap-2 rounded-xl border-2 px-4 py-2.5 text-sm font-bold text-[#2563eb] hover:bg-[#f1f5f9]"
+              className="inline-flex items-center gap-2 rounded-xl border-2 px-4 py-2.5 text-sm font-bold text-[#1a1a1a] hover:bg-[#f4f4f4]"
             >
               <Layers size={16} />
               Bulk Actions
@@ -120,12 +120,12 @@ function AgentVouchersView({ agent, agentId }: { agent: AgentProfile; agentId: s
           {canUsePresets && (
             <Link
               href={`/agent-portal/${agentId}/vouchers/presets`}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#f1f5f9] px-4 py-2.5 text-sm font-bold text-[#2563eb] hover:bg-[#e2e8f0]"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#f4f4f4] px-4 py-2.5 text-sm font-bold text-[#1a1a1a] hover:bg-[#e6e6e6]"
             >
               <Bookmark size={16} />
               Generate from Preset
               {presetCount > 0 && (
-                <span className="rounded-full bg-[#2563eb] px-2 py-0.5 text-[10px] font-bold text-white">{presetCount}</span>
+                <span className="rounded-full bg-[#1a1a1a] px-2 py-0.5 text-[10px] font-bold text-white">{presetCount}</span>
               )}
             </Link>
           )}
@@ -133,7 +133,7 @@ function AgentVouchersView({ agent, agentId }: { agent: AgentProfile; agentId: s
             <button
               type="button"
               onClick={() => setGenerateOpen(true)}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#2563eb] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#1a1a1a] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#111111]"
             >
               <Plus size={16} />
               Generate Vouchers
@@ -155,10 +155,10 @@ function AgentVouchersView({ agent, agentId }: { agent: AgentProfile; agentId: s
             onClick={() => setBatchesOpen((open) => !open)}
             className="flex items-center gap-2 text-left"
           >
-            <Layers size={16} className="text-[#2563eb]" />
-            <h3 className="text-base font-bold text-[#0f172a]">All Batches</h3>
-            <span className="rounded-full bg-[#f1f5f9] px-2 py-0.5 text-xs font-bold text-[#64748b]">{myBatches.length}</span>
-            <ChevronDown size={18} className={`text-[#94a3b8] transition-transform ${batchesOpen ? "rotate-180" : ""}`} />
+            <Layers size={16} className="text-[#1a1a1a]" />
+            <h3 className="text-base font-bold text-[#1a1a1a]">All Batches</h3>
+            <span className="rounded-full bg-[#f4f4f4] px-2 py-0.5 text-xs font-bold text-[#737373]">{myBatches.length}</span>
+            <ChevronDown size={18} className={`text-[#a3a3a3] transition-transform ${batchesOpen ? "rotate-180" : ""}`} />
           </button>
           {myBatches.length > 0 && (
             <div className="flex flex-wrap gap-2">
@@ -166,7 +166,7 @@ function AgentVouchersView({ agent, agentId }: { agent: AgentProfile; agentId: s
                 type="button"
                 data-testid="view-all"
                 onClick={() => viewBatch(null)}
-                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-[#475569] hover:bg-[#f8fafc]"
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-[#525252] hover:bg-[#f7f7f7]"
               >
                 <Eye size={13} />
                 View all codes
@@ -176,7 +176,7 @@ function AgentVouchersView({ agent, agentId }: { agent: AgentProfile; agentId: s
                   type="button"
                   data-testid="print-all"
                   onClick={() => setPrintItems(toPrintItems(myVouchers))}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#2563eb] px-3 py-2 text-xs font-semibold text-white hover:bg-[#1d4ed8]"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#1a1a1a] px-3 py-2 text-xs font-semibold text-white hover:bg-[#111111]"
                 >
                   <Printer size={13} />
                   Print all codes
@@ -187,14 +187,14 @@ function AgentVouchersView({ agent, agentId }: { agent: AgentProfile; agentId: s
         </div>
 
         {batchesOpen && (
-          <div className="max-h-[420px] divide-y divide-[#f1f5f9] overflow-y-auto border-t border-[#f1f5f9]">
+          <div className="max-h-[420px] divide-y divide-[#f4f4f4] overflow-y-auto border-t border-[#f4f4f4]">
             {myBatches.length === 0 && (
-              <p className="px-5 py-8 text-center text-sm text-[#94a3b8]">
+              <p className="px-5 py-8 text-center text-sm text-[#a3a3a3]">
                 No voucher batches yet.
                 {canGenerate && (
                   <>
                     {" "}
-                    <button type="button" onClick={() => setGenerateOpen(true)} className="font-semibold text-[#2563eb] hover:underline">
+                    <button type="button" onClick={() => setGenerateOpen(true)} className="font-semibold text-[#1a1a1a] hover:underline">
                       Generate your first batch →
                     </button>
                   </>
@@ -210,23 +210,23 @@ function AgentVouchersView({ agent, agentId }: { agent: AgentProfile; agentId: s
                 <div
                   key={batch.id}
                   data-testid="batch-row"
-                  className={`flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 ${active ? "bg-[#f1f5f9]" : "hover:bg-[#f8fafc]"}`}
+                  className={`flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 ${active ? "bg-[#f4f4f4]" : "hover:bg-[#f7f7f7]"}`}
                 >
                   <div className="min-w-0">
                     <Link
                       href={`/agent-portal/${agentId}/vouchers/batch/${batch.id}`}
-                      className="font-bold text-[#0f172a] hover:text-[#2563eb] hover:underline"
+                      className="font-bold text-[#1a1a1a] hover:text-[#1a1a1a] hover:underline"
                     >
                       {batch.reference}
                     </Link>
                     {batch.isGiveaway && (
-                      <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-[#f1f5f9] px-2 py-0.5 text-[10px] font-bold text-[#2563eb]">
+                      <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-[#f4f4f4] px-2 py-0.5 text-[10px] font-bold text-[#1a1a1a]">
                         <Gift size={10} /> Giveaway
                       </span>
                     )}
-                    <p className="text-xs text-[#64748b]">
+                    <p className="text-xs text-[#737373]">
                       {batch.count} voucher{batch.count === 1 ? "" : "s"} · {batch.packageName} · {batch.createdAt} ·{" "}
-                      <span className="text-[#2563eb]">{available} available</span> · {used} used
+                      <span className="text-[#1a1a1a]">{available} available</span> · {used} used
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-wrap gap-2">
@@ -234,7 +234,7 @@ function AgentVouchersView({ agent, agentId }: { agent: AgentProfile; agentId: s
                       type="button"
                       data-testid="batch-view"
                       onClick={() => viewBatch(batch.id)}
-                      className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-[#2563eb] hover:bg-[#f8fafc]"
+                      className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-[#1a1a1a] hover:bg-[#f7f7f7]"
                     >
                       <Eye size={13} />
                       View codes
@@ -244,7 +244,7 @@ function AgentVouchersView({ agent, agentId }: { agent: AgentProfile; agentId: s
                         type="button"
                         data-testid="batch-print"
                         onClick={() => setPrintItems(toPrintItems(list))}
-                        className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-[#475569] hover:bg-[#f8fafc]"
+                        className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-[#525252] hover:bg-[#f7f7f7]"
                       >
                         <Printer size={13} />
                         Print
@@ -266,14 +266,14 @@ function AgentVouchersView({ agent, agentId }: { agent: AgentProfile; agentId: s
       >
         <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
           <div>
-            <h3 className="text-base font-bold text-[#0f172a]">
+            <h3 className="text-base font-bold text-[#1a1a1a]">
               Voucher List (<span data-testid="voucher-count">{visible.length}</span>)
             </h3>
-            <p className="text-xs text-[#64748b]">
+            <p className="text-xs text-[#737373]">
               {activeBatch ? (
                 <>
                   Showing batch{" "}
-                  <span data-testid="batch-chip" className="inline-flex items-center gap-1 rounded-full bg-[#f1f5f9] px-2 py-0.5 font-semibold text-[#2563eb]">
+                  <span data-testid="batch-chip" className="inline-flex items-center gap-1 rounded-full bg-[#f4f4f4] px-2 py-0.5 font-semibold text-[#1a1a1a]">
                     {activeBatch.reference}
                     <button type="button" aria-label="Show all batches" onClick={() => viewBatch(null)}>
                       <X size={11} />
@@ -286,25 +286,25 @@ function AgentVouchersView({ agent, agentId }: { agent: AgentProfile; agentId: s
             </p>
           </div>
           <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8]" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" />
             <input
               data-testid="voucher-search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search code or package..."
-              className="h-10 w-64 rounded-lg border border-[#cbd5e1] bg-white pl-8 pr-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-10 w-64 rounded-lg border border-[#d4d4d4] bg-white pl-8 pr-3 text-sm outline-none focus:border-[#1a1a1a]"
             />
           </div>
         </div>
 
         {selected.length > 0 && (
-          <div data-testid="voucher-selection" className="flex flex-wrap items-center gap-3 border-y bg-[#f1f5f9] px-5 py-3">
-            <strong className="text-sm text-[#2563eb]">{selected.length} selected</strong>
+          <div data-testid="voucher-selection" className="flex flex-wrap items-center gap-3 border-y bg-[#f4f4f4] px-5 py-3">
+            <strong className="text-sm text-[#1a1a1a]">{selected.length} selected</strong>
             <button
               type="button"
               data-testid="copy-selected"
               onClick={() => copyCodes(selected)}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-[#f1f5f9] px-3 py-2 text-xs font-semibold text-[#2563eb] hover:bg-[#e2e8f0]"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#f4f4f4] px-3 py-2 text-xs font-semibold text-[#1a1a1a] hover:bg-[#e6e6e6]"
             >
               <Copy size={13} />
               Copy codes
@@ -314,21 +314,21 @@ function AgentVouchersView({ agent, agentId }: { agent: AgentProfile; agentId: s
                 type="button"
                 data-testid="print-selected"
                 onClick={() => setPrintItems(toPrintItems(myVouchers.filter((v) => selected.includes(v.code))))}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-[#2563eb] px-3 py-2 text-xs font-semibold text-white hover:bg-[#1d4ed8]"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-[#1a1a1a] px-3 py-2 text-xs font-semibold text-white hover:bg-[#111111]"
               >
                 <Printer size={13} />
                 Print selected
               </button>
             )}
-            <button type="button" onClick={() => setSelected([])} className="ml-auto text-xs font-semibold text-[#2563eb] hover:underline">
+            <button type="button" onClick={() => setSelected([])} className="ml-auto text-xs font-semibold text-[#1a1a1a] hover:underline">
               Deselect all
             </button>
           </div>
         )}
 
-        <div className="overflow-x-auto border-t border-[#f1f5f9]">
+        <div className="overflow-x-auto border-t border-[#f4f4f4]">
           <table className="w-full min-w-[1100px] text-left text-sm">
-            <thead className="bg-[#f8fafc] text-[#64748b]">
+            <thead className="bg-[#f7f7f7] text-[#737373]">
               <tr>
                 <th className="px-5 py-3">
                   <input
@@ -358,7 +358,7 @@ function AgentVouchersView({ agent, agentId }: { agent: AgentProfile; agentId: s
             <tbody data-testid="voucher-rows">
               {visible.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="px-5 py-10 text-center text-sm text-[#94a3b8]">
+                  <td colSpan={10} className="px-5 py-10 text-center text-sm text-[#a3a3a3]">
                     {myVouchers.length === 0 ? "No vouchers yet." : "No vouchers match this filter."}
                   </td>
                 </tr>
@@ -367,7 +367,7 @@ function AgentVouchersView({ agent, agentId }: { agent: AgentProfile; agentId: s
                 <tr
                   key={v.code}
                   data-testid="voucher-row"
-                  className={`border-t hover:bg-[#f8fafc] ${selected.includes(v.code) ? "bg-[#f8fafc]" : ""}`}
+                  className={`border-t hover:bg-[#f7f7f7] ${selected.includes(v.code) ? "bg-[#f7f7f7]" : ""}`}
                 >
                   <td className="px-5 py-3">
                     <input
@@ -379,9 +379,9 @@ function AgentVouchersView({ agent, agentId }: { agent: AgentProfile; agentId: s
                       aria-label={`Select ${v.code}`}
                     />
                   </td>
-                  <td className="px-4 py-3 font-mono font-semibold text-[#2563eb]">{v.code}</td>
+                  <td className="px-4 py-3 font-mono font-semibold text-[#1a1a1a]">{v.code}</td>
                   <td className="px-4 py-3">
-                    <span className="rounded-full bg-[#f1f5f9] px-2.5 py-1 text-xs font-semibold text-[#2563eb]">{v.packageName}</span>
+                    <span className="rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-semibold text-[#1a1a1a]">{v.packageName}</span>
                   </td>
                   <td className="px-4 py-3">
                     <span className={`rounded-full px-3 py-1.5 text-xs font-semibold ${STATUS_CLASS[v.status] ?? STATUS_CLASS.Used}`}>
@@ -389,13 +389,13 @@ function AgentVouchersView({ agent, agentId }: { agent: AgentProfile; agentId: s
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="rounded-full px-2.5 py-1 text-xs font-semibold text-[#475569]">{v.delivery}</span>
+                    <span className="rounded-full px-2.5 py-1 text-xs font-semibold text-[#525252]">{v.delivery}</span>
                   </td>
-                  <td className="px-4 py-3 text-[#475569]">{v.saleType}</td>
-                  <td className="px-4 py-3 font-mono text-[#475569]">{v.usedByCustomerId ?? "—"}</td>
-                  <td className="px-4 py-3 text-[#475569]">{v.redeemerPhone ?? "—"}</td>
-                  <td className="px-4 py-3 text-[#475569]">{findAgent(v.agentId)?.name ?? "—"}</td>
-                  <td className="whitespace-nowrap px-4 py-3 text-[#64748b]">{v.generatedAt}</td>
+                  <td className="px-4 py-3 text-[#525252]">{v.saleType}</td>
+                  <td className="px-4 py-3 font-mono text-[#525252]">{v.usedByCustomerId ?? "—"}</td>
+                  <td className="px-4 py-3 text-[#525252]">{v.redeemerPhone ?? "—"}</td>
+                  <td className="px-4 py-3 text-[#525252]">{findAgent(v.agentId)?.name ?? "—"}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-[#737373]">{v.generatedAt}</td>
                 </tr>
               ))}
             </tbody>

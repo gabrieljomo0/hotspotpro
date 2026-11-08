@@ -45,10 +45,10 @@ export default function IpBindingsPage() {
     <section className="w-full">
       <BackLink />
       <h2 className="mb-1 flex items-center gap-2 text-3xl font-bold tracking-tight md:text-4xl">
-        <Link2 className="text-[#2563eb]" size={30} />
+        <Link2 className="text-[#1a1a1a]" size={30} />
         IP Bindings
       </h2>
-      <p className="mb-6 max-w-2xl text-sm text-[#64748b] md:text-base">
+      <p className="mb-6 max-w-2xl text-sm text-[#737373] md:text-base">
         Reserve a fixed IP address for a specific device by binding it to its
         MAC address ({bindings.length} bindings).
       </p>
@@ -56,54 +56,54 @@ export default function IpBindingsPage() {
       <UsersNavTabs />
 
       <div className="grid gap-5 lg:grid-cols-[1fr_2fr]">
-        <article className="rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+        <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
           <h3 className="mb-4 text-base font-bold">Add Binding</h3>
           <form onSubmit={handleAdd} className="space-y-4">
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">
                 MAC Address
               </span>
               <input
                 value={mac}
                 onChange={(event) => setMac(event.target.value)}
                 placeholder="AA:BB:CC:DD:EE:FF"
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 font-mono text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 font-mono text-sm outline-none focus:border-[#1a1a1a]"
               />
             </label>
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">
                 IP Address
               </span>
               <input
                 value={ip}
                 onChange={(event) => setIp(event.target.value)}
                 placeholder="192.168.88.100"
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 font-mono text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 font-mono text-sm outline-none focus:border-[#1a1a1a]"
               />
             </label>
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">
                 Device Name
               </span>
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 placeholder="e.g. Front Desk PC"
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
             </label>
             <button
               type="submit"
-              className="w-full rounded-xl bg-[#2563eb] px-5 py-3 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+              className="w-full rounded-xl bg-[#1a1a1a] px-5 py-3 text-sm font-bold text-white hover:bg-[#111111]"
             >
               Add Binding
             </button>
           </form>
         </article>
 
-        <article className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+        <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
           <table className="w-full text-left text-sm">
-            <thead className="bg-[#ffffff] text-xs text-[#64748b]">
+            <thead className="bg-[#ffffff] text-xs text-[#737373]">
               <tr>
                 <th className="px-5 py-3 font-semibold">Device</th>
                 <th className="px-5 py-3 font-semibold">MAC Address</th>
@@ -114,20 +114,20 @@ export default function IpBindingsPage() {
             <tbody>
               {bindings.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-5 py-8 text-center text-[#94a3b8]">
+                  <td colSpan={4} className="px-5 py-8 text-center text-[#a3a3a3]">
                     No bindings yet.
                   </td>
                 </tr>
               )}
               {bindings.map((binding) => (
-                <tr key={binding.id} className="border-t border-[#f1f5f9]">
-                  <td className="px-5 py-3 font-semibold text-[#0f172a]">
+                <tr key={binding.id} className="border-t border-[#f4f4f4]">
+                  <td className="px-5 py-3 font-semibold text-[#1a1a1a]">
                     {binding.deviceName}
                   </td>
-                  <td className="px-5 py-3 font-mono text-[#475569]">
+                  <td className="px-5 py-3 font-mono text-[#525252]">
                     {binding.macAddress}
                   </td>
-                  <td className="px-5 py-3 font-mono text-[#2563eb]">
+                  <td className="px-5 py-3 font-mono text-[#1a1a1a]">
                     {binding.ipAddress}
                   </td>
                   <td className="px-5 py-3 text-center">

@@ -39,14 +39,14 @@ export function VoucherCleanupSettingsPanel() {
   }
 
   return (
-    <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
+    <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
       <div className="mb-6 flex items-center gap-3">
         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-100 text-red-600">
           <Trash2 size={20} />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-[#0f172a]">Voucher Cleanup</h3>
-          <p className="text-sm text-[#64748b]">
+          <h3 className="text-lg font-bold text-[#1a1a1a]">Voucher Cleanup</h3>
+          <p className="text-sm text-[#737373]">
             Set once, applies automatically. Used and Expired vouchers older
             than this are cleared out on their own — no need to specify
             anything when creating a voucher.
@@ -54,14 +54,14 @@ export function VoucherCleanupSettingsPanel() {
         </div>
       </div>
 
-      <article className="mb-5 rounded-xl border border-[#f1f5f9] bg-[#ffffff] p-4">
+      <article className="mb-5 rounded-xl border border-[#f4f4f4] bg-[#ffffff] p-4">
         <div className="mb-3 flex items-center justify-between gap-3">
-          <p className="text-sm font-bold text-[#0f172a]">Account-wide default</p>
+          <p className="text-sm font-bold text-[#1a1a1a]">Account-wide default</p>
           <button
             type="button"
             onClick={() => updateDefaultVoucherCleanupPolicy({ enabled: !defaultVoucherCleanupPolicy.enabled })}
             className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-              defaultVoucherCleanupPolicy.enabled ? "bg-emerald-500" : "bg-[#e2e8f0]"
+              defaultVoucherCleanupPolicy.enabled ? "bg-emerald-500" : "bg-[#e6e6e6]"
             }`}
           >
             <span
@@ -72,7 +72,7 @@ export function VoucherCleanupSettingsPanel() {
           </button>
         </div>
         {defaultVoucherCleanupPolicy.enabled && (
-          <label className="flex items-center gap-2 text-sm text-[#475569]">
+          <label className="flex items-center gap-2 text-sm text-[#525252]">
             Clear used/expired vouchers after
             <input
               type="number"
@@ -81,7 +81,7 @@ export function VoucherCleanupSettingsPanel() {
               onChange={(event) =>
                 updateDefaultVoucherCleanupPolicy({ clearAfterDays: Number(event.target.value) })
               }
-              className="h-9 w-20 rounded-lg border border-[#e2e8f0] bg-white px-2 text-center text-sm outline-none focus:border-[#2563eb]"
+              className="h-9 w-20 rounded-lg border border-[#e6e6e6] bg-white px-2 text-center text-sm outline-none focus:border-[#1a1a1a]"
             />
             days
           </label>
@@ -89,12 +89,12 @@ export function VoucherCleanupSettingsPanel() {
       </article>
 
       {routers.length > 0 && (
-        <article className="mb-6 rounded-xl border border-[#f1f5f9] p-4">
-          <p className="mb-3 text-sm font-bold text-[#0f172a]">Override for a specific router</p>
+        <article className="mb-6 rounded-xl border border-[#f4f4f4] p-4">
+          <p className="mb-3 text-sm font-bold text-[#1a1a1a]">Override for a specific router</p>
           <select
             value={selectedRouterIp}
             onChange={(event) => setSelectedRouterIp(event.target.value)}
-            className="mb-3 h-10 w-full max-w-sm rounded-lg border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+            className="mb-3 h-10 w-full max-w-sm rounded-lg border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
           >
             {routers.map((r) => (
               <option key={r.ip} value={r.ip}>{r.name}</option>
@@ -108,7 +108,7 @@ export function VoucherCleanupSettingsPanel() {
                 updateRouterVoucherCleanupPolicy(selectedRouterIp, { enabled: !effectiveForRouter.enabled })
               }
               className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-                effectiveForRouter.enabled ? "bg-emerald-500" : "bg-[#e2e8f0]"
+                effectiveForRouter.enabled ? "bg-emerald-500" : "bg-[#e6e6e6]"
               }`}
             >
               <span
@@ -119,7 +119,7 @@ export function VoucherCleanupSettingsPanel() {
             </button>
 
             {effectiveForRouter.enabled && (
-              <label className="flex items-center gap-2 text-sm text-[#475569]">
+              <label className="flex items-center gap-2 text-sm text-[#525252]">
                 Clear after
                 <input
                   type="number"
@@ -128,7 +128,7 @@ export function VoucherCleanupSettingsPanel() {
                   onChange={(event) =>
                     updateRouterVoucherCleanupPolicy(selectedRouterIp, { clearAfterDays: Number(event.target.value) })
                   }
-                  className="h-9 w-20 rounded-lg border border-[#e2e8f0] bg-white px-2 text-center text-sm outline-none focus:border-[#2563eb]"
+                  className="h-9 w-20 rounded-lg border border-[#e6e6e6] bg-white px-2 text-center text-sm outline-none focus:border-[#1a1a1a]"
                 />
                 days
               </label>
@@ -138,13 +138,13 @@ export function VoucherCleanupSettingsPanel() {
               <button
                 type="button"
                 onClick={() => clearRouterVoucherCleanupOverride(selectedRouterIp)}
-                className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-[#2563eb] hover:underline"
+                className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-[#1a1a1a] hover:underline"
               >
                 <RotateCcw size={12} /> Use default
               </button>
             )}
           </div>
-          <p className="mt-2 text-xs text-[#94a3b8]">
+          <p className="mt-2 text-xs text-[#a3a3a3]">
             {routerOverride ? "This router has its own override." : "This router currently follows the account-wide default."}
           </p>
         </article>
@@ -154,7 +154,7 @@ export function VoucherCleanupSettingsPanel() {
         <button
           type="button"
           onClick={handleDone}
-          className="rounded-xl bg-[#2563eb] px-6 py-3 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+          className="rounded-xl bg-[#1a1a1a] px-6 py-3 text-sm font-bold text-white hover:bg-[#111111]"
         >
           Done
         </button>

@@ -57,7 +57,7 @@ function daysAgoInput(days: number) {
 }
 
 const inputClass =
-  "h-8 min-w-0 rounded-lg border border-[#cbd5e1] bg-white px-2 text-xs outline-none focus:border-[#2563eb]";
+  "h-8 min-w-0 rounded-lg border border-[#d4d4d4] bg-white px-2 text-xs outline-none focus:border-[#1a1a1a]";
 
 export function SalesOverview({
   agent,
@@ -89,8 +89,8 @@ export function SalesOverview({
       className="rounded-xl bg-white p-3 shadow-sm col-span-2"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="flex items-center gap-1.5 text-sm font-semibold text-[#0f172a]">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#f1f5f9] text-[#2563eb]">
+        <p className="flex items-center gap-1.5 text-sm font-semibold text-[#1a1a1a]">
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#f4f4f4] text-[#1a1a1a]">
             <Banknote size={15} />
           </span>
           {canViewTeam ? "Team sales" : "Sales"}
@@ -140,7 +140,7 @@ export function SalesOverview({
                 onChange={(event) => onPeriodChange({ ...period, from: event.target.value })}
                 className={inputClass}
               />
-              <span className="text-xs text-[#94a3b8]">–</span>
+              <span className="text-xs text-[#a3a3a3]">–</span>
               <input
                 data-testid="period-to"
                 type="date"
@@ -154,27 +154,27 @@ export function SalesOverview({
         </div>
       </div>
 
-      <p data-testid="period-summary" className="mt-1 text-[11px] text-[#94a3b8]">
+      <p data-testid="period-summary" className="mt-1 text-[11px] text-[#a3a3a3]">
         {error ?? periodLabel(period)}
       </p>
 
       <div className={`mt-2 grid gap-2 ${showCommission ? "grid-cols-3" : "grid-cols-2"}`}>
         <div>
-          <p className="text-xs text-[#64748b]">Total sales</p>
-          <p data-testid="period-total" className="mt-0.5 truncate text-base font-black text-[#0f172a]">
+          <p className="text-xs text-[#737373]">Total sales</p>
+          <p data-testid="period-total" className="mt-0.5 truncate text-base font-black text-[#1a1a1a]">
             {sym()} {money(error ? 0 : total)}
           </p>
         </div>
         <div>
-          <p className="text-xs text-[#64748b]">Vouchers sold</p>
-          <p data-testid="period-count" className="mt-0.5 truncate text-base font-black text-[#0f172a]">
+          <p className="text-xs text-[#737373]">Vouchers sold</p>
+          <p data-testid="period-count" className="mt-0.5 truncate text-base font-black text-[#1a1a1a]">
             {error ? 0 : count}
           </p>
         </div>
         {showCommission && (
           <div>
-            <p className="text-xs text-[#64748b]">Commission ({rate}%)</p>
-            <p data-testid="period-commission" className="mt-0.5 truncate text-base font-black text-[#0f172a]">
+            <p className="text-xs text-[#737373]">Commission ({rate}%)</p>
+            <p data-testid="period-commission" className="mt-0.5 truncate text-base font-black text-[#1a1a1a]">
               {sym()} {money(error ? 0 : commission)}
             </p>
           </div>

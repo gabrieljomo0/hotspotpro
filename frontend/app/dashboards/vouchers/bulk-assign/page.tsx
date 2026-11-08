@@ -21,16 +21,16 @@ function ToggleRow({
   onChange: () => void;
 }) {
   return (
-    <label className="flex items-start justify-between gap-3 rounded-xl border border-[#f1f5f9] bg-[#ffffff] px-4 py-3">
+    <label className="flex items-start justify-between gap-3 rounded-xl border border-[#f4f4f4] bg-[#ffffff] px-4 py-3">
       <div>
-        <span className="text-sm font-semibold text-[#475569]">{label}</span>
-        <p className="text-xs text-[#94a3b8]">{description}</p>
+        <span className="text-sm font-semibold text-[#525252]">{label}</span>
+        <p className="text-xs text-[#a3a3a3]">{description}</p>
       </div>
       <button
         type="button"
         onClick={onChange}
         className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-          checked ? "bg-emerald-500" : "bg-[#e2e8f0]"
+          checked ? "bg-emerald-500" : "bg-[#e6e6e6]"
         }`}
       >
         <span
@@ -155,18 +155,18 @@ export default function BulkAssignPage() {
 
   return (
     <section className="mx-auto w-full max-w-3xl">
-      <div className="mb-4 flex items-center gap-1.5 text-xs text-[#94a3b8]">
-        <Link href="/dashboards/vouchers" className="hover:text-[#2563eb]">
+      <div className="mb-4 flex items-center gap-1.5 text-xs text-[#a3a3a3]">
+        <Link href="/dashboards/vouchers" className="hover:text-[#1a1a1a]">
           Vouchers
         </Link>
         <ChevronRight size={12} />
-        <span className="text-[#475569]">Bulk Assign</span>
+        <span className="text-[#525252]">Bulk Assign</span>
       </div>
 
-      <h1 className="mb-1 text-3xl font-black text-[#0f172a] md:text-4xl">
+      <h1 className="mb-1 text-3xl font-black text-[#1a1a1a] md:text-4xl">
         Bulk Assign Vouchers
       </h1>
-      <p className="mb-6 text-sm text-[#64748b]">
+      <p className="mb-6 text-sm text-[#737373]">
         Filter vouchers and assign them to a batch without manual selection.
       </p>
 
@@ -176,10 +176,10 @@ export default function BulkAssignPage() {
         <div className="mb-5 flex items-center gap-2">
           <Filter size={16} className="text-blue-600" />
           <div>
-            <h2 className="text-base font-bold text-[#0f172a]">
+            <h2 className="text-base font-bold text-[#1a1a1a]">
               Filter Vouchers
             </h2>
-            <p className="text-xs text-[#64748b]">
+            <p className="text-xs text-[#737373]">
               Select criteria to filter which vouchers to assign.
             </p>
           </div>
@@ -187,7 +187,7 @@ export default function BulkAssignPage() {
 
         <div className="grid gap-4 rounded-xl bg-white p-5 sm:grid-cols-2">
           <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               Package
             </span>
             <select
@@ -205,7 +205,7 @@ export default function BulkAssignPage() {
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               Status
             </span>
             <select
@@ -213,7 +213,7 @@ export default function BulkAssignPage() {
               onChange={(event) =>
                 setStatusFilter(event.target.value as "All" | VoucherStatus)
               }
-              className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             >
               <option value="All">All statuses</option>
               <option value="Available">Available (Active)</option>
@@ -223,37 +223,37 @@ export default function BulkAssignPage() {
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               Created From
             </span>
             <input
               type="date"
               value={createdFrom}
               onChange={(event) => setCreatedFrom(event.target.value)}
-              className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             />
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               Created Until
             </span>
             <input
               type="date"
               value={createdUntil}
               onChange={(event) => setCreatedUntil(event.target.value)}
-              className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             />
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               Current Batch
             </span>
             <select
               value={batchFilter}
               onChange={(event) => setBatchFilter(event.target.value)}
-              className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             >
               <option>Any</option>
               {voucherBatches.filter((batch) => !batch.hiddenFromAdmin).map((batch) => (
@@ -284,12 +284,12 @@ export default function BulkAssignPage() {
         </div>
 
         <div className="mt-5 rounded-xl bg-white p-5">
-          <p className="text-sm font-semibold text-[#475569]">
+          <p className="text-sm font-semibold text-[#525252]">
             Matching Vouchers
           </p>
-          <p className="mt-1 text-2xl font-black text-[#0f172a]">
+          <p className="mt-1 text-2xl font-black text-[#1a1a1a]">
             {matchingVouchers.length}{" "}
-            <span className="text-base font-semibold text-[#64748b]">
+            <span className="text-base font-semibold text-[#737373]">
               voucher{matchingVouchers.length === 1 ? "" : "s"} match your
               filter
             </span>
@@ -301,10 +301,10 @@ export default function BulkAssignPage() {
         <div className="mb-5 flex items-center gap-2">
           <ClipboardList size={16} className="text-emerald-600" />
           <div>
-            <h2 className="text-base font-bold text-[#0f172a]">
+            <h2 className="text-base font-bold text-[#1a1a1a]">
               Assignment
             </h2>
-            <p className="text-xs text-[#64748b]">
+            <p className="text-xs text-[#737373]">
               Choose what to assign the matching vouchers to.
             </p>
           </div>
@@ -312,22 +312,22 @@ export default function BulkAssignPage() {
 
         <div className="grid gap-4 rounded-xl bg-white p-5 sm:grid-cols-2">
           <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               Assign to Batch
             </span>
             <input
               value={assignToBatch}
               onChange={(event) => setAssignToBatch(event.target.value)}
               placeholder="Keep current batch"
-              className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             />
-            <span className="mt-1 block text-xs text-[#94a3b8]">
+            <span className="mt-1 block text-xs text-[#a3a3a3]">
               Enter a batch name, or type &quot;REMOVE&quot; to clear it.
             </span>
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               Limit (Optional)
             </span>
             <input
@@ -336,9 +336,9 @@ export default function BulkAssignPage() {
               value={limit}
               onChange={(event) => setLimit(event.target.value)}
               placeholder="All matching"
-              className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             />
-            <span className="mt-1 block text-xs text-[#94a3b8]">
+            <span className="mt-1 block text-xs text-[#a3a3a3]">
               Limit how many vouchers to assign.
             </span>
           </label>
@@ -350,8 +350,8 @@ export default function BulkAssignPage() {
               <PackageIcon size={16} />
             </span>
             <div>
-              <p className="text-sm font-bold text-[#0f172a]">Switch Package Rules (optional)</p>
-              <p className="text-xs text-[#64748b]">
+              <p className="text-sm font-bold text-[#1a1a1a]">Switch Package Rules (optional)</p>
+              <p className="text-xs text-[#737373]">
                 Move the matching vouchers onto a different package —
                 daily, weekly, a fixed data cap, whatever plan you pick —
                 without regenerating them.
@@ -360,7 +360,7 @@ export default function BulkAssignPage() {
           </div>
           <div className="flex flex-wrap items-end gap-3">
             <label className="block">
-              <span className="mb-1.5 block text-xs font-semibold text-[#475569]">New package</span>
+              <span className="mb-1.5 block text-xs font-semibold text-[#525252]">New package</span>
               <select
                 value={newPackageName}
                 onChange={(event) => setNewPackageName(event.target.value)}
@@ -391,8 +391,8 @@ export default function BulkAssignPage() {
               <UserCheck size={16} />
             </span>
             <div>
-              <p className="text-sm font-bold text-[#0f172a]">Push to Agents (optional)</p>
-              <p className="text-xs text-[#64748b]">
+              <p className="text-sm font-bold text-[#1a1a1a]">Push to Agents (optional)</p>
+              <p className="text-xs text-[#737373]">
                 Pick any number of agents across one or more sites — each only
                 receives the matching vouchers whose router is actually theirs.
               </p>
@@ -400,7 +400,7 @@ export default function BulkAssignPage() {
           </div>
 
           {agents.length === 0 ? (
-            <p className="text-xs text-[#94a3b8]">No agents yet.</p>
+            <p className="text-xs text-[#a3a3a3]">No agents yet.</p>
           ) : (
             <div className="max-h-72 space-y-2 overflow-y-auto rounded-xl border border-amber-200 bg-white p-2.5">
               {agentsBySite.map(({ site, siteAgents }, siteIndex) => {
@@ -431,7 +431,7 @@ export default function BulkAssignPage() {
                                 : [...new Set([...current, ...siteAgentIds])],
                             );
                           }}
-                          className="text-[10px] font-semibold text-[#2563eb] hover:underline"
+                          className="text-[10px] font-semibold text-[#1a1a1a] hover:underline"
                         >
                           {siteAgents.every((a) => selectedAgentIds.includes(a.id)) ? "Unselect site" : "Select whole site"}
                         </button>
@@ -445,7 +445,7 @@ export default function BulkAssignPage() {
                           <label
                             key={agent.id}
                             className={`flex items-center gap-2 rounded-lg border px-1.5 py-1.5 text-xs transition ${
-                              isSelected ? palette.selected : "border-transparent text-[#475569] hover:bg-[#ffffff]"
+                              isSelected ? palette.selected : "border-transparent text-[#525252] hover:bg-[#ffffff]"
                             }`}
                           >
                             <input
@@ -455,8 +455,8 @@ export default function BulkAssignPage() {
                               className={`h-3.5 w-3.5 shrink-0 rounded ${palette.check}`}
                             />
                             <span className="truncate">
-                              <span className={isSelected ? "font-semibold text-[#0f172a]" : ""}>{agent.name}</span>
-                              <span className="ml-1 text-[10px] text-[#94a3b8]">
+                              <span className={isSelected ? "font-semibold text-[#1a1a1a]" : ""}>{agent.name}</span>
+                              <span className="ml-1 text-[10px] text-[#a3a3a3]">
                                 ({agentRouter ? agentRouter.name.split(" (")[0] : "no router"})
                               </span>
                             </span>
@@ -479,7 +479,7 @@ export default function BulkAssignPage() {
                         <label
                           key={agent.id}
                           className={`flex items-center gap-2 rounded-lg border px-1.5 py-1.5 text-xs transition ${
-                            isSelected ? "border-slate-300 bg-slate-50" : "border-transparent text-[#475569] hover:bg-[#ffffff]"
+                            isSelected ? "border-slate-300 bg-slate-50" : "border-transparent text-[#525252] hover:bg-[#ffffff]"
                           }`}
                         >
                           <input
@@ -488,7 +488,7 @@ export default function BulkAssignPage() {
                             onChange={() => toggleAgent(agent.id)}
                             className="h-3.5 w-3.5 shrink-0 rounded accent-slate-600 border-slate-300"
                           />
-                          <span className={`truncate ${isSelected ? "font-semibold text-[#0f172a]" : ""}`}>{agent.name}</span>
+                          <span className={`truncate ${isSelected ? "font-semibold text-[#1a1a1a]" : ""}`}>{agent.name}</span>
                         </label>
                       );
                     })}
@@ -517,7 +517,7 @@ export default function BulkAssignPage() {
             type="button"
             onClick={handlePushToAgents}
             disabled={matchingVouchers.length === 0 || selectedAgentIds.length === 0}
-            className="mt-3 w-full rounded-xl bg-amber-500 px-5 py-3 text-sm font-bold text-white hover:bg-amber-600 disabled:cursor-not-allowed disabled:bg-[#e2e8f0] disabled:text-[#94a3b8]"
+            className="mt-3 w-full rounded-xl bg-amber-500 px-5 py-3 text-sm font-bold text-white hover:bg-amber-600 disabled:cursor-not-allowed disabled:bg-[#e6e6e6] disabled:text-[#a3a3a3]"
           >
             Push Matching Vouchers to Selected Agents
           </button>
@@ -528,13 +528,13 @@ export default function BulkAssignPage() {
             type="button"
             onClick={handleAssign}
             disabled={matchingVouchers.length === 0}
-            className="rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white  hover:bg-emerald-700 disabled:cursor-not-allowed disabled:from-[#e2e8f0] disabled:to-[#e2e8f0] disabled:text-[#94a3b8] disabled:shadow-none"
+            className="rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white  hover:bg-emerald-700 disabled:cursor-not-allowed disabled:from-[#e6e6e6] disabled:to-[#e6e6e6] disabled:text-[#a3a3a3] disabled:shadow-none"
           >
             Assign Vouchers
           </button>
           <Link
             href="/dashboards/vouchers"
-            className="rounded-xl border border-[#e2e8f0] bg-white px-6 py-3 text-sm font-bold text-[#475569] hover:bg-[#ffffff]"
+            className="rounded-xl border border-[#e6e6e6] bg-white px-6 py-3 text-sm font-bold text-[#525252] hover:bg-[#ffffff]"
           >
             Cancel
           </Link>

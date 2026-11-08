@@ -88,7 +88,7 @@ function Switch({
       type="button"
       onClick={onChange}
       className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-        checked ? onColor : "bg-[#e2e8f0]"
+        checked ? onColor : "bg-[#e6e6e6]"
       }`}
     >
       <span
@@ -117,8 +117,8 @@ function SectionHeader({
         <Icon size={18} />
       </span>
       <div>
-        <h3 className="text-base font-bold text-[#0f172a]">{title}</h3>
-        <p className="text-xs text-[#64748b]">{subtitle}</p>
+        <h3 className="text-base font-bold text-[#1a1a1a]">{title}</h3>
+        <p className="text-xs text-[#737373]">{subtitle}</p>
       </div>
     </div>
   );
@@ -287,7 +287,7 @@ export function PackageForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {/* Basic Configuration */}
-      <section className="rounded-2xl border-2 border-blue-100 bg-blue-50 p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
+      <section className="rounded-2xl border-2 border-blue-100 bg-blue-50 p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
         <SectionHeader
           icon={Settings2}
           title="Basic Configuration"
@@ -297,7 +297,7 @@ export function PackageForm({
 
         <div className="space-y-5">
           <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               Name of package <span className="text-red-500">*</span>
             </span>
             <input
@@ -305,7 +305,7 @@ export function PackageForm({
               value={form.name}
               onChange={(event) => update("name", event.target.value)}
               placeholder="Eg. Basic, Standard, Premium or Platinum"
-              className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             />
           </label>
 
@@ -313,7 +313,7 @@ export function PackageForm({
             <div
               data-testid="agent-router-note"
               className={`rounded-xl border p-3 text-xs ${
-                agentRouterIp ? "border-blue-100 bg-blue-50 text-[#475569]" : "border-red-200 bg-red-50 text-red-700"
+                agentRouterIp ? "border-blue-100 bg-blue-50 text-[#525252]" : "border-red-200 bg-red-50 text-red-700"
               }`}
             >
               {agentRouterIp
@@ -327,7 +327,7 @@ export function PackageForm({
               <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500 text-white">
                 <Building2 size={16} />
               </span>
-              <span className="text-sm font-bold text-[#0f172a]">
+              <span className="text-sm font-bold text-[#1a1a1a]">
                 Site / Business &amp; Routers <span className="text-red-500">*</span>
               </span>
             </div>
@@ -340,8 +340,8 @@ export function PackageForm({
                   applyScope === "router" ? "border-blue-400 bg-white" : "border-blue-100 bg-white hover:bg-white"
                 }`}
               >
-                <p className="text-sm font-bold text-[#0f172a]">Specific site / routers</p>
-                <p className="text-xs text-[#64748b]">Pick one site, then its routers.</p>
+                <p className="text-sm font-bold text-[#1a1a1a]">Specific site / routers</p>
+                <p className="text-xs text-[#737373]">Pick one site, then its routers.</p>
               </button>
               <button
                 type="button"
@@ -350,8 +350,8 @@ export function PackageForm({
                   applyScope === "all" ? "border-blue-400 bg-white" : "border-blue-100 bg-white hover:bg-white"
                 }`}
               >
-                <p className="text-sm font-bold text-[#0f172a]">Universal (any router)</p>
-                <p className="text-xs text-[#64748b]">
+                <p className="text-sm font-bold text-[#1a1a1a]">Universal (any router)</p>
+                <p className="text-xs text-[#737373]">
                   No router to choose now. Pick the router when you create vouchers. Also covers routers added later.
                 </p>
               </button>
@@ -366,15 +366,15 @@ export function PackageForm({
                 className="mt-0.5 h-4 w-4 accent-blue-500"
               />
               <span>
-                <span className="block text-sm font-bold text-[#0f172a]">All agents</span>
-                <span className="block text-xs text-[#64748b]">
+                <span className="block text-sm font-bold text-[#1a1a1a]">All agents</span>
+                <span className="block text-xs text-[#737373]">
                   Every agent can sell this package whichever router they&apos;re on — including agents you add later.
                 </span>
               </span>
             </label>
 
             {applyScope === "all" ? (
-              <div className="rounded-xl border border-blue-200 bg-white p-3 text-xs text-[#475569]">
+              <div className="rounded-xl border border-blue-200 bg-white p-3 text-xs text-[#525252]">
                 <span data-testid="universal-note">
                   This is a universal package. It can be used on any router, so you don&apos;t pick one here. When you
                   create vouchers, choose the router (or site) they should work on. It automatically covers
@@ -383,11 +383,11 @@ export function PackageForm({
               </div>
             ) : businessLocations.length === 0 ? (
               <>
-                <p className="mb-2 text-xs text-[#64748b]">
+                <p className="mb-2 text-xs text-[#737373]">
                   No sites configured yet, so pick routers directly.
                 </p>
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#475569]">Routers / MikroTiks</span>
+                  <span className="text-xs font-semibold text-[#525252]">Routers / MikroTiks</span>
                   <div className="flex gap-3 text-xs font-semibold text-blue-600">
                     <button type="button" onClick={() => update("routerIps", routers.map((r) => r.ip))} className="hover:underline">
                       Select all
@@ -401,7 +401,7 @@ export function PackageForm({
                   {routers.map((router) => (
                     <label
                       key={router.ip}
-                      className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-[#475569] hover:bg-blue-50"
+                      className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-[#525252] hover:bg-blue-50"
                     >
                       <input
                         type="checkbox"
@@ -413,20 +413,20 @@ export function PackageForm({
                     </label>
                   ))}
                   {routers.length === 0 && (
-                    <p className="text-sm text-[#94a3b8]">No routers available yet — add one first.</p>
+                    <p className="text-sm text-[#a3a3a3]">No routers available yet — add one first.</p>
                   )}
                 </div>
               </>
             ) : (
               <>
                 <label className="mb-3 block">
-                  <span className="mb-1.5 block text-xs font-semibold text-[#475569]">
+                  <span className="mb-1.5 block text-xs font-semibold text-[#525252]">
                     1. Choose the site / business
                   </span>
                   <select
                     value={selectedSiteId}
                     onChange={(event) => handleSiteChange(event.target.value)}
-                    className="h-11 w-full rounded-xl border-2 border-blue-300 bg-white px-3 text-sm font-semibold text-[#0f172a] outline-none focus:border-blue-500"
+                    className="h-11 w-full rounded-xl border-2 border-blue-300 bg-white px-3 text-sm font-semibold text-[#1a1a1a] outline-none focus:border-blue-500"
                   >
                     {businessLocations.map((site) => (
                       <option key={site.id} value={site.id}>
@@ -437,7 +437,7 @@ export function PackageForm({
                 </label>
 
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#475569]">
+                  <span className="text-xs font-semibold text-[#525252]">
                     2. Choose the routers under{" "}
                     {businessLocations.find((s) => s.id === selectedSiteId)?.name ?? "this site"}
                   </span>
@@ -452,7 +452,7 @@ export function PackageForm({
                 </div>
 
                 {siteRouters.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-blue-300 bg-white p-3 text-xs text-[#64748b]">
+                  <div className="rounded-xl border border-dashed border-blue-300 bg-white p-3 text-xs text-[#737373]">
                     This site has no routers yet — add one first, or choose a different site.
                   </div>
                 ) : (
@@ -460,7 +460,7 @@ export function PackageForm({
                     {siteRouters.map((router) => (
                       <label
                         key={router.ip}
-                        className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-[#475569] hover:bg-blue-50"
+                        className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-[#525252] hover:bg-blue-50"
                       >
                         <input
                           type="checkbox"
@@ -486,7 +486,7 @@ export function PackageForm({
             {form.routerIps.length === 0 && (
               <span className="mt-1 block text-xs text-red-600">Select at least one router.</span>
             )}
-            <span className="mt-2 block text-xs text-[#64748b]">
+            <span className="mt-2 block text-xs text-[#737373]">
               Every package must belong to at least one router. Customers on
               routers not selected here won&apos;t see this package.
             </span>
@@ -496,7 +496,7 @@ export function PackageForm({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">
                 Duration <span className="text-red-500">*</span>
               </span>
               <input
@@ -507,12 +507,12 @@ export function PackageForm({
                 onChange={(event) =>
                   update("durationValue", Number(event.target.value))
                 }
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
             </label>
 
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">
                 Unit <span className="text-red-500">*</span>
               </span>
               <select
@@ -520,7 +520,7 @@ export function PackageForm({
                 onChange={(event) =>
                   update("durationUnit", event.target.value as PackageDurationUnit)
                 }
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               >
                 {DURATION_UNITS.map((unit) => (
                   <option key={unit} value={unit}>
@@ -532,7 +532,7 @@ export function PackageForm({
           </div>
 
           <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               Description
             </span>
             <textarea
@@ -540,14 +540,14 @@ export function PackageForm({
               onChange={(event) => update("description", event.target.value)}
               rows={2}
               placeholder="Optional description for this package"
-              className="w-full rounded-xl border border-[#e2e8f0] bg-white px-3 py-2.5 text-sm outline-none focus:border-[#2563eb]"
+              className="w-full rounded-xl border border-[#e6e6e6] bg-white px-3 py-2.5 text-sm outline-none focus:border-[#1a1a1a]"
             />
           </label>
         </div>
       </section>
 
       {/* Speed & Performance */}
-      <section className="rounded-2xl border-2 border-blue-100 bg-blue-50 p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
+      <section className="rounded-2xl border-2 border-blue-100 bg-blue-50 p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
         <SectionHeader
           icon={Gauge}
           title="Speed & Performance"
@@ -557,7 +557,7 @@ export function PackageForm({
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="block sm:col-span-2" data-testid="speed-field">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">Speed (upload / download)</span>
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">Speed (upload / download)</span>
             <input
               data-testid="speed-input"
               value={speedText}
@@ -571,22 +571,22 @@ export function PackageForm({
                 }
               }}
               placeholder="10M/10M"
-              className={`h-11 w-full rounded-xl border bg-white px-3 font-mono text-sm outline-none focus:border-[#2563eb] ${
-                speedError ? "border-[#b91c1c]" : "border-[#e2e8f0]"
+              className={`h-11 w-full rounded-xl border bg-white px-3 font-mono text-sm outline-none focus:border-[#1a1a1a] ${
+                speedError ? "border-[#1a1a1a]" : "border-[#e6e6e6]"
               }`}
             />
-            <p className="mt-1 text-xs text-[#94a3b8]">
+            <p className="mt-1 text-xs text-[#a3a3a3]">
               Write it as upload/download, e.g. <span className="font-mono">10M/10M</span> or{" "}
               <span className="font-mono">5M/20M</span>. Leave it empty to give the package the best speed available.
             </p>
             {speedError ? (
-              <p data-testid="speed-error" className="mt-2 rounded-lg bg-[#fef2f2] p-2.5 text-xs font-semibold text-[#b91c1c]">
+              <p data-testid="speed-error" className="mt-2 rounded-lg bg-[#f3f1ec] p-2.5 text-xs font-semibold text-[#1a1a1a]">
                 {speedError}
               </p>
             ) : (
               <p
                 data-testid="speed-note"
-                className="mt-2 inline-flex rounded-lg bg-[#f1f5f9] px-2.5 py-1 text-xs font-bold text-[#1d4ed8]"
+                className="mt-2 inline-flex rounded-lg bg-[#f4f4f4] px-2.5 py-1 text-xs font-bold text-[#111111]"
               >
                 {form.uploadMbps > 0
                   ? `Upload ${speedLabel(form.uploadMbps)} · Download ${speedLabel(form.downloadMbps)}`
@@ -596,7 +596,7 @@ export function PackageForm({
           </div>
 
           <div className="block sm:col-span-2" data-testid="data-policy">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">Data Policy</span>
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">Data Policy</span>
             <div className="grid gap-3 sm:grid-cols-[1fr_140px]">
               <input
                 type="number"
@@ -611,27 +611,27 @@ export function PackageForm({
                   update("fupValue", text === "" || !(amount > 0) ? null : amount);
                 }}
                 placeholder="Unlimited — leave empty, or enter an amount e.g. 10"
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
               <select
                 data-testid="data-cap-unit"
                 value={form.fupUnit}
                 onChange={(event) => update("fupUnit", event.target.value as "MB" | "GB")}
                 disabled={form.fupValue === null}
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb] disabled:bg-[#f1f5f9] disabled:text-[#94a3b8]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a] disabled:bg-[#f4f4f4] disabled:text-[#a3a3a3]"
               >
                 <option value="MB">MB</option>
                 <option value="GB">GB</option>
               </select>
             </div>
-            <p className="mt-2 text-xs text-[#94a3b8]" data-testid="data-policy-help">
-              <strong className="text-[#475569]">Empty</strong> = unlimited data.{" "}
-              <strong className="text-[#475569]">Enter a number</strong> = the package is limited to that amount of data.
+            <p className="mt-2 text-xs text-[#a3a3a3]" data-testid="data-policy-help">
+              <strong className="text-[#525252]">Empty</strong> = unlimited data.{" "}
+              <strong className="text-[#525252]">Enter a number</strong> = the package is limited to that amount of data.
             </p>
             <p
               data-testid="data-policy-note"
               className={`mt-2 inline-flex rounded-lg px-2.5 py-1 text-xs font-bold ${
-                form.fupValue === null ? "bg-[#f1f5f9] text-[#1d4ed8]" : "bg-[#fffbeb] text-[#92400e]"
+                form.fupValue === null ? "bg-[#f4f4f4] text-[#111111]" : "bg-[#f3f1ec] text-[#111111]"
               }`}
             >
               {form.fupValue === null
@@ -641,11 +641,11 @@ export function PackageForm({
           </div>
         </div>
 
-        <div className="mt-5 rounded-xl border border-[#f1f5f9] bg-[#ffffff] p-4">
+        <div className="mt-5 rounded-xl border border-[#f4f4f4] bg-[#ffffff] p-4">
           <label className="mb-4 flex items-center justify-between gap-3">
             <div>
-              <span className="text-sm font-bold text-[#0f172a]">Throttle instead of cutting off</span>
-              <p className="text-xs text-[#94a3b8]">
+              <span className="text-sm font-bold text-[#1a1a1a]">Throttle instead of cutting off</span>
+              <p className="text-xs text-[#a3a3a3]">
                 Once a user on this package reaches the data amount below,
                 slow them down instead of stopping their access entirely.
                 This applies to every voucher generated from this package.
@@ -655,7 +655,7 @@ export function PackageForm({
               type="button"
               onClick={() => update("throttleEnabled", !form.throttleEnabled)}
               className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-                form.throttleEnabled ? "bg-amber-500" : "bg-[#e2e8f0]"
+                form.throttleEnabled ? "bg-amber-500" : "bg-[#e6e6e6]"
               }`}
             >
               <span
@@ -669,7 +669,7 @@ export function PackageForm({
           {form.throttleEnabled && (
             <div className="grid gap-4 sm:grid-cols-3">
               <label className="block">
-                <span className="mb-2 block text-xs font-semibold text-[#475569]">Throttle at</span>
+                <span className="mb-2 block text-xs font-semibold text-[#525252]">Throttle at</span>
                 <input
                   type="number"
                   min={0}
@@ -681,32 +681,32 @@ export function PackageForm({
                     )
                   }
                   placeholder="e.g. 5"
-                  className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                  className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
                 />
               </label>
               <label className="block">
-                <span className="mb-2 block text-xs font-semibold text-[#475569]">Unit</span>
+                <span className="mb-2 block text-xs font-semibold text-[#525252]">Unit</span>
                 <select
                   value={form.throttleAtUnit}
                   onChange={(event) => update("throttleAtUnit", event.target.value as "MB" | "GB")}
-                  className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                  className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
                 >
                   <option value="MB">MB</option>
                   <option value="GB">GB</option>
                 </select>
               </label>
               <label className="block">
-                <span className="mb-2 block text-xs font-semibold text-[#475569]">Throttled speed (Mbps)</span>
+                <span className="mb-2 block text-xs font-semibold text-[#525252]">Throttled speed (Mbps)</span>
                 <input
                   type="number"
                   min={0.5}
                   step={0.5}
                   value={form.throttleSpeedMbps}
                   onChange={(event) => update("throttleSpeedMbps", Number(event.target.value))}
-                  className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                  className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
                 />
               </label>
-              <p className="text-xs text-[#94a3b8] sm:col-span-3">
+              <p className="text-xs text-[#a3a3a3] sm:col-span-3">
                 E.g. "Throttle at 5 GB, speed 1 Mbps" — the user keeps
                 browsing after 5 GB, just much slower, instead of being
                 disconnected. Leave this off and the Data Cap above still
@@ -718,7 +718,7 @@ export function PackageForm({
       </section>
 
       {/* Pricing & Devices */}
-      <section className="rounded-2xl border-2 border-emerald-100 bg-emerald-50 p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] md:p-8">
+      <section className="rounded-2xl border-2 border-emerald-100 bg-emerald-50 p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
         <SectionHeader
           icon={Wallet}
           title="Pricing & Devices"
@@ -726,12 +726,12 @@ export function PackageForm({
           color="bg-emerald-500"
         />
 
-        <label className="mb-5 flex items-start justify-between gap-3 rounded-xl border border-[#f1f5f9] bg-[#ffffff] px-4 py-3">
+        <label className="mb-5 flex items-start justify-between gap-3 rounded-xl border border-[#f4f4f4] bg-[#ffffff] px-4 py-3">
           <div>
-            <span className="text-sm font-semibold text-[#475569]">
+            <span className="text-sm font-semibold text-[#525252]">
               Free Trial Package
             </span>
-            <p className="text-xs text-[#94a3b8]">
+            <p className="text-xs text-[#a3a3a3]">
               Only one active free trial is allowed. Enabling this sets the
               price to 0.
             </p>
@@ -749,11 +749,11 @@ export function PackageForm({
 
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               Price of the package <span className="text-red-500">*</span>
             </span>
-            <div className="flex overflow-hidden rounded-xl border border-[#e2e8f0] focus-within:border-[#2563eb]">
-              <span className="flex items-center bg-[#ffffff] px-3 text-xs font-semibold text-[#64748b]">
+            <div className="flex overflow-hidden rounded-xl border border-[#e6e6e6] focus-within:border-[#1a1a1a]">
+              <span className="flex items-center bg-[#ffffff] px-3 text-xs font-semibold text-[#737373]">
                 {sym()}
               </span>
               <input
@@ -762,16 +762,16 @@ export function PackageForm({
                 value={form.price}
                 onChange={(event) => update("price", event.target.value)}
                 placeholder={sym()}
-                className="h-11 w-full px-3 text-sm outline-none disabled:bg-[#ffffff] disabled:text-[#94a3b8]"
+                className="h-11 w-full px-3 text-sm outline-none disabled:bg-[#ffffff] disabled:text-[#a3a3a3]"
               />
             </div>
-            <span className="mt-1 block text-xs text-[#94a3b8]">
+            <span className="mt-1 block text-xs text-[#a3a3a3]">
               Enter the package price.
             </span>
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               Devices <span className="text-red-500">*</span>
             </span>
             <input
@@ -790,9 +790,9 @@ export function PackageForm({
               }}
               onBlur={() => setDevicesText(String(form.devices))}
               placeholder="1"
-              className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             />
-            <span className="mt-1 block text-xs text-[#94a3b8]">
+            <span className="mt-1 block text-xs text-[#a3a3a3]">
               Devices one user can connect at the same time. Default is 1 — clear it and type the number you want.
             </span>
           </label>
@@ -805,7 +805,7 @@ export function PackageForm({
       {/* Availability & Visibility — controls beside a live customer preview */}
       <PackageStorefront form={form} update={update} />
 
-      <div className="flex flex-wrap gap-3 rounded-2xl border-2 border-dashed border-[#e2e8f0] bg-[#ffffff] p-5">
+      <div className="flex flex-wrap gap-3 rounded-2xl border-2 border-dashed border-[#e6e6e6] bg-[#ffffff] p-5">
         <button
           type="submit"
           disabled={!hasValidTargets || priceOverCap || !!speedError}

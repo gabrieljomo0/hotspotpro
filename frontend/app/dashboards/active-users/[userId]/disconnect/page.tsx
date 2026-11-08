@@ -45,7 +45,7 @@ export default function DisconnectUserPage({
         state.disconnected ? "disconnected" : "connected"
       }`}
     >
-      <p className="text-sm leading-6 text-[#64748b]">
+      <p className="text-sm leading-6 text-[#737373]">
         {state.disconnected
           ? "The user will be allowed to reconnect to the network."
           : "The user will be disconnected from their current WiFi session and may need to log in again."}

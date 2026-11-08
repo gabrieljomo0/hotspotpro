@@ -52,7 +52,7 @@ function EditableField({
   const error = validate ? validate(draft) : null;
   return (
     <label className="block" data-testid={testId}>
-      <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-[#475569]">
+      <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-[#525252]">
         <Icon size={13} />
         {label}
       </span>
@@ -63,7 +63,7 @@ function EditableField({
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           placeholder={placeholder}
-          className="h-10 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+          className="h-10 w-full rounded-xl border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
         />
         {dirty && (
           <button
@@ -71,18 +71,18 @@ function EditableField({
             onClick={() => onSave(draft.trim())}
             data-testid={testId ? `${testId}-save` : undefined}
             disabled={!!error}
-            className="shrink-0 disabled:opacity-50 rounded-xl bg-[#2563eb] px-3 text-xs font-bold text-white hover:bg-[#1d4ed8]"
+            className="shrink-0 disabled:opacity-50 rounded-xl bg-[#1a1a1a] px-3 text-xs font-bold text-white hover:bg-[#111111]"
           >
             Save
           </button>
         )}
       </div>
       {error && dirty ? (
-        <p data-testid={testId ? `${testId}-error` : undefined} className="mt-1 text-xs font-semibold text-[#b91c1c]">
+        <p data-testid={testId ? `${testId}-error` : undefined} className="mt-1 text-xs font-semibold text-[#1a1a1a]">
           {error}
         </p>
       ) : hint ? (
-        <p className="mt-1 text-[11px] text-[#94a3b8]">{hint}</p>
+        <p className="mt-1 text-[11px] text-[#a3a3a3]">{hint}</p>
       ) : null}
     </label>
   );
@@ -107,7 +107,7 @@ function LockedField({
   if (!value) {
     return (
       <div>
-        <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-[#475569]">
+        <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-[#525252]">
           <Lock size={13} />
           {label}
         </span>
@@ -116,18 +116,18 @@ function LockedField({
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             placeholder={`Enter your ${label.toLowerCase()}`}
-            className="h-10 w-full rounded-xl border-2 border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#cbd5e1]"
+            className="h-10 w-full rounded-xl border-2 border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#d4d4d4]"
           />
           <button
             type="button"
             disabled={!draft.trim()}
             onClick={() => onSetInitial(draft.trim())}
-            className="shrink-0 rounded-xl bg-[#2563eb] px-3 text-xs font-bold text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50"
+            className="shrink-0 rounded-xl bg-[#1a1a1a] px-3 text-xs font-bold text-white hover:bg-[#111111] disabled:cursor-not-allowed disabled:opacity-50"
           >
             Save
           </button>
         </div>
-        <p className="mt-1 text-[11px] text-[#2563eb]">
+        <p className="mt-1 text-[11px] text-[#1a1a1a]">
           You can set this once, right now. After that, changing it needs admin&apos;s approval.
         </p>
       </div>
@@ -136,13 +136,13 @@ function LockedField({
 
   return (
     <div>
-      <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-[#475569]">
+      <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-[#525252]">
         <Lock size={13} />
         {label}
       </span>
-      <div className="flex items-center gap-2 rounded-xl bg-[#f8fafc] px-3 py-2.5">
-        <span className="flex-1 text-sm font-semibold text-[#0f172a]">{value}</span>
-        <span className="rounded-full bg-[#f1f5f9] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#94a3b8]">
+      <div className="flex items-center gap-2 rounded-xl bg-[#f7f7f7] px-3 py-2.5">
+        <span className="flex-1 text-sm font-semibold text-[#1a1a1a]">{value}</span>
+        <span className="rounded-full bg-[#f4f4f4] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#a3a3a3]">
           Locked
         </span>
       </div>
@@ -154,7 +154,7 @@ function LockedField({
             setDraft(value);
             setRequesting(true);
           }}
-          className="mt-1.5 text-xs font-semibold text-[#2563eb] hover:underline"
+          className="mt-1.5 text-xs font-semibold text-[#1a1a1a] hover:underline"
         >
           Request a change from admin
         </button>
@@ -163,7 +163,7 @@ function LockedField({
           <input
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
-            className="h-10 w-full rounded-lg border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+            className="h-10 w-full rounded-lg border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
           />
           <div className="flex gap-2">
             <button
@@ -173,14 +173,14 @@ function LockedField({
                 onRequestChange(draft.trim());
                 setRequesting(false);
               }}
-              className="rounded-lg bg-[#2563eb] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-lg bg-[#1a1a1a] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#111111] disabled:cursor-not-allowed disabled:opacity-50"
             >
               Send Request
             </button>
             <button
               type="button"
               onClick={() => setRequesting(false)}
-              className="rounded-lg bg-[#f1f5f9] px-3 py-1.5 text-xs font-bold text-[#475569] hover:bg-[#f8fafc]"
+              className="rounded-lg bg-[#f4f4f4] px-3 py-1.5 text-xs font-bold text-[#525252] hover:bg-[#f7f7f7]"
             >
               Cancel
             </button>
@@ -203,18 +203,18 @@ function FileSlot({
   onSelect: (fileName: string) => void;
 }) {
   return (
-    <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl bg-[#f8fafc] px-4 py-3 hover:border-[#2563eb]">
+    <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl bg-[#f7f7f7] px-4 py-3 hover:border-[#1a1a1a]">
       <span className="flex items-center gap-2.5">
-        <Icon size={16} className="text-[#64748b]" />
-        <span className="text-sm text-[#475569]">{label}</span>
+        <Icon size={16} className="text-[#737373]" />
+        <span className="text-sm text-[#525252]">{label}</span>
       </span>
       {fileName ? (
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f1f5f9] px-2.5 py-1 text-xs font-bold text-[#2563eb]">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-bold text-[#1a1a1a]">
           <CircleCheck size={12} />
           Submitted
         </span>
       ) : (
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f1f5f9] px-2.5 py-1 text-xs font-semibold text-[#64748b]">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-semibold text-[#737373]">
           <Upload size={12} />
           Upload
         </span>
@@ -292,25 +292,25 @@ function ProfilePage({
   return (
     <section className="mx-auto w-full max-w-2xl">
       <div className="mb-6">
-        <h1 className="flex items-center gap-2 text-2xl font-black text-[#0f172a] md:text-3xl">
-          <User className="text-[#2563eb]" size={26} />
+        <h1 className="flex items-center gap-2 text-2xl font-black text-[#1a1a1a] md:text-3xl">
+          <User className="text-[#1a1a1a]" size={26} />
           My Profile
         </h1>
-        <p className="mt-1 text-sm text-[#64748b]">Your own details — not admin&apos;s.</p>
+        <p className="mt-1 text-sm text-[#737373]">Your own details — not admin&apos;s.</p>
       </div>
 
       {!complete && (
         <div className="mb-6 rounded-2xl border-2 bg-white p-5">
-          <p className="flex items-center gap-2 text-sm font-bold text-[#2563eb]">
+          <p className="flex items-center gap-2 text-sm font-bold text-[#1a1a1a]">
             <AlertTriangle size={16} />
             Finish your profile before you can sell
           </p>
-          <p className="mt-1 text-xs text-[#2563eb]">
+          <p className="mt-1 text-xs text-[#1a1a1a]">
             You can browse your dashboard, but Generate Vouchers stays locked until every item below is filled in:
           </p>
           <ul className="mt-2 flex flex-wrap gap-1.5">
             {missing.map((field) => (
-              <li key={field} className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-[#2563eb]">
+              <li key={field} className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-[#1a1a1a]">
                 {field}
               </li>
             ))}
@@ -321,16 +321,16 @@ function ProfilePage({
       <div className="space-y-5">
         <article className="overflow-hidden rounded-2xl bg-white shadow-sm">
           <div className="border-b px-5 py-4">
-            <h2 className="text-sm font-bold text-[#0f172a]">Contact Details</h2>
+            <h2 className="text-sm font-bold text-[#1a1a1a]">Contact Details</h2>
           </div>
           <div className="grid gap-4 p-5 sm:grid-cols-2">
             <div>
-              <span className="mb-1.5 block text-xs font-semibold text-[#94a3b8]">Full name</span>
-              <p className="text-sm font-semibold text-[#0f172a]">{agent.name}</p>
+              <span className="mb-1.5 block text-xs font-semibold text-[#a3a3a3]">Full name</span>
+              <p className="text-sm font-semibold text-[#1a1a1a]">{agent.name}</p>
             </div>
             <div>
-              <span className="mb-1.5 block text-xs font-semibold text-[#94a3b8]">Agent code</span>
-              <p className="text-sm font-semibold text-[#0f172a]">{agent.agentCode}</p>
+              <span className="mb-1.5 block text-xs font-semibold text-[#a3a3a3]">Agent code</span>
+              <p className="text-sm font-semibold text-[#1a1a1a]">{agent.agentCode}</p>
             </div>
             {canEdit ? (
               <>
@@ -367,20 +367,20 @@ function ProfilePage({
             ) : (
               <>
                 <div>
-                  <span className="mb-1.5 block text-xs font-semibold text-[#94a3b8]">Phone</span>
-                  <p className="text-sm font-semibold text-[#0f172a]">{agent.phone ?? "Not set"}</p>
+                  <span className="mb-1.5 block text-xs font-semibold text-[#a3a3a3]">Phone</span>
+                  <p className="text-sm font-semibold text-[#1a1a1a]">{agent.phone ?? "Not set"}</p>
                 </div>
                 <div>
-                  <span className="mb-1.5 block text-xs font-semibold text-[#94a3b8]">WhatsApp</span>
-                  <p className="text-sm font-semibold text-[#0f172a]">{agent.whatsapp ?? "Not set"}</p>
+                  <span className="mb-1.5 block text-xs font-semibold text-[#a3a3a3]">WhatsApp</span>
+                  <p className="text-sm font-semibold text-[#1a1a1a]">{agent.whatsapp ?? "Not set"}</p>
                 </div>
                 <div>
-                  <span className="mb-1.5 block text-xs font-semibold text-[#94a3b8]">Email</span>
-                  <p className="text-sm font-semibold text-[#0f172a]">{agent.email}</p>
+                  <span className="mb-1.5 block text-xs font-semibold text-[#a3a3a3]">Email</span>
+                  <p className="text-sm font-semibold text-[#1a1a1a]">{agent.email}</p>
                 </div>
                 <div>
-                  <span className="mb-1.5 block text-xs font-semibold text-[#94a3b8]">Location</span>
-                  <p className="text-sm font-semibold text-[#0f172a]">{agent.location ?? "Not set"}</p>
+                  <span className="mb-1.5 block text-xs font-semibold text-[#a3a3a3]">Location</span>
+                  <p className="text-sm font-semibold text-[#1a1a1a]">{agent.location ?? "Not set"}</p>
                 </div>
               </>
             )}
@@ -389,8 +389,8 @@ function ProfilePage({
 
         <article className="overflow-hidden rounded-2xl bg-white shadow-sm" data-testid="account-network-card">
           <div className="border-b px-5 py-4">
-            <h2 className="text-sm font-bold text-[#0f172a]">Username &amp; Network</h2>
-            <p className="text-xs text-[#64748b]">What you sign in with, and the names your customers see.</p>
+            <h2 className="text-sm font-bold text-[#1a1a1a]">Username &amp; Network</h2>
+            <p className="text-xs text-[#737373]">What you sign in with, and the names your customers see.</p>
           </div>
           <div className="grid gap-4 p-5 sm:grid-cols-2">
             {canEdit ? (
@@ -410,8 +410,8 @@ function ProfilePage({
               />
             ) : (
               <div>
-                <span className="mb-1.5 block text-xs font-semibold text-[#94a3b8]">Username</span>
-                <p className="text-sm font-semibold text-[#0f172a]">{agent.username}</p>
+                <span className="mb-1.5 block text-xs font-semibold text-[#a3a3a3]">Username</span>
+                <p className="text-sm font-semibold text-[#1a1a1a]">{agent.username}</p>
               </div>
             )}
             {router ? (
@@ -427,10 +427,10 @@ function ProfilePage({
                   />
                 ) : (
                   <div>
-                    <span className="mb-1.5 block text-xs font-semibold text-[#94a3b8]">WiFi network name</span>
-                    <p data-testid="field-wifi-readonly" className="text-sm font-semibold text-[#0f172a]">{wifiName}</p>
+                    <span className="mb-1.5 block text-xs font-semibold text-[#a3a3a3]">WiFi network name</span>
+                    <p data-testid="field-wifi-readonly" className="text-sm font-semibold text-[#1a1a1a]">{wifiName}</p>
                     {wifiSharedByAdmin && (
-                      <p className="mt-1 text-[11px] text-[#94a3b8]">One name is shared by every network — your admin sets it.</p>
+                      <p className="mt-1 text-[11px] text-[#a3a3a3]">One name is shared by every network — your admin sets it.</p>
                     )}
                   </div>
                 )}
@@ -445,21 +445,21 @@ function ProfilePage({
                   />
                 ) : (
                   <div>
-                    <span className="mb-1.5 block text-xs font-semibold text-[#94a3b8]">Business name</span>
-                    <p className="text-sm font-semibold text-[#0f172a]">{businessName || "Not set"}</p>
+                    <span className="mb-1.5 block text-xs font-semibold text-[#a3a3a3]">Business name</span>
+                    <p className="text-sm font-semibold text-[#1a1a1a]">{businessName || "Not set"}</p>
                   </div>
                 )}
               </>
             ) : (
-              <p className="text-xs text-[#94a3b8] sm:col-span-2">No router is assigned to you yet, so there is no network to name.</p>
+              <p className="text-xs text-[#a3a3a3] sm:col-span-2">No router is assigned to you yet, so there is no network to name.</p>
             )}
           </div>
         </article>
 
         <article className="overflow-hidden rounded-2xl bg-white shadow-sm">
           <div className="border-b px-5 py-4">
-            <h2 className="text-sm font-bold text-[#0f172a]">Identity Verification</h2>
-            <p className="text-xs text-[#64748b]">Needed once, so admin and customers can trust who they&apos;re dealing with.</p>
+            <h2 className="text-sm font-bold text-[#1a1a1a]">Identity Verification</h2>
+            <p className="text-xs text-[#737373]">Needed once, so admin and customers can trust who they&apos;re dealing with.</p>
           </div>
           <div className="space-y-3 p-5">
             <FileSlot
@@ -481,7 +481,7 @@ function ProfilePage({
               onSelect={(fileName) => canEdit && updateAgentContactDetails(agentId, { faceCaptureFileName: fileName })}
             />
 
-            <div className="grid gap-4 border-t border-[#f1f5f9] pt-4 sm:grid-cols-2">
+            <div className="grid gap-4 border-t border-[#f4f4f4] pt-4 sm:grid-cols-2">
               <LockedField
                 label="Ghana Card number"
                 value={agent.ghanaCardNumber}
@@ -501,8 +501,8 @@ function ProfilePage({
         {canChangePassword && (
           <article className="overflow-hidden rounded-2xl bg-white shadow-sm">
             <div className="border-b px-5 py-4">
-              <h2 className="text-sm font-bold text-[#0f172a]">Change Password</h2>
-              <p className="text-xs text-[#64748b]">
+              <h2 className="text-sm font-bold text-[#1a1a1a]">Change Password</h2>
+              <p className="text-xs text-[#737373]">
                 {agent.hasChangedDefaultPassword
                   ? "Set your own password any time."
                   : "You're still using the default password admin gave you — set your own below."}
@@ -510,22 +510,22 @@ function ProfilePage({
             </div>
             <div className="space-y-3 p-5">
               <label className="block">
-                <span className="mb-1.5 block text-xs font-semibold text-[#475569]">New password</span>
+                <span className="mb-1.5 block text-xs font-semibold text-[#525252]">New password</span>
                 <input
                   type="password"
                   value={newPassword}
                   onChange={(event) => setNewPassword(event.target.value)}
                   placeholder="At least 6 characters"
-                  className="h-10 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                  className="h-10 w-full rounded-xl border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
                 />
               </label>
               <label className="block">
-                <span className="mb-1.5 block text-xs font-semibold text-[#475569]">Confirm new password</span>
+                <span className="mb-1.5 block text-xs font-semibold text-[#525252]">Confirm new password</span>
                 <input
                   type="password"
                   value={confirmPassword}
                   onChange={(event) => setConfirmPassword(event.target.value)}
-                  className="h-10 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                  className="h-10 w-full rounded-xl border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
                 />
               </label>
               {newPassword && confirmPassword && newPassword !== confirmPassword && (
@@ -535,7 +535,7 @@ function ProfilePage({
                 type="button"
                 disabled={newPassword.length < 6 || newPassword !== confirmPassword}
                 onClick={handlePasswordChange}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#2563eb] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#1a1a1a] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#111111] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Check size={14} />
                 {passwordSaved ? "Saved!" : "Save New Password"}

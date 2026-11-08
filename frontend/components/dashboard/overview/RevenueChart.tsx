@@ -37,10 +37,10 @@ const TIMEFRAME_LABELS: Record<Timeframe, string[]> = {
 };
 
 const METRICS: Array<{ key: Metric; label: string; unit: string; color: string }> = [
-  { key: "revenue", label: "Total Revenue", unit: "CUR", color: "#2563eb" },
-  { key: "router-revenue", label: "Revenue per Router", unit: "CUR", color: "#2563eb" },
-  { key: "data-usage", label: "Data Usage", unit: "GB", color: "#2563eb" },
-  { key: "sessions", label: "Active Sessions", unit: "sessions", color: "#2563eb" },
+  { key: "revenue", label: "Total Revenue", unit: "CUR", color: "#1a1a1a" },
+  { key: "router-revenue", label: "Revenue per Router", unit: "CUR", color: "#1a1a1a" },
+  { key: "data-usage", label: "Data Usage", unit: "GB", color: "#1a1a1a" },
+  { key: "sessions", label: "Active Sessions", unit: "sessions", color: "#1a1a1a" },
 ];
 
 function seededValue(seed: number, min: number, max: number) {
@@ -105,8 +105,8 @@ export function RevenueChart() {
   const noSalesHere = !isSample && chartData.every((point) => point.value === 0);
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]  ">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e2e8f0] px-5 py-4 ">
+    <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]  ">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e6e6e6] px-5 py-4 ">
         <div className="flex flex-wrap gap-1.5">
           {METRICS.map((item) => (
             <button
@@ -115,8 +115,8 @@ export function RevenueChart() {
               onClick={() => setMetric(item.key)}
               className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
                 metric === item.key
-                  ? "bg-[#f1f5f9] text-[#2563eb]"
-                  : "text-[#64748b] hover:bg-[#ffffff]"
+                  ? "bg-[#f4f4f4] text-[#1a1a1a]"
+                  : "text-[#737373] hover:bg-[#ffffff]"
               }`}
             >
               {item.label}
@@ -125,7 +125,7 @@ export function RevenueChart() {
         </div>
 
         {(
-          <div className="flex overflow-hidden rounded-lg border border-[#e2e8f0] text-xs ">
+          <div className="flex overflow-hidden rounded-lg border border-[#e6e6e6] text-xs ">
             {(["Today", "Daily", "Weekly", "Monthly", "Yearly"] as Timeframe[]).map(
               (period) => (
                 <button
@@ -134,7 +134,7 @@ export function RevenueChart() {
                   onClick={() => setTimeframe(period)}
                   className={`px-3 py-2 transition ${
                     timeframe === period
-                      ? "bg-[#f1f5f9] font-semibold text-[#2563eb]"
+                      ? "bg-[#f4f4f4] font-semibold text-[#1a1a1a]"
                       : "bg-white hover:bg-[#ffffff]  "
                   }`}
                 >
@@ -146,11 +146,11 @@ export function RevenueChart() {
         )}
       </div>
 
-      <p className="px-5 pt-3 text-[11px] text-[#94a3b8]">
+      <p className="px-5 pt-3 text-[11px] text-[#a3a3a3]">
         Drag the bottom-right corner to resize this chart.
       </p>
       {resolved.filtered && !isSample && (
-        <p data-testid="chart-scope" className="px-5 pt-1 text-[11px] font-semibold text-[#2563eb]">
+        <p data-testid="chart-scope" className="px-5 pt-1 text-[11px] font-semibold text-[#1a1a1a]">
           Showing: {resolved.label}
         </p>
       )}
@@ -160,7 +160,7 @@ export function RevenueChart() {
         </p>
       )}
       {noSalesHere && (
-        <p data-testid="chart-empty" className="px-5 pt-1 text-[11px] text-[#94a3b8]">
+        <p data-testid="chart-empty" className="px-5 pt-1 text-[11px] text-[#a3a3a3]">
           No sales in this period{resolved.filtered ? " for this view" : ""}.
         </p>
       )}
@@ -171,7 +171,7 @@ export function RevenueChart() {
             <CartesianGrid
               vertical={false}
               strokeDasharray="3 3"
-              stroke={darkMode ? "#334155" : "#cbd5e1"}
+              stroke={darkMode ? "#333333" : "#d4d4d4"}
               opacity={0.7}
             />
             <XAxis
@@ -179,12 +179,12 @@ export function RevenueChart() {
               axisLine={false}
               tickLine={false}
               interval={isRouterBreakdown ? 0 : isHourly ? 2 : 0}
-              tick={{ fontSize: 11, fill: darkMode ? "#94a3b8" : "#475569" }}
+              tick={{ fontSize: 11, fill: darkMode ? "#a3a3a3" : "#525252" }}
             />
             <YAxis
               axisLine={false}
               tickLine={false}
-              tick={{ fontSize: 12, fill: darkMode ? "#94a3b8" : "#475569" }}
+              tick={{ fontSize: 12, fill: darkMode ? "#a3a3a3" : "#525252" }}
             />
             <Tooltip
               formatter={(value) => [
@@ -195,10 +195,10 @@ export function RevenueChart() {
               ]}
               contentStyle={{
                 borderRadius: "12px",
-                border: darkMode ? "1px solid #334155" : "1px solid #e2e8f0",
+                border: darkMode ? "1px solid #333333" : "1px solid #e6e6e6",
                 fontSize: "13px",
-                background: darkMode ? "#0f172a" : "#ffffff",
-                color: darkMode ? "#ffffff" : "#0f172a",
+                background: darkMode ? "#1a1a1a" : "#ffffff",
+                color: darkMode ? "#ffffff" : "#1a1a1a",
               }}
             />
             <Line

@@ -21,7 +21,7 @@ const UNITS: PackageDurationUnit[] = ["Minutes", "Hours", "Days", "Weeks", "Mont
 export const QUICK_DEFAULT_SPEED_MBPS = 5;
 
 const inputClass =
-  "h-11 w-full rounded-xl border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#2563eb]";
+  "h-11 w-full rounded-xl border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]";
 
 export function buildQuickPackage(
   agent: AgentProfile,
@@ -87,26 +87,26 @@ export function QuickCreatePackageModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0f172a] p-4" data-testid="quick-create-modal">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1a1a1a] p-4" data-testid="quick-create-modal">
       <form onSubmit={submit} className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
-            <h2 className="flex items-center gap-2 text-lg font-black text-[#0f172a]">
-              <Zap size={18} className="text-[#2563eb]" />
+            <h2 className="flex items-center gap-2 text-lg font-black text-[#1a1a1a]">
+              <Zap size={18} className="text-[#1a1a1a]" />
               Quick Create Package
             </h2>
-            <p className="mt-1 text-xs text-[#64748b]">
+            <p className="mt-1 text-xs text-[#737373]">
               Just the basics. It&apos;s set up on your router automatically.
             </p>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close" className="text-[#94a3b8] hover:text-[#475569]">
+          <button type="button" onClick={onClose} aria-label="Close" className="text-[#a3a3a3] hover:text-[#525252]">
             <X size={18} />
           </button>
         </div>
 
         <div className="space-y-4">
           <label className="block">
-            <span className="mb-1 block text-sm font-semibold text-[#475569]">Package name</span>
+            <span className="mb-1 block text-sm font-semibold text-[#525252]">Package name</span>
             <input
               data-testid="quick-name"
               value={name}
@@ -117,7 +117,7 @@ export function QuickCreatePackageModal({
             />
           </label>
           <label className="block">
-            <span className="mb-1 block text-sm font-semibold text-[#475569]">Price ({sym()})</span>
+            <span className="mb-1 block text-sm font-semibold text-[#525252]">Price ({sym()})</span>
             <input
               data-testid="quick-price"
               inputMode="decimal"
@@ -129,7 +129,7 @@ export function QuickCreatePackageModal({
           </label>
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <span className="mb-1 block text-sm font-semibold text-[#475569]">Lasts</span>
+              <span className="mb-1 block text-sm font-semibold text-[#525252]">Lasts</span>
               <input
                 data-testid="quick-duration"
                 inputMode="numeric"
@@ -139,7 +139,7 @@ export function QuickCreatePackageModal({
               />
             </label>
             <label className="block">
-              <span className="mb-1 block text-sm font-semibold text-[#475569]">Unit</span>
+              <span className="mb-1 block text-sm font-semibold text-[#525252]">Unit</span>
               <select
                 data-testid="quick-unit"
                 value={durationUnit}
@@ -155,8 +155,8 @@ export function QuickCreatePackageModal({
             </label>
           </div>
           <label className="block">
-            <span className="mb-1 block text-sm font-semibold text-[#475569]">
-              Data limit (GB) <span className="font-normal text-[#94a3b8]">— optional, empty = unlimited</span>
+            <span className="mb-1 block text-sm font-semibold text-[#525252]">
+              Data limit (GB) <span className="font-normal text-[#a3a3a3]">— optional, empty = unlimited</span>
             </span>
             <input
               data-testid="quick-data"
@@ -169,7 +169,7 @@ export function QuickCreatePackageModal({
           </label>
         </div>
 
-        <p className="mt-3 text-[11px] text-[#94a3b8]">
+        <p className="mt-3 text-[11px] text-[#a3a3a3]">
           Speed is set to {QUICK_DEFAULT_SPEED_MBPS} Mbps and 1 device; you can adjust these later with Edit if you
           have permission, or use the full Create Package form for more options.
         </p>
@@ -184,14 +184,14 @@ export function QuickCreatePackageModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl px-4 py-2.5 text-sm font-semibold text-[#475569] hover:bg-[#f8fafc]"
+            className="rounded-xl px-4 py-2.5 text-sm font-semibold text-[#525252] hover:bg-[#f7f7f7]"
           >
             Cancel
           </button>
           <button
             type="submit"
             data-testid="quick-submit"
-            className="rounded-xl bg-[#2563eb] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+            className="rounded-xl bg-[#1a1a1a] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#111111]"
           >
             Create
           </button>

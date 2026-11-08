@@ -24,9 +24,9 @@ function DaysInput({ id, value, onChange, disabled }: { id: string; value: numbe
         disabled={disabled}
         value={Number.isFinite(value) ? value : ""}
         onChange={(e) => onChange(Math.max(1, Math.min(365, Math.floor(Number(e.target.value) || 1))))}
-        className="h-10 w-20 rounded-lg border border-[#cbd5e1] bg-white px-2 text-center text-sm text-[#0f172a] outline-none focus:border-[#2563eb] disabled:bg-[#f1f5f9] disabled:text-[#94a3b8]"
+        className="h-10 w-20 rounded-lg border border-[#d4d4d4] bg-white px-2 text-center text-sm text-[#1a1a1a] outline-none focus:border-[#1a1a1a] disabled:bg-[#f4f4f4] disabled:text-[#a3a3a3]"
       />
-      <span className="text-sm text-[#475569]">days</span>
+      <span className="text-sm text-[#525252]">days</span>
     </span>
   );
 }
@@ -49,18 +49,18 @@ function Row({
   preview: string;
 }) {
   return (
-    <div data-testid={testId} className="rounded-xl border border-[#e2e8f0] p-4">
+    <div data-testid={testId} className="rounded-xl border border-[#e6e6e6] p-4">
       <div className="flex items-start gap-3">
         <span data-testid={`${testId}-switch`} className="pt-0.5">
           <Toggle checked={on} onChange={onToggle} />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold text-[#0f172a]">{title}</p>
-          <p className="text-xs text-[#64748b]">{blurb}</p>
+          <p className="text-sm font-bold text-[#1a1a1a]">{title}</p>
+          <p className="text-xs text-[#737373]">{blurb}</p>
           {on && (
             <div className="mt-3 flex flex-wrap items-center gap-3">
               {children}
-              <span data-testid={`${testId}-preview`} className="rounded-md bg-[#f1f5f9] px-2.5 py-1 text-xs font-semibold text-[#475569]">
+              <span data-testid={`${testId}-preview`} className="rounded-md bg-[#f4f4f4] px-2.5 py-1 text-xs font-semibold text-[#525252]">
                 {preview}
               </span>
             </div>
@@ -103,9 +103,9 @@ export function CleanupTab({ router }: { router: Pick<RouterInfo, "ip" | "name">
   const last = saved.lastRunMs ? new Date(saved.lastRunMs).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "Never";
 
   return (
-    <article data-testid="cleanup-tab" className="rounded-2xl border border-[#e2e8f0] bg-white p-6 md:p-8">
-      <h3 className="text-lg font-bold text-[#0f172a]">Clean-up</h3>
-      <p className="mb-6 text-sm text-[#64748b]">
+    <article data-testid="cleanup-tab" className="rounded-2xl border border-[#e6e6e6] bg-white p-6 md:p-8">
+      <h3 className="text-lg font-bold text-[#1a1a1a]">Clean-up</h3>
+      <p className="mb-6 text-sm text-[#737373]">
         Keep {router.name.split(" (")[0]} tidy automatically. Each switch below is off until you turn it on, and the clean-up runs once a day at the time you choose.
       </p>
 
@@ -118,7 +118,7 @@ export function CleanupTab({ router }: { router: Pick<RouterInfo, "ip" | "name">
           onToggle={() => set({ pruneEnabled: !draft.pruneEnabled })}
           preview={`${plural(inactive, "user")} would be removed now`}
         >
-          <span className="text-sm text-[#475569]">Inactive for</span>
+          <span className="text-sm text-[#525252]">Inactive for</span>
           <DaysInput id="cleanup-prune-days" value={draft.pruneAfterDays} onChange={(n) => set({ pruneAfterDays: n })} />
         </Row>
 
@@ -130,7 +130,7 @@ export function CleanupTab({ router }: { router: Pick<RouterInfo, "ip" | "name">
           onToggle={() => set({ vouchersEnabled: !draft.vouchersEnabled })}
           preview={`${plural(expired, "voucher")} would be wiped now`}
         >
-          <span className="text-sm text-[#475569]">Expired for at least</span>
+          <span className="text-sm text-[#525252]">Expired for at least</span>
           <DaysInput id="cleanup-vouchers-days" value={draft.vouchersAfterDays} onChange={(n) => set({ vouchersAfterDays: n })} />
         </Row>
 
@@ -142,21 +142,21 @@ export function CleanupTab({ router }: { router: Pick<RouterInfo, "ip" | "name">
           onToggle={() => set({ cookiesEnabled: !draft.cookiesEnabled })}
           preview={`${plural(stale, "cookie")} would be cleared now (${cookieCount(users, router.ip)} stored)`}
         >
-          <span className="text-sm text-[#475569]">Older than</span>
+          <span className="text-sm text-[#525252]">Older than</span>
           <DaysInput id="cleanup-cookies-days" value={draft.cookiesAfterDays} onChange={(n) => set({ cookiesAfterDays: n })} />
         </Row>
 
-        <div className="rounded-xl bg-[#f1f5f9] p-4">
+        <div className="rounded-xl bg-[#f4f4f4] p-4">
           <label className="flex flex-wrap items-center gap-3">
-            <span className="text-sm font-bold text-[#0f172a]">Run every day at</span>
+            <span className="text-sm font-bold text-[#1a1a1a]">Run every day at</span>
             <input
               data-testid="cleanup-time"
               type="time"
               value={draft.runAt}
               onChange={(e) => set({ runAt: e.target.value || "03:00" })}
-              className="h-10 rounded-lg border border-[#cbd5e1] bg-white px-3 text-sm text-[#0f172a] outline-none focus:border-[#2563eb]"
+              className="h-10 rounded-lg border border-[#d4d4d4] bg-white px-3 text-sm text-[#1a1a1a] outline-none focus:border-[#1a1a1a]"
             />
-            <span className="text-xs text-[#64748b]">A quiet hour is best. Last run: <strong data-testid="cleanup-last">{last}</strong></span>
+            <span className="text-xs text-[#737373]">A quiet hour is best. Last run: <strong data-testid="cleanup-last">{last}</strong></span>
           </label>
         </div>
       </div>
@@ -166,17 +166,17 @@ export function CleanupTab({ router }: { router: Pick<RouterInfo, "ip" | "name">
           type="button"
           data-testid="cleanup-run"
           onClick={runNow}
-          className="inline-flex h-11 items-center gap-2 rounded-xl border border-[#cbd5e1] bg-white px-4 text-sm font-bold text-[#0f172a] hover:bg-[#f1f5f9]"
+          className="inline-flex h-11 items-center gap-2 rounded-xl border border-[#d4d4d4] bg-white px-4 text-sm font-bold text-[#1a1a1a] hover:bg-[#f4f4f4]"
         >
           <Play size={15} /> Run clean-up now
         </button>
         <div className="flex items-center gap-3">
-          {dirty && <span className="text-xs font-semibold text-[#b45309]">Unsaved changes</span>}
+          {dirty && <span className="text-xs font-semibold text-[#111111]">Unsaved changes</span>}
           <button
             type="button"
             data-testid="cleanup-save"
             onClick={() => updateRouterCleanup(router.ip, { ...draft, lastRunMs: saved.lastRunMs })}
-            className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#2563eb] px-6 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+            className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#1a1a1a] px-6 text-sm font-bold text-white hover:bg-[#111111]"
           >
             <Check size={16} /> Save clean-up settings
           </button>

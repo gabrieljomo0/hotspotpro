@@ -60,7 +60,7 @@ export default function AgentVoucherBatchPage({
 
         if (!batch) {
           return (
-            <div className="rounded-2xl bg-white p-10 text-center text-sm text-[#94a3b8]">
+            <div className="rounded-2xl bg-white p-10 text-center text-sm text-[#a3a3a3]">
               This voucher batch may have been removed.
             </div>
           );
@@ -112,7 +112,7 @@ export default function AgentVoucherBatchPage({
             </div>
 
             <div className="print:hidden">
-              <div className="mb-6 rounded-2xl bg-[#2563eb] p-6 md:p-8">
+              <div className="mb-6 rounded-2xl bg-[#1a1a1a] p-6 md:p-8">
                 <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
                   <div className="text-white">
                     <p className="mb-1 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-white">
@@ -129,7 +129,7 @@ export default function AgentVoucherBatchPage({
                       <button
                         type="button"
                         onClick={() => setGenerateOpen(true)}
-                        className="inline-flex items-center gap-2 rounded-xl border-2 border-white bg-[#1d4ed8] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#1d4ed8]"
+                        className="inline-flex items-center gap-2 rounded-xl border-2 border-white bg-[#111111] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#111111]"
                       >
                         <Plus size={16} />
                         Create More Vouchers
@@ -140,7 +140,7 @@ export default function AgentVoucherBatchPage({
                         <button
                           type="button"
                           onClick={() => window.print()}
-                          className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-[#2563eb] shadow-lg transition hover:bg-slate-100"
+                          className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-[#1a1a1a] shadow-lg transition hover:bg-slate-100"
                         >
                           <Download size={16} />
                           Download PDF
@@ -148,7 +148,7 @@ export default function AgentVoucherBatchPage({
                         <button
                           type="button"
                           onClick={() => window.print()}
-                          className="inline-flex items-center gap-2 rounded-xl border-2 border-white bg-[#1d4ed8] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#1d4ed8]"
+                          className="inline-flex items-center gap-2 rounded-xl border-2 border-white bg-[#111111] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#111111]"
                         >
                           <Printer size={16} />
                           Print
@@ -161,42 +161,42 @@ export default function AgentVoucherBatchPage({
 
               <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="rounded-2xl border-2 bg-white p-5">
-                  <p className="flex items-center gap-1.5 text-xs font-bold text-[#2563eb]">
+                  <p className="flex items-center gap-1.5 text-xs font-bold text-[#1a1a1a]">
                     <Ticket size={13} />
                     Total
                   </p>
-                  <p className="mt-1 text-2xl font-black text-[#0f172a]">{batch.count}</p>
+                  <p className="mt-1 text-2xl font-black text-[#1a1a1a]">{batch.count}</p>
                 </div>
                 <div className="rounded-2xl border-2 bg-white p-5">
-                  <p className="flex items-center gap-1.5 text-xs font-bold text-[#2563eb]">
+                  <p className="flex items-center gap-1.5 text-xs font-bold text-[#1a1a1a]">
                     <CheckCircle2 size={13} />
                     Available
                   </p>
-                  <p className="mt-1 text-2xl font-black text-[#0f172a]">{availableCount}</p>
+                  <p className="mt-1 text-2xl font-black text-[#1a1a1a]">{availableCount}</p>
                 </div>
                 <div className="rounded-2xl border-2 border-slate-300 bg-slate-100 p-5">
                   <p className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
                     <Clock size={13} />
                     Used
                   </p>
-                  <p className="mt-1 text-2xl font-black text-[#0f172a]">{usedCount}</p>
+                  <p className="mt-1 text-2xl font-black text-[#1a1a1a]">{usedCount}</p>
                 </div>
                 <div className="rounded-2xl border-2 border-red-200 bg-red-50 p-5">
                   <p className="flex items-center gap-1.5 text-xs font-bold text-red-700">
                     <XCircle size={13} />
                     Expired
                   </p>
-                  <p className="mt-1 text-2xl font-black text-[#0f172a]">{expiredCount}</p>
+                  <p className="mt-1 text-2xl font-black text-[#1a1a1a]">{expiredCount}</p>
                 </div>
               </div>
 
               {canPrint && (
                 <div className="mb-6 overflow-hidden rounded-2xl bg-white shadow-sm">
                   <div className="border-b px-5 py-4">
-                    <p className="text-sm font-bold text-[#0f172a]">Voucher Design</p>
-                    <p className="text-xs text-[#64748b]">Pick a layout — the preview below updates instantly.</p>
+                    <p className="text-sm font-bold text-[#1a1a1a]">Voucher Design</p>
+                    <p className="text-xs text-[#737373]">Pick a layout — the preview below updates instantly.</p>
                   </div>
-                  <div className="flex gap-3 overflow-x-auto border-b bg-[#f8fafc] px-5 py-4">
+                  <div className="flex gap-3 overflow-x-auto border-b bg-[#f7f7f7] px-5 py-4">
                     {PRINT_DESIGNS.map((option) => {
                       const isSelected = design === option.id;
                       return (
@@ -204,15 +204,15 @@ export default function AgentVoucherBatchPage({
                           type="button"
                           key={option.id}
                           onClick={() => selectDesign(option.id)}
-                          className={`relative w-44 shrink-0 rounded-xl border-2 p-3 text-left transition hover:shadow-md ${ isSelected ? "border-[#e2e8f0] bg-white shadow-md" : "border-[#e2e8f0] bg-white" }`}
+                          className={`relative w-44 shrink-0 rounded-xl border-2 p-3 text-left transition hover:shadow-md ${ isSelected ? "border-[#e6e6e6] bg-white shadow-md" : "border-[#e6e6e6] bg-white" }`}
                         >
                           {isSelected && (
-                            <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-[#2563eb] text-white">
+                            <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-[#1a1a1a] text-white">
                               <Check size={11} />
                             </span>
                           )}
-                          <p className="text-sm font-bold text-[#0f172a]">{option.name}</p>
-                          <p className="mt-1 text-[11px] leading-snug text-[#64748b]">{option.description}</p>
+                          <p className="text-sm font-bold text-[#1a1a1a]">{option.name}</p>
+                          <p className="mt-1 text-[11px] leading-snug text-[#737373]">{option.description}</p>
                         </button>
                       );
                     })}
@@ -232,13 +232,13 @@ export default function AgentVoucherBatchPage({
               )}
 
               <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
-                <div className="border-b bg-[#0f172a] px-5 py-4">
+                <div className="border-b bg-[#1a1a1a] px-5 py-4">
                   <h3 className="text-base font-bold text-white">All Vouchers in This Batch</h3>
                   <p className="text-xs text-white">{batchVouchers.length} codes total</p>
                 </div>
                 <div className="max-h-[480px] overflow-auto">
                   <table className="w-full min-w-[600px] text-left text-sm">
-                    <thead className="sticky top-0 bg-[#f8fafc] text-xs text-[#64748b]">
+                    <thead className="sticky top-0 bg-[#f7f7f7] text-xs text-[#737373]">
                       <tr>
                         <th className="px-4 py-3">Code{batch.loginMethod === "credentials" ? " (User)" : ""}</th>
                         {batch.loginMethod === "credentials" && <th className="px-4 py-3">Password</th>}
@@ -246,21 +246,21 @@ export default function AgentVoucherBatchPage({
                         <th className="px-4 py-3">Redeemed By</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#f1f5f9]">
+                    <tbody className="divide-y divide-[#f4f4f4]">
                       {batchVouchers.map((v) => (
-                        <tr key={v.code} className="hover:bg-[#f8fafc]">
-                          <td className="px-4 py-3 font-mono text-xs text-[#2563eb]">{v.code}</td>
+                        <tr key={v.code} className="hover:bg-[#f7f7f7]">
+                          <td className="px-4 py-3 font-mono text-xs text-[#1a1a1a]">{v.code}</td>
                           {batch.loginMethod === "credentials" && (
-                            <td className="px-4 py-3 font-mono text-xs text-[#475569]">{v.password}</td>
+                            <td className="px-4 py-3 font-mono text-xs text-[#525252]">{v.password}</td>
                           )}
                           <td className="px-4 py-3">
                             <span
-                              className={`rounded-full px-2.5 py-1 text-xs font-bold ${ v.status === "Available" ? "bg-[#f1f5f9] text-[#2563eb]" : v.status === "Used" ? "bg-slate-100 text-slate-700" : "bg-red-100 text-red-700" }`}
+                              className={`rounded-full px-2.5 py-1 text-xs font-bold ${ v.status === "Available" ? "bg-[#f4f4f4] text-[#1a1a1a]" : v.status === "Used" ? "bg-slate-100 text-slate-700" : "bg-red-100 text-red-700" }`}
                             >
                               {v.status}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-[#475569]">{v.redeemerPhone ?? "—"}</td>
+                          <td className="px-4 py-3 text-[#525252]">{v.redeemerPhone ?? "—"}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -270,7 +270,7 @@ export default function AgentVoucherBatchPage({
 
               <Link
                 href={`/agent-portal/${agentId}/vouchers`}
-                className="mt-4 inline-block text-sm font-semibold text-[#64748b] hover:text-[#475569]"
+                className="mt-4 inline-block text-sm font-semibold text-[#737373] hover:text-[#525252]"
               >
                 ← Back to Vouchers
               </Link>

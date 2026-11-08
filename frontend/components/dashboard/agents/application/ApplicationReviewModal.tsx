@@ -27,7 +27,7 @@ export function ApplicationReviewModal({
   if (!agent) {
     return (
       <ModalFrame title="Application" onClose={onClose} testId="application-review-modal">
-        <p className="text-sm text-[#64748b]">This agent no longer exists, so there is nothing left to review.</p>
+        <p className="text-sm text-[#737373]">This agent no longer exists, so there is nothing left to review.</p>
       </ModalFrame>
     );
   }
@@ -50,7 +50,7 @@ export function ApplicationReviewModal({
         appliedFrom={router ? router.name.split(" (")[0] : null}
       />
 
-      <div className="mt-6 border-t border-[#f1f5f9] pt-5">
+      <div className="mt-6 border-t border-[#f4f4f4] pt-5">
         {pending ? (
           <div className="space-y-3" data-testid="decision-section">
             {review.needsAttention.length > 0 && (
@@ -64,7 +64,7 @@ export function ApplicationReviewModal({
               onChange={(event) => setReason(event.target.value)}
               placeholder="Reason (shown if you reject — optional)"
               aria-label="Decision reason"
-              className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-4 text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-4 text-sm outline-none focus:border-[#1a1a1a]"
             />
             <div className="flex flex-wrap gap-3">
               <button
@@ -92,7 +92,7 @@ export function ApplicationReviewModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-xl border border-[#e2e8f0] bg-white px-5 py-3 text-sm font-semibold text-[#475569] hover:bg-[#ffffff]"
+                className="rounded-xl border border-[#e6e6e6] bg-white px-5 py-3 text-sm font-semibold text-[#525252] hover:bg-[#ffffff]"
               >
                 Decide later
               </button>
@@ -108,7 +108,7 @@ export function ApplicationReviewModal({
             <p className={`text-sm font-bold ${request.status === "Approved" ? "text-emerald-800" : "text-red-800"}`}>
               {request.status} by {request.decidedBy} on {request.decidedAt}
             </p>
-            {request.reason && <p className="mt-1 text-xs italic text-[#64748b]">&quot;{request.reason}&quot;</p>}
+            {request.reason && <p className="mt-1 text-xs italic text-[#737373]">&quot;{request.reason}&quot;</p>}
           </div>
         )}
       </div>

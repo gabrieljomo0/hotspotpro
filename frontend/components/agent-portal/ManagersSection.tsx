@@ -71,11 +71,11 @@ export function ManagersSection({ agent }: { agent: AgentProfile }) {
     <article className="mt-5 rounded-2xl bg-white p-5 shadow-sm">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="flex items-center gap-2 text-sm font-bold text-[#0f172a]">
-            <UsersRound size={15} className="text-[#2563eb]" />
+          <p className="flex items-center gap-2 text-sm font-bold text-[#1a1a1a]">
+            <UsersRound size={15} className="text-[#1a1a1a]" />
             {isOwnerProfile ? "Admins" : "Your Managers"}
           </p>
-          <p className="text-xs text-[#94a3b8]">
+          <p className="text-xs text-[#a3a3a3]">
             {isOwnerProfile
               ? "People you've added to help manage this dashboard."
               : "People you've added to help run this site's day-to-day."}
@@ -85,21 +85,21 @@ export function ManagersSection({ agent }: { agent: AgentProfile }) {
           type="button"
           data-testid="add-admin-btn"
           onClick={() => setInviteOpen((current) => !current)}
-          className="rounded-lg bg-[#2563eb] px-4 py-2 text-xs font-bold text-white hover:bg-[#1d4ed8]"
+          className="rounded-lg bg-[#1a1a1a] px-4 py-2 text-xs font-bold text-white hover:bg-[#111111]"
         >
           {isOwnerProfile ? "+ Add Admin" : "+ Invite Manager"}
         </button>
       </div>
 
       {myManagers.length === 0 ? (
-        <p className="text-sm text-[#94a3b8]">{isOwnerProfile ? "No admins added yet." : "No managers added yet."}</p>
+        <p className="text-sm text-[#a3a3a3]">{isOwnerProfile ? "No admins added yet." : "No managers added yet."}</p>
       ) : (
         <div className="space-y-2">
           {myManagers.map((manager) => (
-            <div key={manager.id} className="flex items-center justify-between rounded-lg bg-[#f8fafc] px-3 py-2 text-sm">
-              <span className="font-semibold text-[#0f172a]">
+            <div key={manager.id} className="flex items-center justify-between rounded-lg bg-[#f7f7f7] px-3 py-2 text-sm">
+              <span className="font-semibold text-[#1a1a1a]">
                 {manager.name}
-                <span className="ml-2 text-xs font-normal text-[#94a3b8]">{manager.email}</span>
+                <span className="ml-2 text-xs font-normal text-[#a3a3a3]">{manager.email}</span>
               </span>
               <span className="flex items-center gap-2">
               {isOwnerProfile && manager.status !== "Pending" && (
@@ -107,13 +107,13 @@ export function ManagersSection({ agent }: { agent: AgentProfile }) {
                   type="button"
                   data-testid="toggle-admin"
                   onClick={() => setAgentStatus(manager.id, manager.status === "Active" ? "Suspended" : "Active")}
-                  className="rounded-md px-2 py-0.5 text-[10px] font-semibold text-[#475569] hover:bg-[#f1f5f9]"
+                  className="rounded-md px-2 py-0.5 text-[10px] font-semibold text-[#525252] hover:bg-[#f4f4f4]"
                 >
                   {manager.status === "Active" ? "Suspend" : "Activate"}
                 </button>
               )}
               <span
-                className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${ manager.status === "Active" ? "bg-[#f1f5f9] text-[#2563eb]" : manager.status === "Pending" ? "bg-[#f1f5f9] text-[#2563eb]" : "bg-slate-200 text-slate-700" }`}
+                className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${ manager.status === "Active" ? "bg-[#f4f4f4] text-[#1a1a1a]" : manager.status === "Pending" ? "bg-[#f4f4f4] text-[#1a1a1a]" : "bg-slate-200 text-slate-700" }`}
               >
                 {manager.status}
               </span>
@@ -124,7 +124,7 @@ export function ManagersSection({ agent }: { agent: AgentProfile }) {
       )}
 
       {created && (
-        <div data-testid="admin-created" className="mt-4 rounded-xl bg-white p-4 text-sm text-[#2563eb]">
+        <div data-testid="admin-created" className="mt-4 rounded-xl bg-white p-4 text-sm text-[#1a1a1a]">
           <p className="flex items-center gap-2 font-bold">
             <ShieldCheck size={15} /> {created.name} is now an admin on this dashboard.
           </p>
@@ -141,28 +141,28 @@ export function ManagersSection({ agent }: { agent: AgentProfile }) {
       )}
 
       {inviteOpen && isOwnerProfile && (
-        <form onSubmit={handleAddAdmin} data-testid="add-admin-form" className="mt-4 grid gap-3 rounded-xl bg-[#f8fafc] p-4 sm:grid-cols-2">
-          <input required data-testid="admin-name" value={managerName} onChange={(e) => setManagerName(e.target.value)} placeholder="Admin's full name" className="h-10 rounded-lg border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#cbd5e1]" />
-          <input required data-testid="admin-email" type="email" value={managerEmail} onChange={(e) => setManagerEmail(e.target.value)} placeholder="Admin's email" className="h-10 rounded-lg border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#cbd5e1]" />
-          <input required data-testid="admin-phone" value={adminPhone} onChange={(e) => setAdminPhone(e.target.value)} placeholder="Phone number" className="h-10 rounded-lg border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#cbd5e1]" />
-          <button type="submit" data-testid="admin-submit" className="h-10 rounded-lg bg-[#2563eb] text-xs font-bold text-white hover:bg-[#1d4ed8]">
+        <form onSubmit={handleAddAdmin} data-testid="add-admin-form" className="mt-4 grid gap-3 rounded-xl bg-[#f7f7f7] p-4 sm:grid-cols-2">
+          <input required data-testid="admin-name" value={managerName} onChange={(e) => setManagerName(e.target.value)} placeholder="Admin's full name" className="h-10 rounded-lg border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#d4d4d4]" />
+          <input required data-testid="admin-email" type="email" value={managerEmail} onChange={(e) => setManagerEmail(e.target.value)} placeholder="Admin's email" className="h-10 rounded-lg border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#d4d4d4]" />
+          <input required data-testid="admin-phone" value={adminPhone} onChange={(e) => setAdminPhone(e.target.value)} placeholder="Phone number" className="h-10 rounded-lg border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#d4d4d4]" />
+          <button type="submit" data-testid="admin-submit" className="h-10 rounded-lg bg-[#1a1a1a] text-xs font-bold text-white hover:bg-[#111111]">
             Add Admin
           </button>
           {adminError && <p data-testid="admin-error" className="text-sm font-semibold text-red-600 sm:col-span-2">{adminError}</p>}
-          <p className="text-xs text-[#94a3b8] sm:col-span-2">
+          <p className="text-xs text-[#a3a3a3] sm:col-span-2">
             They&apos;re active straight away as an Associate Admin, with a temporary password you hand to them. You can suspend them any time.
           </p>
         </form>
       )}
 
       {inviteOpen && !isOwnerProfile && (
-        <form onSubmit={handleInvite} className="mt-4 grid gap-3 rounded-xl bg-[#f8fafc] p-4 sm:grid-cols-3">
+        <form onSubmit={handleInvite} className="mt-4 grid gap-3 rounded-xl bg-[#f7f7f7] p-4 sm:grid-cols-3">
           <input
             required
             value={managerName}
             onChange={(e) => setManagerName(e.target.value)}
             placeholder="Manager's full name"
-            className="h-10 rounded-lg border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#cbd5e1]"
+            className="h-10 rounded-lg border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#d4d4d4]"
           />
           <input
             required
@@ -170,12 +170,12 @@ export function ManagersSection({ agent }: { agent: AgentProfile }) {
             value={managerEmail}
             onChange={(e) => setManagerEmail(e.target.value)}
             placeholder="Manager's email"
-            className="h-10 rounded-lg border border-[#cbd5e1] bg-white px-3 text-sm outline-none focus:border-[#cbd5e1]"
+            className="h-10 rounded-lg border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#d4d4d4]"
           />
-          <button type="submit" className="h-10 rounded-lg bg-[#2563eb] text-xs font-bold text-white hover:bg-[#1d4ed8]">
+          <button type="submit" className="h-10 rounded-lg bg-[#1a1a1a] text-xs font-bold text-white hover:bg-[#111111]">
             Send Invite
           </button>
-          <p className="text-xs text-[#94a3b8] sm:col-span-3">
+          <p className="text-xs text-[#a3a3a3] sm:col-span-3">
             They&apos;ll be added as pending until your admin approves them.
           </p>
         </form>

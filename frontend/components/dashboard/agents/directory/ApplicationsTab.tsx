@@ -110,8 +110,8 @@ export function ApplicationsTab() {
               onClick={() => setFilter(key)}
               className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${
                 filter === key
-                  ? "border-[#2563eb] bg-[#f1f5f9] text-[#2563eb]"
-                  : "border-[#e2e8f0] bg-white text-[#475569] hover:bg-[#ffffff]"
+                  ? "border-[#1a1a1a] bg-[#f4f4f4] text-[#1a1a1a]"
+                  : "border-[#e6e6e6] bg-white text-[#525252] hover:bg-[#ffffff]"
               }`}
             >
               {key === "Pending" ? `Awaiting Decision (${waiting.length})` : `All Applications (${applications.length})`}
@@ -119,21 +119,21 @@ export function ApplicationsTab() {
           ))}
         </div>
         <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8]" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" />
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search applicants"
             aria-label="Search applications"
-            className="h-10 w-56 rounded-lg border border-[#e2e8f0] bg-white pl-8 pr-3 text-sm outline-none focus:border-[#2563eb]"
+            className="h-10 w-56 rounded-lg border border-[#e6e6e6] bg-white pl-8 pr-3 text-sm outline-none focus:border-[#1a1a1a]"
           />
         </div>
       </div>
 
-      <article className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+      <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] text-left text-sm" data-testid="applications-table">
-            <thead className="bg-[#ffffff] text-xs text-[#64748b]">
+            <thead className="bg-[#ffffff] text-xs text-[#737373]">
               <tr>
                 <th className="px-4 py-4 font-semibold">Applicant</th>
                 <th className="px-4 py-4 font-semibold">Phone</th>
@@ -148,14 +148,14 @@ export function ApplicationsTab() {
             <tbody>
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-[#94a3b8]">
+                  <td colSpan={8} className="px-4 py-10 text-center text-[#a3a3a3]">
                     No agent applications match this filter.
                     {applications.length === 0 && (
                       <button
                         type="button"
                         data-testid="load-samples"
                         onClick={() => loadSampleApplications()}
-                        className="ml-3 rounded-lg bg-[#2563eb] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#1d4ed8]"
+                        className="ml-3 rounded-lg bg-[#1a1a1a] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#111111]"
                       >
                         Load sample applications
                       </button>
@@ -168,15 +168,15 @@ export function ApplicationsTab() {
                 const review = agent ? reviewApplication(agent, agents) : null;
                 const router = agent ? routers.find((r) => r.ip === agent.routerIp) : null;
                 return (
-                  <tr key={request.id} className="border-t border-[#f1f5f9] hover:bg-[#ffffff]" data-testid="application-row">
+                  <tr key={request.id} className="border-t border-[#f4f4f4] hover:bg-[#ffffff]" data-testid="application-row">
                     <td className="px-4 py-4">
-                      <p className="font-semibold text-[#0f172a]">{request.agentName}</p>
-                      <p className="text-xs text-[#94a3b8]">{agent?.email ?? "Agent removed"}</p>
+                      <p className="font-semibold text-[#1a1a1a]">{request.agentName}</p>
+                      <p className="text-xs text-[#a3a3a3]">{agent?.email ?? "Agent removed"}</p>
                     </td>
-                    <td className="px-4 py-4 text-[#475569]">{agent?.phone ?? "—"}</td>
-                    <td className="px-4 py-4 text-[#475569]">{agent?.location ?? "—"}</td>
-                    <td className="px-4 py-4 text-[#475569]">{router ? router.name.split(" (")[0] : "—"}</td>
-                    <td className="px-4 py-4 text-[#64748b]">{request.createdAt}</td>
+                    <td className="px-4 py-4 text-[#525252]">{agent?.phone ?? "—"}</td>
+                    <td className="px-4 py-4 text-[#525252]">{agent?.location ?? "—"}</td>
+                    <td className="px-4 py-4 text-[#525252]">{router ? router.name.split(" (")[0] : "—"}</td>
+                    <td className="px-4 py-4 text-[#737373]">{request.createdAt}</td>
                     <td className="px-4 py-4">
                       {review ? (
                         <span
@@ -200,7 +200,7 @@ export function ApplicationsTab() {
                       <button
                         type="button"
                         onClick={() => setReviewing(request)}
-                        className="rounded-lg bg-[#2563eb] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#1d4ed8]"
+                        className="rounded-lg bg-[#1a1a1a] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#111111]"
                       >
                         {request.status === "Pending" || request.status === "Under Review" ? "Review" : "Open"}
                       </button>

@@ -24,7 +24,7 @@ export function RecentEvents({
       subtitle: `Batch ${batch.reference}`,
       time: batch.createdAt,
       icon: Ticket,
-      iconClass: "bg-[#f1f5f9] text-[#2563eb]",
+      iconClass: "bg-[#f4f4f4] text-[#1a1a1a]",
     })),
     ...expiring.map((u) => ({
       key: `expiring-${getUserId(u)}`,
@@ -32,7 +32,7 @@ export function RecentEvents({
       subtitle: `${u.package} · ${u.timeLeft} left`,
       time: "",
       icon: UserRound,
-      iconClass: "bg-[#f1f5f9] text-[#2563eb]",
+      iconClass: "bg-[#f4f4f4] text-[#1a1a1a]",
     })),
     ...blocked.map((u) => ({
       key: `blocked-${getUserId(u)}`,
@@ -40,7 +40,7 @@ export function RecentEvents({
       subtitle: u.package,
       time: "",
       icon: LockKeyhole,
-      iconClass: "bg-[#fef2f2] text-[#b91c1c]",
+      iconClass: "bg-[#f3f1ec] text-[#1a1a1a]",
     })),
   ];
 
@@ -50,7 +50,7 @@ export function RecentEvents({
 
       <div className="mt-5 space-y-4">
         {events.length === 0 ? (
-          <p className="text-sm text-[#94a3b8]">Nothing to show yet.</p>
+          <p className="text-sm text-[#a3a3a3]">Nothing to show yet.</p>
         ) : (
           events.map((event) => {
             const Icon = event.icon;
@@ -61,9 +61,9 @@ export function RecentEvents({
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-semibold">{event.title}</p>
-                  <p className="mt-1 truncate text-[11px] text-[#64748b]">{event.subtitle}</p>
+                  <p className="mt-1 truncate text-[11px] text-[#737373]">{event.subtitle}</p>
                 </div>
-                {event.time && <span className="whitespace-nowrap text-[11px] text-[#64748b]">{event.time}</span>}
+                {event.time && <span className="whitespace-nowrap text-[11px] text-[#737373]">{event.time}</span>}
               </div>
             );
           })

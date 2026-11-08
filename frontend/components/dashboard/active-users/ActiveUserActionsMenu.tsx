@@ -18,7 +18,7 @@ export function ActiveUserActionsMenu({
   const can = routes.can;
   const href = (action?: UserAction) => routes.href(userId, action);
   const linkClass =
-    "flex w-full px-4 py-2.5 text-sm text-[#475569] hover:bg-[#f1f5f9]";
+    "flex w-full px-4 py-2.5 text-sm text-[#525252] hover:bg-[#f4f4f4]";
 
   const allItems: Array<{ action: UserAction; label: string; className?: string; group: number }> = [
     { action: "details", label: "Session Details", group: 0 },
@@ -38,7 +38,7 @@ export function ActiveUserActionsMenu({
     <DropdownMenuPortal anchorRect={anchorRect} onClose={onClose} width={224}>
       {items.map((item, index) => (
         <div key={item.action}>
-          {index > 0 && items[index - 1].group !== item.group && <div className="my-2 border-t border-[#f1f5f9]" />}
+          {index > 0 && items[index - 1].group !== item.group && <div className="my-2 border-t border-[#f4f4f4]" />}
           <Link
             href={href(item.action)}
             className={item.className ? `flex w-full px-4 py-2.5 text-sm ${item.className}` : linkClass}

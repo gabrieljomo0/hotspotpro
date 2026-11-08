@@ -74,18 +74,18 @@ export default function BusinessDetailPage() {
 
   return (
     <>
-      <Link href="/super-admin/businesses" className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-[#2563eb]"><ArrowLeft size={15} /> All businesses</Link>
+      <Link href="/super-admin/businesses" className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-[#1a1a1a]"><ArrowLeft size={15} /> All businesses</Link>
 
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="flex flex-wrap items-center gap-3 text-3xl font-bold tracking-tight">
             {t.name} <Badge tone={t.status === "active" ? "green" : "red"}>{t.status === "active" ? "Active" : "Suspended"}</Badge>
           </h1>
-          <p className="mt-1 text-sm text-[#64748b]">
+          <p className="mt-1 text-sm text-[#737373]">
             {t.owner ? `${t.owner.name || "Owner"} · ${t.owner.email} · last signed in ${ago(t.owner.lastLoginAt)}` : "No owner account"} · joined {when(t.createdAt)}
           </p>
           {t.status === "suspended" && (
-            <p className="mt-2 text-sm text-[#b91c1c]">Suspended {when(t.suspendedAt)}{t.suspendedReason ? `: ${t.suspendedReason}` : ""}. Its owner, agents and customers are locked out.</p>
+            <p className="mt-2 text-sm text-[#1a1a1a]">Suspended {when(t.suspendedAt)}{t.suspendedReason ? `: ${t.suspendedReason}` : ""}. Its owner, agents and customers are locked out.</p>
           )}
         </div>
         <div className="flex flex-wrap gap-2">
@@ -96,11 +96,11 @@ export default function BusinessDetailPage() {
       </div>
 
       {message && (
-        <p className={`mb-4 rounded-lg p-3 text-sm ${message.tone === "ok" ? "bg-emerald-50 text-emerald-700" : "bg-[#fef2f2] text-[#b91c1c]"}`}>{message.text}</p>
+        <p className={`mb-4 rounded-lg p-3 text-sm ${message.tone === "ok" ? "bg-emerald-50 text-emerald-700" : "bg-[#f3f1ec] text-[#1a1a1a]"}`}>{message.text}</p>
       )}
       {temporary && (
-        <p className="mb-4 rounded-lg border border-[#cbd5e1] bg-white p-3 text-sm text-[#0f172a]">
-          New temporary password for {t.owner?.email}: <code className="rounded bg-[#f1f5f9] px-2 py-1 font-bold">{temporary}</code>. Send it to them now; it is not shown again.
+        <p className="mb-4 rounded-lg border border-[#d4d4d4] bg-white p-3 text-sm text-[#1a1a1a]">
+          New temporary password for {t.owner?.email}: <code className="rounded bg-[#f4f4f4] px-2 py-1 font-bold">{temporary}</code>. Send it to them now; it is not shown again.
         </p>
       )}
 
@@ -121,7 +121,7 @@ export default function BusinessDetailPage() {
             {t.status === "active" ? (
               <>
                 <div className="min-w-[240px] flex-1">
-                  <label className="mb-1 block text-sm text-[#475569]">Reason (shown in the log)</label>
+                  <label className="mb-1 block text-sm text-[#525252]">Reason (shown in the log)</label>
                   <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. unpaid subscription" className={inputClass} />
                 </div>
                 <button type="button" disabled={busy} onClick={() => run("Suspend failed", () => api(`/api/super/tenants/${id}`, { method: "PATCH", body: JSON.stringify({ status: "suspended", reason }) }), "Business suspended.")} className={dangerButton}>
@@ -139,13 +139,13 @@ export default function BusinessDetailPage() {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm text-[#475569]">Private notes (only you see these)</label>
+            <label className="mb-1 block text-sm text-[#525252]">Private notes (only you see these)</label>
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className={inputClass} />
             <button type="button" disabled={busy} onClick={() => run("Saving notes failed", () => api(`/api/super/tenants/${id}`, { method: "PATCH", body: JSON.stringify({ notes }) }), "Notes saved.")} className={`${quietButton} mt-2`}>Save notes</button>
           </div>
 
-          <div className="border-t border-[#e2e8f0] pt-4">
-            <button type="button" onClick={() => setShowDanger((v) => !v)} className="text-sm font-semibold text-[#b91c1c]">{showDanger ? "Hide" : "Show"} delete option</button>
+          <div className="border-t border-[#e6e6e6] pt-4">
+            <button type="button" onClick={() => setShowDanger((v) => !v)} className="text-sm font-semibold text-[#1a1a1a]">{showDanger ? "Hide" : "Show"} delete option</button>
             {showDanger && (
               <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-4">
                 <p className="text-sm text-red-700">Deleting removes this business, its owner and every router, voucher, payment and setting it has. This cannot be undone. Type <strong>{t.name}</strong> to confirm.</p>
@@ -173,7 +173,7 @@ export default function BusinessDetailPage() {
         <Table head={["Name", "Address", "Status", "Location", "Setup link"]} empty={data.routers.length ? undefined : "No routers added yet."}>
           {data.routers.map((r) => (
             <tr key={r.ip + r.name}>
-              <Td className="font-semibold text-[#0f172a]">{r.name}</Td><Td className="font-mono text-xs">{r.ip}</Td>
+              <Td className="font-semibold text-[#1a1a1a]">{r.name}</Td><Td className="font-mono text-xs">{r.ip}</Td>
               <Td>{r.disconnected ? <Badge tone="red">Disconnected</Badge> : <Badge tone={r.status === "Online" ? "green" : "grey"}>{r.status || "—"}</Badge>}</Td>
               <Td>{r.location || "—"}</Td><Td>{r.hasToken ? "Yes" : "No"}</Td>
             </tr>

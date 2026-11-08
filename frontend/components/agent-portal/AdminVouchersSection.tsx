@@ -27,31 +27,31 @@ export function AdminVouchersSection({ agent }: { agent: AgentProfile }) {
   return (
     <article className="mt-5 rounded-2xl bg-white p-5 shadow-sm">
       <div className="mb-3">
-        <p className="flex items-center gap-2 text-sm font-bold text-[#0f172a]">
-          <Ticket size={15} className="text-[#2563eb]" />
+        <p className="flex items-center gap-2 text-sm font-bold text-[#1a1a1a]">
+          <Ticket size={15} className="text-[#1a1a1a]" />
           Vouchers From Admin
         </p>
-        <p className="text-xs text-[#94a3b8]">
+        <p className="text-xs text-[#a3a3a3]">
           Voucher batches your admin has generated and pushed to you directly.
         </p>
       </div>
 
       {assignedBatches.length === 0 ? (
-        <p className="text-sm text-[#94a3b8]">Nothing pushed to you yet.</p>
+        <p className="text-sm text-[#a3a3a3]">Nothing pushed to you yet.</p>
       ) : (
         <div className="space-y-2">
           {assignedBatches.map((batch) => (
-            <Link key={batch.id} href={`/agent-portal/${agent.id}/vouchers/batch/${batch.id}`} data-testid="admin-batch-link" className="flex items-center justify-between gap-3 rounded-lg bg-[#f8fafc] px-3 py-2.5 text-sm hover:bg-[#f1f5f9]">
+            <Link key={batch.id} href={`/agent-portal/${agent.id}/vouchers/batch/${batch.id}`} data-testid="admin-batch-link" className="flex items-center justify-between gap-3 rounded-lg bg-[#f7f7f7] px-3 py-2.5 text-sm hover:bg-[#f4f4f4]">
               <div className="min-w-0">
-                <p className="flex items-center gap-1.5 truncate font-semibold text-[#0f172a]">
-                  {batch.isGiveaway && <Gift size={12} className="shrink-0 text-[#2563eb]" />}
+                <p className="flex items-center gap-1.5 truncate font-semibold text-[#1a1a1a]">
+                  {batch.isGiveaway && <Gift size={12} className="shrink-0 text-[#1a1a1a]" />}
                   {batch.reference}
                 </p>
-                <p className="truncate text-xs text-[#94a3b8]">
+                <p className="truncate text-xs text-[#a3a3a3]">
                   {batch.packageName} · {localizeAmountString(batch.price)} · {batch.createdAt}
                 </p>
               </div>
-              <span className="shrink-0 rounded-full bg-[#f1f5f9] px-2.5 py-1 text-xs font-bold text-[#2563eb]">
+              <span className="shrink-0 rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-bold text-[#1a1a1a]">
                 {batch.count} vouchers
               </span>
             </Link>

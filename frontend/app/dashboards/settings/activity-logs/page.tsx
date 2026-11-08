@@ -52,7 +52,7 @@ export default function HistoryPage() {
           <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
             Activity Logs
           </h2>
-          <p className="mt-2 max-w-xl text-sm text-[#64748b] md:text-base">
+          <p className="mt-2 max-w-xl text-sm text-[#737373] md:text-base">
             Every action taken on your account since it was created.
           </p>
         </div>
@@ -77,8 +77,8 @@ export default function HistoryPage() {
             onClick={() => setFilter(category)}
             className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
               filter === category
-                ? "border-[#2563eb] bg-[#f1f5f9] text-[#2563eb]"
-                : "border-[#e2e8f0] bg-white text-[#475569] hover:bg-[#ffffff]"
+                ? "border-[#1a1a1a] bg-[#f4f4f4] text-[#1a1a1a]"
+                : "border-[#e6e6e6] bg-white text-[#525252] hover:bg-[#ffffff]"
             }`}
           >
             {category}
@@ -86,14 +86,14 @@ export default function HistoryPage() {
         ))}
       </div>
 
-      <article className="mt-5 overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
+      <article className="mt-5 overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
         {filteredLog.length === 0 ? (
-          <div className="px-5 py-14 text-center text-sm text-[#94a3b8]">
+          <div className="px-5 py-14 text-center text-sm text-[#a3a3a3]">
             No activity recorded yet. Actions you take across the dashboard
             will show up here.
           </div>
         ) : (
-          <div className="divide-y divide-[#f1f5f9]">
+          <div className="divide-y divide-[#f4f4f4]">
             {filteredLog.map((entry: ActivityLogEntry) => {
               const Icon = CATEGORY_ICON[entry.category];
 
@@ -108,9 +108,9 @@ export default function HistoryPage() {
                     <Icon size={16} />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm text-[#475569]">{entry.message}</p>
+                    <p className="text-sm text-[#525252]">{entry.message}</p>
                   </div>
-                  <span className="shrink-0 text-xs text-[#94a3b8]">
+                  <span className="shrink-0 text-xs text-[#a3a3a3]">
                     {entry.timestamp}
                   </span>
                 </div>

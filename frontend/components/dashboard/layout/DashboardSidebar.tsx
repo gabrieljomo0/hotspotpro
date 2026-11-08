@@ -74,19 +74,19 @@ export function DashboardSidebar({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 h-screen overflow-y-auto overflow-x-hidden border-r border-[#cbd5e1] bg-[#f1f5f9] text-[#0f172a] shadow-[6px_0_24px_rgba(37,99,235,0.05)] transition-all duration-300 lg:sticky lg:top-0 ${
+        className={`fixed inset-y-0 left-0 z-50 h-screen overflow-y-auto overflow-x-hidden border-r border-[#d4d4d4] bg-[#f4f4f4] text-[#1a1a1a] shadow-[6px_0_24px_rgba(26,26,26,0.05)] transition-all duration-300 lg:sticky lg:top-0 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         } ${collapsed ? "w-[82px]" : "w-[270px]"} lg:translate-x-0`}
       >
         <div className="relative min-h-full">
           <div
-            className={`flex h-20 items-center border-b border-[#cbd5e1] ${
+            className={`flex h-20 items-center border-b border-[#d4d4d4] ${
               collapsed ? "justify-center px-3" : "justify-between px-5"
             }`}
           >
             {!collapsed && (
               <div className="flex min-w-0 items-center gap-3 overflow-hidden">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-[#2563eb]">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-[#1a1a1a]">
                   <Wifi size={26} strokeWidth={3} />
                 </div>
 
@@ -94,7 +94,7 @@ export function DashboardSidebar({
                   <h1 className="truncate text-xl font-bold leading-tight">
                     HotspotPro
                   </h1>
-                  <p className="mt-1 text-xs text-[#64748b]">
+                  <p className="mt-1 text-xs text-[#737373]">
                     Billing System
                   </p>
                 </div>
@@ -110,7 +110,7 @@ export function DashboardSidebar({
                   onToggleCollapse();
                 }
               }}
-              className={`flex shrink-0 items-center justify-center bg-transparent p-0 text-[#475569] transition hover:text-[#2563eb] focus:outline-none ${
+              className={`flex shrink-0 items-center justify-center bg-transparent p-0 text-[#525252] transition hover:text-[#1a1a1a] focus:outline-none ${
                 collapsed ? "h-11 w-11" : "h-10 w-10"
               }`}
               aria-label={collapsed ? "Show sidebar" : "Hide sidebar"}
@@ -142,13 +142,13 @@ export function DashboardSidebar({
                 return (
                   <section key={group.title} className="mb-2">
                     {!collapsed && (
-                      <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#94a3b8]">
+                      <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#a3a3a3]">
                         Main
                       </p>
                     )}
 
                     {collapsed && (
-                      <div className="mb-3 border-t border-[#cbd5e1]" />
+                      <div className="mb-3 border-t border-[#d4d4d4]" />
                     )}
 
                     <div className="space-y-1.5">
@@ -161,8 +161,8 @@ export function DashboardSidebar({
                             : "gap-3 px-3 py-3"
                         } ${
                           item.active
-                            ? "bg-white font-bold text-[#1d4ed8] shadow-sm ring-1 ring-[#cbd5e1]"
-                            : "text-[#475569] hover:bg-[#e2e8f0] hover:text-[#0f172a]"
+                            ? "bg-white font-bold text-[#111111] shadow-sm ring-1 ring-[#d4d4d4]"
+                            : "text-[#525252] hover:bg-[#e6e6e6] hover:text-[#1a1a1a]"
                         }`;
 
                         const showBadge = item.href === "/dashboards/agents" && waitingApplications > 0;
@@ -217,7 +217,7 @@ export function DashboardSidebar({
                             {item.dividerAfter && (
                               <div
                                 role="separator"
-                                className={`mt-4 border-t border-[#cbd5e1] ${collapsed ? "mx-1" : "mx-2"}`}
+                                className={`mt-4 border-t border-[#d4d4d4] ${collapsed ? "mx-1" : "mx-2"}`}
                               />
                             )}
                           </Fragment>
@@ -236,7 +236,7 @@ export function DashboardSidebar({
                     onClick={() => toggleMenu(group.title)}
                     title={collapsed ? group.title : undefined}
                     aria-expanded={isOpen}
-                    className={`flex w-full items-center rounded-xl text-left text-sm font-semibold text-[#475569] transition hover:bg-[#e2e8f0] hover:text-[#0f172a] ${
+                    className={`flex w-full items-center rounded-xl text-left text-sm font-semibold text-[#525252] transition hover:bg-[#e6e6e6] hover:text-[#1a1a1a] ${
                       collapsed
                         ? "justify-center px-2 py-3"
                         : "gap-3 px-3 py-3"
@@ -262,13 +262,13 @@ export function DashboardSidebar({
                       className={`space-y-1 ${
                         collapsed
                           ? "mt-1"
-                          : "ml-5 border-l border-[#cbd5e1] pl-3"
+                          : "ml-5 border-l border-[#d4d4d4] pl-3"
                       }`}
                     >
                       {group.items.map((item) => {
                         const Icon = item.icon;
 
-                        const submenuClass = `flex w-full items-center rounded-lg text-left text-sm text-[#64748b] transition hover:bg-white hover:text-[#2563eb] ${
+                        const submenuClass = `flex w-full items-center rounded-lg text-left text-sm text-[#737373] transition hover:bg-white hover:text-[#1a1a1a] ${
                           collapsed
                             ? "justify-center px-2 py-2.5"
                             : "gap-3 px-3 py-2.5"
@@ -309,16 +309,16 @@ export function DashboardSidebar({
                 {group.dividerAfter && (
                   <div
                     role="separator"
-                    className={`mb-5 mt-4 border-t border-[#cbd5e1] ${collapsed ? "mx-1" : "mx-2"}`}
+                    className={`mb-5 mt-4 border-t border-[#d4d4d4] ${collapsed ? "mx-1" : "mx-2"}`}
                   />
                 )}
                 </Fragment>
               );
             })}
 
-            <section className="mt-4 border-t border-[#cbd5e1] pt-5">
+            <section className="mt-4 border-t border-[#d4d4d4] pt-5">
               <div
-                className={`rounded-xl border border-[#cbd5e1] bg-white ${
+                className={`rounded-xl border border-[#d4d4d4] bg-white ${
                   collapsed ? "p-2" : "p-4"
                 }`}
               >
@@ -330,7 +330,7 @@ export function DashboardSidebar({
                   {!collapsed && (
                     <div>
                       <p className="text-sm font-semibold">Theme</p>
-                      <p className="mt-1 text-xs text-[#94a3b8]">
+                      <p className="mt-1 text-xs text-[#a3a3a3]">
                         {darkMode ? "Dark mode" : "Light mode"}
                       </p>
                     </div>
@@ -340,7 +340,7 @@ export function DashboardSidebar({
                     type="button"
                     onClick={onToggleTheme}
                     className={`relative h-8 w-14 shrink-0 rounded-full transition-all duration-300 ${
-                      darkMode ? "bg-[#2563eb]" : "bg-[#93c5fd]"
+                      darkMode ? "bg-[#1a1a1a]" : "bg-[#d4d4d4]"
                     }`}
                     aria-label="Toggle light and dark theme"
                   >
@@ -350,9 +350,9 @@ export function DashboardSidebar({
                       }`}
                     >
                       {darkMode ? (
-                        <Moon size={13} className="text-[#0f172a]" />
+                        <Moon size={13} className="text-[#1a1a1a]" />
                       ) : (
-                        <Sun size={13} className="text-[#2563eb]" />
+                        <Sun size={13} className="text-[#1a1a1a]" />
                       )}
                     </span>
                   </button>
@@ -361,16 +361,16 @@ export function DashboardSidebar({
             </section>
 
             {!collapsed && (
-              <section className="mt-4 rounded-xl border border-[#cbd5e1] bg-white p-4">
+              <section className="mt-4 rounded-xl border border-[#d4d4d4] bg-white p-4">
                 <p className="text-base font-semibold">Need Help?</p>
 
-                <p className="mt-2 text-sm leading-6 text-[#64748b]">
+                <p className="mt-2 text-sm leading-6 text-[#737373]">
                   Our support team is ready to assist you anytime.
                 </p>
 
                 <button
                   type="button"
-                  className="mt-4 w-full rounded-lg bg-[#2563eb] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#1d4ed8]"
+                  className="mt-4 w-full rounded-lg bg-[#1a1a1a] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#111111]"
                 >
                   Contact Support
                 </button>
@@ -378,7 +378,7 @@ export function DashboardSidebar({
             )}
 
             {!collapsed && (
-              <div className="px-2 py-5 text-xs text-[#94a3b8]">
+              <div className="px-2 py-5 text-xs text-[#a3a3a3]">
                 <p>© 2026 HotspotPro</p>
                 <p className="mt-1">Version 1.0.0</p>
               </div>

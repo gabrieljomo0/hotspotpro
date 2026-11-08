@@ -77,7 +77,7 @@ export function RecordCollectionModal({
   }
 
   const fieldClass = (bad: boolean) =>
-    `h-11 w-full rounded-xl border bg-white px-3.5 text-sm outline-none focus:border-[#2563eb] ${bad ? "border-red-400" : "border-[#e2e8f0]"}`;
+    `h-11 w-full rounded-xl border bg-white px-3.5 text-sm outline-none focus:border-[#1a1a1a] ${bad ? "border-red-400" : "border-[#e6e6e6]"}`;
 
   return (
     <ModalFrame
@@ -88,7 +88,7 @@ export function RecordCollectionModal({
     >
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <label className="block">
-          <span className="mb-1.5 block text-sm font-semibold text-[#475569]">
+          <span className="mb-1.5 block text-sm font-semibold text-[#525252]">
             Amount collected ({sym()}) <span className="text-red-500">*</span>
           </span>
           <input
@@ -104,7 +104,7 @@ export function RecordCollectionModal({
 
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold text-[#475569]">How it was paid</span>
+            <span className="mb-1.5 block text-sm font-semibold text-[#525252]">How it was paid</span>
             <select
               value={draft.method}
               onChange={(event) => set("method", event.target.value as CollectionMethod)}
@@ -119,7 +119,7 @@ export function RecordCollectionModal({
             </select>
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold text-[#475569]">Collected on</span>
+            <span className="mb-1.5 block text-sm font-semibold text-[#525252]">Collected on</span>
             <input
               type="date"
               value={draft.collectedOn}
@@ -135,7 +135,7 @@ export function RecordCollectionModal({
         </div>
 
         <label className="block">
-          <span className="mb-1.5 block text-sm font-semibold text-[#475569]">Reference (optional)</span>
+          <span className="mb-1.5 block text-sm font-semibold text-[#525252]">Reference (optional)</span>
           <input
             value={draft.reference}
             onChange={(event) => set("reference", event.target.value)}
@@ -147,18 +147,18 @@ export function RecordCollectionModal({
         </label>
 
         <label className="block">
-          <span className="mb-1.5 block text-sm font-semibold text-[#475569]">Note (optional)</span>
+          <span className="mb-1.5 block text-sm font-semibold text-[#525252]">Note (optional)</span>
           <textarea
             rows={3}
             value={draft.note}
             onChange={(event) => set("note", event.target.value)}
             aria-label="Note"
-            className="w-full rounded-xl border border-[#e2e8f0] bg-white px-3.5 py-2.5 text-sm outline-none focus:border-[#2563eb]"
+            className="w-full rounded-xl border border-[#e6e6e6] bg-white px-3.5 py-2.5 text-sm outline-none focus:border-[#1a1a1a]"
           />
           {errors.note && <span className="mt-1 block text-xs font-semibold text-red-600">{errors.note}</span>}
         </label>
 
-        <div data-testid="collection-preview" className="rounded-xl bg-[#f8fafc] px-4 py-3 text-sm text-[#475569]">
+        <div data-testid="collection-preview" className="rounded-xl bg-[#f7f7f7] px-4 py-3 text-sm text-[#525252]">
           Ledger balance now: <strong>{sym()} {currentBalance.toLocaleString()}</strong>
           {balanceAfter !== null && (
             <>
@@ -183,7 +183,7 @@ export function RecordCollectionModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-[#e2e8f0] bg-white px-5 py-3 text-sm font-semibold text-[#475569] hover:bg-[#ffffff]"
+            className="rounded-xl border border-[#e6e6e6] bg-white px-5 py-3 text-sm font-semibold text-[#525252] hover:bg-[#ffffff]"
           >
             Cancel
           </button>

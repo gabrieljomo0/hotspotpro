@@ -105,9 +105,9 @@ export function buildSampleApplications(template: AgentProfile, existing: AgentP
     });
 
     bundle.files[id] = {
-      idFront: placeholder("SAMPLE · ID FRONT", "#2563eb"),
-      idBack: placeholder("SAMPLE · ID BACK", "#2563eb"),
-      face: placeholder("SAMPLE · SELFIE", "#059669"),
+      idFront: placeholder("SAMPLE · ID FRONT", "#1a1a1a"),
+      idBack: placeholder("SAMPLE · ID BACK", "#1a1a1a"),
+      face: placeholder("SAMPLE · SELFIE", "#1a1a1a"),
     };
   });
 

@@ -23,21 +23,21 @@ export function ConnectionActivity({
       <div className="mt-5 h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={series}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e6e6e6" />
             <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 11 }} />
             <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11 }} />
             <Tooltip
               formatter={(value) => [`${value} users`, "Online Users"]}
-              contentStyle={{ borderRadius: "10px", border: "1px solid #e2e8f0" }}
+              contentStyle={{ borderRadius: "10px", border: "1px solid #e6e6e6" }}
             />
-            <Area type="monotone" dataKey="users" stroke="#2563eb" strokeWidth={2.5} fill="#2563eb" fillOpacity={0.15} />
+            <Area type="monotone" dataKey="users" stroke="#1a1a1a" strokeWidth={2.5} fill="#1a1a1a" fillOpacity={0.15} />
           </AreaChart>
         </ResponsiveContainer>
       </div>
 
       <div className="flex justify-center">
-        <span className="flex items-center gap-2 text-xs text-[#64748b]">
-          <span className="h-2 w-2 rounded-full bg-[#2563eb]" />
+        <span className="flex items-center gap-2 text-xs text-[#737373]">
+          <span className="h-2 w-2 rounded-full bg-[#1a1a1a]" />
           Online Users
         </span>
       </div>

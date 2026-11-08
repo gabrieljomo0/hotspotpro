@@ -44,67 +44,67 @@ export function EditAccessPointModal({ apId, onClose }: { apId: string; onClose:
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="grid gap-5 rounded-xl bg-white p-5 sm:grid-cols-2">
           <label className="block sm:col-span-2">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               Name <span className="text-red-500">*</span>
             </span>
             <input
               required
               value={name}
               onChange={(event) => setName(event.target.value)}
-              className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             />
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               MAC Address <span className="text-red-500">*</span>
             </span>
             <input
               required
               value={macAddress}
               onChange={(event) => setMacAddress(event.target.value)}
-              className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 font-mono text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 font-mono text-sm outline-none focus:border-[#1a1a1a]"
             />
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
               IP Address <span className="text-red-500">*</span>
             </span>
             <input
               required
               value={ipAddress}
               onChange={(event) => setIpAddress(event.target.value)}
-              className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 font-mono text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 font-mono text-sm outline-none focus:border-[#1a1a1a]"
             />
           </label>
 
           <label className="block sm:col-span-2">
-            <span className="mb-2 block text-sm font-semibold text-[#475569]">Model</span>
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">Model</span>
             <input
               value={model}
               onChange={(event) => setModel(event.target.value)}
-              className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+              className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             />
           </label>
         </div>
 
         <div className="rounded-xl bg-white p-5">
-          <p className="mb-1 text-sm font-bold text-[#0f172a]">Site &amp; Router (optional)</p>
-          <p className="mb-4 text-xs text-[#94a3b8]">
+          <p className="mb-1 text-sm font-bold text-[#1a1a1a]">Site &amp; Router (optional)</p>
+          <p className="mb-4 text-xs text-[#a3a3a3]">
             Both are optional. Set the router back to &quot;No router&quot;
             to disconnect it and run this access point standalone.
           </p>
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">Site / Business</span>
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">Site / Business</span>
               <select
                 value={siteId}
                 onChange={(event) => {
                   setSiteId(event.target.value);
                   setRouterIp("");
                 }}
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               >
                 <option value="">No site</option>
                 {businessLocations.map((site) => (
@@ -116,11 +116,11 @@ export function EditAccessPointModal({ apId, onClose }: { apId: string; onClose:
             </label>
 
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#475569]">Router</span>
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">Router</span>
               <select
                 value={routerIp}
                 onChange={(event) => setRouterIp(event.target.value)}
-                className="h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               >
                 <option value="">No router — standalone</option>
                 {routersForSite.map((r) => (
@@ -133,11 +133,11 @@ export function EditAccessPointModal({ apId, onClose }: { apId: string; onClose:
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3 border-t border-[#e2e8f0] pt-4">
-          <button type="submit" data-testid="edit-ap-save" className="rounded-xl bg-[#2563eb] px-6 py-3 text-sm font-bold text-white hover:bg-[#1d4ed8]">
+        <div className="flex flex-wrap gap-3 border-t border-[#e6e6e6] pt-4">
+          <button type="submit" data-testid="edit-ap-save" className="rounded-xl bg-[#1a1a1a] px-6 py-3 text-sm font-bold text-white hover:bg-[#111111]">
             Save Changes
           </button>
-          <button type="button" onClick={onClose} className="rounded-xl border border-[#e2e8f0] bg-white px-6 py-3 text-sm font-bold text-[#475569] hover:bg-[#f1f5f9]">
+          <button type="button" onClick={onClose} className="rounded-xl border border-[#e6e6e6] bg-white px-6 py-3 text-sm font-bold text-[#525252] hover:bg-[#f4f4f4]">
             Cancel
           </button>
         </div>

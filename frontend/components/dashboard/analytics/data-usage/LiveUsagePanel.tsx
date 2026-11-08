@@ -42,37 +42,37 @@ export function LiveUsagePanel({ connectedUsers }: { connectedUsers: number }) {
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
           <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
         </span>
-        <p className="text-sm font-bold text-[#0f172a]">Live Data Usage</p>
-        <span className="text-xs text-[#94a3b8]">
+        <p className="text-sm font-bold text-[#1a1a1a]">Live Data Usage</p>
+        <span className="text-xs text-[#a3a3a3]">
           Updates every 2 seconds
         </span>
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <div className="rounded-lg bg-white px-4 py-3">
-          <div className="flex items-center gap-1.5 text-[#64748b]">
+          <div className="flex items-center gap-1.5 text-[#737373]">
             <Download size={14} />
             <p className="text-[11px]">Download now</p>
           </div>
-          <p className="mt-1 text-lg font-black text-[#0f172a]">
+          <p className="mt-1 text-lg font-black text-[#1a1a1a]">
             {downloadMbps} Mbps
           </p>
         </div>
         <div className="rounded-lg bg-white px-4 py-3">
-          <div className="flex items-center gap-1.5 text-[#64748b]">
+          <div className="flex items-center gap-1.5 text-[#737373]">
             <Upload size={14} />
             <p className="text-[11px]">Upload now</p>
           </div>
-          <p className="mt-1 text-lg font-black text-[#0f172a]">
+          <p className="mt-1 text-lg font-black text-[#1a1a1a]">
             {uploadMbps} Mbps
           </p>
         </div>
         <div className="rounded-lg bg-white px-4 py-3">
-          <div className="flex items-center gap-1.5 text-[#64748b]">
+          <div className="flex items-center gap-1.5 text-[#737373]">
             <Activity size={14} />
             <p className="text-[11px]">Used since you opened this page</p>
           </div>
-          <p className="mt-1 text-lg font-black text-[#0f172a]">
+          <p className="mt-1 text-lg font-black text-[#1a1a1a]">
             {sessionTotalGb} GB
           </p>
         </div>

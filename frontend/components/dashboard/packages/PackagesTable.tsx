@@ -101,25 +101,25 @@ export function PackagesTable({
   }
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white shadow-[0_8px_24px_rgba(37,99,235,0.06)]">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e2e8f0] px-5 py-4">
+    <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e6e6e6] px-5 py-4">
         <div className="relative">
           <Search
             size={14}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8]"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]"
           />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search package name..."
-            className="h-10 w-60 rounded-lg border border-[#e2e8f0] bg-white pl-8 pr-3 text-sm outline-none focus:border-[#2563eb]"
+            className="h-10 w-60 rounded-lg border border-[#e6e6e6] bg-white pl-8 pr-3 text-sm outline-none focus:border-[#1a1a1a]"
           />
         </div>
 
         <select
           value={statusFilter}
           onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
-          className="h-10 rounded-lg border border-[#e2e8f0] bg-white px-3 text-sm outline-none focus:border-[#2563eb]"
+          className="h-10 rounded-lg border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
         >
           {(["All", "Active", "Hidden", "Disabled"] as StatusFilter[]).map(
             (option) => (
@@ -130,14 +130,14 @@ export function PackagesTable({
           )}
         </select>
 
-        <span className="text-xs text-[#94a3b8]">
+        <span className="text-xs text-[#a3a3a3]">
           Showing {visiblePackages.length} of {packages.length}
         </span>
       </div>
 
       {selectedIds.length > 0 && (
-        <div className="flex flex-wrap items-center gap-3 border-b border-[#e2e8f0] bg-[#ffffff] px-5 py-3">
-          <strong className="text-sm text-[#0f172a]">
+        <div className="flex flex-wrap items-center gap-3 border-b border-[#e6e6e6] bg-[#ffffff] px-5 py-3">
+          <strong className="text-sm text-[#1a1a1a]">
             {selectedIds.length} selected
           </strong>
           <button
@@ -175,7 +175,7 @@ export function PackagesTable({
           <button
             type="button"
             onClick={() => setSelectedIds([])}
-            className="ml-auto text-xs font-semibold text-[#2563eb] hover:underline"
+            className="ml-auto text-xs font-semibold text-[#1a1a1a] hover:underline"
           >
             Deselect all
           </button>
@@ -184,7 +184,7 @@ export function PackagesTable({
 
       <div className="overflow-x-auto">
         <table className="w-full min-w-[1020px] text-left text-sm">
-          <thead className="bg-[#ffffff] text-xs text-[#64748b]">
+          <thead className="bg-[#ffffff] text-xs text-[#737373]">
             <tr>
               <th className="px-5 py-4">
                 <input
@@ -211,7 +211,7 @@ export function PackagesTable({
               <tr>
                 <td
                   colSpan={10}
-                  className="px-5 py-10 text-center text-sm text-[#94a3b8]"
+                  className="px-5 py-10 text-center text-sm text-[#a3a3a3]"
                 >
                   No packages match this filter.
                 </td>
@@ -221,7 +221,7 @@ export function PackagesTable({
             {visiblePackages.map((pkg) => (
               <tr
                 key={pkg.id}
-                className={`border-t border-[#f1f5f9] transition hover:bg-[#ffffff] ${
+                className={`border-t border-[#f4f4f4] transition hover:bg-[#ffffff] ${
                   selectedIds.includes(pkg.id) ? "bg-[#ffffff]" : ""
                 }`}
               >
@@ -273,7 +273,7 @@ export function PackagesTable({
                       );
                     })()
                   ) : pkg.routerIps.length === 0 ? (
-                    <span className="text-xs text-[#94a3b8]">Unassigned</span>
+                    <span className="text-xs text-[#a3a3a3]">Unassigned</span>
                   ) : pkg.routerIps.length <= 2 ? (
                     <div className="flex flex-wrap gap-1">
                       {pkg.routerIps.map((ip) => (
@@ -291,7 +291,7 @@ export function PackagesTable({
                     </span>
                   )}
                 </td>
-                <td className="px-4 py-4 font-semibold text-[#0f172a]">
+                <td className="px-4 py-4 font-semibold text-[#1a1a1a]">
                   {localizeAmountString(pkg.price)}
                 </td>
                 <td className="px-4 py-4">
@@ -300,16 +300,16 @@ export function PackagesTable({
                   </span>
                 </td>
                 <td className="px-4 py-4">
-                  <span className="rounded-full border border-[#e2e8f0] px-2.5 py-1 text-xs font-semibold text-[#475569]">
+                  <span className="rounded-full border border-[#e6e6e6] px-2.5 py-1 text-xs font-semibold text-[#525252]">
                     {pkg.download}
                   </span>
                 </td>
                 <td className="px-4 py-4">
-                  <span className="rounded-full border border-[#e2e8f0] px-2.5 py-1 text-xs font-semibold text-[#475569]">
+                  <span className="rounded-full border border-[#e6e6e6] px-2.5 py-1 text-xs font-semibold text-[#525252]">
                     {pkg.upload}
                   </span>
                 </td>
-                <td className="px-4 py-4 font-semibold text-[#2563eb]">
+                <td className="px-4 py-4 font-semibold text-[#1a1a1a]">
                   {pkg.customers}
                 </td>
                 <td className="px-4 py-4">
@@ -329,7 +329,7 @@ export function PackagesTable({
                   <button
                     type="button"
                     onClick={(event) => handleOpenMenu(pkg.id, event)}
-                    className="rounded-lg border border-[#e2e8f0] p-2 text-[#475569] hover:bg-[#f1f5f9]"
+                    className="rounded-lg border border-[#e6e6e6] p-2 text-[#525252] hover:bg-[#f4f4f4]"
                     aria-label="Package actions"
                   >
                     <MoreVertical size={16} />
@@ -343,7 +343,7 @@ export function PackagesTable({
                     >
                       <Link
                         href={`/dashboards/packages/${pkg.id}`}
-                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#475569] hover:bg-[#f1f5f9]"
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#525252] hover:bg-[#f4f4f4]"
                         onClick={closeMenu}
                       >
                         <Eye size={15} />
@@ -352,7 +352,7 @@ export function PackagesTable({
 
                       <Link
                         href={`/dashboards/packages/${pkg.id}`}
-                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#475569] hover:bg-[#f1f5f9]"
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#525252] hover:bg-[#f4f4f4]"
                         onClick={closeMenu}
                       >
                         <Pencil size={15} />
@@ -365,7 +365,7 @@ export function PackagesTable({
                           duplicatePackage(pkg.id);
                           closeMenu();
                         }}
-                        className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-[#475569] hover:bg-[#f1f5f9]"
+                        className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-[#525252] hover:bg-[#f4f4f4]"
                       >
                         <Copy size={15} />
                         Duplicate Package
@@ -380,7 +380,7 @@ export function PackagesTable({
                         Push to Agents
                       </Link>
 
-                      <div className="my-2 border-t border-[#f1f5f9]" />
+                      <div className="my-2 border-t border-[#f4f4f4]" />
 
                       <button
                         type="button"
@@ -425,7 +425,7 @@ export function PackagesTable({
                         Package
                       </button>
 
-                      <div className="my-2 border-t border-[#f1f5f9]" />
+                      <div className="my-2 border-t border-[#f4f4f4]" />
 
                       <button
                         type="button"
