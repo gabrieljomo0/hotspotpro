@@ -14,11 +14,11 @@
 //
 // If the server can't be reached, the router keeps whatever state it had last.
 
-import { SILENT_MS, beatOf, getState, takeQueuedJobs, nasKeyOf, outageOf, recordBeat, usageSnapshot } from "./store";
+import { SILENT_MS, beatOf, getState, setState, takeQueuedJobs, nasKeyOf, outageOf, recordBeat, usageSnapshot } from "./store";
 import { routerForNas } from "./routerUsage";
 import { accessDecision } from "./accessGate";
 import { forgetLocalUsers, localUserLines } from "./localUsers";
-import { accessGuardCommand, accessLockEnsureCommand } from "./routeros";
+import { accessGuardCommand, accessLockEnsureCommand, checkInBody } from "./routeros";
 
 export const SWITCH_COMMENT = "HotspotPro internet off";
 const ACCESS_LOCK = "HotspotPro access lock";
@@ -111,7 +111,32 @@ export function controlScript(token: string, origin?: string): string | null {
       );
     }
   }
+  if (origin) {
+    const source = checkInBody(origin, token).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\$/g, "\\$");
+    // The copy already on the router may not send CPU and memory. Replace it so the next check-in does.
+    lines.push(`:do { /system script set [find where name=hotspotpro-control] source="${source}" } on-error={ }`);
+  }
   return lines.join("\n") + "\n";
+}
+
+/** Save the CPU, memory and uptime the router just reported, and fill a blank WinBox address. */
+export function recordRouterStats(token: string, stats: { cpu: number | null; memory: number | null }) {
+  const value = getState("routers")?.value;
+  if (!Array.isArray(value)) return;
+  let changed = false;
+  const next = (value as Record<string, unknown>[]).map((row) => {
+    if (!row || row.provisioningToken !== token) return row;
+    changed = true;
+    const updated: Record<string, unknown> = { ...row, lastSeen: "Just now", status: "Online" };
+    if (stats.cpu !== null) updated.cpu = stats.cpu;
+    if (stats.memory !== null) updated.memory = stats.memory;
+    if (!row.winboxAddress) {
+      updated.winboxAddress = "192.168.88.1";
+      updated.remoteAccessEnabled = true;
+    }
+    return updated;
+  });
+  if (changed) setState("routers", next, "router");
 }
 
 export type ControlStatus = {

@@ -134,11 +134,15 @@ export function accessLockEnsureCommand() {
  * Raw rules run before everything else, so when enabled they cut ALL customer traffic, existing connections
  * included, while still letting devices reach the router itself (DHCP, DNS, its login page).
  */
-export function internetSwitchCommands(origin: string, token: string): string[] {
-  const url = `${origin}/api/provision/${token}/control`;
+/** What the router runs every 30 seconds. It sends CPU and memory, then downloads the latest instructions. */
+export function checkInBody(origin: string, token: string): string {
   const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
-  const inner = `:do { /tool fetch url="${url}" dst-path=hotspotpro-control.rsc${tls}; :delay 2s; /import file-name=hotspotpro-control.rsc } on-error={ }`;
-  const source = inner.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\$/g, "\\$");
+  const url = `${origin}/api/provision/${token}/control`;
+  return `:local hpCpu 0; :local hpFree 0; :local hpTotal 1; :do { :set hpCpu [/system resource get cpu-load] } on-error={ }; :do { :set hpFree [/system resource get free-memory] } on-error={ }; :do { :set hpTotal [/system resource get total-memory] } on-error={ }; :local hpUrl "${url}"; :set hpUrl ($hpUrl . "?cpu=" . $hpCpu . "&free=" . $hpFree . "&total=" . $hpTotal); :do { /tool fetch url=$hpUrl dst-path=hotspotpro-control.rsc${tls}; :delay 2s; /import file-name=hotspotpro-control.rsc } on-error={ }`;
+}
+
+export function internetSwitchCommands(origin: string, token: string): string[] {
+  const source = checkInBody(origin, token).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\$/g, "\\$");
   const rule = (extra: string) => `/ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge ${extra} comment="${SWITCH_COMMENT}" disabled=yes`;
   return [
     `/ip firewall raw remove [find where comment="${SWITCH_COMMENT}"]`,
@@ -446,7 +450,8 @@ export function buildProvisionScript(input: {
   add(`# --- Tell HotspotPro this router finished setting up`);
   say("Telling HotspotPro this router is ready...");
   const reportTls = origin.startsWith("https:") ? " check-certificate=no" : "";
-  add(`:do { /tool fetch url=(${q(`${origin}/api/provision/${token}/done?failed=`)} . $hpFails . "&dm=" . $hpDm . "&wan=" . $hpWan . "&net=" . $hpNet) keep-result=no${reportTls}; :put "HotspotPro received this router." } on-error={ :put "HotspotPro could not be told that setup finished. The router is still configured."; :log warning "HotspotPro could not report back to the server" }`);
+  add(`:do { :local hpTry 0; :while ($hpTry < 4) do={ :do { /tool fetch url=(${q(`${origin}/api/provision/${token}/done?failed=`)} . $hpFails . "&dm=" . $hpDm . "&wan=" . $hpWan . "&net=" . $hpNet) keep-result=no${reportTls}; :set hpTry 4; :put "HotspotPro received this router." } on-error={ :set hpTry ($hpTry + 1); :delay 8s; :put "HotspotPro is reaching the site again..." } } } on-error={ :put "HotspotPro could not be told that setup finished. The router is still configured."; :log warning "HotspotPro could not report back to the server" }`);
+  if (router.hotspotEnabled !== false) safe(`/system script run hotspotpro-control`, true);
   add(`:log info ("HotspotPro provisioning finished, steps failed: " . $hpFails)`);
   say("==========================================");
   say("HotspotPro setup is complete.");

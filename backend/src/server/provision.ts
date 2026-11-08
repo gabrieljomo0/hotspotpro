@@ -155,7 +155,8 @@ export function completeProvision(token: string, details: { failed: number; sour
       provisioningStatus: "Provisioned",
       health: deviceMode || wanDown || netDown || failed ? "error" : "ok",
       connectionMode: "On the router",
-      remoteAccessEnabled: false,
+      remoteAccessEnabled: true,
+      winboxAddress: "192.168.88.1",
       lastConnectedAt: now,
       lastError: deviceMode === "blocked"
         ? "The router's device-mode is home, or downloads are switched off. HotspotPro asked it to switch to advanced. Press the reset button briefly (or switch the power off and on) within 5 minutes, then paste the device-mode command again."

@@ -92,6 +92,7 @@ try {
   await send("PUT", "/api/state/vouchers", { value: [{ code: "AMATEST1", password: null, packageName: "Ama Daily", status: "Available" }] }, amaCookie);
   const cloudCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
   check("with no RADIUS server a paid voucher is copied onto the router", cloudCtl.includes("use-radius=no") && cloudCtl.includes('name="AMATEST1"') && cloudCtl.includes("limit-uptime=1d"), cloudCtl.slice(0, 500));
+  check("the check-in sends the router's CPU and memory", cloudCtl.includes("cpu-load") && cloudCtl.includes("free-memory"));
   await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], loginMode: "local" }] }, amaCookie);
   const localCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
   check("local mode keeps login on the router", localCtl.includes("HotspotPro login: local") && localCtl.includes("use-radius=no") && !localCtl.includes("use-radius=yes"), localCtl.slice(0, 400));
