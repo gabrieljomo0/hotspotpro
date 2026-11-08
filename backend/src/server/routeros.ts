@@ -359,7 +359,7 @@ export function buildProvisionScript(input: {
     // One mode at a time. Cloud asks RADIUS. Local does not, and the check-in copies vouchers onto the router instead.
     const useCloud = router.loginMode !== "local" && !!radius;
     say("Creating the hotspot server...");
-    safe(`/ip hotspot profile add name=hotspotpro hotspot-address=${plan.gateway} dns-name=${q(router.dnsName || "login.hotspot")} login-by=http-pap,http-chap trial-uptime=0s${useCloud ? " use-radius=yes accounting=yes interim-update=1m" : " use-radius=no"} html-directory=$hpDir`, false, "Hotspot profile created");
+    safe(`/ip hotspot profile add name=hotspotpro hotspot-address=${plan.gateway} dns-name=${q(router.dnsName || "login.hotspot")} login-by=http-pap,http-chap trial-uptime-limit=0s${useCloud ? " use-radius=yes radius-accounting=yes radius-interim-update=1m" : " use-radius=no"} html-directory=$hpDir`, false, "Hotspot profile created");
     safe(`/ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no`, false, "Hotspot server created");
     if (radius) {
       say("Configuring RADIUS login...");
@@ -420,20 +420,20 @@ export function buildProvisionScript(input: {
   if (!input.existing && input.wireless && ssid) {
     add(`# --- WiFi`);
     say("Turning on WiFi...");
-    safe(`/interface wifi set [find] disabled=no configuration.ssid=${q(ssid)} configuration.mode=ap`, true);
-    // A hotspot WiFi is open (no WiFi password): the customer logs in on the portal page instead.
-    safe(`/interface wireless security-profiles set [find default=yes] mode=none`, true);
-    safe(`/interface wireless set [find] disabled=no ssid=${q(ssid)} mode=ap-bridge security-profile=default`, true);
-    // RouterOS 7 "wifi" package: no WiFi password (customers log in on the portal page), and the radios join the hotspot bridge.
-    safe(`/interface wifi set [find] security.authentication-types="" datapath.bridge=hotspotpro-bridge`, true);
-    // RouterOS 7 with the new "wifi" package uses wifi1; older/legacy wireless uses wlan1. Only the one that exists works.
+    // A router without the wifi package cannot even read /interface wifi. Those commands stay inside a
+    // text script so a missing package does not stop the rest of the import.
+    const wifiScript = [
+      `:do { /interface wifi set [find] disabled=no configuration.ssid=${q(ssid)} configuration.mode=ap } on-error={ }`,
+      `:do { /interface wireless security-profiles set [find default=yes] mode=none } on-error={ }`,
+      `:do { /interface wireless set [find] disabled=no ssid=${q(ssid)} mode=ap-bridge security-profile=default } on-error={ }`,
+      `:do { /interface wifi set [find] security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ }`,
+      `:do { :foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } on-error={ }`,
+      `:do { :foreach p in=[/interface wireless find] do={ :local n [/interface wireless get $p name]; :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } on-error={ }`,
+    ].join("; ");
+    add(`:do { :execute script="${wifiScript.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\$/g, "\\$")}" } on-error={ }`);
     for (const name of ["wifi1", "wlan1"]) {
       safe(`/interface bridge port remove [find where interface=${name}]`, true);
       safe(`/interface bridge port add bridge=hotspotpro-bridge interface=${name} comment="HotspotPro"`, true);
-    }
-    // A second radio (wifi2, wlan2, ...) is not named above. Add every radio that exists; a missing package just fails this step.
-    for (const kind of ["wifi", "wireless"]) {
-      add(`:do { :foreach p in=[/interface ${kind} find] do={ :local n [/interface ${kind} get $p name]; :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } on-error={ }`);
     }
     say("WiFi is set. Customers log in on the portal page.");
   } else if (!input.wireless) {

@@ -86,7 +86,7 @@ export function controlScript(token: string, origin?: string): string | null {
       `:global hpMiss 0`,
       `:do { /ip firewall raw disable [find where comment="${ACCESS_LOCK}"] } on-error={ }`,
       // No open free session. The chosen mode is the only way a voucher gets online.
-      `:do { /ip hotspot profile set [find where name=hotspotpro] trial-uptime=0s use-radius=${local ? "no" : "yes"} } on-error={ }`,
+      `:do { /ip hotspot profile set [find where name=hotspotpro] trial-uptime-limit=0s use-radius=${local ? "no" : "yes"} } on-error={ }`,
     );
     if (origin) {
       lines.push(
