@@ -138,6 +138,55 @@ export function completeProvision(token: string, details: { failed: number; sour
     });
     if (found) setState("routers", next, "router");
   }
+  if (!found && pending) {
+    const config = (pending.config ?? {}) as Record<string, unknown>;
+    const text = (value: unknown, fallback = "") => (typeof value === "string" && value.trim() ? value.trim() : fallback);
+    const onRouter = process.env.HOTSPOTPRO_RADIUS === "off" || config.loginMode === "local";
+    const ip = `linked-${token.slice(0, 12)}`;
+    const created = {
+      name: text(config.name, "Router"),
+      ip,
+      status: "Online",
+      uptime: "0m",
+      clients: 0,
+      cpu: 0,
+      memory: 0,
+      lastSeen: "Just now",
+      provisioningStatus: "Provisioned",
+      health: deviceMode || wanDown || netDown || failed ? "error" : "ok",
+      connectionMode: "On the router",
+      remoteAccessEnabled: false,
+      lastConnectedAt: now,
+      lastError: deviceMode === "blocked"
+        ? "The router's device-mode is home, or downloads are switched off. HotspotPro asked it to switch to advanced. Press the reset button briefly (or switch the power off and on) within 5 minutes, then paste the device-mode command again."
+        : wanDown
+          ? "The router is set up, but its ISP port has no address from your ISP yet. Check the internet cable and modem on that port (ether1 unless you chose another), then wait a minute."
+          : netDown
+            ? "The router is set up, but it cannot reach the internet (ping failed). Customers will not get online until the internet works on the ISP port."
+            : failed ? `${failed} setup step${failed === 1 ? "" : "s"} failed on the router — see the router's log (System → Log) for "HotspotPro step failed".` : null,
+      deviceMode: deviceMode ?? null,
+      provisionedAt: now,
+      ...(wanAddress ? { wanAddress } : {}),
+      hotspotEnabled: config.hotspotEnabled !== false,
+      loginMode: onRouter ? "local" : "cloud",
+      hotspotNetwork: text(config.hotspotNetwork, "10.10.0.0/16"),
+      hotspotGatewayIp: text(config.hotspotGatewayIp, "10.10.0.1"),
+      hotspotDnsServers: text(config.hotspotDnsServers, "8.8.8.8,8.8.4.4"),
+      pppoeEnabled: config.pppoeEnabled === true,
+      pppoeNetwork: text(config.pppoeNetwork, "192.168.91.0/24"),
+      routerType: text(config.routerType, "New Router"),
+      dnsName: text(config.dnsName),
+      wanInterface: text(config.wanInterface, "ether1"),
+      managementPort: text(config.managementPort),
+      adminFromWan: config.adminFromWan === true,
+      hasWireless: config.hasWireless === true,
+      provisioningToken: token,
+      activity: [{ at: now, text: `Router ran its setup script${sourceIp ? ` (from ${sourceIp})` : ""} and connected.` }],
+    };
+    const current = Array.isArray(routers) ? (routers as Record<string, unknown>[]) : [];
+    setState("routers", [created, ...current], "router");
+    found = true;
+  }
   if (!found && !pending) return false;
   touchProvision(token, "fetchedAt");
   touchProvision(token, "doneAt");

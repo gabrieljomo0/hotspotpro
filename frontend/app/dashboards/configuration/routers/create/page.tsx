@@ -248,6 +248,7 @@ export default function AddRouterPage() {
   // falls back to the timed demo.
   const [serverMode, setServerMode] = useState(false);
   const [serverDone, setServerDone] = useState(false);
+  const linkedIp = useRef<string | null>(null);
   useEffect(() => {
     if (step !== 1) return;
     let cancelled = false;
@@ -289,7 +290,8 @@ export default function AddRouterPage() {
       try {
         const response = await fetch(`/api/provision/${provisioningToken.current}/status`);
         if (!response.ok) return;
-        const status = (await response.json()) as { fetched: boolean; done: boolean };
+        const status = (await response.json()) as { fetched: boolean; done: boolean; routerIp?: string | null };
+        if (status.routerIp) linkedIp.current = status.routerIp;
         if (status.fetched || status.done) startProvisioning();
         if (status.done) setServerDone(true);
       } catch {
@@ -362,6 +364,11 @@ export default function AddRouterPage() {
   function handleFinish() {
     if (finishedRef.current) return;
     finishedRef.current = true;
+    if (linkedIp.current) {
+      showToast("Router connected. It is live on the Routers page.");
+      navigate.push("/dashboards/configuration/routers");
+      return;
+    }
     const newRouter = addRouter({
       name,
       routerType,

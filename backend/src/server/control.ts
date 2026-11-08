@@ -56,7 +56,8 @@ export function controlScript(token: string, origin?: string): string | null {
   recordBeat(token);
   const off = !!router.disconnected;
   const access = accessDecision();
-  const local = router.loginMode === "local";
+  // With no RADIUS server, vouchers have to live on the router or a paid login can never get online.
+  const local = router.loginMode === "local" || process.env.HOTSPOTPRO_RADIUS === "off";
   const lines = [
     `# HotspotPro: ${oneLine(router.name)} is ${off ? "DISCONNECTED (internet cut)" : "CONNECTED"}`,
     `# HotspotPro access: ${access.locked ? "locked" : "open"}`,

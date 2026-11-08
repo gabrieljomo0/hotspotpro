@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { DashboardSidebar } from "./DashboardSidebar";
 import { DashboardTopbar } from "./DashboardTopbar";
@@ -13,6 +13,33 @@ import { Toast } from "../shared/Toast";
 import { CurrencyGate } from "../shared/CurrencyGate";
 import { NewApplicationPopup } from "../agents/application/NewApplicationPopup";
 import { useDashboard } from "../context/DashboardContext";
+
+function WelcomeNote() {
+  const [text, setText] = useState<string | null>(null);
+  useEffect(() => {
+    try {
+      setText(window.sessionStorage.getItem("hotspotpro:welcome"));
+    } catch {
+      setText(null);
+    }
+  }, []);
+  if (!text) return null;
+  return (
+    <p data-testid="welcome-email-note" className="mb-4 rounded-xl border border-[#1a1a1a] bg-[#1a1a1a] px-4 py-3 text-sm leading-6 text-white print:hidden">
+      {text}
+      <button
+        type="button"
+        className="ml-3 underline"
+        onClick={() => {
+          setText(null);
+          try { window.sessionStorage.removeItem("hotspotpro:welcome"); } catch { /* already gone */ }
+        }}
+      >
+        Dismiss
+      </button>
+    </p>
+  );
+}
 
 export function DashboardShell({ children }: { children: ReactNode }) {
   const controller = useDashboard();
@@ -48,7 +75,10 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           />
         </div>
 
-        <main className="p-4 md:p-6 print:p-0">{children}</main>
+        <main className="p-4 md:p-6 print:p-0">
+          <WelcomeNote />
+          {children}
+        </main>
       </div>
 
       <ConfirmationDialog

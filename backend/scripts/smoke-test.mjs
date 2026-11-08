@@ -91,10 +91,16 @@ try {
   check("an unknown router token is refused", (await fetch(base + "/api/provision/not-a-real-token/control")).status === 404);
   await send("PUT", "/api/state/vouchers", { value: [{ code: "AMATEST1", password: null, packageName: "Ama Daily", status: "Available" }] }, amaCookie);
   const cloudCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
-  check("cloud mode does not copy vouchers onto the router", cloudCtl.includes("HotspotPro login: cloud") && cloudCtl.includes("use-radius=yes") && !cloudCtl.includes('name="AMATEST1"'), cloudCtl.slice(0, 500));
+  check("with no RADIUS server a paid voucher is copied onto the router", cloudCtl.includes("use-radius=no") && cloudCtl.includes('name="AMATEST1"') && cloudCtl.includes("limit-uptime=1d"), cloudCtl.slice(0, 500));
   await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], loginMode: "local" }] }, amaCookie);
   const localCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
-  check("local mode stores the voucher on the router and turns cloud login off", localCtl.includes("HotspotPro login: local") && localCtl.includes("use-radius=no") && localCtl.includes('name="AMATEST1"') && localCtl.includes("limit-uptime=1d"), localCtl.slice(0, 500));
+  check("local mode keeps login on the router", localCtl.includes("HotspotPro login: local") && localCtl.includes("use-radius=no") && !localCtl.includes("use-radius=yes"), localCtl.slice(0, 400));
+  await send("PUT", "/api/state/routers", { value: routerA }, amaCookie);
+  check("finished setup appears on the site", (await send("POST", "/api/provision", { token: "tok-done-12345678", router: { name: "Finished Router", loginMode: "cloud", hotspotEnabled: true, wanInterface: "ether1" } }, amaCookie)).status === 200
+    && (await fetch(base + "/api/provision/tok-done-12345678/done?failed=0")).status === 200);
+  const linked = await json(await send("GET", "/api/state", undefined, amaCookie));
+  const finished = (linked.docs?.routers?.value ?? []).find((r) => r.provisioningToken === "tok-done-12345678");
+  check("the site shows that router connected", finished?.status === "Online" && finished?.provisioningStatus === "Provisioned" && finished?.name === "Finished Router" && finished?.loginMode === "local", JSON.stringify(finished));
   await send("PUT", "/api/state/routers", { value: routerA }, amaCookie);
 
   // ---- setup script: ISP port, device-mode check ----

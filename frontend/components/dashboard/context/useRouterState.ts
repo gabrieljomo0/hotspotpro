@@ -293,9 +293,9 @@ export function useRouterState(
     }
 
     setRouters((current) => [newRouter, ...current]);
-    setRouterEnabled((current) => ({ ...current, [newRouter.ip]: false }));
-    showToast(`Router "${newRouter.name}" added — awaiting provisioning.`);
-    logActivity("Router", `Added router "${newRouter.name}", pending provisioning.`);
+    setRouterEnabled((current) => ({ ...current, [newRouter.ip]: !!input.provisioned }));
+    showToast(input.provisioned ? `Router "${newRouter.name}" is connected.` : `Router "${newRouter.name}" added — awaiting provisioning.`);
+    logActivity("Router", input.provisioned ? `Router "${newRouter.name}" connected.` : `Added router "${newRouter.name}", pending provisioning.`);
     return newRouter;
   }
 

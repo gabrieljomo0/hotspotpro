@@ -9,6 +9,7 @@ import {
   superAdminExists,
   tooManyAttempts,
 } from "@/server/auth";
+import { sendWelcomeEmail } from "@/server/mail";
 import { addAudit, findAccountByEmail } from "@/server/store";
 
 type RegisterBody = {
@@ -67,7 +68,8 @@ export async function POST(request: Request) {
     ip,
   });
 
-  const response = NextResponse.json({ success: true, role: "admin", super: first, name, email });
+  const emailSent = await sendWelcomeEmail(email, name);
+  const response = NextResponse.json({ success: true, role: "admin", super: first, name, email, emailSent });
   response.cookies.set(sessionCookie(createSessionToken({ sub: account.id, role: "admin", email, tid: account.tenantId, sup: first || undefined })));
   return response;
 }

@@ -156,6 +156,10 @@ function LoginForm() {
         }
         try {
           window.sessionStorage.setItem("hotspotpro:currencyCheck", "1");
+          const mailed = createdResult.emailSent
+            ? `Account created. Your sign-in email is ${form.email}. We sent a welcome email to that address.`
+            : `Account created. Your sign-in email is ${form.email}. Use that email whenever you sign in.`;
+          window.sessionStorage.setItem("hotspotpro:welcome", mailed);
         } catch {
           // Storage blocked — the check is simply skipped.
         }

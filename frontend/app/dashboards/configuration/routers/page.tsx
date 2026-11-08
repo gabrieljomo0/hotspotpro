@@ -118,6 +118,15 @@ export default function RoutersPage() {
         </div>
       </div>
 
+      {routers.some((router) => router.provisioningStatus === "Provisioned" && !router.lastError) && (
+        <article data-testid="routers-connected-note" className="mb-4 rounded-2xl border border-[#1a1a1a] bg-[#1a1a1a] p-5 text-white">
+          <p className="text-base font-bold">Router connected successfully.</p>
+          <p className="mt-2 text-sm leading-6">
+            Thank you for using our system. The router is live. Continue to create a package and a voucher. Customers who buy WiFi sign in on the captive portal.
+          </p>
+        </article>
+      )}
+
       <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
         <div className="flex flex-wrap items-center gap-3 border-b border-[#e6e6e6] px-5 py-4">
           <div className="flex gap-1.5">
@@ -178,7 +187,9 @@ export default function RoutersPage() {
               {visibleRouters.length === 0 && (
                 <tr>
                   <td colSpan={9} className="px-5 py-10 text-center text-[#a3a3a3]">
-                    No routers match this filter.
+                    {routers.length === 0
+                      ? "No router is connected yet. When the setup command finishes on the router, it shows up here as connected."
+                      : "No routers match this filter."}
                   </td>
                 </tr>
               )}
