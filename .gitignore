@@ -1,0 +1,13 @@
+node_modules/
+frontend/node_modules/
+frontend/.next/
+backend/node_modules/
+backend/dist/
+backend/data/
+backend/.tmp-ui/
+**/.env
+**/.env.local
+**/.env.*.local
+*.log
+.DS_Store
+.vercel/

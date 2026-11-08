@@ -1,0 +1,145 @@
+import os from "node:os";
+import { type ProvisionRouter, buildProvisionScript } from "./routeros";
+import { radiusSecret } from "./radius";
+import { getProvision, getState, setState, touchProvision } from "./store";
+
+export type StoredRouter = ProvisionRouter & { ip: string; provisioningToken?: string };
+
+export function findRouterByToken(token: string): StoredRouter | null {
+  const routers = getState("routers")?.value;
+  if (!Array.isArray(routers)) return null;
+  return (routers as StoredRouter[]).find((r) => r.provisioningToken === token) ?? null;
+}
+
+/** The router the setup link belongs to: already added to the app, or still being added (link registered by the "Add router" page). */
+export function routerForToken(token: string): ProvisionRouter | null {
+  return findRouterByToken(token) ?? ((getProvision(token)?.config as ProvisionRouter | undefined) ?? null);
+}
+
+/** The port the WEBSITE (customer portal pages) is served on. The router sends customers there to log in. */
+export const WEB_PORT = String(process.env.HOTSPOTPRO_WEB_PORT || 3000);
+
+/**
+ * The address customers' phones open for the portal page. With HOTSPOTPRO_PUBLIC_URL (hosting: one https address
+ * for everything) that is the same address; locally it is this computer on the website's port (3000), not the backend's (4000).
+ */
+export function portalOrigin(origin: string) {
+  const configured = process.env.HOTSPOTPRO_PUBLIC_URL;
+  if (configured) return configured.replace(/\/+$/, "");
+  try {
+    const url = new URL(origin);
+    url.port = WEB_PORT;
+    return url.origin;
+  } catch {
+    return origin;
+  }
+}
+
+/** The port this backend listens on (routers are told to call it directly). */
+export const BACKEND_PORT = String(process.env.PORT || process.env.HOTSPOTPRO_BACKEND_PORT || 4000);
+
+const isLoopback = (host: string) => /^(localhost|127\.|\[::1\]|0\.0\.0\.0)/.test(host);
+
+/**
+ * The address a ROUTER can use to reach this backend.
+ * HOTSPOTPRO_PUBLIC_URL if set; otherwise the address the request came in on; and when that is only
+ * "localhost" (the web page talks to the backend through its own proxy), this computer's network address.
+ */
+export function publicOrigin(request: Request) {
+  const configured = process.env.HOTSPOTPRO_PUBLIC_URL;
+  if (configured) return configured.replace(/\/+$/, "");
+  const url = new URL(request.url);
+  const proto = request.headers.get("x-forwarded-proto") ?? url.protocol.replace(":", "");
+  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host") ?? url.host;
+  if (isLoopback(host)) {
+    const lan = lanOrigins(BACKEND_PORT, proto)[0];
+    if (lan) return lan.origin;
+  }
+  return `${proto}://${host}`;
+}
+
+/** The setup script for a registered link, built for a given address (the address the ROUTER will use to reach this server). */
+export function scriptFor(token: string, options: { origin: string; wireless?: boolean; ssid?: string }): string | null {
+  const router = routerForToken(token);
+  if (!router) return null;
+  return buildProvisionScript({
+    router,
+    origin: options.origin,
+    portalOrigin: portalOrigin(options.origin),
+    token,
+    wireless: options.wireless,
+    ssid: options.ssid?.slice(0, 32) || undefined,
+    existing: router.routerType === "Existing Router",
+    radius:
+      process.env.HOTSPOTPRO_RADIUS === "off"
+        ? undefined
+        : {
+            host: process.env.HOTSPOTPRO_RADIUS_HOST || new URL(options.origin).hostname,
+            secret: radiusSecret(),
+            authPort: Number(process.env.HOTSPOTPRO_RADIUS_PORT || 1812),
+            acctPort: Number(process.env.HOTSPOTPRO_RADIUS_ACCT_PORT || 1813),
+          },
+  });
+}
+
+/** This computer's addresses on its networks, e.g. http://192.168.1.50:3000 — what a router on the same network can use. */
+export function lanOrigins(port: string, protocol = "http") {
+  const out: { address: string; origin: string; interface: string }[] = [];
+  for (const [name, list] of Object.entries(os.networkInterfaces())) {
+    for (const item of list ?? []) {
+      if (item.family === "IPv4" && !item.internal) out.push({ address: item.address, origin: `${protocol}://${item.address}${port ? `:${port}` : ""}`, interface: name });
+    }
+  }
+  // Best first: the factory-default router network (192.168.88.x), then other private networks; virtual adapters
+  // (VMware, VirtualBox, WSL, Docker...) last, because a router can never be on those.
+  const score = (item: { address: string; interface: string }) =>
+    (/vmware|virtualbox|vethernet|wsl|docker|hyper-v|vbox|vmnet|loopback|tailscale|zerotier/i.test(item.interface) ? 100 : 0) +
+    (item.address.startsWith("192.168.88.") ? 0 : item.address.startsWith("192.168.") || item.address.startsWith("10.") || /^172\.(1[6-9]|2\d|3[01])\./.test(item.address) ? 10 : 50);
+  return out.sort((a, b) => score(a) - score(b));
+}
+
+/** The router ran its script (or a test pretended it did): mark it set up in the saved data. */
+export function completeProvision(token: string, details: { failed: number; sourceIp: string | null; simulated?: boolean; deviceMode?: "blocked" | null; wan?: boolean; net?: boolean }) {
+  const pending = getProvision(token);
+  const routers = getState("routers")?.value;
+  const now = new Date().toLocaleString("en-GB", {
+    day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit",
+  });
+  const { failed, sourceIp, simulated, deviceMode, wan: wanDown, net: netDown } = details;
+  const wanAddress = sourceIp && !/^(127\.|0\.0\.0\.0|::1$)/.test(sourceIp) ? sourceIp : null;
+  let found = false;
+  if (Array.isArray(routers)) {
+    const next = (routers as Record<string, unknown>[]).map((r) => {
+      if (r.provisioningToken !== token) return r;
+      found = true;
+      const activity = Array.isArray(r.activity) ? (r.activity as unknown[]) : [];
+      return {
+        ...r,
+        provisioningStatus: "Provisioned",
+        status: "Online",
+        lastSeen: "Just now",
+        ...(wanAddress ? { wanAddress } : {}),
+        lastConnectedAt: now,
+        provisionedAt: now,
+        lastError: deviceMode === "blocked"
+          ? "The router's device-mode is home, or downloads are switched off. HotspotPro asked it to switch to advanced. Press the reset button briefly (or switch the power off and on) within 5 minutes, then paste the HotspotPro command again."
+          : wanDown
+            ? "The router is set up, but its ISP port has no address from your ISP yet. Check the internet cable and modem on that port (ether1 unless you chose another), then wait a minute."
+            : netDown
+              ? "The router is set up, but it cannot reach the internet (ping failed). Customers will not get online until the internet works on the ISP port."
+              : failed ? `${failed} setup step${failed === 1 ? "" : "s"} failed on the router — see the router's log (System → Log) for "HotspotPro step failed".` : null,
+        deviceMode: deviceMode ?? null,
+        health: failed || deviceMode || wanDown || netDown ? "error" : "ok",
+        activity: [
+          { at: now, text: `${simulated ? "TEST: pretended the router" : "Router"} ran its setup script${sourceIp ? ` (from ${sourceIp})` : ""}${failed ? ` — ${failed} step(s) failed` : " — all steps succeeded"}${deviceMode === "blocked" ? ". Device-mode needs confirming on the router" : ""}.` },
+          ...activity,
+        ].slice(0, 30),
+      };
+    });
+    if (found) setState("routers", next, "router");
+  }
+  if (!found && !pending) return false;
+  touchProvision(token, "fetchedAt");
+  touchProvision(token, "doneAt");
+  return true;
+}

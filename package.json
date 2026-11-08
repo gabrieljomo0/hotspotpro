@@ -1,0 +1,14 @@
+{
+  "name": "hotspotpro",
+  "private": true,
+  "description": "HotspotPro: billing dashboard (frontend) + backend, started together.",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "postinstall": "npm --prefix frontend install",
+    "start": "node run-all.mjs",
+    "dev": "node run-all.mjs",
+    "build:backend": "npm --prefix backend run build",
+    "test:backend": "npm --prefix backend test"
+  }
+}

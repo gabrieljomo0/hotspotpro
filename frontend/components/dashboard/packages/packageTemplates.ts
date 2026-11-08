@@ -1,0 +1,160 @@
+import type { PackageInput } from "../shared/types";
+
+export type PackageTemplate = {
+  key: string;
+  name: string;
+  group: "quick-start" | "special";
+  badge?: string;
+  badgeColor?: string;
+  description: string;
+  recommended?: boolean;
+  scheduled?: boolean;
+  input: PackageInput;
+};
+
+const base: PackageInput = {
+  name: "",
+  description: "",
+  durationValue: 1,
+  durationUnit: "Days",
+  uploadMbps: 1,
+  downloadMbps: 1,
+  fupValue: null,
+  fupUnit: "GB",
+  throttleEnabled: false,
+  throttleAtValue: null,
+  throttleAtUnit: "GB",
+  throttleSpeedMbps: 1,
+  price: "",
+  devices: 1,
+  freeTrial: false,
+  burstEnabled: false,
+  scheduleEnabled: false,
+  pppoeEnabled: false,
+  hotspotEnabled: true,
+  agentResellingEnabled: false,
+  agentPrice: "",
+  status: "Active",
+  featured: false,
+  displayOrder: 0,
+  routerIps: [],
+  applySiteId: null,
+  applyToAllSites: false,
+};
+
+export const PACKAGE_TEMPLATES: PackageTemplate[] = [
+  {
+    key: "2-hours",
+    name: "2 Hours Access",
+    group: "quick-start",
+    badge: "Popular",
+    badgeColor: "bg-amber-100 text-amber-700",
+    description: "Perfect for cafes and restaurants. Quick internet access for customers.",
+    input: {
+      ...base,
+      name: "2 Hours Access",
+      description: "Perfect for cafes and restaurants. Quick internet access for customers.",
+      durationValue: 2,
+      durationUnit: "Hours",
+      uploadMbps: 2,
+      downloadMbps: 5,
+      price: "GH₵ 2,000.00",
+      devices: 1,
+    },
+  },
+  {
+    key: "daily",
+    name: "Daily Package",
+    group: "quick-start",
+    badge: "Best Value",
+    badgeColor: "bg-blue-100 text-blue-700",
+    description: "Full day internet access. Great for guests and visitors.",
+    input: {
+      ...base,
+      name: "Daily Package",
+      description: "Full day internet access. Great for guests and visitors.",
+      durationValue: 24,
+      durationUnit: "Hours",
+      uploadMbps: 3,
+      downloadMbps: 7,
+      price: "GH₵ 5,000.00",
+      devices: 2,
+    },
+  },
+  {
+    key: "weekly",
+    name: "Weekly Package",
+    group: "quick-start",
+    description: "7 days of reliable internet. Ideal for short-term stays.",
+    input: {
+      ...base,
+      name: "Weekly Package",
+      description: "7 days of reliable internet. Ideal for short-term stays.",
+      durationValue: 7,
+      durationUnit: "Days",
+      uploadMbps: 5,
+      downloadMbps: 10,
+      price: "GH₵ 20,000.00",
+      devices: 2,
+    },
+  },
+  {
+    key: "monthly",
+    name: "Monthly Package",
+    group: "quick-start",
+    badge: "Recommended",
+    badgeColor: "bg-emerald-100 text-emerald-700",
+    recommended: true,
+    description: "Full month unlimited access. Best for regular customers.",
+    input: {
+      ...base,
+      name: "Monthly Package",
+      description: "Full month unlimited access. Best for regular customers.",
+      durationValue: 30,
+      durationUnit: "Days",
+      uploadMbps: 7,
+      downloadMbps: 15,
+      price: "GH₵ 50,000.00",
+      devices: 3,
+    },
+  },
+  {
+    key: "free-trial",
+    name: "Free Trial",
+    group: "special",
+    badge: "Free",
+    badgeColor: "bg-emerald-100 text-emerald-700",
+    description: "Attract new customers with a free trial. Limited time access.",
+    input: {
+      ...base,
+      name: "Free Trial",
+      description: "Attract new customers with a free trial. Limited time access.",
+      durationValue: 30,
+      durationUnit: "Minutes",
+      uploadMbps: 1,
+      downloadMbps: 3,
+      price: "GH₵ 0.00",
+      devices: 1,
+      freeTrial: true,
+    },
+  },
+  {
+    key: "night-owl",
+    name: "Night Owl",
+    group: "special",
+    scheduled: true,
+    description: "Discounted night-time package. Active from 10 PM to 6 AM.",
+    input: {
+      ...base,
+      name: "Night Owl",
+      description: "Discounted night-time package. Active from 10 PM to 6 AM.",
+      durationValue: 8,
+      durationUnit: "Hours",
+      uploadMbps: 5,
+      downloadMbps: 10,
+      price: "GH₵ 3,000.00",
+      devices: 1,
+      scheduleEnabled: true,
+    },
+  },
+];

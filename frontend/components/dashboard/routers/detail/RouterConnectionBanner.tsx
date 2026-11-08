@@ -1,0 +1,159 @@
+"use client";
+
+// The red / green banner at the top of a router's page.
+//   red   — "Router lost internet": it stopped contacting HotspotPro (its internet or power is gone)
+//   red   — "Router disconnected": you cut its internet; shows whether the router is following
+//   green — "Back online": reconnected, or it recovered after losing contact (stays 10 minutes)
+// Nothing is shown while the router is simply connected and healthy.
+
+import { useEffect, useState } from "react";
+import { Check, Copy, PlugZap, TriangleAlert, WifiOff, X } from "lucide-react";
+
+import type { RouterInfo } from "@/components/dashboard/data/dashboard-data";
+import { ago, fmtDuration } from "./routerUsageMath";
+import { connectionIndicator } from "../routerConnection";
+import { useRouterControl } from "../useRouterControl";
+
+export function RouterConnectionBanner({ router, onReconnect }: { router: RouterInfo; onReconnect: () => void }) {
+  const { control } = useRouterControl(router.ip, 5000);
+  const info = control[router.ip];
+  const [tick, setTick] = useState(() => Date.now());
+  const [dismissed, setDismissed] = useState<string | null>(null);
+  const [origins, setOrigins] = useState<string[]>([]);
+  const [origin, setOrigin] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const id = window.setInterval(() => setTick(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  // Addresses a router on this network could use to reach this server (never "localhost").
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const list: string[] = [];
+      try {
+        const response = await fetch("/api/provision/address", { cache: "no-store", credentials: "same-origin" });
+        if (response.ok) {
+          const json = (await response.json()) as { configured: string | null; candidates: { origin: string }[] };
+          if (json.configured) list.push(json.configured.replace(/\/+$/, ""));
+          for (const c of json.candidates) list.push(c.origin);
+        }
+      } catch { /* none */ }
+      if (!/^(localhost|127\.|\[::1\])/.test(window.location.hostname)) list.unshift(window.location.origin);
+      const unique = [...new Set(list)];
+      if (alive) { setOrigins(unique); setOrigin((current) => current || unique[0] || ""); }
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  const indicator = connectionIndicator(router, info, tick);
+  if (!indicator) return null;
+  const key = `${indicator.kind}:${indicator.since ?? ""}`;
+  if (indicator.kind === "back" && dismissed === key) return null;
+
+  const since = indicator.since ? ago(tick - Date.parse(indicator.since)) : null;
+  const command =
+    info?.setupPath && origin
+      ? `/tool fetch url="${origin}${info.setupPath}" dst-path=hotspotpro-internet-switch.rsc; :delay 2s; /import file-name=hotspotpro-internet-switch.rsc`
+      : "";
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(command);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch { /* the text is selectable anyway */ }
+  }
+
+  if (indicator.kind === "back") {
+    return (
+      <div data-testid="router-banner" data-kind="back" className="mb-6 flex items-start gap-3 rounded-xl border border-[#a7f3d0] bg-[#ecfdf5] px-5 py-4 text-[#065f46]">
+        <PlugZap size={22} className="mt-0.5 shrink-0" />
+        <div className="flex-1">
+          <p className="text-base font-black">Back online</p>
+          <p className="text-sm">
+            {router.name} {indicator.how === "reconnected" ? "was reconnected" : "recovered and is talking to HotspotPro again"} {since}
+            {indicator.wasDownMs !== null && indicator.wasDownMs > 0 ? ` — it was down for ${fmtDuration(indicator.wasDownMs / 1000)}` : ""}.
+            {indicator.how === "reconnected" ? " Internet is restored; customers can log in again." : ""}
+          </p>
+        </div>
+        <button type="button" aria-label="Dismiss" onClick={() => setDismissed(key)} className="rounded-lg p-1 hover:bg-[#d1fae5]"><X size={16} /></button>
+      </div>
+    );
+  }
+
+  const lost = indicator.kind === "lost";
+  return (
+    <div data-testid="router-banner" data-kind={indicator.kind} className="mb-6 rounded-xl border border-[#fecaca] bg-[#fef2f2] px-5 py-4 text-[#7f1d1d]">
+      <div className="flex flex-wrap items-start gap-3">
+        <span className="relative mt-1 flex h-3 w-3 shrink-0">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#ef4444] opacity-75" />
+          <span className="relative inline-flex h-3 w-3 rounded-full bg-[#dc2626]" />
+        </span>
+        <WifiOff size={22} className="mt-0.5 shrink-0 text-[#b91c1c]" />
+        <div className="min-w-[240px] flex-1">
+          <p className="text-base font-black text-[#b91c1c]">{lost ? "Router lost internet" : "Router disconnected — internet is cut"}</p>
+          <p className="text-sm">
+            {lost
+              ? `${router.name} hasn't contacted HotspotPro for ${indicator.since ? fmtDuration((tick - Date.parse(indicator.since)) / 1000) : "a while"} (last contact ${since}). It may have lost its internet connection or power, so customers on it are offline.`
+              : `Nobody can get online through ${router.name} and new logins are refused. Disconnected ${since ?? "just now"}.`}
+            {lost && router.disconnected ? " It is also disconnected by you." : ""}
+          </p>
+        </div>
+        {router.disconnected && (
+          <button
+            type="button"
+            data-testid="router-banner-reconnect"
+            onClick={onReconnect}
+            className="inline-flex items-center gap-2 rounded-xl bg-[#2563eb] px-4 py-2 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+          >
+            <PlugZap size={15} /> Reconnect
+          </button>
+        )}
+      </div>
+
+      {!lost && info && (
+        <div className="mt-3 text-sm" data-testid="router-banner-enforcement">
+          {info.enforced ? (
+            <p className="flex items-center gap-2 text-[#047857]">
+              <Check size={15} /> The router is following this — it last asked {ago(tick - Date.parse(info.lastCheckInAt ?? new Date(tick).toISOString()))} and checks every 30 seconds.
+            </p>
+          ) : (
+            <div className="rounded-lg bg-[#fffbeb] p-4 text-[#92400e]">
+              <p className="flex items-start gap-2 font-semibold">
+                <TriangleAlert size={16} className="mt-0.5 shrink-0" />
+                {!info.hasToken
+                  ? "This router has no setup link, so Disconnect can only refuse new logins — it cannot cut people already online. Remove it and add it again to get a setup link."
+                  : "The router hasn't picked this up. New logins are already refused, but to cut everyone, run this one command on the router, once."}
+              </p>
+              {info.hasToken && (
+                <div className="mt-3 text-[#0f172a]">
+                  <p className="text-xs text-[#92400e]">In WinBox open New Terminal, paste this, press Enter. The router must be able to reach this address:</p>
+                  {origins.length > 1 && (
+                    <select value={origin} onChange={(e) => setOrigin(e.target.value)} aria-label="Server address the router should use" className="mt-2 rounded-lg border border-[#cbd5e1] bg-white px-3 py-1.5 text-sm">
+                      {origins.map((o) => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                  )}
+                  {command ? (
+                    <div className="mt-2 flex items-start gap-2">
+                      <code data-testid="router-banner-command" className="block flex-1 break-all rounded-lg bg-white p-3 text-xs">{command}</code>
+                      <button type="button" onClick={() => void copy()} className="inline-flex items-center gap-1.5 rounded-lg bg-[#2563eb] px-3 py-2 text-xs font-bold text-white hover:bg-[#1d4ed8]">
+                        {copied ? <Check size={13} /> : <Copy size={13} />} {copied ? "Copied" : "Copy"}
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-xs">
+                      This page is open on <strong>localhost</strong>, which a router can&apos;t reach, and no network address was found. Set <code>HOTSPOTPRO_PUBLIC_URL</code> (for example http://192.168.1.50:3000) in <code>.env.local</code>, restart, and come back.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

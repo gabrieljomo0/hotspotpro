@@ -1,0 +1,149 @@
+HOTSPOTPRO - ADD A REAL MIKROTIK ROUTER (so the data on the system is real)
+===========================================================================
+
+What you need
+  - A MikroTik router (any RouterOS 6.4x or 7.x model), with internet coming into port ether1.
+  - This computer running HotspotPro (start.bat / npm start), on the SAME network as the router
+    (for example both plugged into the same modem/switch). Later, on a real server, the router
+    only needs to reach the server over the internet.
+  - Your computer's network address, e.g. 192.168.1.50 (the Add router page shows it for you).
+
+One-time computer setup (Windows)
+  Allow the router to reach HotspotPro through Windows Firewall (PowerShell as Administrator):
+    netsh advfirewall firewall add rule name="HotspotPro web+api" dir=in action=allow protocol=TCP localport=3000,4000
+    netsh advfirewall firewall add rule name="HotspotPro RADIUS" dir=in action=allow protocol=UDP localport=1812,1813
+
+Steps
+  1. Best results: reset the router to a blank configuration first
+     (WinBox: System > Reset Configuration > tick "No Default Configuration" > Reset),
+     then plug the internet cable into ether1 and your computer into ether2.
+  2. In HotspotPro open  Configuration > Routers > Create (Add router).
+     Choose "New Router", keep Hotspot on, and set the WiFi name if the router has WiFi.
+  3. On that page pick YOUR COMPUTER'S NETWORK ADDRESS (like http://192.168.1.50:4000).
+     Never use "localhost": a router can't reach it.
+  4. Copy the command, open WinBox > New Terminal (or SSH) on the router, paste it, press Enter.
+  5. Watch the page: it shows the router downloading and running its setup. When it says
+     provisioned, the router is saved as Online. If steps fail, the page says which; the router's
+     own log (System > Log, search "HotspotPro") has the details.
+  6. Create at least one package (Packages) - a new business starts with NO sample packages.
+  7. Make a voucher (Vouchers), connect a phone to the router's WiFi, the login page opens by itself,
+     enter the voucher code. Active Users, usage and revenue now show REAL activity from the router.
+
+Starting clean
+  Old sample data from earlier versions can still be saved in an existing account: open
+  Settings > "Start over" to clear it. New accounts start empty.
+
+LIVE WALKTHROUGH - ISP cable in ether1, your computer's cable in ether5
+-----------------------------------------------------------------------
+  Why ether5 matters: the setup turns the other ports and the WiFi into the customers' hotspot. Your computer's
+  port (the "admin port", ether5 by default on the Add router page) is kept OUTSIDE the hotspot, so the computer
+  running HotspotPro never loses its connection to the router, and the router can always reach HotspotPro.
+
+  1. Router: WinBox > System > Reset Configuration. Keep the factory defaults (do NOT tick "No Default
+     Configuration"). The router becomes 192.168.88.1 and gives your computer an address by DHCP.
+     (A blank router also works: the setup then creates that small admin network itself.)
+  2. Computer: set a FIXED address so the router can always find HotspotPro:
+       Windows > Network adapter > IPv4 > Use the following address:
+       IP 192.168.88.2   Mask 255.255.255.0   Gateway 192.168.88.1   DNS 192.168.88.1
+     (If your router's network is not 192.168.88.x, use an unused address on ITS network.)
+  3. Computer: allow the ports through Windows Firewall (PowerShell as Administrator):
+       netsh advfirewall firewall add rule name="HotspotPro web+api" dir=in action=allow protocol=TCP localport=3000,4000
+       netsh advfirewall firewall add rule name="HotspotPro RADIUS" dir=in action=allow protocol=UDP localport=1812,1813
+  4. Start HotspotPro (start.bat), open http://localhost:3000, sign in.
+  5. Configuration > Routers > Create: New Router, Hotspot on, "Internet (ISP) port" = ether1,
+     "Port my computer is plugged into" = ether5, give the WiFi a name.
+  6. Pick the address http://192.168.88.2:4000 (the one on the router's network, not a VMware/VirtualBox one).
+  7. Copy the command. WinBox > New Terminal (connect to 192.168.88.1) > paste > Enter.
+     The last part of the command is  /import  (there is no "import-memory").
+  8. Wait about a minute. The page shows the router as provisioned, or says what is wrong.
+     Your computer stays connected the whole time (ether5 is never touched).
+  9. Test: Packages > create one. Vouchers > make a voucher. Connect a phone to the router's WiFi; the login
+     page opens by itself (it is served from http://192.168.88.2:3000); enter the voucher.
+     Active Users, usage and revenue now show real activity from this router.
+  Things to check if something fails (WinBox terminal):
+       /ip hotspot print        /radius print        /ip dhcp-client print        /log print where message~"HotspotPro"
+  Keep the computer ON and HotspotPro running whenever you want customers to log in (later you will host it
+  on a server, and then you leave the admin port empty).
+
+LIVE WALKTHROUGH B - your computer is on the WiFi of the modem/Starlink router, and the internet cable
+from that modem/router goes into ether1 of the MikroTik (the MikroTik's ether1 and your computer are on the SAME network)
+-------------------------------------------------------------------------------------------------------------
+  The router can reach HotspotPro through ether1 (same network), and WinBox can be used from the computer over
+  WiFi, but the router's factory firewall blocks WinBox from the ether1 side. Open it once (private addresses only):
+
+  A. ONCE, in a terminal you already have on the router (WinBox on a cable in ether2-5, or the one you have open now),
+     paste these lines BEFORE you unplug that cable:
+       /ip firewall address-list add list=hotspotpro-private address=192.168.0.0/16
+       /ip firewall address-list add list=hotspotpro-private address=10.0.0.0/8
+       /ip firewall address-list add list=hotspotpro-private address=172.16.0.0/12
+       /ip firewall filter add chain=input action=accept in-interface=ether1 src-address-list=hotspotpro-private protocol=tcp dst-port=8291 place-before=0
+       /interface list add name=hotspotpro-admin
+       /interface list member add list=hotspotpro-admin interface=ether1
+       /tool mac-server set allowed-interface-list=hotspotpro-admin
+       /tool mac-server mac-winbox set allowed-interface-list=hotspotpro-admin
+       /ip neighbor discovery-settings set discover-interface-list=hotspotpro-admin
+       /ip dhcp-client add interface=ether1 disabled=no
+     (If the firewall line errors on a blank router, run it again without  place-before=0 .)
+     Then:  /ip address print   and   /ip dhcp-client print   - ether1 should have an address from the modem
+     and status "bound".  (From now on the Add router page does this for you: tick the WinBox box.)
+  B. On the computer (connected to the modem's WiFi) open WinBox > Neighbors: the MikroTik appears (connect by its
+     MAC address), or type the address ether1 got.
+  C. HotspotPro's address: on the computer run  ipconfig  and take the IPv4 address of the WiFi adapter (the one on the
+     modem's network). In WinBox terminal check the router reaches it:  /ping <that address> count=3  (must reply).
+     Keep that address from changing: give the computer a fixed address outside the modem's DHCP range, or
+     reserve it in the modem's app. If it changes, the router can no longer find HotspotPro.
+  D. Allow the ports in Windows Firewall (see the steps above), start HotspotPro, open the Add router page:
+       Internet (ISP) port = ether1     tick "Let me use WinBox from the network my ISP cable comes from"
+       clear "Port my computer is plugged into" (your computer is not on a MikroTik port, so every other port and
+       the WiFi go to customers)
+       address = http://<computer's WiFi address>:4000
+  E. Paste the command in the WinBox terminal. After it, customers on the MikroTik's WiFi/ports log in through the
+     portal (served from http://<computer's address>:3000) and reach the internet through ether1.
+  F. The hotspot network (10.10.x.x by default) is chosen so it never overlaps the server's address. If the modem's
+     own network is also 10.x.x.x, tell me and pick a different hotspot range on the Add router page.
+
+The command you paste (exactly as the page shows it)
+  /tool fetch mode=http url="http://<your computer>:4000/api/provision/<long code>?wireless=no" dst-path=hotspotpro-setup.rsc; :delay 2s; /import hotspotpro-setup.rsc;
+  Note: the last part is  /import  (there is no "import-memory" command on MikroTik).
+  The long code in the address is private to this router; do not share it.
+  After pasting, the router configures itself (takes about 1 minute), then checks its own work:
+    - the ISP port got an address from your ISP,
+    - the router can reach the internet (ping 8.8.8.8),
+    - the customer login page was installed (it forwards phones to the HotspotPro portal on port 3000).
+  The Add router page then shows the router as provisioned, or tells you exactly what is wrong
+  (ISP port has no address / no internet / device-mode needs confirming / N steps failed).
+  The hotspot network is chosen automatically so it never overlaps the server's own address.
+  Your computer's network and the hotspot network must not be the same range (for example, if your
+  computer is on 192.168.64.x do not use 192.168.64.x for the hotspot).
+
+ISP (internet) port
+  The internet cable goes into ether1 unless you change "Internet (ISP) port" on the Add router page.
+  The script sets that port to get its address from your ISP (DHCP client), turns on sharing (NAT) for it,
+  and puts every OTHER port (and the WiFi) on the hotspot network.
+
+Device-mode (newer MikroTik, RouterOS 7)
+  Some routers have "device-mode" restricted, which blocks downloading the setup (fetch) and the 30-second
+  check-in (scheduler). The setup script checks this, and if they are blocked it asks the router to allow them.
+  RouterOS then needs a PHYSICAL confirmation that no software can skip: press the router's reset button
+  briefly (or switch the power off and on) within 5 minutes, then run the HotspotPro command again.
+  The dashboard shows "device-mode needs confirming" on that router until it is done.
+  If even the first command is refused, run this on the router first, confirm, then paste the HotspotPro command:
+      /system device-mode update fetch=yes scheduler=yes
+
+Advanced setup and remote access (from the site)
+  Open a router (Configuration > Routers > the router) > "Advanced" tab. Type any RouterOS command(s) and press
+  Send. The router already calls this server every 30 seconds, so it picks the command up within about 30 seconds,
+  runs it once and reports back OK / error. This works from anywhere, behind any modem, without opening any port
+  on the router. Risky commands (reset, users, services, firewall, interfaces, reboot) ask you to confirm.
+  If the router has not checked in recently the command waits and runs when it is back online.
+
+What the setup script configures
+  WAN DHCP on ether1, a bridge for ether2-5 (+ WiFi), DHCP server and address pool, NAT, DNS and
+  clock (NTP), the hotspot (login page forwards to HotspotPro), RADIUS (vouchers, time/data/speed limits,
+  usage accounting), the walled garden for the portal, and the Disconnect/Reconnect switch.
+  It is safe to run again. If it prints "steps failed", read System > Log.
+
+Honest notes
+  - The script is checked by a built-in linter, but I could not test it on a real MikroTik here:
+    run it on a spare router first. Tell me the exact error line if anything fails.
+  - Online payments (Hubtel) and SMS need your own provider keys (Settings).

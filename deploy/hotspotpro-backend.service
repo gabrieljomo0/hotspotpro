@@ -1,0 +1,20 @@
+# sudo cp this file to /etc/systemd/system/, edit the paths/user, then:
+#   sudo systemctl daemon-reload && sudo systemctl enable --now hotspotpro-backend
+[Unit]
+Description=HotspotPro backend
+After=network.target
+
+[Service]
+User=hotspotpro
+WorkingDirectory=/opt/hotspotpro/backend
+EnvironmentFile=/opt/hotspotpro/backend/.env
+Environment=NODE_ENV=production
+Environment=PORT=4000
+ExecStart=/usr/bin/node dist/server.mjs
+Restart=always
+RestartSec=3
+# lets the backend listen on the RADIUS ports 1812/1813 (they are above 1024, so this is only a safeguard)
+AmbientCapabilities=
+
+[Install]
+WantedBy=multi-user.target

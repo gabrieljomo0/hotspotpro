@@ -1,0 +1,225 @@
+"use client";
+
+// This is a specific router's own page (System Information, Hotspot,
+// Captive Portal, Reports, Internet Users, Assigned Agents, Multi-WAN tabs).
+// It used to be one 876-line file with every tab's markup, the actions
+// menu, and two modals all mixed together. It's now broken into small
+// focused pieces under components/dashboard/routers/detail/, so editing
+// one tab (say, adding a field to Multi-WAN) can't accidentally break
+// another tab or the actions menu.
+//
+// This file's job is just to: load the router, work out which tab is
+// active, and render the right piece for it.
+
+import { use, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import dynamic from "next/dynamic";
+import { MoreVertical, Settings2, Loader2 } from "lucide-react";
+
+import { useDashboard } from "@/components/dashboard/context/DashboardContext";
+import { NotFoundCard } from "@/components/dashboard/shared/ActionPageLayout";
+import { agentsAssignedToRouter } from "@/components/dashboard/agents/routerAgents";
+import { RouterCaptivePortalPanel } from "@/components/dashboard/routers/RouterCaptivePortalPanel";
+import { hashString } from "@/components/dashboard/active-users/advanced-details/helpers";
+import { getUserId } from "@/components/dashboard/active-users/userLinks";
+
+import { SystemInformationTab } from "@/components/dashboard/routers/detail/SystemInformationTab";
+import { ReportsTab } from "@/components/dashboard/routers/detail/ReportsTab";
+import { RouterConnectionBanner } from "@/components/dashboard/routers/detail/RouterConnectionBanner";
+import { RouterUsageStrip } from "@/components/dashboard/routers/detail/RouterUsageStrip";
+import { DataUsageTab } from "@/components/dashboard/routers/detail/DataUsageTab";
+import { InternetUsersTab } from "@/components/dashboard/routers/detail/InternetUsersTab";
+import { AccessPointsTab } from "@/components/dashboard/routers/detail/AccessPointsTab";
+import { MultiWanTab } from "@/components/dashboard/routers/detail/MultiWanTab";
+import { AdvancedTab } from "@/components/dashboard/routers/detail/AdvancedTab";
+import { RouterMoreActionsMenu } from "@/components/dashboard/routers/detail/RouterMoreActionsMenu";
+import { RouterConfirmDialog, type ConfirmDialogState } from "@/components/dashboard/routers/detail/RouterConfirmDialog";
+
+// A rarely-opened settings popup — loaded only when actually needed.
+const NotificationContactsModal = dynamic(
+  () => import("@/components/dashboard/routers/detail/NotificationContactsModal").then((m) => m.NotificationContactsModal),
+  { ssr: false },
+);
+
+const TABS = ["System Information", "Hotspot", "Captive Portal", "Data Usage", "Reports", "Internet Users", "Assigned Agents", "Multi-WAN", "Advanced"] as const;
+type Tab = (typeof TABS)[number];
+
+function RouterDetailPageInner({
+  params,
+}: {
+  params: Promise<{ routerIp: string }>;
+}) {
+  const { routerIp } = use(params);
+  const decodedIp = decodeURIComponent(routerIp);
+  const searchParams = useSearchParams();
+
+  const { routers, routerEnabled, agents, users, startRouterTask, businessLocations } = useDashboard();
+  const router = routers.find((r) => r.ip === decodedIp);
+
+  const [tab, setTab] = useState<Tab>(
+    searchParams.get("tab") === "captive-portal"
+      ? "Captive Portal"
+      : searchParams.get("tab") === "hotspot"
+        ? "Hotspot"
+        : searchParams.get("tab") === "data-usage"
+        ? "Data Usage"
+        : "System Information",
+  );
+  const site = router?.siteId ? businessLocations.find((s) => s.id === router.siteId) : undefined;
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [moreRect, setMoreRect] = useState<DOMRect | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState>(null);
+  const [notifModalOpen, setNotifModalOpen] = useState(false);
+
+  if (!router) {
+    return (
+      <div className="p-6">
+        <NotFoundCard message="This router may have been removed." backHref="/dashboards/configuration/routers" />
+      </div>
+    );
+  }
+
+  const isEnabled = routerEnabled[router.ip] ?? router.status === "Online";
+
+  // A rough "who's connected to this router" and "which agents work here"
+  // list, based on a consistent hash of each user/agent — see the shared
+  // hashString helper for why this looks random but isn't.
+  const connectedUsers = users.filter((user) => {
+    const seed = hashString(getUserId(user));
+    return routers[seed % routers.length]?.ip === router.ip;
+  });
+  const assignedAgents = agentsAssignedToRouter(agents, router.ip);
+
+  function confirmAnd(title: string, message: string, action: () => void) {
+    setConfirmDialog({ title, message, onConfirm: action });
+  }
+
+  return (
+    <section className="w-full">
+      <Link
+        href="/dashboards/configuration/routers"
+        className="mb-4 inline-flex items-center gap-2 rounded-xl border border-[#e2e8f0] bg-white px-4 py-2.5 text-sm font-semibold text-[#475569] hover:bg-[#ffffff]"
+      >
+        ← Back to Routers
+      </Link>
+
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-black text-[#0f172a] md:text-3xl">{router.name}</h1>
+          <span className={`rounded-full px-3 py-1 text-xs font-bold ${isEnabled ? "bg-[#f1f5f9] text-[#1d4ed8]" : "bg-red-100 text-red-700"}`}>
+            {isEnabled ? "Online" : "Offline"}
+          </span>
+          {site && (
+            <Link
+              href={`/dashboards/configuration/sites/${encodeURIComponent(site.id)}`}
+              data-testid="router-site-link"
+              className="rounded-full bg-[#f1f5f9] px-3 py-1 text-xs font-bold text-[#2563eb] hover:bg-white"
+            >
+              {site.name}
+            </Link>
+          )}
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            type="button"
+            data-testid="full-provision"
+            onClick={() => startRouterTask("full-provision", router.ip)}
+            className="inline-flex items-center gap-2 rounded-xl bg-[#2563eb] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8]"
+          >
+            <Settings2 size={15} />
+            Full Provision
+          </button>
+
+          <div className="relative">
+            <button
+              type="button"
+              onClick={(event) => {
+                setMoreRect((event.currentTarget as HTMLElement).getBoundingClientRect());
+                setMoreOpen((current) => !current);
+              }}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#2563eb] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#2563eb]"
+            >
+              <MoreVertical size={15} />
+              More Actions
+            </button>
+
+            {moreOpen && (
+              <RouterMoreActionsMenu
+                router={router}
+                anchorRect={moreRect}
+                onClose={() => setMoreOpen(false)}
+                onGoToMultiWan={() => setTab("Multi-WAN")}
+                onOpenNotifications={() => setNotifModalOpen(true)}
+                onConfirm={confirmAnd}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
+      <RouterConnectionBanner router={router} onReconnect={() => startRouterTask("reconnect", router.ip)} />
+
+      {tab !== "Data Usage" && <RouterUsageStrip routerIp={router.ip} onOpen={() => setTab("Data Usage")} />}
+
+      <nav className="mb-6 flex flex-wrap gap-2 border-b border-[#f1f5f9] pb-4">
+        {TABS.map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setTab(t)}
+            className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+              tab === t ? "bg-[#f1f5f9] text-[#2563eb]" : "text-[#64748b] hover:bg-[#ffffff]"
+            }`}
+          >
+            {t}
+          </button>
+        ))}
+      </nav>
+
+      {tab === "System Information" && (
+        <SystemInformationTab router={router} isEnabled={isEnabled} connectedUserCount={connectedUsers.length} />
+      )}
+
+      {tab === "Hotspot" && <RouterCaptivePortalPanel router={router} section="hotspot" />}
+      {tab === "Captive Portal" && <RouterCaptivePortalPanel router={router} section="portal" />}
+
+      {tab === "Data Usage" && <DataUsageTab router={router} />}
+
+      {tab === "Reports" && <ReportsTab routerIp={router.ip} />}
+
+      {tab === "Internet Users" && <InternetUsersTab connectedUsers={connectedUsers} />}
+
+      {tab === "Assigned Agents" && <AccessPointsTab assignedAgents={assignedAgents} />}
+
+      {tab === "Multi-WAN" && <MultiWanTab router={router} />}
+
+      {tab === "Advanced" && <AdvancedTab router={router} />}
+
+      <RouterConfirmDialog dialog={confirmDialog} onCancel={() => setConfirmDialog(null)} />
+
+      {notifModalOpen && (
+        <NotificationContactsModal router={router} onClose={() => setNotifModalOpen(false)} />
+      )}
+    </section>
+  );
+}
+
+export default function RouterDetailPage({
+  params,
+}: {
+  params: Promise<{ routerIp: string }>;
+}) {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <Loader2 className="h-9 w-9 animate-spin text-[#2563eb]" />
+        </div>
+      }
+    >
+      <RouterDetailPageInner params={params} />
+    </Suspense>
+  );
+}

@@ -1,0 +1,242 @@
+// Starts the built backend on a throw-away port/data folder and checks the main flows,
+// including that separate businesses can never see each other's data.
+import { spawn } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const dir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const data = fs.mkdtempSync(path.join(os.tmpdir(), "hsp-smoke-"));
+const port = 4400 + Math.floor(Math.random() * 400);
+const base = `http://127.0.0.1:${port}`;
+const child = spawn(process.execPath, ["dist/server.mjs"], {
+  cwd: dir,
+  env: { ...process.env, PORT: String(port), HOTSPOTPRO_DATA_DIR: data, HOTSPOTPRO_LOG: "off", HOTSPOTPRO_RADIUS: "off", NODE_ENV: "development" },
+  stdio: ["ignore", "pipe", "pipe"],
+});
+let out = "";
+child.stdout.on("data", (d) => (out += d));
+child.stderr.on("data", (d) => (out += d));
+
+let pass = 0, failed = 0;
+const check = (name, ok, extra = "") => { ok ? pass++ : failed++; console.log(`${ok ? "PASS" : "FAIL"}  ${name}${ok ? "" : "  " + extra}`); };
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const J = { "content-type": "application/json" };
+const send = (method, url, body, cookie = "", extra = {}) =>
+  fetch(base + url, { method, headers: { ...J, ...(cookie ? { cookie } : {}), ...extra }, body: body === undefined ? undefined : JSON.stringify(body) });
+const cookieOf = (r) => (r.headers.getSetCookie?.() ?? []).map((c) => c.split(";")[0]).filter((c) => !c.endsWith("=")).join("; ");
+const json = async (r) => r.json().catch(() => ({}));
+
+try {
+  for (let i = 0; i < 40; i++) { try { if ((await fetch(base + "/api/health")).ok) break; } catch {} await sleep(250); }
+  check("health", (await fetch(base + "/api/health")).status === 200);
+  check("unknown route 404", (await fetch(base + "/api/nope")).status === 404);
+  check("me without cookie is 401", (await fetch(base + "/api/auth/me")).status === 401);
+  check("state needs a sign-in", (await fetch(base + "/api/state")).status === 401);
+
+  // ---- first sign-up = super admin ----
+  let info = await json(await fetch(base + "/api/auth/setup"));
+  check("fresh site: first account is coming", info.firstAccount === true && info.signupOpen === true, JSON.stringify(info));
+  check("no built-in default login", (await send("POST", "/api/auth/login", { email: "admin@hotspotpro.com", password: "password123" })).status === 401);
+  check("register rejects bad input", (await send("POST", "/api/auth/register", { name: "A", email: "bad", password: "short" })).status === 400);
+  let r = await send("POST", "/api/auth/register", { name: "Platform Owner", businessName: "Owner WiFi", email: "owner@example.com", password: "a-good-password" });
+  const superCookie0 = cookieOf(r);
+  let body = await json(r);
+  check("first account becomes super admin", r.status === 200 && body.super === true && superCookie0.length > 5, JSON.stringify(body));
+  r = await send("POST", "/api/auth/login", { email: "OWNER@example.com", password: "a-good-password" });
+  const superCookie = cookieOf(r);
+  body = await json(r);
+  check("super admin signs in (email not case sensitive)", r.status === 200 && body.super === true);
+  const me = await json(await send("GET", "/api/auth/me", undefined, superCookie));
+  check("me says super admin", me.super === true && me.name === "Platform Owner", JSON.stringify(me));
+
+  // ---- other businesses register (separate data) ----
+  r = await send("POST", "/api/auth/register", { name: "Ama Boateng", businessName: "Ama Net", email: "ama@example.com", password: "ama-password-1" });
+  const amaCookie = cookieOf(r);
+  body = await json(r);
+  check("a second business can register", r.status === 200 && body.super === false, JSON.stringify(body));
+  r = await send("POST", "/api/auth/register", { name: "Kofi Mensah", businessName: "Kofi WiFi", email: "kofi@example.com", password: "kofi-password-1" });
+  const kofiCookie = cookieOf(r);
+  check("a third business can register", r.status === 200);
+  check("duplicate email refused", (await send("POST", "/api/auth/register", { name: "Ama Again", email: "ama@example.com", password: "another-password" })).status === 409);
+
+  // ---- isolation ----
+  const routerA = [{ ip: "10.0.0.1", name: "Ama Router", status: "Online", provisioningToken: "tok-ama-12345678" }];
+  const routerK = [{ ip: "10.0.0.1", name: "Kofi Router", status: "Online", provisioningToken: "tok-kofi-1234567" }];
+  check("Ama saves her routers", (await send("PUT", "/api/state/routers", { value: routerA }, amaCookie)).status === 200);
+  check("Kofi saves his routers", (await send("PUT", "/api/state/routers", { value: routerK }, kofiCookie)).status === 200);
+  const amaState = await json(await send("GET", "/api/state", undefined, amaCookie));
+  const kofiState = await json(await send("GET", "/api/state", undefined, kofiCookie));
+  check("Ama sees only her router", amaState.docs?.routers?.value?.[0]?.name === "Ama Router" && amaState.docs.routers.value.length === 1, JSON.stringify(amaState.docs?.routers?.value));
+  check("Kofi sees only his router", kofiState.docs?.routers?.value?.[0]?.name === "Kofi Router");
+  const ownState = await json(await send("GET", "/api/state", undefined, superCookie));
+  check("super admin's own business is empty (separate too)", !ownState.docs?.routers);
+
+  // portal: each router link opens ITS business only
+  await send("PUT", "/api/state/packages", { value: [{ id: "p1", name: "Ama Daily", downloadMbps: 5, uploadMbps: 5, durationValue: 1, durationUnit: "Days", price: 3, status: "Active", validity: "1 day" }] }, amaCookie);
+  await send("PUT", "/api/state/packages", { value: [{ id: "p1", name: "Kofi Weekly", downloadMbps: 5, uploadMbps: 5, durationValue: 7, durationUnit: "Days", price: 9, status: "Active", validity: "7 days" }] }, kofiCookie);
+  const cfgA = await json(await fetch(base + "/api/portal/config?rt=tok-ama-12345678"));
+  const cfgK = await json(await fetch(base + "/api/portal/config?rt=tok-kofi-1234567"));
+  check("customer portal link shows Ama's packages only", cfgA.packages?.[0]?.name === "Ama Daily" && cfgA.packages.length === 1, JSON.stringify(cfgA));
+  check("customer portal link shows Kofi's packages only", cfgK.packages?.[0]?.name === "Kofi Weekly");
+  check("portal without a link is refused", (await fetch(base + "/api/portal/config")).status === 400);
+  check("router setup token of another business is not usable", (await send("POST", "/api/provision", { token: "tok-ama-12345678", router: { name: "Hijack" } }, kofiCookie)).status === 409);
+
+  // routers talk to the platform with their own setup token: each gets its own business's instructions
+  const ctlA = await fetch(base + "/api/provision/tok-ama-12345678/control");
+  const ctlK = await fetch(base + "/api/provision/tok-kofi-1234567/control");
+  check("router of Ama gets Ama's control script", ctlA.status === 200 && (await ctlA.text()).includes("Ama Router"));
+  check("router of Kofi gets Kofi's control script", ctlK.status === 200 && (await ctlK.text()).includes("Kofi Router"));
+  check("an unknown router token is refused", (await fetch(base + "/api/provision/not-a-real-token/control")).status === 404);
+  await send("PUT", "/api/state/vouchers", { value: [{ code: "AMATEST1", password: null, packageName: "Ama Daily", status: "Available" }] }, amaCookie);
+  const cloudCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
+  check("cloud mode does not copy vouchers onto the router", cloudCtl.includes("HotspotPro login: cloud") && cloudCtl.includes("use-radius=yes") && !cloudCtl.includes('name="AMATEST1"'), cloudCtl.slice(0, 500));
+  await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], loginMode: "local" }] }, amaCookie);
+  const localCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
+  check("local mode stores the voucher on the router and turns cloud login off", localCtl.includes("HotspotPro login: local") && localCtl.includes("use-radius=no") && localCtl.includes('name="AMATEST1"') && localCtl.includes("limit-uptime=1d"), localCtl.slice(0, 500));
+  await send("PUT", "/api/state/routers", { value: routerA }, amaCookie);
+
+  // ---- setup script: ISP port, device-mode check ----
+  const scriptA = await (await fetch(base + "/api/provision/tok-ama-12345678")).text();
+  check("ISP port is ether1 by default (DHCP client + NAT)", scriptA.includes("/ip dhcp-client add interface=ether1") && scriptA.includes("out-interface=ether1 action=masquerade"));
+  check("the ISP port is taken out of the old bridge so it can get an address", scriptA.includes("bridge port remove [find where interface=ether1]"));
+  check("the check-in is allowed to download", scriptA.includes("policy=ftp,reboot,read,write,policy,test"));
+  check("setup downloads the captive portal pages", scriptA.includes("/login.html") && scriptA.includes("alogin.html") && scriptA.includes("HotspotPro login: cloud"));
+  const registered = await send("POST", "/api/provision", { token: "tok-live-12345678", router: { name: "Live Router", loginMode: "local", hotspotEnabled: true, routerType: "New Router", wanInterface: "ether1" } }, amaCookie);
+  const liveScript = await (await fetch(base + "/api/provision/tok-live-12345678")).text();
+  check("the login mode chosen while adding a router is in the setup script", registered.status === 200 && liveScript.includes("HotspotPro login: local") && liveScript.includes("use-radius=no") && !liveScript.includes("use-radius=yes"), String(registered.status));
+  const lint = await json(await send("GET", "/api/provision/tok-live-12345678/check?origin=" + encodeURIComponent("http://192.168.88.10:4000"), undefined, amaCookie));
+  check("the setup script passes the RouterOS check", lint.report?.ok === true, JSON.stringify(lint.report?.errors ?? lint));
+  check("script checks the router's device-mode", scriptA.includes("/system device-mode get mode") && scriptA.includes("mode=advanced") && scriptA.includes("/system device-mode get fetch") && scriptA.includes("&dm=") && scriptA.includes(':error "device-mode"'));
+  await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], wanInterface: "ether3" }] }, amaCookie);
+  const scriptWan = await (await fetch(base + "/api/provision/tok-ama-12345678")).text();
+  check("a chosen ISP port is used, and ether1 joins the LAN bridge", scriptWan.includes("/ip dhcp-client add interface=ether3") && scriptWan.includes("interface=ether1 comment=\"HotspotPro\"") && !scriptWan.includes("bridge port add bridge=hotspotpro-bridge interface=ether3"));
+  await send("PUT", "/api/state/routers", { value: routerA }, amaCookie);
+  check("device-mode problem is reported on the router", (await fetch(base + "/api/provision/tok-ama-12345678/done?failed=0&dm=blocked")).status === 200
+    && /device-mode/.test(JSON.stringify((await json(await send("GET", "/api/state", undefined, amaCookie))).docs?.routers?.value?.[0]?.lastError)));
+
+  // ---- admin port: the computer's cable stays outside the hotspot ----
+  await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], wanInterface: "ether1", managementPort: "ether5", routerType: "New Router" }] }, amaCookie);
+  const scriptM = await (await fetch(base + "/api/provision/tok-ama-12345678")).text();
+  check("admin port ether5 is kept out of the hotspot bridge", !scriptM.includes("bridge=hotspotpro-bridge interface=ether5") && scriptM.includes("bridge=hotspotpro-bridge interface=ether4") && scriptM.includes("bridge=hotspotpro-bridge interface=ether2"));
+  check("admin port gets its own small network when the router has none", scriptM.includes("hotspotpro-admin") && scriptM.includes('address="192.168.88.1/24"'));
+  await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], wanInterface: "ether1", managementPort: "ether1" }] }, amaCookie);
+  const scriptM2 = await (await fetch(base + "/api/provision/tok-ama-12345678")).text();
+  check("the ISP port can never be the admin port", !scriptM2.includes("hotspotpro-admin"));
+  await send("PUT", "/api/state/routers", { value: routerA }, amaCookie);
+
+  // ---- WinBox from the ISP-side private network (e.g. computer on the Starlink router's WiFi) ----
+  const scriptNo = await (await fetch(base + "/api/provision/tok-ama-12345678")).text();
+  check("WinBox from the ISP network is off unless asked for", !scriptNo.includes("HotspotPro WinBox from ISP network"));
+  await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], adminFromWan: true }] }, amaCookie);
+  const scriptW = await (await fetch(base + "/api/provision/tok-ama-12345678")).text();
+  check("WinBox opened to private addresses on the ISP port only", scriptW.includes("in-interface=ether1 src-address-list=hotspotpro-private protocol=tcp dst-port=8291") && scriptW.includes("address=192.168.0.0/16") && !scriptW.includes("dst-address-list"));
+  await send("PUT", "/api/state/routers", { value: routerA }, amaCookie);
+
+  // ---- customers' login page + self-checks ----
+  check("script uses the right hotspot folder (flash-aware)", scriptA.includes("html-directory=$hpDir") && scriptA.includes("flash/hotspot"));
+  check("setup disables free trial and plants the offline portal lock", scriptA.includes("trial-uptime=0s") && scriptA.includes("hotspotpro-guard") && scriptA.includes("HotspotPro access lock"));
+  const loginHtml = await (await fetch(base + "/api/provision/tok-ama-12345678/login.html")).text();
+  check("login page forwards to the website portal (port 3000, not the backend)", loginHtml.includes(":3000/portal?rt=tok-ama-12345678&login=$(link-login-only-esc)") && !loginHtml.includes(":4000/portal"), loginHtml.slice(0, 240));
+  check("login page for an unknown router is refused", (await fetch(base + "/api/provision/not-a-real-token/login.html")).status === 404);
+  const alogin = await (await fetch(base + "/api/provision/tok-ama-12345678/alogin.html")).text();
+  check("success page is served for the router", alogin.includes("$(link-redirect)"));
+  check("error page names the router's reason", (await (await fetch(base + "/api/provision/tok-ama-12345678/error.html")).text()).includes("$(error)"));
+  check("DHCP pool is capped so a small router can create it", scriptA.includes("ranges=10.10.0.2-10.10.3.254"));
+  check("script checks the ISP port and internet at the end", scriptA.includes('&wan=') && scriptA.includes("/ping 8.8.8.8"));
+  await fetch(base + "/api/provision/tok-ama-12345678/done?failed=0&wan=down");
+  check("a dead ISP port is reported on the router", /ISP port/.test(JSON.stringify((await json(await send("GET", "/api/state", undefined, amaCookie))).docs?.routers?.value?.[0]?.lastError)));
+
+  // ---- advanced commands from the site (remote, picked up by the router's 30-second call) ----
+  let jr = await send("POST", "/api/routers/jobs", { ip: "10.0.0.1", script: "/system identity set name=advanced-test" }, amaCookie);
+  const job = (await json(jr)).job;
+  check("owner can queue a router command", jr.status === 200 && !!job?.id);
+  check("signed-out cannot queue one", (await send("POST", "/api/routers/jobs", { ip: "10.0.0.1", script: "x" })).status === 401);
+  const ctl1 = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
+  check("router's next call includes the command", ctl1.includes(`/job/${job.id}`));
+  const ctl2 = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
+  check("the command is sent only once", !ctl2.includes(`/job/${job.id}`));
+  const jobText = await (await fetch(base + `/api/provision/tok-ama-12345678/job/${job.id}`)).text();
+  check("router can download the command", jobText.includes("advanced-test"));
+  check("another business's router cannot read it", (await fetch(base + `/api/provision/tok-kofi-1234567/job/${job.id}`)).status === 404);
+  await fetch(base + `/api/provision/tok-ama-12345678/job/${job.id}/result?ok=1`);
+  const list2 = await json(await send("GET", "/api/routers/jobs?ip=10.0.0.1", undefined, amaCookie));
+  check("result is recorded", list2.jobs?.[0]?.status === "ok");
+
+  // ---- super admin powers; others are kept out ----
+  check("a business cannot open the super admin area", (await send("GET", "/api/super/overview", undefined, amaCookie)).status === 403);
+  check("signed-out cannot either", (await fetch(base + "/api/super/tenants")).status === 403);
+  const overview = await json(await send("GET", "/api/super/overview", undefined, superCookie));
+  check("overview counts the businesses", overview.totals?.businesses === 3 && overview.totals.routers === 2, JSON.stringify(overview.totals));
+  const list = await json(await send("GET", "/api/super/tenants", undefined, superCookie));
+  const ama = list.tenants?.find((t) => t.owner?.email === "ama@example.com");
+  check("tenant list has owners and numbers", list.tenants?.length === 3 && ama?.stats?.routers === 1, JSON.stringify(list.tenants?.map((t) => t.name)));
+  const detail = await json(await send("GET", `/api/super/tenants/${ama.id}`, undefined, superCookie));
+  check("tenant detail shows routers and saved data", detail.routers?.[0]?.name === "Ama Router" && detail.data?.some((d) => d.key === "routers"), JSON.stringify(detail.routers));
+  const people = await json(await send("GET", "/api/super/people", undefined, superCookie));
+  check("people list covers all owners", people.people?.filter((p) => p.kind === "owner").length === 2);
+  const ended = await json(await send("POST", `/api/super/tenants/${ama.id}/access`, { untilMs: Date.now() - 5 * 86400000 }, superCookie));
+  check("ending online access locks that business", ended.locked === true, JSON.stringify(ended));
+  const lockedCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
+  check("the router is told to lock its captive portal", lockedCtl.includes("HotspotPro access: locked") && lockedCtl.includes("locked.html") && !lockedCtl.includes('name="AMATEST1"'));
+  const renewed = await json(await send("POST", "/api/access", { months: 1 }, amaCookie));
+  check("renewing online access opens it again", renewed.locked === false && renewed.mode === "paid", JSON.stringify(renewed));
+  const openedCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
+  check("the router is told the portal is open", openedCtl.includes("HotspotPro access: open"));
+
+  // View as: the normal dashboard API then shows that business, with full access
+  r = await send("POST", "/api/super/view", { tenantId: ama.id }, superCookie);
+  const viewCookie = `${superCookie}; ${cookieOf(r)}`;
+  const viewed = await json(await send("GET", "/api/state", undefined, viewCookie));
+  check("'View as' shows Ama's data to the super admin", viewed.docs?.routers?.value?.[0]?.name === "Ama Router");
+  check("'View as' can change that business's data", (await send("PUT", "/api/state/routers", { value: [...routerA, { ip: "10.0.0.9", name: "Added by super", status: "Online" }] }, viewCookie)).status === 200);
+  const amaAfter = await json(await send("GET", "/api/state", undefined, amaCookie));
+  check("…and Ama sees that change", amaAfter.docs?.routers?.value?.length === 2);
+  const viewingMe = await json(await send("GET", "/api/auth/me", undefined, viewCookie));
+  check("me reports who is being viewed", viewingMe.viewing?.name === "Ama Net", JSON.stringify(viewingMe.viewing));
+  check("a normal business cannot fake a 'view as' cookie", (await json(await send("GET", "/api/state", undefined, `${amaCookie}; hotspotpro_view=${/* kofi's id */ list.tenants.find((t) => t.name === "Kofi WiFi").id}`))).docs?.routers?.value?.[0]?.name === "Ama Router");
+
+  // suspend / reactivate
+  r = await send("PATCH", `/api/super/tenants/${ama.id}`, { status: "suspended", reason: "unpaid" }, superCookie);
+  check("super admin suspends a business", r.status === 200);
+  check("suspended business is locked out of its data", (await send("GET", "/api/state", undefined, amaCookie)).status === 403);
+  const blockedLogin = await send("POST", "/api/auth/login", { email: "ama@example.com", password: "ama-password-1" });
+  check("suspended business cannot sign in", blockedLogin.status === 403);
+  check("super admin can still look inside it", (await send("GET", "/api/state", undefined, viewCookie)).status === 200);
+  check("its customer portal is closed too", (await fetch(base + "/api/portal/config?rt=tok-ama-12345678")).status === 403);
+  check("a suspended business's routers keep getting their instructions", (await fetch(base + "/api/provision/tok-ama-12345678/control")).status === 200);
+  await send("PATCH", `/api/super/tenants/${ama.id}`, { status: "active" }, superCookie);
+  check("reactivated business works again", (await send("GET", "/api/state", undefined, amaCookie)).status === 200);
+
+  // temp password
+  const reset = await json(await send("POST", `/api/super/tenants/${ama.id}/reset-password`, {}, superCookie));
+  check("super admin can set a temporary password", typeof reset.temporaryPassword === "string" && reset.email === "ama@example.com");
+  check("the old password stops working, the new one works", (await send("POST", "/api/auth/login", { email: "ama@example.com", password: "ama-password-1" })).status === 401
+    && (await send("POST", "/api/auth/login", { email: "ama@example.com", password: reset.temporaryPassword })).status === 200);
+
+  // sign-up switch
+  const setting = await json(await send("PATCH", "/api/super/settings", { signupOpen: false }, superCookie));
+  check("super admin can close public sign-up", setting.settings?.signupOpen === false);
+  check("sign-up is then refused", (await send("POST", "/api/auth/register", { name: "Late Comer", email: "late@example.com", password: "late-password-1" })).status === 403);
+  await send("PATCH", "/api/super/settings", { signupOpen: true }, superCookie);
+
+  // delete (needs the name typed)
+  const kofi = list.tenants.find((t) => t.name === "Kofi WiFi");
+  check("delete needs the name typed", (await send("DELETE", `/api/super/tenants/${kofi.id}`, { confirm: "nope" }, superCookie)).status === 400);
+  check("super admin cannot delete their own business", (await send("DELETE", `/api/super/tenants/${list.tenants.find((t) => t.owner?.email === "owner@example.com").id}`, { confirm: "Owner WiFi" }, superCookie)).status === 400);
+  check("super admin deletes a business", (await send("DELETE", `/api/super/tenants/${kofi.id}`, { confirm: "Kofi WiFi" }, superCookie)).status === 200);
+  check("a deleted business's login stops working", (await send("GET", "/api/auth/me", undefined, kofiCookie)).status === 401);
+
+  const activity = await json(await send("GET", "/api/super/activity", undefined, superCookie));
+  check("activity log recorded it all", activity.entries?.some((e) => e.type === "signup") && activity.entries.some((e) => e.type === "suspended") && activity.entries.some((e) => e.type === "view-as") && activity.entries.some((e) => e.type === "deleted"));
+} catch (e) {
+  check("smoke test ran", false, String(e));
+} finally {
+  child.kill("SIGTERM");
+  await sleep(500);
+  fs.rmSync(data, { recursive: true, force: true });
+}
+console.log(`\n${pass} passed, ${failed} failed`);
+if (failed) console.log(out.slice(-2000));
+process.exit(failed ? 1 : 0);

@@ -1,0 +1,17 @@
+# sudo cp this file to /etc/systemd/system/, edit the paths/user, then (after "npm install && npm run build" in /opt/hotspotpro/frontend):
+#   sudo systemctl daemon-reload && sudo systemctl enable --now hotspotpro-web
+[Unit]
+Description=HotspotPro website
+After=network.target hotspotpro-backend.service
+
+[Service]
+User=hotspotpro
+WorkingDirectory=/opt/hotspotpro/frontend
+Environment=NODE_ENV=production
+Environment=HOTSPOTPRO_BACKEND_URL=http://127.0.0.1:4000
+ExecStart=/usr/bin/npm run start -- -p 3000
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

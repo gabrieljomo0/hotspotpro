@@ -1,0 +1,15 @@
+# Caddy gives your site https automatically. Replace billing.example.com with your domain
+# (its DNS "A" record must point at this server), then:  sudo caddy run --config Caddyfile
+# Routers and Hubtel talk to /api and /webhooks; everything else is the website.
+billing.example.com {
+	encode gzip
+
+	@backend path /api/* /webhooks/*
+	handle @backend {
+		reverse_proxy 127.0.0.1:4000
+	}
+
+	handle {
+		reverse_proxy 127.0.0.1:3000
+	}
+}

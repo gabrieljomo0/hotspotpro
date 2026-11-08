@@ -1,0 +1,63 @@
+HOTSPOTPRO - THE DATABASE, TESTING LOCALLY FIRST, AND UPDATING WITHOUT HURTING USERS
+====================================================================================
+
+1. WHICH DATABASE IS USED?  (honest answer)
+-------------------------------------------
+  A single JSON file:  backend/data/db.json   (plus backend/data/secret files made on first start).
+  - Everything is in it: accounts, businesses, routers, vouchers, packages, payments, SMS log, usage.
+  - It is loaded into memory when the backend starts and saved to disk a fraction of a second after every
+    change. Saving is safe: it writes a temporary file and then swaps it in, so a crash cannot leave a
+    half-written file. When the backend is stopped normally it saves first.
+  - There is NO separate database server (no MySQL / PostgreSQL / MongoDB) to install.
+  Good for: testing, and a small to medium number of routers and customers on ONE server.
+  Limits: one backend process only (you cannot run two copies on the same file), the whole file is rewritten
+  on each save (slower as it grows into many megabytes), and no ready-made reporting queries.
+  Before hosting for many businesses / thousands of customers, move to PostgreSQL. The data layer is
+  all in backend/src/server/store.ts, so that move is contained. Ask me when you are ready.
+  Safety copies: every time the backend starts, and every 6 hours, a copy goes to backend/data/backups
+  (the newest 20 are kept).  Put one back:   cd backend ; node scripts/restore-backup.mjs
+  (lists them)  then  node scripts/restore-backup.mjs db-<time>.json   (with HotspotPro stopped).
+  Back this folder up off the computer too (copy backend/data somewhere safe).
+
+2. RUN EVERYTHING LOCALLY FIRST
+-------------------------------
+  Real site:   start.bat   ->  http://localhost:3000      (backend 4000, RADIUS 1812/1813)
+  TEST COPY:   start-test.bat -> http://127.0.0.1:3100    (backend 4100, RADIUS 11812/11813)
+  The test copy has its OWN data (backend/data-test) and its own website build, so it can run next to the
+  real site and never touches live data or live customers. Use the address 127.0.0.1 for the test copy and
+  localhost for the real one (different names keep the two logins apart).
+  To try an update on real-looking data:  start-test.bat --copy-live   (copies the live data into the test copy).
+  Routers: the Add router page puts the right RADIUS port in the setup command for whichever copy you used.
+  A router can only talk to one copy at a time for RADIUS, so for router tests use the real ports or
+  test with a spare router.
+
+3. UPDATING WITHOUT AFFECTING PEOPLE
+------------------------------------
+  Data and code are separate. Your data lives only in backend/data, so updating code never changes it.
+  On your computer:
+    a) Unzip the new version into a NEW folder (for example C:\hotspotpro-new).
+    b) Run its start-test.bat and check everything works (Packages, Vouchers, a router, the Advanced tab...).
+    c) When happy: stop the real site (Ctrl+C), copy the OLD folder's backend\data folder into the new folder's
+       backend folder, run the new start.bat. The restart takes a few seconds.
+    d) Keep the old folder until you are sure. To go back: stop, start the old folder again.
+  What users notice during the few seconds of restart:
+    - Customers already online stay online (the router keeps them connected).
+    - New logins and payments retry a few seconds later (RADIUS / portal come back right away).
+    - Routers keep working: they just call the server again on their next 30-second check-in.
+    - The dashboard shows a short "reconnecting" and recovers.
+  Update at a quiet hour, and take a backup first (copy backend/data).
+
+  On a real server (see deploy/DEPLOY.md), do the same with two folders (blue / green):
+    1. Put the new version in a second folder and run it on other ports with its own copy of the data to test.
+    2. Stop the old one, start the new one on the real ports with the real data (seconds of downtime).
+    3. Roll back = start the old folder again. Schema changes are only ever additions, so older and newer
+       versions can read the same db.json, and the file is upgraded automatically on start.
+  True zero-downtime (two copies serving at once) needs a real database such as PostgreSQL, because the JSON
+  file can only belong to one running backend.
+
+4. BEFORE HOSTING, CHECKLIST
+----------------------------
+  [ ] Test copy works with a real router and a real voucher login
+  [ ] Backups tested (restore-backup.mjs)
+  [ ] HOTSPOTPRO_SETUP_CODE and HOTSPOTPRO_PUBLIC_URL set (see deploy/DEPLOY.md)
+  [ ] Decide on PostgreSQL if you will host many businesses

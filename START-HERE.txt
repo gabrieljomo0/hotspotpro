@@ -1,0 +1,42 @@
+HOTSPOTPRO - HOW TO RUN IT
+
+The project has two parts that run together:
+  backend/   the server: database, logins, payments, SMS, RADIUS, router setup (port 4000)
+  frontend/  the website you click around in (port 3000)
+
+You need Node.js 20 or newer: https://nodejs.org  (check with:  node -v)
+
+EASIEST
+  Windows:      double-click  start.bat
+  Mac / Linux:  open a terminal in this folder and run   bash start.sh
+  (The first time it installs the website's packages, then starts both parts.)
+
+OR BY HAND (the same thing)
+  1. Open a terminal in this folder (the one containing "backend" and "frontend")
+  2. node run-all.mjs         (or: npm start)
+  3. Open http://localhost:3000
+  4. First time: click "Create one". The very first account becomes the SUPER ADMIN. Signing in always opens your normal
+     dashboard (/dashboards); the super admin area is the "Super Admin" link in the footer of the landing page.
+     Click any business there to see all its activity and open its dashboard. Everyone else who signs up gets
+     their own separate business dashboard. Next time, just sign in.
+
+Test an update first on a separate copy: start-test.bat (see UPDATING-AND-DATABASE.txt).
+Database: one JSON file, backend/data/db.json (safety copies in backend/data/backups).
+
+Adding a real router: follow ROUTER-SETUP-GUIDE.txt (also lets the data be real, not sample).
+
+If a port is busy:   WEB_PORT=3003 node run-all.mjs      (Windows PowerShell:  $env:WEB_PORT=3003; node run-all.mjs)
+Stop everything with Ctrl + C. Your data is kept in backend/data.
+
+TO RUN THE PARTS SEPARATELY (two terminals)
+  backend:   cd backend  &&  npm start                    (needs no install)
+  frontend:  cd frontend &&  npm install  &&  npm run dev
+
+To test with a MikroTik router on the same network, open the Add router page and use
+your computer's network address (like http://192.168.1.50:4000), not "localhost".
+Allow Node.js through the Windows firewall on Private networks the first time.
+More: README.md and backend/README.md
+
+HOSTING IT ON A REAL SERVER
+  See deploy/DEPLOY.md (domain + https with Caddy, keeping it running, firewall, setup code).
+  Forgot your password:  stop it, then  cd backend  &&  node scripts/reset-password.mjs you@example.com "new-password"

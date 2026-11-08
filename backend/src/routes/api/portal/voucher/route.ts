@@ -1,0 +1,22 @@
+import { NextResponse } from "next/server";
+import { clientIp, limited } from "@/server/limit";
+import { findPackageByName, findVoucher, packageBytes, packageSeconds } from "@/server/packages";
+import { usedBytes } from "@/server/radius";
+
+// Public: is this voucher good to use, and how much is left? (Read-only — the
+// router's RADIUS login is what actually starts the clock.)
+export async function POST(request: Request) {
+  if (limited(`vch|${clientIp(request)}`, 20, 60_000)) return NextResponse.json({ valid: false, message: "Too many attempts. Wait a minute." }, { status: 429 });
+  const body = (await request.json().catch(() => ({}))) as { username?: string; password?: string };
+  const v = body.username ? findVoucher(body.username) : null;
+  const passwordOk = !!v && (v.password ? v.password === body.password : !body.password || body.password === v.code);
+  if (!v || !passwordOk) return NextResponse.json({ valid: false, message: "That voucher code or password isn't right." }, { status: 401 });
+  const pkg = findPackageByName(v.packageName);
+  const now = Date.now();
+  if (v.status === "Expired" || (v.expiresAtMs && v.expiresAtMs <= now)) return NextResponse.json({ valid: false, message: "This voucher has expired." }, { status: 403 });
+  const cap = pkg ? packageBytes(pkg) : null;
+  const used = Math.max(usedBytes(v.code), v.bytesUsed ?? 0);
+  if (cap !== null && used >= cap) return NextResponse.json({ valid: false, message: "This voucher's data is finished." }, { status: 403 });
+  const seconds = v.expiresAtMs ? Math.floor((v.expiresAtMs - now) / 1000) : pkg ? packageSeconds(pkg) : 0;
+  return NextResponse.json({ valid: true, packageName: v.packageName, secondsLeft: seconds, started: !!v.activatedAtMs, bytesLeft: cap === null ? null : cap - used });
+}

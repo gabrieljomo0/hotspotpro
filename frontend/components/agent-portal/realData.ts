@@ -1,0 +1,76 @@
+// Turns the account's real ActiveUser list into the numbers/rows an agent
+// portal widget needs, scoped to one router — no sample data involved.
+// Which users "belong" to a router is simulated the same deterministic way
+// the admin's own router detail page already does it (see hashString),
+// so a user shown here and a user shown there always agree.
+
+import type { ActiveUser, RouterInfo } from "../dashboard/data/dashboard-data";
+import { hashString } from "../dashboard/active-users/advanced-details/helpers";
+import { getUserId } from "../dashboard/active-users/userLinks";
+
+export function getScopedUsers(
+  users: ActiveUser[],
+  routers: RouterInfo[],
+  routerIp: string | null,
+): ActiveUser[] {
+  if (!routerIp || routers.length === 0) return [];
+  return users.filter((user) => {
+    const seed = hashString(getUserId(user));
+    return routers[seed % routers.length]?.ip === routerIp;
+  });
+}
+
+export function parseDataSize(value: string): number {
+  // Returns a value in GB from strings like "1.2 GB" or "890 MB".
+  const match = value.match(/([\d.]+)\s*(GB|MB)/i);
+  if (!match) return 0;
+  const amount = parseFloat(match[1]);
+  return match[2].toUpperCase() === "MB" ? amount / 1024 : amount;
+}
+
+export function formatGB(gb: number): string {
+  if (gb < 1) return `${Math.round(gb * 1024)} MB`;
+  return `${gb.toFixed(1)} GB`;
+}
+
+export function statusBreakdown(scopedUsers: ActiveUser[]) {
+  const colors: Record<string, string> = {
+    Online: "#2563eb",
+    Idle: "#60a5fa",
+    "Expiring Soon": "#94a3b8",
+    Disconnected: "#cbd5e1",
+    Expired: "#cbd5e1",
+    Blocked: "#b91c1c",
+  };
+  const counts = new Map<string, number>();
+  scopedUsers.forEach((u) => counts.set(u.status, (counts.get(u.status) ?? 0) + 1));
+  const total = scopedUsers.length || 1;
+  return Array.from(counts.entries()).map(([name, value]) => ({
+    name,
+    value,
+    percentage: `${((value / total) * 100).toFixed(1)}%`,
+    color: colors[name] ?? "#cbd5e1",
+  }));
+}
+
+export function topUsersByData(scopedUsers: ActiveUser[], limit = 5) {
+  return [...scopedUsers]
+    .map((u) => ({ phone: u.phone, usageGb: parseDataSize(u.dataUsed) }))
+    .sort((a, b) => b.usageGb - a.usageGb)
+    .slice(0, limit)
+    .map((u) => ({ phone: u.phone, usage: formatGB(u.usageGb) }));
+}
+
+// A deterministic (not random) hourly series, seeded off the router's own
+// IP plus its current scoped-user count, so the shape is consistent
+// between renders and roughly scales with how busy the router actually is.
+export function buildConnectionSeries(routerIp: string | null, currentOnline: number) {
+  const hours = ["12 AM", "2 AM", "4 AM", "6 AM", "8 AM", "10 AM", "12 PM", "2 PM", "4 PM", "6 PM", "8 PM", "10 PM"];
+  const seed = routerIp ? hashString(routerIp) : 0;
+  const peak = Math.max(currentOnline, 4);
+  return hours.map((time, index) => {
+    const wave = Math.sin((index / hours.length) * Math.PI * 1.6 + seed / 200);
+    const users = Math.max(0, Math.round(peak * (0.4 + 0.6 * (wave + 1) / 2)));
+    return { time, users };
+  });
+}
