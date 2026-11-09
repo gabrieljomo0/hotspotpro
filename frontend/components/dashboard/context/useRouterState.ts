@@ -502,11 +502,11 @@ export function useRouterState(
     logActivity("Router", `Updated details for router ${ip}.`);
   }
 
-  function toggleRemoteAccess(ip: string) {
+  function toggleRemoteAccess(ip: string, enabled?: boolean) {
     const router = routers.find((r) => r.ip === ip);
     if (!router) return;
 
-    const next = !router.remoteAccessEnabled;
+    const next = typeof enabled === "boolean" ? enabled : !router.remoteAccessEnabled;
     setRouters((current) =>
       current.map((r) =>
         r.ip === ip
@@ -522,7 +522,7 @@ export function useRouterState(
     );
     showToast(
       next
-        ? `Remote WinBox is turning on for ${router.name}. Within a minute the router opens it. If it sits behind another modem, download the WireGuard file on this page and connect WinBox to 192.168.216.1.`
+        ? `Remote WinBox is on for ${router.name}. The router opens the port, its cloud name and the tunnel on the next check-in. You do not open WinBox or paste a command.`
         : `Remote WinBox is off for ${router.name}. WinBox stays on the admin port at 192.168.88.1.`,
     );
     logActivity("Router", `${next ? "Enabled" : "Disabled"} remote WinBox for ${router.name}.`);

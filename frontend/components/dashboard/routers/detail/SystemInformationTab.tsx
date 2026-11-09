@@ -180,12 +180,12 @@ export function SystemInformationTab({
         </div>
         <p className="mb-5 text-xs text-[#737373]">
           {router.remoteAccessEnabled && router.winboxReach === "direct"
-            ? <>Open the WinBox app and connect to <span className="font-mono">{router.winboxAddress}</span>. Use the router admin password. This port is open on the internet, so keep that password strong.</>
+            ? <>The router opened WinBox at <span className="font-mono">{router.winboxAddress}</span>. Connect with the WinBox app and the admin password. This port is open on the internet, so keep that password strong.</>
             : router.remoteAccessEnabled && router.winboxReach === "relay"
-              ? <>This router is behind another modem, so the internet cannot open WinBox directly. {router.wireguardConfig ? "Download the WireGuard file, connect it, then open WinBox to" : "The WireGuard file appears here within a minute. Connect it, then open WinBox to"} <span className="font-mono">192.168.216.1</span> and use the router admin password.</>
+              ? <>This router is behind another modem, so it creates the tunnel itself. {router.wireguardConfig ? "The tunnel file is ready below." : "The tunnel file shows here within a minute."} Import it into WireGuard, then connect the WinBox app to <span className="font-mono">192.168.216.1</span>. You do not open WinBox on the router.</>
               : router.remoteAccessEnabled
-                ? "Remote access is turning on. The address appears here within about a minute, after the router checks in."
-                : <>Remote access is off. On the computer plugged into the admin port, open WinBox and connect to <span className="font-mono">192.168.88.1</span>.</>}
+                ? "The router is opening remote WinBox on its next check-in. You do not open WinBox or paste a command."
+                : <>Remote access is off. On the admin port, WinBox is <span className="font-mono">192.168.88.1</span>.</>}
         </p>
         {router.remoteAccessEnabled && router.wireguardConfig && (
           <button
@@ -199,7 +199,7 @@ export function SystemInformationTab({
               link.download = `${router.name}-winbox.conf`;
               link.click();
               URL.revokeObjectURL(url);
-              showToast("WireGuard file downloaded. Connect it, then open WinBox to 192.168.216.1.");
+              showToast("Tunnel file downloaded. Import it into WireGuard, then connect the WinBox app to 192.168.216.1. The router already created it.");
             }}
           >
             Download WireGuard file

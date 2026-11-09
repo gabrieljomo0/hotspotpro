@@ -159,7 +159,7 @@ export function remoteWinboxLines(enabled: boolean, origin: string, token: strin
   if (origin) {
     const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
     const post = `${origin}/api/provision/${token}/winbox`;
-    lines.push(`:do { :global hpWgSent; :local hpWg ""; :do { :set hpWg [/ip cloud get vpn-wireguard-client-config] } on-error={ }; :if ([:len $hpWg] > 20 && $hpWgSent != $hpWg) do={ :do { /tool fetch url="${post}" http-method=post http-data=$hpWg keep-result=no${tls}; :set hpWgSent $hpWg } on-error={ } } } on-error={ }`);
+    lines.push(`:do { :global hpWgSent; :local hpWg ""; :local hpTry 0; :while ($hpTry < 4) do={ :do { :set hpWg [/ip cloud get vpn-wireguard-client-config] } on-error={ }; :if ([:len $hpWg] > 20) do={ :set hpTry 4 } else={ :delay 3s; :set hpTry ($hpTry + 1) } }; :if ([:len $hpWg] > 20 && $hpWgSent != $hpWg) do={ :do { /file remove [find where name=hotspotpro-wg.conf] } on-error={ }; :do { /file add name=hotspotpro-wg.conf contents=$hpWg } on-error={ }; :do { /tool fetch url="${post}" src-path=hotspotpro-wg.conf upload=yes http-method=post keep-result=no${tls}; :set hpWgSent $hpWg } on-error={ } } } on-error={ }`);
   }
   return lines;
 }
