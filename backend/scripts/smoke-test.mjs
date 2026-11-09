@@ -120,7 +120,7 @@ try {
   const savedWg = (await json(await send("GET", "/api/state", undefined, amaCookie))).docs?.routers?.value?.[0];
   check("the router can hand over its WireGuard file", wg.status === 200 && savedWg?.wireguardConfig?.includes("PrivateKey"), String(wg.status));
   await send("PUT", "/api/state/routers", { value: routerA }, amaCookie);
-  check("the check-in sends the router's CPU and memory", cloudCtl.includes("cpu-load") && cloudCtl.includes("free-memory"));
+  check("the check-in sends the router's CPU and memory", cloudCtl.includes("cpu-load") && cloudCtl.includes("free-memory") && cloudCtl.includes("board-name") && cloudCtl.includes("identity"));
   await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], loginMode: "local" }] }, amaCookie);
   const localCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
   check("local mode keeps login on the router", localCtl.includes("HotspotPro login: local") && localCtl.includes("use-radius=no") && !localCtl.includes("use-radius=yes"), localCtl.slice(0, 400));
@@ -134,6 +134,7 @@ try {
 
   // ---- setup script: ISP port, device-mode check ----
   const scriptA = await (await fetch(base + "/api/provision/tok-ama-12345678")).text();
+  check("setup creates the management login", scriptA.includes("name=hotspotpro") && scriptA.includes("port=8728"));
   check("ISP port is ether1 by default (DHCP client + NAT)", scriptA.includes("/ip dhcp-client add interface=ether1") && scriptA.includes("out-interface=ether1 action=masquerade"));
   check("the ISP port is taken out of the old bridge so it can get an address", scriptA.includes("bridge port remove [find where interface=ether1]"));
   check("the check-in is allowed to download", scriptA.includes("policy=ftp,reboot,read,write,policy,test"));
@@ -144,7 +145,7 @@ try {
   check("the login mode chosen while adding a router is in the setup script", registered.status === 200 && liveScript.includes("HotspotPro login: local") && liveScript.includes("use-radius=no") && !liveScript.includes("use-radius=yes"), String(registered.status));
   const lint = await json(await send("GET", "/api/provision/tok-live-12345678/check?origin=" + encodeURIComponent("http://192.168.88.10:4000"), undefined, amaCookie));
   check("the setup script passes the RouterOS check", lint.report?.ok === true, JSON.stringify(lint.report?.errors ?? lint));
-  check("script finishes the hotspot and does not restart the router", scriptA.includes("/ip hotspot profile add") && scriptA.indexOf("/ip hotspot profile add") < scriptA.indexOf("Your hotspot is configured and ready.") && !scriptA.includes("/system device-mode update") && !scriptA.includes("/system reboot") && !scriptA.includes("/system package update") && scriptA.includes("$hpKeep"));
+  check("script finishes the hotspot and does not restart the router", scriptA.includes("/ip hotspot profile add") && scriptA.indexOf("/ip hotspot profile add") < scriptA.indexOf("Your hotspot is configured and ready.") && !scriptA.includes("/system device-mode update") && !scriptA.includes("/system reboot") && !scriptA.includes("/system package update install") && scriptA.includes("$hpKeep"));
   await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], wanInterface: "ether3" }] }, amaCookie);
   const scriptWan = await (await fetch(base + "/api/provision/tok-ama-12345678")).text();
   check("a chosen ISP port is used, and ether1 joins the LAN bridge", scriptWan.includes("/ip dhcp-client add interface=ether3") && scriptWan.includes("interface=ether1 comment=\"HotspotPro\"") && !scriptWan.includes("bridge port add bridge=hotspotpro-bridge interface=ether3"));

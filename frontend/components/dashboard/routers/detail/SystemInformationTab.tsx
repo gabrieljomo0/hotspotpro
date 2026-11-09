@@ -97,6 +97,10 @@ export function SystemInformationTab({
             <p className="text-xs text-[#737373]">Last Connected</p>
             <p className="text-sm font-semibold text-[#1a1a1a]">{router.lastConnectedAt ?? "Never"}</p>
           </div>
+          <div>
+            <p className="text-xs text-[#737373]">Added At</p>
+            <p className="text-sm font-semibold text-[#1a1a1a]">{router.provisionedAt ?? "Not yet"}</p>
+          </div>
           {router.lastError && (
             <div>
               <p className="text-xs text-[#737373]">Last Error</p>
@@ -161,6 +165,10 @@ export function SystemInformationTab({
               {router.health === "ok" ? <CheckCircle2 size={12} /> : null} {router.health === "ok" ? "OK" : router.health === "checking" ? "Checking" : "Error"}
             </span>
           </div>
+          <div>
+            <p className="text-xs text-[#737373]">Health Checked</p>
+            <p className="text-sm font-semibold text-[#1a1a1a]">{router.lastConnectedAt ?? "Waiting for the router"}</p>
+          </div>
         </div>
       </article>
 
@@ -185,7 +193,7 @@ export function SystemInformationTab({
               ? <>This router is behind another modem, so it creates the tunnel itself. {router.wireguardConfig ? "The tunnel file is ready below." : "The tunnel file shows here within a minute."} Import it into WireGuard, then connect the WinBox app to <span className="font-mono">192.168.216.1</span>. You do not open WinBox on the router.</>
               : router.remoteAccessEnabled
                 ? "The router is opening remote WinBox on its next check-in. You do not open WinBox or paste a command."
-                : <>Remote access is off. On the admin port, WinBox is <span className="font-mono">192.168.88.1</span>.</>}
+                : <>Remote access is off. Enable it from the router actions menu. On the admin port, WinBox is <span className="font-mono">192.168.88.1</span>.</>}
         </p>
         {router.remoteAccessEnabled && router.wireguardConfig && (
           <button
@@ -217,7 +225,7 @@ export function SystemInformationTab({
           </div>
           <div className="rounded-xl border border-[#f4f4f4] p-4">
             <p className="text-xs text-[#737373]">Current Uptime</p>
-            <p className={`text-xl font-black ${isEnabled ? "text-[#1a1a1a]" : "text-red-600"}`}>{isEnabled ? router.uptime : "Unknown"}</p>
+            <p className={`text-xl font-black ${router.uptime ? "text-[#1a1a1a]" : "text-red-600"}`}>{router.uptime || "Waiting"}</p>
           </div>
         </div>
 
@@ -269,11 +277,15 @@ export function SystemInformationTab({
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <p className="text-xs text-[#737373]">RouterOS Version</p>
-            <span className="inline-flex rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-bold text-[#111111]">{router.routerOSVersion}</span>
+            <span className="inline-flex rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-bold text-[#111111]">{router.routerOSVersion || "Waiting"}</span>
+          </div>
+          <div>
+            <p className="text-xs text-[#737373]">Device Name</p>
+            <span className="inline-flex rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-bold text-[#111111]">{router.name}</span>
           </div>
           <div>
             <p className="text-xs text-[#737373]">Hardware Model</p>
-            <span className="inline-flex rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-bold text-[#111111]">{router.hardwareModel}</span>
+            <span className="inline-flex rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-bold text-[#111111]">{router.hardwareModel || "Waiting"}</span>
           </div>
           <div>
             <p className="text-xs text-[#737373]">Architecture</p>
@@ -291,17 +303,17 @@ export function SystemInformationTab({
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <p className="text-xs text-[#737373]">Management IP</p>
-            <p className="font-mono text-sm font-semibold text-[#1a1a1a]">{router.ip.startsWith("pending-") ? "Not assigned" : router.ip}</p>
+            <p className="font-mono text-sm font-semibold text-[#1a1a1a]">{router.wanAddress || "192.168.88.1"}</p>
           </div>
           <div>
             <p className="text-xs text-[#737373]">Username</p>
-            <span className="inline-flex rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-bold text-[#111111]">{router.apiUsername}</span>
+            <span className="inline-flex rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-bold text-[#111111]">{router.apiUsername || "Waiting for setup"}</span>
           </div>
           <div>
             <p className="text-xs text-[#737373]">Password</p>
             <div className="flex items-center gap-2">
               <span className="font-mono text-sm text-[#1a1a1a]">
-                {showPassword ? router.apiPassword : "•".repeat(8)}
+                {router.apiPassword ? (showPassword ? router.apiPassword : "•".repeat(8)) : "Created when the router finishes setup"}
               </span>
               <button type="button" onClick={() => setShowPassword((c) => !c)} className="text-[#a3a3a3] hover:text-[#525252]">
                 {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -325,7 +337,7 @@ export function SystemInformationTab({
           )}
           <div>
             <p className="text-xs text-[#737373]">API Port</p>
-            <span className="inline-flex rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-bold text-[#111111]">{router.port}</span>
+            <span className="inline-flex rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-bold text-[#111111]">{router.port || 8728}</span>
           </div>
         </div>
       </article>
@@ -374,7 +386,7 @@ export function SystemInformationTab({
           </div>
           <div>
             <p className="text-xs text-[#737373]">Secret</p>
-            <p className="font-mono text-sm text-[#1a1a1a]">{router.radiusSecret}</p>
+            <p className="font-mono text-sm text-[#1a1a1a]">{router.radiusAddress ? "••••••••" : "Not used"}</p>
           </div>
           <div>
             <p className="text-xs text-[#737373]">Accounting Port</p>

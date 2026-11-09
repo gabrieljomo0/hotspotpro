@@ -58,6 +58,26 @@ export function publicOrigin(request: Request) {
   return `${proto}://${host}`;
 }
 
+function apiPasswordFor(token: string): string {
+  const row = findRouterByToken(token);
+  if (row && typeof (row as { apiPassword?: string }).apiPassword === "string" && /^[A-Za-z0-9]{12,32}$/.test((row as { apiPassword: string }).apiPassword)) {
+    return (row as { apiPassword: string }).apiPassword;
+  }
+  const item = getProvision(token);
+  const saved = item?.config && typeof item.config.apiPassword === "string" ? item.config.apiPassword : "";
+  if (/^[A-Za-z0-9]{12,32}$/.test(saved)) return saved;
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  let password = "";
+  for (let i = 0; i < 16; i++) password += alphabet[Math.floor(Math.random() * alphabet.length)];
+  if (item) {
+    item.config.apiPassword = password;
+    item.config.apiUsername = "hotspotpro";
+    item.config.port = 8728;
+    touchProvision(token, "fetchedAt");
+  }
+  return password;
+}
+
 /** The setup script for a registered link, built for a given address (the address the ROUTER will use to reach this server). */
 export function scriptFor(token: string, options: { origin: string; wireless?: boolean; ssid?: string }): string | null {
   const router = routerForToken(token);
@@ -67,6 +87,7 @@ export function scriptFor(token: string, options: { origin: string; wireless?: b
     origin: options.origin,
     portalOrigin: portalOrigin(options.origin),
     token,
+    apiPassword: apiPasswordFor(token),
     wireless: options.wireless,
     ssid: options.ssid?.slice(0, 32) || undefined,
     existing: router.routerType === "Existing Router",
@@ -119,6 +140,9 @@ export function completeProvision(token: string, details: { failed: number; sour
         status: "Online",
         lastSeen: "Just now",
         ...(wanAddress ? { wanAddress } : {}),
+        ...(typeof pending?.config?.apiPassword === "string" && /^[A-Za-z0-9]{12,32}$/.test(pending.config.apiPassword)
+          ? { apiUsername: "hotspotpro", apiPassword: pending.config.apiPassword, port: 8728 }
+          : {}),
         lastConnectedAt: now,
         provisionedAt: now,
         lastError: deviceMode === "blocked"
@@ -157,6 +181,9 @@ export function completeProvision(token: string, details: { failed: number; sour
       connectionMode: "On the router",
       remoteAccessEnabled: false,
       winboxAddress: "192.168.88.1",
+      apiUsername: "hotspotpro",
+      apiPassword: typeof config.apiPassword === "string" ? config.apiPassword : "",
+      port: 8728,
       lastConnectedAt: now,
       lastError: deviceMode === "blocked"
         ? "The router's device-mode is home, or downloads are switched off. HotspotPro asked it to switch to advanced. Press the reset button briefly (or switch the power off and on) within 5 minutes, then paste the device-mode command again."

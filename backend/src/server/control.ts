@@ -26,6 +26,27 @@ export const SWITCH_COMMENT = "HotspotPro internet off";
 const ACCESS_LOCK = "HotspotPro access lock";
 type Row = { ip: string; name: string; disconnected?: boolean; paused?: boolean; provisioningToken?: string; hotspotEnabled?: boolean; wanAddress?: string | null; wanInterface?: string; loginMode?: "cloud" | "local"; remoteAccessEnabled?: boolean };
 
+function managementLines(token: string): string[] {
+  const value = getState("routers")?.value;
+  if (!Array.isArray(value)) return [];
+  const row = (value as Record<string, unknown>[]).find((item) => item?.provisioningToken === token);
+  if (!row) return [];
+  let password = typeof row.apiPassword === "string" && /^[A-Za-z0-9]{12,32}$/.test(row.apiPassword) ? row.apiPassword : "";
+  if (!password) {
+    const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+    password = "";
+    for (let i = 0; i < 16; i++) password += alphabet[Math.floor(Math.random() * alphabet.length)];
+    row.apiUsername = "hotspotpro";
+    row.apiPassword = password;
+    row.port = 8728;
+    setState("routers", value, "router");
+  }
+  return [
+    `:do { :if ([:len [/user find where name=hotspotpro]] = 0) do={ /user add name=hotspotpro group=full password="${password}" comment="HotspotPro" } } on-error={ }`,
+    `:do { /ip service set api port=8728 address=192.168.88.0/24 disabled=no } on-error={ }`,
+  ];
+}
+
 function rows(): Row[] {
   const value = getState("routers")?.value;
   return Array.isArray(value) ? (value as Row[]).filter((r) => r && typeof r.ip === "string") : [];
@@ -113,6 +134,7 @@ export function controlScript(token: string, origin?: string): string | null {
       `:do { :if ([:len [/ip firewall nat find where comment="HotspotPro NAT"]] = 0) do={ /ip firewall nat add chain=srcnat out-interface=${wan} action=masquerade comment="HotspotPro NAT" } } on-error={ }`,
       `:do { /ip dns set allow-remote-requests=yes } on-error={ }`,
       `:do { /ip hotspot set [find where name=hotspotpro] addresses-per-mac=4 } on-error={ }`,
+      ...managementLines(token),
       ...remoteWinboxLines(!!router.remoteAccessEnabled, origin ?? "", token),
     );
     if (local) lines.push(...localUserLines(token, router.ip));
@@ -153,7 +175,24 @@ function isPrivate(ip: string) {
 }
 
 /** Save the CPU, memory and uptime the router just reported, and where WinBox can be reached. */
-export function recordRouterStats(token: string, stats: { cpu: number | null; memory: number | null; uptime?: string | null; version?: string | null; architecture?: string | null; cpuCount?: string | null; clients?: number | null; users?: string[] | null; dns?: string | null; pub?: string | null; wan?: string | null }) {
+function hourKey(ms: number) {
+  return new Date(ms).toISOString().slice(0, 13);
+}
+
+function uptimePercent(hours: string[], days: number, nowMs: number) {
+  if (!hours.length) return null;
+  const start = nowMs - days * 86400000;
+  const seen = hours.filter((hour) => {
+    const at = Date.parse(`${hour}:00:00.000Z`);
+    return Number.isFinite(at) && at >= start;
+  });
+  const first = Date.parse(`${hours[0]}:00:00.000Z`);
+  const windowStart = Math.max(start, Number.isFinite(first) ? first : nowMs);
+  const possible = Math.max(1, Math.round((nowMs - windowStart) / 3600000));
+  return Math.max(0, Math.min(100, Math.round((100 * new Set(seen).size) / possible)));
+}
+
+export function recordRouterStats(token: string, stats: { cpu: number | null; memory: number | null; uptime?: string | null; version?: string | null; architecture?: string | null; cpuCount?: string | null; board?: string | null; identity?: string | null; channel?: string | null; clients?: number | null; users?: string[] | null; dns?: string | null; pub?: string | null; wan?: string | null }) {
   if (stats.users?.length) noteLiveVouchers(stats.users);
   const value = getState("routers")?.value;
   if (!Array.isArray(value)) return;
@@ -161,13 +200,24 @@ export function recordRouterStats(token: string, stats: { cpu: number | null; me
   const next = (value as Record<string, unknown>[]).map((row) => {
     if (!row || row.provisioningToken !== token) return row;
     changed = true;
-    const updated: Record<string, unknown> = { ...row, lastSeen: "Just now", status: "Online" };
+    const nowMs = Date.now();
+    const checked = new Date(nowMs).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    const updated: Record<string, unknown> = { ...row, lastSeen: "Just now", lastConnectedAt: checked, status: "Online", health: "ok" };
     if (stats.cpu !== null) updated.cpu = stats.cpu;
     if (stats.memory !== null) updated.memory = stats.memory;
     if (stats.uptime) updated.uptime = stats.uptime;
-    if (stats.version) updated.routerOSVersion = stats.version;
+    if (stats.version) updated.routerOSVersion = stats.channel ? `${stats.version} (${stats.channel})` : stats.version;
     if (stats.architecture) updated.architecture = stats.architecture;
     if (stats.cpuCount) updated.cpuCount = stats.cpuCount;
+    if (stats.board) updated.hardwareModel = stats.board;
+    if (stats.identity) updated.name = stats.identity;
+    if (stats.wan) updated.wanAddress = stats.wan;
+    const seen = Array.isArray(row.seenHours) ? row.seenHours.filter((hour): hour is string => typeof hour === "string") : [];
+    const hour = hourKey(nowMs);
+    const seenHours = [...new Set([...seen, hour])].filter((item) => Date.parse(`${item}:00:00.000Z`) >= nowMs - 31 * 86400000).slice(-800);
+    updated.seenHours = seenHours;
+    updated.uptime7Day = uptimePercent(seenHours, 7, nowMs);
+    updated.uptime30Day = uptimePercent(seenHours, 30, nowMs);
     if (stats.clients !== null && stats.clients !== undefined) updated.clients = stats.clients;
     if (stats.users) updated.liveUsers = stats.users;
     if (!row.remoteAccessEnabled) {

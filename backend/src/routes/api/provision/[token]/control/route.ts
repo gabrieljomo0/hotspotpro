@@ -31,10 +31,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
   const users = query.has("users")
     ? (query.get("users") ?? "").split(",").map((part) => part.trim()).filter((part) => /^[A-Za-z0-9_-]{1,32}$/.test(part)).slice(0, 12)
     : null;
+  const board = (text("board", /^[A-Za-z0-9+._-]{1,40}$/) ?? "").replace(/\+/g, " ") || null;
+  const identity = (text("id", /^[A-Za-z0-9+._-]{1,40}$/) ?? "").replace(/\+/g, " ") || null;
+  const channel = text("ch", /^(long-term|stable|testing|development)$/);
   const dns = text("dns", /^[A-Za-z0-9.-]{1,80}$/);
   const pub = text("pub", /^(?:25[0-5]|2[0-4]\d|1?\d?\d)(?:\.(?:25[0-5]|2[0-4]\d|1?\d?\d)){3}$/);
   const wan = text("wanip", /^(?:25[0-5]|2[0-4]\d|1?\d?\d)(?:\.(?:25[0-5]|2[0-4]\d|1?\d?\d)){3}$/);
-  if (query.has("cpu") || query.has("free") || uptime || version || architecture || cpuCount || clients !== null || users || query.has("dns") || query.has("pub") || query.has("wanip")) {
+  if (query.has("cpu") || query.has("free") || uptime || version || architecture || cpuCount || board || identity || channel || clients !== null || users || query.has("dns") || query.has("pub") || query.has("wanip")) {
     recordRouterStats(token, {
       cpu: cpu === null ? null : Math.max(0, Math.min(100, Math.round(cpu))),
       memory,
@@ -42,6 +45,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
       version,
       architecture,
       cpuCount,
+      board,
+      identity,
+      channel,
       clients,
       users,
       dns,

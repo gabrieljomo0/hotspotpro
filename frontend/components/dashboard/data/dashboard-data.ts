@@ -144,6 +144,8 @@ export type RouterInfo = {
   description: string;
   lastConnectedAt: string | null;
   lastError: string | null;
+  /** Address the router reported on its internet port. */
+  wanAddress?: string | null;
 
   // Set by Disconnect / Reconnect: internet cut for the whole router (ISO times)
   disconnected?: boolean;
