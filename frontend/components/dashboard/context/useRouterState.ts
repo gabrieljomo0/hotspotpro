@@ -437,9 +437,23 @@ export function useRouterState(
     if (!router) return;
 
     if (kind === "wireguard-config") {
-      const address = router.winboxAddress || "192.168.88.1";
+      if (router.wireguardConfig) {
+        const blob = new Blob([router.wireguardConfig], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${router.name}-winbox.conf`;
+        link.click();
+        URL.revokeObjectURL(url);
+        showToast("Tunnel file downloaded. Import it into WireGuard, then connect the WinBox app to 192.168.216.1.");
+        logActivity("Router", `Downloaded the WireGuard tunnel for ${router.name}.`);
+        return;
+      }
+      const address = router.winboxReach === "direct" && router.winboxAddress ? router.winboxAddress : "192.168.88.1";
       void navigator.clipboard?.writeText(address);
-      showToast(`Copied ${address}. Open WinBox on the computer plugged into the admin port. This router has no WireGuard tunnel.`);
+      showToast(router.remoteAccessEnabled
+        ? `Copied ${address}. The tunnel file appears here after the router checks in.`
+        : `Copied ${address}. Enable remote access from More Actions to open WinBox from outside.`);
       logActivity("Router", `Copied the WinBox address for ${router.name}.`);
       return;
     }

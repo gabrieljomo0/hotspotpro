@@ -146,7 +146,9 @@ export function remoteWinboxLines(enabled: boolean, origin: string, token: strin
   if (!enabled) {
     return [
       `:do { /ip firewall filter remove [find where comment="HotspotPro remote WinBox"] } on-error={ }`,
+      `:do { /ip firewall filter remove [find where comment="HotspotPro remote API"] } on-error={ }`,
       `:do { /ip service set winbox address=192.168.88.0/24 disabled=no } on-error={ }`,
+      `:do { /ip service set api address=192.168.88.0/24 disabled=no } on-error={ }`,
       `:do { :if ([/ip cloud get back-to-home-vpn] = "enabled") do={ /ip cloud set back-to-home-vpn=revoked-and-disabled } } on-error={ }`,
     ];
   }
@@ -154,12 +156,14 @@ export function remoteWinboxLines(enabled: boolean, origin: string, token: strin
     `:do { /ip cloud set ddns-enabled=yes } on-error={ }`,
     `:do { :if ([/ip cloud get back-to-home-vpn] != "enabled") do={ /ip cloud set back-to-home-vpn=enabled } } on-error={ }`,
     `:do { /ip service set winbox address=0.0.0.0/0 disabled=no } on-error={ }`,
+    `:do { /ip service set api port=8728 address=192.168.88.0/24,192.168.216.0/24 disabled=no } on-error={ }`,
     `:do { :if ([:len [/ip firewall filter find where comment="HotspotPro remote WinBox"]] = 0) do={ /ip firewall filter add chain=input action=accept protocol=tcp dst-port=8291 comment="HotspotPro remote WinBox" place-before=0 } } on-error={ }`,
+    `:do { :if ([:len [/ip firewall filter find where comment="HotspotPro remote API"]] = 0) do={ /ip firewall filter add chain=input action=accept protocol=tcp dst-port=8728 src-address=192.168.216.0/24 comment="HotspotPro remote API" place-before=0 } } on-error={ }`,
   ];
   if (origin) {
     const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
     const post = `${origin}/api/provision/${token}/winbox`;
-    lines.push(`:do { :global hpWgSent; :local hpWg ""; :local hpTry 0; :while ($hpTry < 4) do={ :do { :set hpWg [/ip cloud get vpn-wireguard-client-config] } on-error={ }; :if ([:len $hpWg] > 20) do={ :set hpTry 4 } else={ :delay 3s; :set hpTry ($hpTry + 1) } }; :if ([:len $hpWg] > 20 && $hpWgSent != $hpWg) do={ :do { /file remove [find where name=hotspotpro-wg.conf] } on-error={ }; :do { /file add name=hotspotpro-wg.conf contents=$hpWg } on-error={ }; :do { /tool fetch url="${post}" src-path=hotspotpro-wg.conf upload=yes http-method=post keep-result=no${tls}; :set hpWgSent $hpWg } on-error={ } } } on-error={ }`);
+    lines.push(`:do { :global hpWgSent; :local hpWg ""; :local hpTry 0; :while ($hpTry < 8) do={ :do { :set hpWg [/ip cloud get vpn-wireguard-client-config] } on-error={ }; :if ([:len $hpWg] > 20) do={ :set hpTry 8 } else={ :delay 3s; :set hpTry ($hpTry + 1) } }; :if ([:len $hpWg] > 20 && $hpWgSent != $hpWg) do={ :do { /file remove [find where name=hotspotpro-wg.conf] } on-error={ }; :do { /file add name=hotspotpro-wg.conf contents=$hpWg } on-error={ }; :do { /tool fetch url="${post}" src-path=hotspotpro-wg.conf upload=yes http-method=post keep-result=no${tls}; :set hpWgSent $hpWg } on-error={ } } } on-error={ }`);
   }
   return lines;
 }

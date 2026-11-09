@@ -66,7 +66,7 @@ export function RouterActionsMenu({
       </button>
 
       <button type="button" className={itemClass} onClick={handleRemoteWinbox}>
-        <Monitor size={14} className="text-[#1a1a1a]" /> Remote Winbox
+        <Monitor size={14} className="text-[#1a1a1a]" /> {router.remoteAccessEnabled ? "Remote WinBox is on" : "Enable remote access"}
       </button>
 
       <button

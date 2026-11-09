@@ -6,7 +6,7 @@
 // RADIUS config. It only needs the router itself and how many users are
 // currently connected to it — everything else is computed from that.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Eye, EyeOff, Copy, CheckCircle2, AlertTriangle } from "lucide-react";
 import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
@@ -15,6 +15,35 @@ import type { RouterInfo } from "@/components/dashboard/data/dashboard-data";
 
 const WARN_AT = 75;
 const OVERLOAD_AT = 90;
+
+function loginLabelFrom(dnsName?: string) {
+  const raw = (dnsName || "").trim().toLowerCase().replace(/\.local$/, "");
+  const label = raw.split(".")[0]?.replace(/[^a-z0-9-]/g, "") || "";
+  return label && label !== "login" ? label : "hotspot";
+}
+
+function uptimeSeries(hours: string[] | undefined, days: number) {
+  const now = Date.now();
+  return Array.from({ length: days }, (_, index) => {
+    const day = new Date(now - (days - 1 - index) * 86400000).toISOString().slice(0, 10);
+    const seen = (hours ?? []).filter((hour) => hour.startsWith(day)).length;
+    return Math.min(100, Math.round((100 * seen) / 24));
+  });
+}
+
+function UptimeLine({ hours, days, alert }: { hours?: string[]; days: number; alert?: boolean }) {
+  if (!hours?.length) return null;
+  const series = uptimeSeries(hours, days);
+  const width = 140;
+  const height = 28;
+  const step = series.length > 1 ? width / (series.length - 1) : width;
+  const points = series.map((value, index) => `${index * step},${height - (value / 100) * (height - 4) - 2}`).join(" ");
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} className="mt-3 h-7 w-full" aria-hidden>
+      <polyline fill="none" stroke={alert ? "#dc2626" : "#1a1a1a"} strokeWidth="1.6" points={points} />
+    </svg>
+  );
+}
 
 export function SystemInformationTab({
   router,
@@ -27,6 +56,19 @@ export function SystemInformationTab({
 }) {
   const { showToast, updateRouterDetails } = useDashboard();
   const [showPassword, setShowPassword] = useState(false);
+  const [hotspotOn, setHotspotOn] = useState(router.hotspotEnabled);
+  const [network, setNetwork] = useState(router.hotspotNetwork || "");
+  const [gateway, setGateway] = useState(router.hotspotGatewayIp || "");
+  const [dnsServers, setDnsServers] = useState(router.hotspotDnsServers || "8.8.8.8,8.8.4.4");
+  const [loginLabel, setLoginLabel] = useState(loginLabelFrom(router.dnsName));
+
+  useEffect(() => {
+    setHotspotOn(router.hotspotEnabled);
+    setNetwork(router.hotspotNetwork || "");
+    setGateway(router.hotspotGatewayIp || "");
+    setDnsServers(router.hotspotDnsServers || "8.8.8.8,8.8.4.4");
+    setLoginLabel(loginLabelFrom(router.dnsName));
+  }, [router.ip, router.hotspotEnabled, router.hotspotNetwork, router.hotspotGatewayIp, router.hotspotDnsServers, router.dnsName]);
 
   // Both charts use "fake but consistent" data — see chartHelpers.ts for why.
   const perfData = Array.from({ length: 12 }, (_, i) => ({
@@ -174,27 +216,26 @@ export function SystemInformationTab({
 
       <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
         <h3 className="mb-4 text-base font-bold text-[#1a1a1a]">Remote WinBox Access</h3>
-        <div className="mb-5 grid gap-4 sm:grid-cols-2">
+        <div className="mb-5 space-y-4">
           <div>
             <p className="text-xs text-[#737373]">Status</p>
-            <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${router.remoteAccessEnabled ? "bg-[#f4f4f4] text-[#111111]" : "bg-slate-200 text-slate-700"}`}>
+            <span className={`mt-1 inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${router.remoteAccessEnabled ? "bg-[#f4f4f4] text-[#111111]" : "bg-slate-200 text-slate-700"}`}>
               {router.remoteAccessEnabled ? "Enabled" : "Disabled"}
             </span>
           </div>
           <div>
-            <p className="text-xs text-[#737373]">WinBox Address</p>
-            <p className="font-mono text-sm font-semibold text-[#111111]">{router.winboxAddress || "—"}</p>
+            <p className="text-xs text-[#737373]">Instructions</p>
+            <p className="mt-1 text-sm text-[#1a1a1a]">
+              {router.remoteAccessEnabled && router.winboxReach === "direct"
+                ? <>Connect the WinBox app to <span className="font-mono">{router.winboxAddress}</span> with the admin password. This port is open on the internet, so keep that password strong.</>
+                : router.remoteAccessEnabled && router.wireguardConfig
+                  ? <>Import the tunnel file into WireGuard, then connect the WinBox app to <span className="font-mono">192.168.216.1</span>. You do not open WinBox on the router.</>
+                  : router.remoteAccessEnabled
+                    ? "The router is creating the WireGuard tunnel on its next check-in. The tunnel address shows here when the file is ready."
+                    : "Enable remote access from More Actions menu"}
+            </p>
           </div>
         </div>
-        <p className="mb-5 text-xs text-[#737373]">
-          {router.remoteAccessEnabled && router.winboxReach === "direct"
-            ? <>The router opened WinBox at <span className="font-mono">{router.winboxAddress}</span>. Connect with the WinBox app and the admin password. This port is open on the internet, so keep that password strong.</>
-            : router.remoteAccessEnabled && router.winboxReach === "relay"
-              ? <>This router is behind another modem, so it creates the tunnel itself. {router.wireguardConfig ? "The tunnel file is ready below." : "The tunnel file shows here within a minute."} Import it into WireGuard, then connect the WinBox app to <span className="font-mono">192.168.216.1</span>. You do not open WinBox on the router.</>
-              : router.remoteAccessEnabled
-                ? "The router is opening remote WinBox on its next check-in. You do not open WinBox or paste a command."
-                : <>Remote access is off. Enable it from the router actions menu. On the admin port, WinBox is <span className="font-mono">192.168.88.1</span>.</>}
-        </p>
         {router.remoteAccessEnabled && router.wireguardConfig && (
           <button
             type="button"
@@ -217,19 +258,116 @@ export function SystemInformationTab({
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="rounded-xl border border-[#f4f4f4] p-4">
             <p className="text-xs text-[#737373]">30-Day Uptime</p>
-            <p className="text-xl font-black text-[#1a1a1a]">{router.uptime30Day !== null ? `${router.uptime30Day}%` : "No data"}</p>
+            <p className={`text-xl font-black ${router.uptime30Day !== null && router.uptime30Day < 95 ? "text-red-600" : "text-[#1a1a1a]"}`}>
+              {router.uptime30Day !== null ? `${router.uptime30Day}%` : "No data"}
+            </p>
+            {router.uptime30Day !== null && router.uptime30Day < 95 ? <p className="mt-1 text-xs font-semibold text-red-600">Needs attention</p> : null}
+            <UptimeLine hours={router.seenHours} days={30} alert={router.uptime30Day !== null && router.uptime30Day < 95} />
           </div>
           <div className="rounded-xl border border-[#f4f4f4] p-4">
             <p className="text-xs text-[#737373]">7-Day Uptime</p>
             <p className="text-xl font-black text-[#1a1a1a]">{router.uptime7Day !== null ? `${router.uptime7Day}%` : "No data"}</p>
+            <p className="mt-1 text-xs text-[#737373]">Last 7 days</p>
+            <UptimeLine hours={router.seenHours} days={7} />
           </div>
           <div className="rounded-xl border border-[#f4f4f4] p-4">
             <p className="text-xs text-[#737373]">Current Uptime</p>
-            <p className={`text-xl font-black ${router.uptime ? "text-[#1a1a1a]" : "text-red-600"}`}>{router.uptime || "Waiting"}</p>
+            <p className="text-xl font-black text-[#1a1a1a]">{router.uptime || "Unknown"}</p>
+            <p className={`mt-1 text-xs font-semibold ${router.status === "Online" ? "text-emerald-600" : "text-[#737373]"}`}>
+              {router.status === "Online" ? "Online" : router.status || "Waiting"}
+            </p>
           </div>
         </div>
+      </article>
 
-        <p className="mt-5 text-sm text-[#525252]">Uptime last reported by the router: <span className="font-bold text-[#1a1a1a]">{router.uptime || "waiting for the next check-in"}</span></p>
+      <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+        <h3 className="text-base font-bold text-[#1a1a1a]">Hotspot Configuration</h3>
+        <div className="mt-4 flex items-center gap-3">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={hotspotOn}
+            onClick={() => setHotspotOn((current) => !current)}
+            className={`relative h-6 w-11 rounded-full ${hotspotOn ? "bg-[#1a1a1a]" : "bg-[#d4d4d4]"}`}
+          >
+            <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white ${hotspotOn ? "left-5" : "left-0.5"}`} />
+          </button>
+          <div>
+            <p className="text-sm font-semibold text-[#1a1a1a]">Enable Hotspot</p>
+            <p className="text-xs text-[#737373]">Configure hotspot service on this router</p>
+          </div>
+        </div>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <label className="block">
+            <span className="mb-1 block text-xs text-[#737373]">Hotspot Network</span>
+            <input value={network} onChange={(event) => setNetwork(event.target.value)} className="h-11 w-full rounded-xl border border-[#e6e6e6] px-3 font-mono text-sm outline-none focus:border-[#1a1a1a]" />
+            <span className="mt-1 block text-xs text-[#a3a3a3]">Network range for hotspot clients</span>
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs text-[#737373]">Gateway IP</span>
+            <input value={gateway} onChange={(event) => setGateway(event.target.value)} className="h-11 w-full rounded-xl border border-[#e6e6e6] px-3 font-mono text-sm outline-none focus:border-[#1a1a1a]" />
+            <span className="mt-1 block text-xs text-[#a3a3a3]">Gateway for hotspot network</span>
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs text-[#737373]">DNS Servers</span>
+            <input value={dnsServers} onChange={(event) => setDnsServers(event.target.value)} className="h-11 w-full rounded-xl border border-[#e6e6e6] px-3 font-mono text-sm outline-none focus:border-[#1a1a1a]" />
+            <span className="mt-1 block text-xs text-[#a3a3a3]">DNS servers for hotspot clients</span>
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs text-[#737373]">Hotspot Login URL</span>
+            <span className="flex h-11 items-center rounded-xl border border-[#e6e6e6] px-3 text-sm">
+              <span className="text-[#a3a3a3]">http://</span>
+              <input value={loginLabel} onChange={(event) => setLoginLabel(event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 32))} className="mx-2 w-full bg-transparent font-mono outline-none" />
+              <span className="text-[#a3a3a3]">.local</span>
+            </span>
+            <span className="mt-1 block text-xs text-[#a3a3a3]">Customers open this name when they connect. The .local ending stays fixed.</span>
+          </label>
+        </div>
+        <button
+          type="button"
+          className="mt-4 rounded-xl bg-[#1a1a1a] px-4 py-2 text-sm font-bold text-white"
+          onClick={() => {
+            const label = loginLabel.trim() || "hotspot";
+            updateRouterDetails(router.ip, {
+              hotspotEnabled: hotspotOn,
+              hotspotNetwork: network.trim(),
+              hotspotGatewayIp: gateway.trim(),
+              hotspotDnsServers: dnsServers.trim(),
+              dnsName: `${label}.local`,
+              hotspotLoginUrl: `http://${label}.local`,
+            });
+          }}
+        >
+          Save hotspot
+        </button>
+        <p className="mt-2 text-xs text-[#737373]">The login name and DNS servers are sent to the router on its next check-in. The network and gateway stay as this hotspot was set up.</p>
+      </article>
+
+      <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+        <h3 className="text-base font-bold text-[#1a1a1a]">Router Access</h3>
+        <p className="mt-1 text-sm text-[#737373]">Remote access configuration</p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div>
+            <p className="text-xs text-[#737373]">Connection Mode</p>
+            <p className="text-sm font-semibold text-[#1a1a1a]">{router.winboxReach === "direct" ? "Public WinBox" : "WireGuard VPN"}</p>
+          </div>
+          <div>
+            <p className="text-xs text-[#737373]">WireGuard Tunnel IP</p>
+            <p className="text-sm font-semibold text-[#1a1a1a]">{router.winboxReach === "direct" ? "Not used" : router.wireguardTunnelIp || "Not assigned"}</p>
+            <p className="text-xs text-[#a3a3a3]">Secure tunnel IP for management access</p>
+          </div>
+        </div>
+        <div className="mt-4">
+          <p className="text-sm font-semibold text-[#1a1a1a]">API Credentials</p>
+          <p className="mt-1 font-mono text-sm text-[#1a1a1a]">Username: {router.apiUsername || "hotspotpro"}</p>
+          <p className="font-mono text-sm text-[#1a1a1a]">
+            Password: {router.apiPassword ? (showPassword ? router.apiPassword : "•".repeat(8)) : "Created when the router checks in"}
+          </p>
+          <button type="button" onClick={() => setShowPassword((current) => !current)} className="mt-1 text-xs font-semibold text-[#525252]">
+            {showPassword ? "Hide password" : "Show password"}
+          </button>
+          <p className="mt-1 text-xs text-[#a3a3a3]">API credentials for router management. After the tunnel is up, this login answers on port 8728 inside the tunnel and on the admin port.</p>
+        </div>
       </article>
 
       <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">

@@ -165,6 +165,8 @@ export type RouterInfo = {
   cpuCount: string;
   uptime30Day: number | null;
   uptime7Day: number | null;
+  /** Hour keys the router checked in, used for the uptime line. */
+  seenHours?: string[];
 
   // Notification overrides (empty = use account-level)
   notificationPhones: string[];

@@ -109,7 +109,7 @@ try {
   check("signing in does not start a running clock on a usage voucher", !!usageVoucher?.activatedAtMs && !usageVoucher.expiresAtMs, JSON.stringify(usageVoucher));
   await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], remoteAccessEnabled: true, wanInterface: "ether1" }] }, amaCookie);
   const remoteCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
-  check("switching remote access on opens WinBox", remoteCtl.includes('comment="HotspotPro remote WinBox"') && remoteCtl.includes("back-to-home-vpn=enabled") && remoteCtl.includes("ddns-enabled=yes"));
+  check("switching remote access on opens WinBox", remoteCtl.includes('comment="HotspotPro remote WinBox"') && remoteCtl.includes("back-to-home-vpn=enabled") && remoteCtl.includes("ddns-enabled=yes") && remoteCtl.includes("192.168.216.0/24") && remoteCtl.includes('comment="HotspotPro remote API"'));
   await fetch(base + "/api/provision/tok-ama-12345678/control?cpu=1&wanip=41.1.1.1&dns=abc.sn.mynetname.net");
   const direct = (await json(await send("GET", "/api/state", undefined, amaCookie))).docs?.routers?.value?.[0];
   check("a public address is the WinBox address", direct?.winboxReach === "direct" && direct?.winboxAddress === "abc.sn.mynetname.net:8291", JSON.stringify(direct?.winboxAddress));
@@ -118,7 +118,7 @@ try {
   check("a router behind another modem uses the relay address", relay?.winboxReach === "relay" && relay?.winboxAddress === "192.168.216.1", JSON.stringify(relay?.winboxAddress));
   const wg = await fetch(base + "/api/provision/tok-ama-12345678/winbox", { method: "POST", body: "[Interface]\nPrivateKey = abcdefghijklmnop=\nAddress = 192.168.216.2/32\n\n[Peer]\nPublicKey = abc=\nEndpoint = abc.vpn.mynetname.net:13231\n" });
   const savedWg = (await json(await send("GET", "/api/state", undefined, amaCookie))).docs?.routers?.value?.[0];
-  check("the router can hand over its WireGuard file", wg.status === 200 && savedWg?.wireguardConfig?.includes("PrivateKey"), String(wg.status));
+  check("the router can hand over its WireGuard file", wg.status === 200 && savedWg?.wireguardConfig?.includes("PrivateKey") && savedWg?.wireguardTunnelIp === "192.168.216.1", String(wg.status));
   await send("PUT", "/api/state/routers", { value: routerA }, amaCookie);
   check("the check-in sends the router's CPU and memory", cloudCtl.includes("cpu-load") && cloudCtl.includes("free-memory") && cloudCtl.includes("board-name") && cloudCtl.includes("identity"));
   await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], loginMode: "local" }] }, amaCookie);

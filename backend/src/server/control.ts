@@ -24,7 +24,7 @@ import { accessGuardCommand, accessLockEnsureCommand, checkInBody, remoteWinboxL
 
 export const SWITCH_COMMENT = "HotspotPro internet off";
 const ACCESS_LOCK = "HotspotPro access lock";
-type Row = { ip: string; name: string; disconnected?: boolean; paused?: boolean; provisioningToken?: string; hotspotEnabled?: boolean; wanAddress?: string | null; wanInterface?: string; loginMode?: "cloud" | "local"; remoteAccessEnabled?: boolean };
+type Row = { ip: string; name: string; disconnected?: boolean; paused?: boolean; provisioningToken?: string; hotspotEnabled?: boolean; wanAddress?: string | null; wanInterface?: string; loginMode?: "cloud" | "local"; remoteAccessEnabled?: boolean; dnsName?: string; hotspotDnsServers?: string };
 
 function managementLines(token: string): string[] {
   const value = getState("routers")?.value;
@@ -45,6 +45,22 @@ function managementLines(token: string): string[] {
     `:do { :if ([:len [/user find where name=hotspotpro]] = 0) do={ /user add name=hotspotpro group=full password="${password}" comment="HotspotPro" } } on-error={ }`,
     `:do { /ip service set api port=8728 address=192.168.88.0/24 disabled=no } on-error={ }`,
   ];
+}
+
+function hotspotLines(router: Row): string[] {
+  if (router.hotspotEnabled === false) {
+    return [`:do { /ip hotspot disable [find where name=hotspotpro] } on-error={ }`];
+  }
+  const lines = [`:do { /ip hotspot enable [find where name=hotspotpro] } on-error={ }`];
+  const name = (router.dnsName || "").trim().toLowerCase();
+  if (/^[a-z0-9][a-z0-9.-]{0,48}$/.test(name)) {
+    lines.push(`:do { /ip hotspot profile set [find where name=hotspotpro] dns-name="${name}" } on-error={ }`);
+  }
+  const dns = (router.hotspotDnsServers || "").replace(/\s/g, "");
+  if (/^(?:\d{1,3}\.){3}\d{1,3}(?:,(?:\d{1,3}\.){3}\d{1,3}){0,2}$/.test(dns)) {
+    lines.push(`:do { /ip dns set allow-remote-requests=yes servers=${dns} } on-error={ }`);
+  }
+  return lines;
 }
 
 function rows(): Row[] {
@@ -134,6 +150,7 @@ export function controlScript(token: string, origin?: string): string | null {
       `:do { :if ([:len [/ip firewall nat find where comment="HotspotPro NAT"]] = 0) do={ /ip firewall nat add chain=srcnat out-interface=${wan} action=masquerade comment="HotspotPro NAT" } } on-error={ }`,
       `:do { /ip dns set allow-remote-requests=yes } on-error={ }`,
       `:do { /ip hotspot set [find where name=hotspotpro] addresses-per-mac=4 } on-error={ }`,
+      ...hotspotLines(router),
       ...managementLines(token),
       ...remoteWinboxLines(!!router.remoteAccessEnabled, origin ?? "", token),
     );
@@ -231,11 +248,9 @@ export function recordRouterStats(token: string, stats: { cpu: number | null; me
       if (wanIp && !isPrivate(wanIp)) {
         updated.winboxReach = "direct";
         updated.winboxAddress = `${name || wanIp}:8291`;
-        updated.wireguardTunnelIp = "192.168.216.1";
       } else if (wanIp || name || ipv4(stats.pub)) {
         updated.winboxReach = "relay";
         updated.winboxAddress = "192.168.216.1";
-        updated.wireguardTunnelIp = "192.168.216.1";
       } else if (!row.winboxAddress) updated.winboxAddress = "192.168.88.1";
     }
     return updated;
