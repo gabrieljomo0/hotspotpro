@@ -89,16 +89,21 @@ export function localUserLines(token: string, routerIp: string, now = Date.now()
     profiles.add(name);
     const seconds = user.pkg ? packageSeconds(user.pkg) : 86400;
     const devices = user.pkg?.devices && user.pkg.devices > 0 ? user.pkg.devices : 1;
-    const limit = `rate-limit=${rate(user.pkg)} shared-users=${devices} session-timeout=${rosDuration(seconds)}`;
+    // session-timeout=0s is the RouterOS default: no extra session cap. A cap
+    // equal to the bundle was logging phones out, and the 2-minute keepalive
+    // then made a fresh voucher look finished. The phone may leave and come
+    // back until limit-uptime and the data cap run out.
+    const limit = `rate-limit=${rate(user.pkg)} shared-users=${devices} session-timeout=0s idle-timeout=none keepalive-timeout=none mac-cookie-timeout=${rosDuration(seconds)}`;
     lines.push(`:do { /ip hotspot user profile set [find where name=${quote(name)}] ${limit} } on-error={ }`);
     lines.push(`:do { :if ([:len [/ip hotspot user profile find where name=${quote(name)}]] = 0) do={ /ip hotspot user profile add name=${quote(name)} ${limit} comment="HotspotPro" } } on-error={ }`);
   }
   for (const user of add) {
     const seconds = user.pkg ? packageSeconds(user.pkg) : 86400;
-    const bytes = user.pkg ? packageBytes(user.pkg) : null;
-    const cap = bytes ? ` limit-bytes-total=${bytes}` : "";
+    const bytes = (user.pkg ? packageBytes(user.pkg) : 0) ?? 0;
+    const limits = `limit-uptime=${rosDuration(seconds)} limit-bytes-total=${bytes}`;
+    const profile = quote(profileName(user.pkg, user.name));
     lines.push(
-      `:do { :if ([:len [/ip hotspot user find where name=${quote(user.name)}]] = 0) do={ /ip hotspot user add name=${quote(user.name)} password=${quote(user.password)} profile=${quote(profileName(user.pkg, user.name))} limit-uptime=${rosDuration(seconds)}${cap} comment="HotspotPro" } } on-error={ }`,
+      `:do { :if ([:len [/ip hotspot user find where name=${quote(user.name)}]] = 0) do={ /ip hotspot user add name=${quote(user.name)} password=${quote(user.password)} profile=${profile} ${limits} comment="HotspotPro" } else={ /ip hotspot user set [find where name=${quote(user.name)}] password=${quote(user.password)} profile=${profile} ${limits} disabled=no } } on-error={ }`,
     );
   }
   for (const code of remove) {

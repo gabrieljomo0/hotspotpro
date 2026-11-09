@@ -126,6 +126,9 @@ export type RouterInfo = {
   connectionMode: "Hybrid+" | "Standard" | "Alternative";
   remoteAccessEnabled: boolean;
   winboxAddress: string;
+  /** lan: admin port only. direct: public WinBox port. relay: WireGuard, then WinBox. */
+  winboxReach?: "lan" | "direct" | "relay";
+  wireguardConfig?: string | null;
   bypassModeEnabled: boolean;
   isDefault: boolean;
 

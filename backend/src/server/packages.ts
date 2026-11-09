@@ -57,6 +57,27 @@ export function findVoucher(code: string) {
   return list<Vch>("vouchers").find((v) => v.code.toLowerCase() === wanted) ?? null;
 }
 
+/** First time a voucher is seen online, the calendar starts. Buying it does not. */
+export function noteLiveVouchers(names: string[], now = Date.now()) {
+  if (names.length === 0) return;
+  const wanted = new Set(names.map((name) => name.toLowerCase()));
+  let changed = false;
+  const next = list<Vch>("vouchers").map((voucher) => {
+    if (!wanted.has(voucher.code.toLowerCase()) || voucher.status === "Expired" || voucher.activatedAtMs) return voucher;
+    const pkg = findPackageByName(voucher.packageName);
+    const seconds = pkg ? packageSeconds(pkg) : 24 * 3600;
+    changed = true;
+    return {
+      ...voucher,
+      activatedAtMs: now,
+      expiresAtMs: now + seconds * 1000,
+      status: voucher.status === "Available" ? "Used" as const : voucher.status,
+      usedAtMs: voucher.usedAtMs ?? now,
+    };
+  });
+  if (changed) setState("vouchers", next, "server");
+}
+
 export function updateVoucher(code: string, patch: Partial<Vch>) {
   const wanted = code.toLowerCase();
   const next = list<Vch>("vouchers").map((v) => (v.code.toLowerCase() === wanted ? { ...v, ...patch } : v));

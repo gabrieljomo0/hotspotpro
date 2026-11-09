@@ -41,9 +41,16 @@ export function RouterActionsMenu({
   }
 
   function handleRemoteWinbox() {
-    const address = router.winboxAddress || "192.168.88.1";
+    const address = router.remoteAccessEnabled ? router.winboxAddress || "192.168.88.1" : "192.168.88.1";
     void navigator.clipboard?.writeText(address);
-    showToast(`Copied ${address}. On the computer plugged into the admin port, open the WinBox app and connect to that address.`);
+    const relay = router.remoteAccessEnabled && router.winboxReach === "relay";
+    showToast(
+      relay
+        ? `Copied ${address}. Connect the WireGuard file from this router first, then open WinBox to that address.`
+        : router.remoteAccessEnabled && router.winboxReach === "direct"
+          ? `Copied ${address}. Open WinBox and connect to it with the router admin password.`
+          : `Copied ${address}. Open WinBox on the computer plugged into the admin port.`,
+    );
     onClose();
   }
 

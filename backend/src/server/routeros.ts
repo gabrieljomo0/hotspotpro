@@ -138,7 +138,30 @@ export function accessLockEnsureCommand() {
 export function checkInBody(origin: string, token: string): string {
   const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
   const url = `${origin}/api/provision/${token}/control`;
-  return `:local hpCpu 0; :local hpFree 0; :local hpTotal 1; :local hpUp ""; :local hpVer ""; :local hpArch ""; :local hpCpuN ""; :local hpActive 0; :local hpUsers ""; :local hpCount 0; :do { :set hpCpu [/system resource get cpu-load] } on-error={ }; :do { :set hpFree [/system resource get free-memory] } on-error={ }; :do { :set hpTotal [/system resource get total-memory] } on-error={ }; :do { :set hpUp [/system resource get uptime] } on-error={ }; :do { :set hpVer [/system resource get version]; :set hpVer [:pick $hpVer 0 [:find $hpVer " "]] } on-error={ }; :do { :set hpArch [/system resource get architecture-name] } on-error={ }; :do { :set hpCpuN [/system resource get cpu-count] } on-error={ }; :do { :set hpActive [:len [/ip hotspot active find]] } on-error={ }; :do { :foreach i in=[/ip hotspot active find] do={ :if ($hpCount < 12) do={ :set hpUsers ($hpUsers . "," . [/ip hotspot active get $i user]); :set hpCount ($hpCount + 1) } } } on-error={ }; :local hpUrl "${url}"; :set hpUrl ($hpUrl . "?cpu=" . $hpCpu . "&free=" . $hpFree . "&total=" . $hpTotal . "&up=" . $hpUp . "&ver=" . $hpVer . "&arch=" . $hpArch . "&cpus=" . $hpCpuN . "&active=" . $hpActive . "&users=" . $hpUsers); :do { /tool fetch url=$hpUrl dst-path=hotspotpro-control.rsc${tls}; :delay 2s; /import file-name=hotspotpro-control.rsc } on-error={ }`;
+  return `:local hpCpu 0; :local hpFree 0; :local hpTotal 1; :local hpUp ""; :local hpVer ""; :local hpArch ""; :local hpCpuN ""; :local hpActive 0; :local hpUsers ""; :local hpCount 0; :local hpDns ""; :local hpPub ""; :local hpWan ""; :do { :set hpCpu [/system resource get cpu-load] } on-error={ }; :do { :set hpFree [/system resource get free-memory] } on-error={ }; :do { :set hpTotal [/system resource get total-memory] } on-error={ }; :do { :set hpUp [/system resource get uptime] } on-error={ }; :do { :set hpVer [/system resource get version]; :set hpVer [:pick $hpVer 0 [:find $hpVer " "]] } on-error={ }; :do { :set hpArch [/system resource get architecture-name] } on-error={ }; :do { :set hpCpuN [/system resource get cpu-count] } on-error={ }; :do { :set hpActive [:len [/ip hotspot active find]] } on-error={ }; :do { :foreach i in=[/ip hotspot active find] do={ :if ($hpCount < 12) do={ :set hpUsers ($hpUsers . "," . [/ip hotspot active get $i user]); :set hpCount ($hpCount + 1) } } } on-error={ }; :do { :set hpDns [/ip cloud get dns-name] } on-error={ }; :do { :set hpPub [/ip cloud get public-address] } on-error={ }; :do { :set hpWan [/ip dhcp-client get [find where comment="HotspotPro WAN DHCP Client"] address]; :if ([:find $hpWan "/"] >= 0) do={ :set hpWan [:pick $hpWan 0 [:find $hpWan "/"]] } } on-error={ }; :local hpUrl "${url}"; :set hpUrl ($hpUrl . "?cpu=" . $hpCpu . "&free=" . $hpFree . "&total=" . $hpTotal . "&up=" . $hpUp . "&ver=" . $hpVer . "&arch=" . $hpArch . "&cpus=" . $hpCpuN . "&active=" . $hpActive . "&users=" . $hpUsers . "&dns=" . $hpDns . "&pub=" . $hpPub . "&wanip=" . $hpWan); :do { /tool fetch url=$hpUrl dst-path=hotspotpro-control.rsc${tls}; :delay 2s; /import file-name=hotspotpro-control.rsc } on-error={ }`;
+}
+
+/** Open or close WinBox from outside the shop. Off keeps it on the admin port only. */
+export function remoteWinboxLines(enabled: boolean, origin: string, token: string): string[] {
+  if (!enabled) {
+    return [
+      `:do { /ip firewall filter remove [find where comment="HotspotPro remote WinBox"] } on-error={ }`,
+      `:do { /ip service set winbox address=192.168.88.0/24 disabled=no } on-error={ }`,
+      `:do { :if ([/ip cloud get back-to-home-vpn] = "enabled") do={ /ip cloud set back-to-home-vpn=revoked-and-disabled } } on-error={ }`,
+    ];
+  }
+  const lines = [
+    `:do { /ip cloud set ddns-enabled=yes } on-error={ }`,
+    `:do { :if ([/ip cloud get back-to-home-vpn] != "enabled") do={ /ip cloud set back-to-home-vpn=enabled } } on-error={ }`,
+    `:do { /ip service set winbox address=0.0.0.0/0 disabled=no } on-error={ }`,
+    `:do { :if ([:len [/ip firewall filter find where comment="HotspotPro remote WinBox"]] = 0) do={ /ip firewall filter add chain=input action=accept protocol=tcp dst-port=8291 comment="HotspotPro remote WinBox" place-before=0 } } on-error={ }`,
+  ];
+  if (origin) {
+    const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
+    const post = `${origin}/api/provision/${token}/winbox`;
+    lines.push(`:do { :global hpWgSent; :local hpWg ""; :do { :set hpWg [/ip cloud get vpn-wireguard-client-config] } on-error={ }; :if ([:len $hpWg] > 20 && $hpWgSent != $hpWg) do={ :do { /tool fetch url="${post}" http-method=post http-data=$hpWg keep-result=no${tls}; :set hpWgSent $hpWg } on-error={ } } } on-error={ }`);
+  }
+  return lines;
 }
 
 export function internetSwitchCommands(origin: string, token: string): string[] {

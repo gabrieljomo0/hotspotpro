@@ -383,7 +383,7 @@ function HomePortal({
             </h3>
 
             <p className="text-xs text-[#737373]">
-              {oneLogin ? "Enter the voucher code." : "Enter the username and password."}
+              {oneLogin ? "Enter the voucher code. The same code works again until the time and data are finished." : "Enter the username and password. They work again until the time and data are finished."}
             </p>
           </div>
         </div>

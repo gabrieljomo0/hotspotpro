@@ -513,13 +513,19 @@ export function useRouterState(
           ? {
               ...r,
               remoteAccessEnabled: next,
-              winboxAddress: next && !r.winboxAddress ? "192.168.88.1" : r.winboxAddress,
+              winboxAddress: next ? r.winboxAddress || "192.168.88.1" : "192.168.88.1",
+              winboxReach: next ? r.winboxReach : "lan",
+              wireguardConfig: next ? r.wireguardConfig : null,
             }
           : r,
       ),
     );
-    showToast(`Remote access ${next ? "enabled" : "disabled"} for ${router.name}.`);
-    logActivity("Router", `${next ? "Enabled" : "Disabled"} remote access for ${router.name}.`);
+    showToast(
+      next
+        ? `Remote WinBox is turning on for ${router.name}. Within a minute the router opens it. If it sits behind another modem, download the WireGuard file on this page and connect WinBox to 192.168.216.1.`
+        : `Remote WinBox is off for ${router.name}. WinBox stays on the admin port at 192.168.88.1.`,
+    );
+    logActivity("Router", `${next ? "Enabled" : "Disabled"} remote WinBox for ${router.name}.`);
   }
 
   function updateConnectionMode(ip: string, mode: RouterInfo["connectionMode"]) {

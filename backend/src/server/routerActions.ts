@@ -155,7 +155,7 @@ export function markRouterAction(token: string, script: string) {
         provisionedAt: now,
         provisioningStatus: "Provisioned",
         winboxAddress: "192.168.88.1",
-        remoteAccessEnabled: true,
+        remoteAccessEnabled: false,
         loginMode: "local",
         radiusAddress: null,
       });

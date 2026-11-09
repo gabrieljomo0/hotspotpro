@@ -178,10 +178,32 @@ export function SystemInformationTab({
             <p className="font-mono text-sm font-semibold text-[#111111]">{router.winboxAddress || "—"}</p>
           </div>
         </div>
-        {router.winboxAddress && (
-          <p className="mb-5 text-xs text-[#737373]">
-            Open WinBox → Connect to: <span className="font-mono">{router.winboxAddress}</span> → Use router credentials
-          </p>
+        <p className="mb-5 text-xs text-[#737373]">
+          {router.remoteAccessEnabled && router.winboxReach === "direct"
+            ? <>Open the WinBox app and connect to <span className="font-mono">{router.winboxAddress}</span>. Use the router admin password. This port is open on the internet, so keep that password strong.</>
+            : router.remoteAccessEnabled && router.winboxReach === "relay"
+              ? <>This router is behind another modem, so the internet cannot open WinBox directly. {router.wireguardConfig ? "Download the WireGuard file, connect it, then open WinBox to" : "The WireGuard file appears here within a minute. Connect it, then open WinBox to"} <span className="font-mono">192.168.216.1</span> and use the router admin password.</>
+              : router.remoteAccessEnabled
+                ? "Remote access is turning on. The address appears here within about a minute, after the router checks in."
+                : <>Remote access is off. On the computer plugged into the admin port, open WinBox and connect to <span className="font-mono">192.168.88.1</span>.</>}
+        </p>
+        {router.remoteAccessEnabled && router.wireguardConfig && (
+          <button
+            type="button"
+            className="mb-5 rounded-xl bg-[#1a1a1a] px-4 py-2 text-sm font-bold text-white"
+            onClick={() => {
+              const blob = new Blob([router.wireguardConfig ?? ""], { type: "text/plain" });
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement("a");
+              link.href = url;
+              link.download = `${router.name}-winbox.conf`;
+              link.click();
+              URL.revokeObjectURL(url);
+              showToast("WireGuard file downloaded. Connect it, then open WinBox to 192.168.216.1.");
+            }}
+          >
+            Download WireGuard file
+          </button>
         )}
 
         <div className="grid gap-4 sm:grid-cols-3">

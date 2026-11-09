@@ -23,14 +23,16 @@ export function voucherOnlyLogin(token: string): boolean {
 }
 
 export function loginPageStamp(token: string): string {
-  return voucherOnlyLogin(token) ? "v3-pin" : "v3-user";
+  return voucherOnlyLogin(token) ? "v4-pin" : "v4-user";
 }
 
 function pageBody(page: HotspotPage, portal: string, title: string, oneLogin: boolean): string {
   const fields = oneLogin
-    ? `<input name="username" required autocomplete="username" placeholder="Voucher code"><input type="hidden" name="password">`
+    ? `<input name="username" required autocomplete="username" placeholder="Voucher code" oninput="this.form.password.value=this.value"><input type="hidden" name="password">`
     : `<input name="username" required autocomplete="username" placeholder="Username"><input name="password" required type="password" autocomplete="current-password" placeholder="Password">`;
-  const note = oneLogin ? "Enter your voucher code." : "Enter your username and password.";
+  const note = oneLogin
+    ? "Enter your voucher code. You can leave and come back with the same code until the time and data are finished."
+    : "Enter your username and password. You can leave and come back until the time and data are finished.";
   const submit = oneLogin ? ` onsubmit="this.password.value=this.username.value"` : "";
   switch (page) {
     case "login.html":
@@ -44,7 +46,7 @@ function pageBody(page: HotspotPage, portal: string, title: string, oneLogin: bo
     case "redirect.html":
       return `<html><head><meta http-equiv="refresh" content="0; url=$(link-redirect)"><meta http-equiv="pragma" content="no-cache"></head><body></body></html>\n`;
     case "status.html":
-      return `<html><head><meta http-equiv="pragma" content="no-cache"></head><body><h2>You are online</h2><p>$(username)</p><p><a href="$(link-logout)">Log out</a></p></body></html>\n`;
+      return `<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="pragma" content="no-cache"><title>You are online</title><style>body{margin:0;background:#f7f7f7;color:#1a1a1a;font-family:system-ui,sans-serif}main{max-width:420px;margin:0 auto;padding:36px 20px}p{color:#525252;line-height:1.5}a{color:#1a1a1a;font-weight:700}</style></head><body><main><h1>You are online</h1><p>$(username)</p><p>Data left: $(remain-bytes-total)</p><p>You can disconnect and reconnect with this same voucher until the time and the data are both finished.</p><p><a href="$(link-logout)">Log out</a></p></main></body></html>\n`;
     case "locked.html":
       return `<html><head><meta http-equiv="pragma" content="no-cache"></head><body style="font-family:sans-serif;text-align:center;padding:48px"><h2>This network is locked</h2><p>Online access has not been paid. The operator must renew HotspotPro before anyone can get online.</p></body></html>\n`;
   }

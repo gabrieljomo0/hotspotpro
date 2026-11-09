@@ -155,7 +155,7 @@ export function completeProvision(token: string, details: { failed: number; sour
       provisioningStatus: "Provisioned",
       health: deviceMode || wanDown || netDown || failed ? "error" : "ok",
       connectionMode: "On the router",
-      remoteAccessEnabled: true,
+      remoteAccessEnabled: false,
       winboxAddress: "192.168.88.1",
       lastConnectedAt: now,
       lastError: deviceMode === "blocked"
