@@ -111,8 +111,8 @@ export function DesignTab({
             onChange={(e) => set("authMethod", e.target.value as CaptivePortalConfig["authMethod"])}
             className={inputClass}
           >
-            <option value="Username & Password">Username &amp; Password</option>
-            <option value="PIN Only">PIN Only</option>
+            <option value="Username & Password">Two logins — username and password</option>
+            <option value="PIN Only">One login — voucher code</option>
           </select>
         </Field>
       </div>

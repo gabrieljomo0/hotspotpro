@@ -121,6 +121,33 @@ export function RouterCaptivePortalPanel({
         </div>
       )}
 
+      {section === "portal" && (
+        <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
+          <h3 className="text-lg font-bold text-[#1a1a1a]">Login</h3>
+          <p className="mb-4 text-sm text-[#737373]">Choose what a customer types on the WiFi page. Save, and the router switches within about a minute.</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {([
+              ["PIN Only", "One login", "Voucher code only"],
+              ["Username & Password", "Two logins", "Username and password"],
+            ] as const).map(([id, title, detail]) => {
+              const selected = form.authMethod === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  disabled={locked}
+                  onClick={() => set("authMethod", id)}
+                  className={`rounded-xl border-2 p-4 text-left disabled:cursor-not-allowed ${selected ? "border-[#1a1a1a] bg-[#f4f4f4]" : "border-[#e6e6e6]"}`}
+                >
+                  <span className="text-sm font-bold text-[#1a1a1a]">{title}{selected ? " · in use" : ""}</span>
+                  <span className="mt-1 block text-xs text-[#737373]">{detail}</span>
+                </button>
+              );
+            })}
+          </div>
+        </article>
+      )}
+
       <div className={subTab === "Clean-up" ? "" : "grid gap-6 lg:grid-cols-[1fr_360px]"}>
         <div className="min-w-0 space-y-5">
           <nav className="flex flex-wrap gap-2 border-b border-[#f4f4f4] pb-4">

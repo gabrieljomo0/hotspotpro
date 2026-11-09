@@ -322,6 +322,7 @@ function HomePortal({
   onVoucherLogin,
   onOpenBuy,
   onOpenReseller,
+  oneLogin,
 }: {
   voucherUsername: string;
   voucherPassword: string;
@@ -336,6 +337,7 @@ function HomePortal({
   ) => void;
   onOpenBuy: () => void;
   onOpenReseller: () => void;
+  oneLogin: boolean;
 }) {
   return (
     <div>
@@ -381,25 +383,25 @@ function HomePortal({
             </h3>
 
             <p className="text-xs text-[#737373]">
-              Enter the voucher code. Add a password only if it has one.
+              {oneLogin ? "Enter the voucher code." : "Enter the username and password."}
             </p>
           </div>
         </div>
 
         <div className="space-y-4">
           <InputField
-            label="Voucher code"
+            label={oneLogin ? "Voucher code" : "Username"}
             value={voucherUsername}
-            placeholder="Enter voucher code"
+            placeholder={oneLogin ? "Enter voucher code" : "Enter username"}
             icon={CircleUserRound}
             required
             onChange={onUsernameChange}
           />
 
-          <InputField
+          {!oneLogin && <InputField
             label="Password"
             value={voucherPassword}
-            placeholder="Same as the code, if it has no password"
+            placeholder="Enter password"
             icon={KeyRound}
             type={
               showPassword
@@ -421,7 +423,7 @@ function HomePortal({
                 )}
               </button>
             }
-          />
+          />}
         </div>
 
         {error && (
@@ -1617,6 +1619,7 @@ function CaptivePortalPageInner() {
   // no server (static preview) the built-in plans and a timed demo are used.
   const [plans, setPlans] = useState<PackagePlan[]>(packagePlans);
   const [payMode, setPayMode] = useState<"hubtel" | "sandbox" | "off" | null>(null);
+  const [oneLogin, setOneLogin] = useState(false);
   const [purchaseRef, setPurchaseRef] = useState<string | null>(null);
   const routerToken = searchParams.get("rt");
   const hotspotLoginUrl = searchParams.get("login");
@@ -1633,6 +1636,7 @@ function CaptivePortalPageInner() {
         if (cancelled || !config || !Array.isArray(config.packages)) return;
         setPlans(config.packages as PackagePlan[]);
         setPayMode(config.payments);
+        setOneLogin(config.authMethod === "PIN Only");
         if (config.packages[0]) setSelectedPackageId(config.packages[0].id);
       })
       .catch(() => undefined);
@@ -1772,9 +1776,13 @@ function CaptivePortalPageInner() {
     setConnectedFromVoucher(false);
 
     const username = voucherUsername.trim();
-    const password = voucherPassword.trim() || username;
+    const password = oneLogin ? username : voucherPassword.trim();
     if (!username) {
-      setVoucherError("Enter your voucher code.");
+      setVoucherError(oneLogin ? "Enter your voucher code." : "Enter the username.");
+      return;
+    }
+    if (!oneLogin && !password) {
+      setVoucherError("Enter the password.");
       return;
     }
 
@@ -2172,6 +2180,7 @@ function CaptivePortalPageInner() {
             onOpenReseller={
               openResellerModal
             }
+            oneLogin={oneLogin}
           />
         </div>
       </div>

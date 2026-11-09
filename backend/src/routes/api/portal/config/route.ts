@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { voucherOnlyLogin } from "@/server/hotspotPages";
 import { type Pkg, list, priceOf, routerAllowsPackage } from "@/server/packages";
 import { paymentMode } from "@/server/payments";
 import { getProvision, getState } from "@/server/store";
@@ -27,5 +28,10 @@ export async function GET(request: Request) {
       validityHours: p.durationUnit === "Hours" ? p.durationValue : p.durationUnit === "Minutes" ? Math.max(1, Math.round(p.durationValue / 60)) : undefined,
       price: priceOf(p),
     }));
-  return NextResponse.json({ routerIp, packages, payments: paymentMode() }, { headers: { "Cache-Control": "no-store" } });
+  return NextResponse.json({
+    routerIp,
+    packages,
+    payments: paymentMode(),
+    authMethod: token && voucherOnlyLogin(token) ? "PIN Only" : "Username & Password",
+  }, { headers: { "Cache-Control": "no-store" } });
 }

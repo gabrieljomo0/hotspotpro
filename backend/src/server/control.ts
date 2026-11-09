@@ -18,6 +18,7 @@ import { SILENT_MS, beatOf, getState, setState, takeQueuedJobs, nasKeyOf, outage
 import { routerForNas } from "./routerUsage";
 import { accessDecision } from "./accessGate";
 import { forgetLocalUsers, localUserLines } from "./localUsers";
+import { loginPageStamp } from "./hotspotPages";
 import { accessGuardCommand, accessLockEnsureCommand, checkInBody } from "./routeros";
 
 export const SWITCH_COMMENT = "HotspotPro internet off";
@@ -98,7 +99,7 @@ export function controlScript(token: string, origin?: string): string | null {
       lines.push(
         `:global hpLockState`,
         `:if ($hpLockState != "open") do={ ${pageFetch(origin, token, "login.html", "hotspot/login.html")}; ${pageFetch(origin, token, "login.html", "flash/hotspot/login.html")}; :set hpLockState "open" }`,
-        `:global hpPages; :if ($hpPages != "v2") do={ ${fetches}; :set hpPages "v2" }`,
+        `:global hpPages; :if ($hpPages != "${loginPageStamp(token)}") do={ ${fetches}; :set hpPages "${loginPageStamp(token)}" }`,
         `:do { /system scheduler set [find where name=hotspotpro-control] interval=10s } on-error={ }`,
       );
     }

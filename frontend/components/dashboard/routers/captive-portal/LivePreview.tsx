@@ -442,7 +442,7 @@ export function LivePreview({
               <form onSubmit={handleLogin} className="space-y-2" data-testid="preview-login-form">
                 {config.authMethod === "PIN Only" ? (
                   <div>
-                    <p className="mb-1.5 text-xs font-bold text-[#737373]">Enter your PIN</p>
+                    <p className="mb-1.5 text-xs font-bold text-[#737373]">Voucher code</p>
                     <div className={fieldClass}>
                       <KeyRound size={15} className="text-[#a3a3a3]" />
                       <input
@@ -451,7 +451,7 @@ export function LivePreview({
                         onChange={(e) => setCode(e.target.value)}
                         inputMode="text"
                         autoComplete="off"
-                        placeholder="PIN / voucher code"
+                        placeholder="Voucher code"
                         className={inputClass}
                       />
                     </div>
