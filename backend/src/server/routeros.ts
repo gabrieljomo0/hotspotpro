@@ -414,16 +414,21 @@ export function buildProvisionScript(input: {
     say("Installing the hotspot skin...");
     safe(`/ip hotspot reset-html [find where name=hotspotpro]`, true, "Hotspot skin installed");
     say("Downloading the captive portal pages...");
-    for (const [index, page] of ["login.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html", "md5.js"].entries()) {
-      const wait = index === 0 ? ":delay 1s; " : "";
-      safe(`${wait}/tool fetch url="${origin}/api/provision/${token}/${page}" dst-path=($hpDir . "/${page}")${tls}`, false, `Downloaded ${page}`);
-      // Some boards keep files under flash/, others at the top. Put a copy in both so the profile can find it.
-      safe(`/tool fetch url="${origin}/api/provision/${token}/${page}" dst-path=("hotspot/${page}")${tls}`, true);
-      safe(`/tool fetch url="${origin}/api/provision/${token}/${page}" dst-path=("flash/hotspot/${page}")${tls}`, true);
+    // reset-html writes MikroTik's own login.html. Fetch will not replace a file that is already there, so remove it first.
+    const pull = (page: string, dest: string, quiet: boolean, done?: string) => {
+      safe(`/file remove [find where name=${dest}]`, true);
+      safe(`/tool fetch url="${origin}/api/provision/${token}/${page}" dst-path=${dest}${tls}`, quiet, done);
+    };
+    for (const page of ["login.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html", "md5.js"]) {
+      pull(page, `($hpDir . "/${page}")`, false, `Downloaded ${page}`);
+      pull(page, `("hotspot/${page}")`, true);
+      pull(page, `("flash/hotspot/${page}")`, true);
     }
-    safe(`/tool fetch url="${origin}/api/provision/${token}/hotspotpro.css" dst-path=($hpDir . "/css/hotspotpro.css")${tls}`, true, "Downloaded the skin stylesheet");
-    safe(`/tool fetch url="${origin}/api/provision/${token}/hotspotpro.css" dst-path=("hotspot/css/hotspotpro.css")${tls}`, true);
-    safe(`/tool fetch url="${origin}/api/provision/${token}/hotspotpro.css" dst-path=("flash/hotspot/css/hotspotpro.css")${tls}`, true);
+    pull("hotspotpro.css", `($hpDir . "/css/hotspotpro.css")`, true, "Downloaded the skin stylesheet");
+    pull("hotspotpro.css", `("hotspot/css/hotspotpro.css")`, true);
+    pull("hotspotpro.css", `("flash/hotspot/css/hotspotpro.css")`, true);
+    const loginUrl = `${origin}/api/provision/${token}/login.html`;
+    add(`:do { :local hpTry 0; :local hpBody ""; :while ($hpTry < 4) do={ :do { :set hpBody [/file get [find where name=($hpDir . "/login.html")] contents] } on-error={ }; :if ([:typeof [:find $hpBody "link-login-only"]] = "num") do={ :set hpTry 4; :put "Your login page is on the router." } else={ :do { /file remove [find where name=($hpDir . "/login.html")] } on-error={ }; :do { /file remove [find where name="hotspot/login.html"] } on-error={ }; :do { /file remove [find where name="flash/hotspot/login.html"] } on-error={ }; :do { /tool fetch url="${loginUrl}" dst-path=($hpDir . "/login.html")${tls} } on-error={ }; :do { /tool fetch url="${loginUrl}" dst-path="hotspot/login.html"${tls} } on-error={ }; :do { /tool fetch url="${loginUrl}" dst-path="flash/hotspot/login.html"${tls} } on-error={ }; :set hpTry ($hpTry + 1); :delay 4s; :put "HotspotPro is downloading your login page again..." } } } on-error={ }`);
     say("The hotspot skin is in the hotspot folder. Open Files in WinBox to see it.");
     if (input.apiPassword && /^[A-Za-z0-9]{12,32}$/.test(input.apiPassword)) {
       const secret = q(input.apiPassword);

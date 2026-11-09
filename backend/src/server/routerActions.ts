@@ -46,12 +46,16 @@ function fileFetches(origin: string, token: string) {
   const lines = [step(`/ip hotspot reset-html [find where name=hotspotpro]`)];
   for (const page of PAGES) {
     const url = `${origin}/api/provision/${token}/${page}`;
-    lines.push(step(`/tool fetch url="${url}" dst-path=("hotspot/${page}")${tls}`));
-    lines.push(step(`/tool fetch url="${url}" dst-path=("flash/hotspot/${page}")${tls}`));
+    for (const dest of [`hotspot/${page}`, `flash/hotspot/${page}`]) {
+      lines.push(step(`/file remove [find where name="${dest}"]`));
+      lines.push(step(`/tool fetch url="${url}" dst-path="${dest}"${tls}`));
+    }
   }
   const css = `${origin}/api/provision/${token}/hotspotpro.css`;
-  lines.push(step(`/tool fetch url="${css}" dst-path=("hotspot/css/hotspotpro.css")${tls}`));
-  lines.push(step(`/tool fetch url="${css}" dst-path=("flash/hotspot/css/hotspotpro.css")${tls}`));
+  for (const dest of ["hotspot/css/hotspotpro.css", "flash/hotspot/css/hotspotpro.css"]) {
+    lines.push(step(`/file remove [find where name="${dest}"]`));
+    lines.push(step(`/tool fetch url="${css}" dst-path="${dest}"${tls}`));
+  }
   return lines;
 }
 

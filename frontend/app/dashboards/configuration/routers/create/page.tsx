@@ -96,7 +96,7 @@ export default function AddRouterPage() {
   const [started, setStarted] = useState(false);
   const [doneCount, setDoneCount] = useState(0);
   const [countdown, setCountdown] = useState<number | null>(null);
-  const [copied, setCopied] = useState<"mode" | "config" | null>(null);
+  const [copied, setCopied] = useState<"config" | null>(null);
   const startedAt = useRef(0);
   const finishedRef = useRef(false);
 
@@ -228,10 +228,8 @@ export default function AddRouterPage() {
 
   const setupUrl = `${origin}/api/provision/${provisioningToken.current}${routerType === "New Router" ? wifiQuery : ""}`;
   const tlsFlag = fetchMode === "https" ? " check-certificate=no" : "";
-  // One short line, so the terminal takes the whole paste. Download first. Only if that fails, open the ISP port and try once more.
-  const provisioningCommand = `:global hpFile "hotspotpro-setup.rsc"; :global hpGot false; :put "HotspotPro: downloading the setup..."; :do { /file remove [find where name=$hpFile] } on-error={ }; :do { /tool fetch mode=${fetchMode} url="${setupUrl}" dst-path=$hpFile${tlsFlag}; :set hpGot true } on-error={ }; :if (!$hpGot) do={ :put "HotspotPro: opening ${wanClean} and trying once more..."; :do { /interface bridge port remove [find where interface=${wanClean}] } on-error={ }; :do { /ip dhcp-client add interface=${wanClean} disabled=no add-default-route=yes use-peer-dns=yes comment="HotspotPro WAN DHCP Client" } on-error={ }; :delay 6s; :do { /tool fetch mode=${fetchMode} url="${setupUrl}" dst-path=$hpFile${tlsFlag}; :set hpGot true } on-error={ } }; :if ($hpGot) do={ :put "HotspotPro: setup downloaded."; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; /import file-name=$hpFile } else={ :put "HotspotPro could not download the setup. Leave the internet cable in ${wanClean} and paste this one command again." }`;
-  // Pasted on its own, before the configuration command. RouterOS applies a mode change only after reset or a power cycle.
-  const deviceModeCommand = `:do { :local m [/system device-mode get mode]; :local f [/system device-mode get fetch]; :local s [/system device-mode get scheduler]; :if ($m = "home" || !$f || !$s) do={ /system device-mode update mode=advanced fetch=yes scheduler=yes; :put "Press reset within 5 minutes, then paste this again." } else={ :put "Advanced mode is on. Paste the configuration command." } } on-error={ :put "Paste the configuration command." }`;
+  // One paste. If the router cannot download yet, it opens the ISP port and keeps trying in this same paste.
+  const provisioningCommand = `:global hpFile "hotspotpro-setup.rsc"; :global hpGot false; :global hpMode "ok"; :put "HotspotPro: starting setup..."; :do { :local m [/system device-mode get mode]; :local f [/system device-mode get fetch]; :local s [/system device-mode get scheduler]; :if ($m = "home" || !$f || !$s) do={ /system device-mode update mode=advanced fetch=yes scheduler=yes; :set hpMode "wait"; :put "Press the reset button once within 5 minutes. When the router is back, paste this same command again." } } on-error={ }; :if ($hpMode = "ok") do={ :put "HotspotPro: downloading the setup..."; :do { /file remove [find where name=$hpFile] } on-error={ }; :local n 0; :while ($n < 8 && !$hpGot) do={ :do { /tool fetch mode=${fetchMode} url="${setupUrl}" dst-path=$hpFile${tlsFlag}; :set hpGot true } on-error={ }; :if (!$hpGot) do={ :if ($n = 0) do={ :put "HotspotPro: opening ${wanClean}..."; :do { /interface bridge port remove [find where interface=${wanClean}] } on-error={ }; :do { /ip dhcp-client add interface=${wanClean} disabled=no add-default-route=yes use-peer-dns=yes comment="HotspotPro WAN DHCP Client" } on-error={ } }; :delay 8s; :put "HotspotPro: downloading again..." }; :set n ($n + 1) }; :if ($hpGot) do={ :put "HotspotPro: setup downloaded."; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; /import file-name=$hpFile } else={ :put "HotspotPro could not download the setup. Leave the internet cable in ${wanClean} and paste this same command again." } }`;
 
   const provisionSteps = buildProvisionSteps(routerType, hotspotEnabled, pppoeEnabled);
   const connected = started && doneCount >= provisionSteps.length;
@@ -333,11 +331,11 @@ export default function AddRouterPage() {
     setStarted(true);
   }
 
-  function handleCopy(which: "mode" | "config") {
-    navigator.clipboard?.writeText(which === "mode" ? deviceModeCommand : provisioningCommand).catch(() => {});
-    setCopied(which);
+  function handleCopy() {
+    navigator.clipboard?.writeText(provisioningCommand).catch(() => {});
+    setCopied("config");
     window.setTimeout(() => setCopied(null), 1500);
-    if (which === "config") startProvisioning();
+    startProvisioning();
   }
 
   function handleCheckNow() {
@@ -781,40 +779,16 @@ export default function AddRouterPage() {
 
         {step === 1 && (
           <div className="space-y-5">
-            <div data-testid="device-mode-help" className="rounded-xl border border-[#f4f4f4] p-4">
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-bold text-[#1a1a1a]">1. Device mode command</p>
-                  <p className="text-xs text-[#a3a3a3]">Paste this first. If it says to press reset, do that within 5 minutes, then paste this same short command again. When it says advanced mode is on, paste the configuration command. That command finishes the hotspot and does not restart the router.</p>
-                </div>
-                <button
-                  type="button"
-                  data-testid="copy-device-mode"
-                  onClick={() => handleCopy("mode")}
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-[#1a1a1a] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#111111]"
-                >
-                  {copied === "mode" ? <Check size={13} /> : <Copy size={13} />}
-                  {copied === "mode" ? "Copied" : "Copy"}
-                </button>
-              </div>
-              <code
-                data-testid="device-mode-command"
-                className="block max-h-40 overflow-y-auto whitespace-pre-wrap break-all rounded-lg bg-[#1a1a1a] px-3 py-2.5 text-xs text-white"
-              >
-                {deviceModeCommand}
-              </code>
-            </div>
-
             <div className="rounded-xl border border-[#f4f4f4] p-4">
               <div className="mb-2 flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-bold text-[#1a1a1a]">2. Configuration command</p>
-                  <p className="text-xs text-[#a3a3a3]">Paste this once, after device mode is advanced. Leave the WinBox window open until it says the setup is complete. It does not restart the router, and it does not move the port this computer is using, so the connection stays up. The internet cable stays in {wanClean}.</p>
+                  <p className="text-sm font-bold text-[#1a1a1a]">Configuration command</p>
+                  <p className="text-xs text-[#a3a3a3]">Paste this once and leave the WinBox window open until it says the setup is complete. It keeps trying the download in that same paste, installs your login page, and does not restart the router. The internet cable stays in {wanClean}. If it tells you to press the reset button, press it once and paste this same command again when the router is back.</p>
                 </div>
                 <button
                   type="button"
                   data-testid="copy-command"
-                  onClick={() => handleCopy("config")}
+                  onClick={() => handleCopy()}
                   className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-[#1a1a1a] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#111111]"
                 >
                   {copied === "config" ? <Check size={13} /> : <Copy size={13} />}

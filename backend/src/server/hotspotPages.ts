@@ -23,7 +23,7 @@ export function voucherOnlyLogin(token: string): boolean {
 }
 
 export function loginPageStamp(token: string): string {
-  return voucherOnlyLogin(token) ? "v6-pin" : "v6-user";
+  return voucherOnlyLogin(token) ? "v7-pin" : "v7-user";
 }
 
 /** Files that make the hotspot folder a skin WinBox can open: the stylesheet and the CHAP helper. */

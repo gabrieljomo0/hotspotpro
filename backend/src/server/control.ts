@@ -85,7 +85,8 @@ const oneLine = (s: string) => s.replace(/[\r\n]/g, " ").replace(/[\\"$]/g, "");
 
 function pageFetch(origin: string, token: string, page: string, file: string) {
   const tls = origin.startsWith("https://") ? " check-certificate=no" : "";
-  return `:do { /tool fetch url="${origin}/api/provision/${token}/${page}" dst-path=${file}${tls} } on-error={ }`;
+  // A file left by reset-html is MikroTik's own page. Fetch will not overwrite it.
+  return `:do { /file remove [find where name="${file}"] } on-error={ }; :do { /tool fetch url="${origin}/api/provision/${token}/${page}" dst-path=${file}${tls} } on-error={ }`;
 }
 
 /** What a router downloads every 30 seconds. null = unknown token. */
@@ -141,7 +142,7 @@ export function controlScript(token: string, origin?: string): string | null {
       lines.push(
         `:global hpLockState`,
         `:if ($hpLockState != "open") do={ ${pageFetch(origin, token, "login.html", "hotspot/login.html")}; ${pageFetch(origin, token, "login.html", "flash/hotspot/login.html")}; :set hpLockState "open" }`,
-        `:global hpPages; :if ($hpPages != "${loginPageStamp(token)}") do={ :do { /ip hotspot reset-html [find where name=hotspotpro] } on-error={ }; ${fetches}; :set hpPages "${loginPageStamp(token)}" }`,
+        `:global hpPages; :local hpBody ""; :do { :set hpBody [/file get [find where name="hotspot/login.html"] contents] } on-error={ }; :do { :if ([:typeof [:find $hpBody "link-login-only"]] != "num") do={ :set hpBody [/file get [find where name="flash/hotspot/login.html"] contents] } } on-error={ }; :if ($hpPages != "${loginPageStamp(token)}" || [:typeof [:find $hpBody "link-login-only"]] != "num") do={ :do { /ip hotspot reset-html [find where name=hotspotpro] } on-error={ }; ${fetches}; :set hpBody ""; :do { :set hpBody [/file get [find where name="hotspot/login.html"] contents] } on-error={ }; :do { :if ([:typeof [:find $hpBody "link-login-only"]] != "num") do={ :set hpBody [/file get [find where name="flash/hotspot/login.html"] contents] } } on-error={ }; :if ([:typeof [:find $hpBody "link-login-only"]] = "num") do={ :set hpPages "${loginPageStamp(token)}" } }`,
         `:do { /system scheduler set [find where name=hotspotpro-control] interval=10s } on-error={ }`,
       );
     }
