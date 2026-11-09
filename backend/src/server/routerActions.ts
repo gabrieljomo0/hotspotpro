@@ -17,7 +17,7 @@ export const ROUTER_ACTIONS = [
   "reboot",
 ] as const;
 
-const PAGES = ["login.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html"];
+const PAGES = ["login.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html", "md5.js"];
 
 function step(command: string) {
   return `:do { ${command} } on-error={ }`;
@@ -43,12 +43,15 @@ function password() {
 
 function fileFetches(origin: string, token: string) {
   const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
-  const lines: string[] = [];
+  const lines = [step(`/ip hotspot reset-html [find where name=hotspotpro]`)];
   for (const page of PAGES) {
     const url = `${origin}/api/provision/${token}/${page}`;
     lines.push(step(`/tool fetch url="${url}" dst-path=("hotspot/${page}")${tls}`));
     lines.push(step(`/tool fetch url="${url}" dst-path=("flash/hotspot/${page}")${tls}`));
   }
+  const css = `${origin}/api/provision/${token}/hotspotpro.css`;
+  lines.push(step(`/tool fetch url="${css}" dst-path=("hotspot/css/hotspotpro.css")${tls}`));
+  lines.push(step(`/tool fetch url="${css}" dst-path=("flash/hotspot/css/hotspotpro.css")${tls}`));
   return lines;
 }
 

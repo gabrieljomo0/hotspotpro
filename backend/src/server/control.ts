@@ -95,12 +95,16 @@ export function controlScript(token: string, origin?: string): string | null {
       `:do { /ip hotspot profile set [find where name=hotspotpro] login-by=http-pap,http-chap,mac-cookie trial-uptime-limit=0s use-radius=${local ? "no" : "yes"} } on-error={ }`,
     );
     if (origin) {
-      const pages = ["login.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html"];
-      const fetches = pages.flatMap((page) => [pageFetch(origin, token, page, `hotspot/${page}`), pageFetch(origin, token, page, `flash/hotspot/${page}`)]).join("; ");
+      const pages = ["login.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html", "md5.js"];
+      const fetches = [
+        ...pages.flatMap((page) => [pageFetch(origin, token, page, `hotspot/${page}`), pageFetch(origin, token, page, `flash/hotspot/${page}`)]),
+        pageFetch(origin, token, "hotspotpro.css", "hotspot/css/hotspotpro.css"),
+        pageFetch(origin, token, "hotspotpro.css", "flash/hotspot/css/hotspotpro.css"),
+      ].join("; ");
       lines.push(
         `:global hpLockState`,
         `:if ($hpLockState != "open") do={ ${pageFetch(origin, token, "login.html", "hotspot/login.html")}; ${pageFetch(origin, token, "login.html", "flash/hotspot/login.html")}; :set hpLockState "open" }`,
-        `:global hpPages; :if ($hpPages != "${loginPageStamp(token)}") do={ ${fetches}; :set hpPages "${loginPageStamp(token)}" }`,
+        `:global hpPages; :if ($hpPages != "${loginPageStamp(token)}") do={ :do { /ip hotspot reset-html [find where name=hotspotpro] } on-error={ }; ${fetches}; :set hpPages "${loginPageStamp(token)}" }`,
         `:do { /system scheduler set [find where name=hotspotpro-control] interval=10s } on-error={ }`,
       );
     }

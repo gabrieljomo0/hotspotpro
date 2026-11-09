@@ -410,14 +410,20 @@ export function buildProvisionScript(input: {
     }
     // Login pages go on the router either way. Cloud and local both send the phone to the same portal.
     const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
+    say("Installing the hotspot skin...");
+    safe(`/ip hotspot reset-html [find where name=hotspotpro]`, true, "Hotspot skin installed");
     say("Downloading the captive portal pages...");
-    for (const [index, page] of ["login.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html"].entries()) {
+    for (const [index, page] of ["login.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html", "md5.js"].entries()) {
       const wait = index === 0 ? ":delay 1s; " : "";
       safe(`${wait}/tool fetch url="${origin}/api/provision/${token}/${page}" dst-path=($hpDir . "/${page}")${tls}`, false, `Downloaded ${page}`);
       // Some boards keep files under flash/, others at the top. Put a copy in both so the profile can find it.
       safe(`/tool fetch url="${origin}/api/provision/${token}/${page}" dst-path=("hotspot/${page}")${tls}`, true);
       safe(`/tool fetch url="${origin}/api/provision/${token}/${page}" dst-path=("flash/hotspot/${page}")${tls}`, true);
     }
+    safe(`/tool fetch url="${origin}/api/provision/${token}/hotspotpro.css" dst-path=($hpDir . "/css/hotspotpro.css")${tls}`, true, "Downloaded the skin stylesheet");
+    safe(`/tool fetch url="${origin}/api/provision/${token}/hotspotpro.css" dst-path=("hotspot/css/hotspotpro.css")${tls}`, true);
+    safe(`/tool fetch url="${origin}/api/provision/${token}/hotspotpro.css" dst-path=("flash/hotspot/css/hotspotpro.css")${tls}`, true);
+    say("The hotspot skin is in the hotspot folder. Open Files in WinBox to see it.");
     // Disconnect / Reconnect support for the whole router (see internetSwitchCommands).
     for (const command of internetSwitchCommands(origin, token)) safe(command, command.includes(" remove "));
     // Before a customer has logged in, the router blocks everything except the portal. An IP rule covers

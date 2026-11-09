@@ -138,6 +138,7 @@ try {
   check("the ISP port is taken out of the old bridge so it can get an address", scriptA.includes("bridge port remove [find where interface=ether1]"));
   check("the check-in is allowed to download", scriptA.includes("policy=ftp,reboot,read,write,policy,test"));
   check("setup downloads the captive portal pages", scriptA.includes("/login.html") && scriptA.includes("alogin.html") && scriptA.includes("HotspotPro login: cloud"));
+  check("setup puts the hotspot skin in WinBox Files", scriptA.includes("/ip hotspot reset-html") && scriptA.includes("md5.js") && scriptA.includes("hotspot/css/hotspotpro.css"));
   const registered = await send("POST", "/api/provision", { token: "tok-live-12345678", router: { name: "Live Router", loginMode: "local", hotspotEnabled: true, routerType: "New Router", wanInterface: "ether1" } }, amaCookie);
   const liveScript = await (await fetch(base + "/api/provision/tok-live-12345678")).text();
   check("the login mode chosen while adding a router is in the setup script", registered.status === 200 && liveScript.includes("HotspotPro login: local") && liveScript.includes("use-radius=no") && !liveScript.includes("use-radius=yes"), String(registered.status));
