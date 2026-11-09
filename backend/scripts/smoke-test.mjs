@@ -99,6 +99,14 @@ try {
   check("the voucher clock starts when the customer gets online", used?.status === "Used" && typeof used?.activatedAtMs === "number" && used.expiresAtMs > Date.now(), JSON.stringify(used));
   const again = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
   check("the same voucher stays on the router so they can reconnect", again.includes('name="AMATEST1"') && again.includes("limit-uptime=1d") && again.includes("limit-bytes-total=0"));
+  const kept = (await json(await send("GET", "/api/state", undefined, amaCookie))).docs?.vouchers?.value ?? [];
+  await send("PUT", "/api/state/vouchers", { value: [...kept, { code: "USEONLY1", password: null, packageName: "Ama Daily", status: "Available", countFrom: "usage", limitBy: "days" }, { code: "DATAONLY1", password: null, packageName: "Ama Daily", status: "Available", countFrom: "signin", limitBy: "data" }] }, amaCookie);
+  const choiceCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
+  check("a usage voucher counts the day only while online", choiceCtl.includes('name="USEONLY1"') && choiceCtl.includes("limit-uptime=1d"));
+  check("a data voucher has no day cap", choiceCtl.includes('name="DATAONLY1"') && choiceCtl.includes("limit-uptime=0s"));
+  await fetch(base + "/api/provision/tok-ama-12345678/control?cpu=1&users=USEONLY1");
+  const usageVoucher = ((await json(await send("GET", "/api/state", undefined, amaCookie))).docs?.vouchers?.value ?? []).find((v) => v.code === "USEONLY1");
+  check("signing in does not start a running clock on a usage voucher", !!usageVoucher?.activatedAtMs && !usageVoucher.expiresAtMs, JSON.stringify(usageVoucher));
   await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], remoteAccessEnabled: true, wanInterface: "ether1" }] }, amaCookie);
   const remoteCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
   check("switching remote access on opens WinBox", remoteCtl.includes('comment="HotspotPro remote WinBox"') && remoteCtl.includes("back-to-home-vpn=enabled") && remoteCtl.includes("ddns-enabled=yes"));

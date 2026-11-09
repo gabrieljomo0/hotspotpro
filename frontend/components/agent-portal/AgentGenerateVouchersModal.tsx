@@ -17,7 +17,8 @@ import { X, Sparkles, Wallet, Plus, Router as RouterIcon, ShieldAlert } from "lu
 import { useDashboard } from "@/components/dashboard/context/DashboardContext";
 import { REQUIRE_COMPLETE_PROFILE_FOR_VOUCHERS, getSellablePackages, isAgentProfileComplete, missingProfileFields } from "@/components/dashboard/agents/agentPackages";
 import { settingsOf, validateCustomCredentials } from "@/components/dashboard/agents/agentSettings";
-import type { AgentProfile } from "@/components/dashboard/shared/types";
+import type { AgentProfile, VoucherCountFrom, VoucherLimitBy } from "@/components/dashboard/shared/types";
+import { VoucherAllowanceFields } from "@/components/dashboard/vouchers/VoucherAllowanceFields";
 
 const MAX_PER_BATCH = 500;
 
@@ -35,6 +36,8 @@ export function AgentGenerateVouchersModal({
   const { packages, routers, vouchers, generateVoucherBatch, getMaxAffordableVouchers } = useDashboard();
 
   const [chosenPackage, setChosenPackage] = useState("");
+  const [limitBy, setLimitBy] = useState<VoucherLimitBy>("both");
+  const [countFrom, setCountFrom] = useState<VoucherCountFrom>("signin");
   const [quantity, setQuantity] = useState(50);
   // Optional, and only for a single voucher — see "canCustomize" below.
   const [customCode, setCustomCode] = useState("");
@@ -137,6 +140,8 @@ export function AgentGenerateVouchersModal({
       routerIps: [agent.routerIp],
       assignedAgentIds: [],
       loginMethod: "code",
+      limitBy,
+      countFrom,
       actingAgentId: agent.id,
       ...(canCustomize ? { customCode, customPassword } : {}),
     });
@@ -152,7 +157,7 @@ export function AgentGenerateVouchersModal({
     <div className="fixed inset-0 z-[220] flex items-center justify-center bg-slate-950/50 p-4">
       <button type="button" aria-label="Close" className="absolute inset-0 cursor-default" onClick={onClose} />
 
-      <div className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div className="relative z-10 max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-[#f4f4f4] px-6 py-5">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1a1a1a] text-white">
@@ -215,6 +220,14 @@ export function AgentGenerateVouchersModal({
               </select>
             )}
           </div>
+
+          <VoucherAllowanceFields
+            limitBy={limitBy}
+            countFrom={countFrom}
+            hasData={!!selected?.fupValue}
+            onLimitBy={setLimitBy}
+            onCountFrom={setCountFrom}
+          />
 
           <label className="block">
             <span className="mb-2 block text-sm font-semibold text-[#525252]">

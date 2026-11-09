@@ -118,6 +118,10 @@ export type VoucherSaleType =
   | "Unassigned";
 
 export type VoucherCodeFormat = "uppercase" | "lowercase" | "mixed" | "numeric";
+/** days: time only. data: gigabytes only. both: the voucher ends when either runs out. */
+export type VoucherLimitBy = "days" | "data" | "both";
+/** signin: the day starts at the first login and keeps running. usage: the day runs only while they are online. */
+export type VoucherCountFrom = "signin" | "usage";
 
 export type Voucher = {
   code: string;
@@ -140,6 +144,9 @@ export type Voucher = {
   usedAtMs?: number;
   agentId: string;
   batchId: string | null;
+  /** Missing on older vouchers: both the day and the data, starting at sign-in. */
+  limitBy?: VoucherLimitBy;
+  countFrom?: VoucherCountFrom;
 };
 
 export type VoucherLoginMethod = "code" | "credentials";
@@ -155,6 +162,8 @@ export type VoucherPreset = {
   codeLength: number;
   prefix: string;
   loginMethod: VoucherLoginMethod;
+  limitBy?: VoucherLimitBy;
+  countFrom?: VoucherCountFrom;
   isGiveaway: boolean;
   routerIps: string[];
   createdAt: string;
@@ -179,6 +188,8 @@ export type VoucherBatch = {
   // How customers on this batch log in — a single code, or a
   // username + password pair (code doubles as the username either way).
   loginMethod: VoucherLoginMethod;
+  limitBy?: VoucherLimitBy;
+  countFrom?: VoucherCountFrom;
   createdAt: string;
   // Real numeric timestamp alongside the display string — needed for
   // actual "created within X" time-period filtering.

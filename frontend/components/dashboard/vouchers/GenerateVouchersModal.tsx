@@ -17,7 +17,8 @@ import Link from "next/link";
 import { X, Sparkles, Wallet, Building2, Plus } from "lucide-react";
 
 import { useDashboard } from "../context/DashboardContext";
-import type { VoucherCodeFormat } from "../shared/types";
+import type { VoucherCodeFormat, VoucherCountFrom, VoucherLimitBy } from "../shared/types";
+import { VoucherAllowanceFields } from "./VoucherAllowanceFields";
 
 export function GenerateVouchersModal({
   open,
@@ -71,6 +72,8 @@ export function GenerateVouchersModal({
   );
   const [reference, setReference] = useState("");
   const [loginMethod, setLoginMethod] = useState<"code" | "credentials">("code");
+  const [limitBy, setLimitBy] = useState<VoucherLimitBy>("both");
+  const [countFrom, setCountFrom] = useState<VoucherCountFrom>("signin");
   const [codeFormat, setCodeFormat] = useState<VoucherCodeFormat>("uppercase");
   const [codeLength, setCodeLength] = useState(6);
   const [quantity, setQuantity] = useState(60);
@@ -96,6 +99,8 @@ export function GenerateVouchersModal({
     setCodeLength(preset.codeLength);
     setPrefix(preset.prefix);
     setLoginMethod(preset.loginMethod);
+    setLimitBy(preset.limitBy ?? "both");
+    setCountFrom(preset.countFrom ?? "signin");
     setIsGiveaway(preset.isGiveaway);
     if (preset.routerIps.length > 0) {
       setRouterIps(preset.routerIps);
@@ -184,6 +189,8 @@ export function GenerateVouchersModal({
       routerIps: effectiveRouterIps,
       assignedAgentIds: [],
       loginMethod,
+      limitBy,
+      countFrom,
       actingAgentId: currentAgent.id,
     });
 
@@ -198,6 +205,8 @@ export function GenerateVouchersModal({
         codeLength,
         prefix,
         loginMethod,
+        limitBy,
+        countFrom,
         isGiveaway,
         routerIps: effectiveRouterIps,
       }, currentAgent.id);
@@ -346,6 +355,14 @@ export function GenerateVouchersModal({
             </div>
           </div>
           )}
+
+          <VoucherAllowanceFields
+            limitBy={limitBy}
+            countFrom={countFrom}
+            hasData={!!selectedPackage?.fupValue}
+            onLimitBy={setLimitBy}
+            onCountFrom={setCountFrom}
+          />
 
           <div className={`grid gap-4 ${isAgentMode ? "" : "sm:grid-cols-2"}`}>
             {!isAgentMode && (

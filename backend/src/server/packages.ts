@@ -20,7 +20,24 @@ export type Vch = {
   agentId: string; batchId: string | null;
   // set by the server when the voucher is first used to log in
   activatedAtMs?: number; expiresAtMs?: number; bytesUsed?: number; serverIssuedMs?: number;
+  /** days, data, or both. Missing means both. */
+  limitBy?: "days" | "data" | "both";
+  /** signin: the day runs from the first login. usage: the day runs only while online. Missing means signin. */
+  countFrom?: "signin" | "usage";
 };
+
+export function voucherLimitBy(voucher: { limitBy?: string }): "days" | "data" | "both" {
+  return voucher.limitBy === "days" || voucher.limitBy === "data" ? voucher.limitBy : "both";
+}
+
+export function voucherCountFrom(voucher: { countFrom?: string }): "signin" | "usage" {
+  return voucher.countFrom === "usage" ? "usage" : "signin";
+}
+
+/** A running calendar day, which keeps going after they disconnect. Data-only and usage vouchers do not have one. */
+export function voucherUsesCalendar(voucher: { limitBy?: string; countFrom?: string }) {
+  return voucherLimitBy(voucher) !== "data" && voucherCountFrom(voucher) === "signin";
+}
 
 export function list<T>(key: string): T[] {
   const v = getState(key)?.value;
@@ -67,10 +84,11 @@ export function noteLiveVouchers(names: string[], now = Date.now()) {
     const pkg = findPackageByName(voucher.packageName);
     const seconds = pkg ? packageSeconds(pkg) : 24 * 3600;
     changed = true;
+    const calendar = voucherUsesCalendar(voucher);
     return {
       ...voucher,
       activatedAtMs: now,
-      expiresAtMs: now + seconds * 1000,
+      ...(calendar ? { expiresAtMs: now + seconds * 1000 } : {}),
       status: voucher.status === "Available" ? "Used" as const : voucher.status,
       usedAtMs: voucher.usedAtMs ?? now,
     };

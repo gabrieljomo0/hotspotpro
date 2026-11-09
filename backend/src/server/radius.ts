@@ -20,7 +20,7 @@ import {
   addUsage, allSessions, getSession, nasKeyOf, noteNas, saveSession, secretFor, sessionsFor,
 } from "./store";
 import {
-  type Pkg, type Vch, findPackageByName, findVoucher, list, packageBytes, packageSeconds, updateVoucher,
+  type Pkg, type Vch, findPackageByName, findVoucher, list, packageBytes, packageSeconds, updateVoucher, voucherLimitBy, voucherUsesCalendar,
 } from "./packages";
 import { forEachTenant, getState, getTenant, listTenants, setState, tenantsForVoucher, withTenant } from "./store";
 import { switchedOffRouter } from "./control";
@@ -124,14 +124,16 @@ export function decide(
   const candidates = voucher.password ? [voucher.password] : [voucher.code, ""];
   if (!proof(candidates)) return { ok: false, reason: "Invalid voucher code or password." };
   if (voucher.status === "Expired") return { ok: false, reason: "This voucher has expired." };
-  if (voucher.expiresAtMs && voucher.expiresAtMs <= now) return { ok: false, reason: "This voucher has expired." };
+  const limitBy = voucherLimitBy(voucher);
+  const calendar = voucherUsesCalendar(voucher);
+  if (calendar && voucher.expiresAtMs && voucher.expiresAtMs <= now) return { ok: false, reason: "This voucher has expired." };
 
   const pkg: Pkg | null = findPackageByName(voucher.packageName);
   const total = pkg ? packageSeconds(pkg) : 24 * 3600;
-  const expires = voucher.expiresAtMs ?? now + total * 1000;
+  const expires = calendar ? voucher.expiresAtMs ?? now + total * 1000 : now + (limitBy === "data" ? 30 * 86400 : total) * 1000;
   const seconds = Math.max(1, Math.floor((expires - now) / 1000));
 
-  const cap = pkg ? packageBytes(pkg) : null;
+  const cap = limitBy === "days" ? null : pkg ? packageBytes(pkg) : null;
   const used = Math.max(usedBytes(voucher.code), voucher.bytesUsed ?? 0);
   if (cap !== null && used >= cap) return { ok: false, reason: "Your data is finished." };
 
@@ -155,9 +157,10 @@ function activate(voucher: Vch, now = Date.now()) {
   if (voucher.activatedAtMs) return;
   const pkg = findPackageByName(voucher.packageName);
   const seconds = pkg ? packageSeconds(pkg) : 24 * 3600;
+  const calendar = voucherUsesCalendar(voucher);
   updateVoucher(voucher.code, {
     activatedAtMs: now,
-    expiresAtMs: now + seconds * 1000,
+    ...(calendar ? { expiresAtMs: now + seconds * 1000 } : {}),
     status: "Used",
     usedAtMs: voucher.usedAtMs ?? now,
   });
@@ -376,7 +379,7 @@ function recordAccounting(request: Packet, source: string): void {
     const voucher = findVoucher(username);
     if (voucher) {
       const pkg = findPackageByName(voucher.packageName);
-      const cap = pkg ? packageBytes(pkg) : null;
+      const cap = voucherLimitBy(voucher) === "days" ? null : pkg ? packageBytes(pkg) : null;
       updateVoucher(username, { bytesUsed: used, ...(cap !== null && used >= cap ? { status: "Expired" as const } : {}) });
     }
   }

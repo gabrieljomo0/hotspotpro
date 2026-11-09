@@ -4,7 +4,7 @@
 // login cannot stay online forever. Local mode does not ask the cloud.
 
 import { getState, setState } from "./store";
-import { type Pkg, type Vch, findPackageByName, list, packageBytes, packageSeconds, routerAllowsPackage } from "./packages";
+import { type Pkg, type Vch, findPackageByName, list, packageBytes, packageSeconds, routerAllowsPackage, voucherCountFrom, voucherLimitBy } from "./packages";
 
 const BATCH = 40;
 
@@ -43,7 +43,7 @@ function syncFile(): SyncFile {
 }
 
 function wanted(routerIp: string, now: number) {
-  const out: { name: string; password: string; pkg: Pkg | null }[] = [];
+  const out: { name: string; password: string; pkg: Pkg | null; limitBy: "days" | "data" | "both"; countFrom: "signin" | "usage" }[] = [];
   const seen = new Set<string>();
   for (const voucher of list<Vch>("vouchers")) {
     if (!voucher || voucher.status === "Expired") continue;
@@ -53,7 +53,13 @@ function wanted(routerIp: string, now: number) {
     const name = userName(voucher.code || "");
     if (!name || seen.has(name)) continue;
     seen.add(name);
-    out.push({ name, password: voucher.password || voucher.code || name, pkg });
+    out.push({
+      name,
+      password: voucher.password || voucher.code || name,
+      pkg,
+      limitBy: voucherLimitBy(voucher),
+      countFrom: voucherCountFrom(voucher),
+    });
   }
   return out;
 }
@@ -99,8 +105,14 @@ export function localUserLines(token: string, routerIp: string, now = Date.now()
   }
   for (const user of add) {
     const seconds = user.pkg ? packageSeconds(user.pkg) : 86400;
-    const bytes = (user.pkg ? packageBytes(user.pkg) : 0) ?? 0;
-    const limits = `limit-uptime=${rosDuration(seconds)} limit-bytes-total=${bytes}`;
+    const cap = (user.pkg ? packageBytes(user.pkg) : 0) ?? 0;
+    // Days: the router counts connected time, and pauses it when they disconnect.
+    // A sign-in voucher also gets a calendar day from the server, so the day
+    // keeps running after they sign off. Data-only vouchers have no time cap.
+    // 0 means unlimited on the router.
+    const uptime = user.limitBy === "data" ? "0s" : rosDuration(seconds);
+    const bytes = user.limitBy === "days" ? 0 : cap;
+    const limits = `limit-uptime=${uptime} limit-bytes-total=${bytes}`;
     const profile = quote(profileName(user.pkg, user.name));
     lines.push(
       `:do { :if ([:len [/ip hotspot user find where name=${quote(user.name)}]] = 0) do={ /ip hotspot user add name=${quote(user.name)} password=${quote(user.password)} profile=${profile} ${limits} comment="HotspotPro" } else={ /ip hotspot user set [find where name=${quote(user.name)}] password=${quote(user.password)} profile=${profile} ${limits} disabled=no } } on-error={ }`,

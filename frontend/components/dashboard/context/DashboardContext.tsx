@@ -76,6 +76,8 @@ import type {
   Voucher,
   VoucherCodeFormat,
   VoucherLoginMethod,
+  VoucherLimitBy,
+  VoucherCountFrom,
   VoucherPreset,
   VoucherBatch,
   VoucherDelivery,
@@ -368,6 +370,8 @@ type DashboardContextValue = {
     routerIps: string[];
     assignedAgentIds: string[];
     loginMethod?: VoucherLoginMethod;
+    limitBy?: VoucherLimitBy;
+    countFrom?: VoucherCountFrom;
     actingAgentId?: string;
     // Only for a single voucher: the username (code) and/or password the
     // person creating it wants, instead of auto-generated ones. Agents can
@@ -1880,6 +1884,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     routerIps: string[];
     assignedAgentIds: string[];
     loginMethod?: VoucherLoginMethod;
+    limitBy?: VoucherLimitBy;
+    countFrom?: VoucherCountFrom;
     // Who is really generating — defaults to the context's acting agent,
     // but the agent portal passes its own agent so vouchers, wallet and
     // "created by" all land on the right person.
@@ -1996,6 +2002,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       : Array.from({ length: quantity }, makeCode);
     // Setting a password means the voucher logs in with username + password.
     const loginMethod: VoucherLoginMethod = customPassword ? "credentials" : (input.loginMethod ?? "code");
+    const limitBy: VoucherLimitBy = input.limitBy ?? "both";
+    const countFrom: VoucherCountFrom = input.countFrom ?? "signin";
     // A separate, shorter password for credentials-mode vouchers — always
     // numeric so it's easy to read aloud or type on a phone keypad.
     function makePassword() {
@@ -2019,6 +2027,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       generatedAtMs: Date.now(),
       agentId: actingId,
       batchId,
+      limitBy,
+      countFrom,
     }));
 
     // What this batch costs the agent from their wallet (0 if it isn't paid
@@ -2038,6 +2048,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       note: input.note,
       printDesign: "micro-strip",
       loginMethod,
+      limitBy,
+      countFrom,
       createdAt: now,
       createdAtMs: Date.now(),
       codes,

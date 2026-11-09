@@ -8,7 +8,8 @@ import { ChevronRight, Building2, Plus } from "lucide-react";
 
 import { useDashboard } from "@/components/dashboard/context/DashboardContext";
 import { ConnectedAgentBanner } from "@/components/dashboard/agents/ConnectedAgentBanner";
-import type { VoucherCodeFormat } from "@/components/dashboard/shared/types";
+import type { VoucherCodeFormat, VoucherCountFrom, VoucherLimitBy } from "@/components/dashboard/shared/types";
+import { VoucherAllowanceFields } from "@/components/dashboard/vouchers/VoucherAllowanceFields";
 
 export default function CreateVoucherPage() {
   const router = useRouter();
@@ -26,6 +27,8 @@ export default function CreateVoucherPage() {
   );
   const [reference, setReference] = useState("");
   const [loginMethod, setLoginMethod] = useState<"code" | "credentials">("code");
+  const [limitBy, setLimitBy] = useState<VoucherLimitBy>("both");
+  const [countFrom, setCountFrom] = useState<VoucherCountFrom>("signin");
   const [isGiveaway, setIsGiveaway] = useState(false);
   const [sendNotification, setSendNotification] = useState(false);
   const [notifyPhone, setNotifyPhone] = useState("");
@@ -108,6 +111,8 @@ export default function CreateVoucherPage() {
     setCodeLength(preset.codeLength);
     setPrefix(preset.prefix);
     setLoginMethod(preset.loginMethod);
+    setLimitBy(preset.limitBy ?? "both");
+    setCountFrom(preset.countFrom ?? "signin");
     setIsGiveaway(preset.isGiveaway);
     if (preset.routerIps.length > 0) {
       setSiteKey("");
@@ -181,6 +186,8 @@ export default function CreateVoucherPage() {
       routerIps,
       assignedAgentIds: [],
       loginMethod,
+      limitBy,
+      countFrom,
     });
 
     if (batch && saveAsPreset && presetName.trim()) {
@@ -192,6 +199,8 @@ export default function CreateVoucherPage() {
         codeLength,
         prefix,
         loginMethod,
+        limitBy,
+        countFrom,
         isGiveaway,
         routerIps,
       });
@@ -261,6 +270,14 @@ export default function CreateVoucherPage() {
             </button>
           </div>
         </div>
+
+        <VoucherAllowanceFields
+          limitBy={limitBy}
+          countFrom={countFrom}
+          hasData={!!packages.find((pkg) => pkg.name === packageName)?.fupValue}
+          onLimitBy={setLimitBy}
+          onCountFrom={setCountFrom}
+        />
 
         <div className="grid gap-6 sm:grid-cols-2">
           <label className="block">
