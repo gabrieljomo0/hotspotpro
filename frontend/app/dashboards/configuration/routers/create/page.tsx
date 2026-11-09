@@ -809,7 +809,7 @@ export default function AddRouterPage() {
               <div className="mb-2 flex items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-bold text-[#1a1a1a]">2. Configuration command</p>
-                  <p className="text-xs text-[#a3a3a3]">Paste this once, after device mode is advanced. It downloads the setup, creates the DHCP client on {wanClean} if the router cannot reach the site yet, and connects the router. Keep this computer on the admin port and the internet cable in {wanClean}.</p>
+                  <p className="text-xs text-[#a3a3a3]">Paste this once, after device mode is advanced. Leave the WinBox window open until it says the setup is complete. It does not restart the router, and it does not move the port this computer is using, so the connection stays up. The internet cable stays in {wanClean}.</p>
                 </div>
                 <button
                   type="button"

@@ -265,8 +265,17 @@ export function buildProvisionScript(input: {
   add(`:do { :local hpMode [/system device-mode get mode]; :local dmF [/system device-mode get fetch]; :local dmS [/system device-mode get scheduler]; :if ($hpMode = "home" || !$dmF || !$dmS) do={ :set hpDm "blocked"; :log warning "HotspotPro: device-mode is home, or downloads are off. Switching to advanced. Press the reset button briefly, or switch the power off and on, within 5 minutes. Then run the HotspotPro command again."; /system device-mode update mode=advanced fetch=yes scheduler=yes } } on-error={ }`);
   add(`:if ($hpDm = "blocked") do={ :put "HotspotPro stopped. This router is still in home mode. Paste the device-mode command, press reset or power-cycle within 5 minutes, then paste the device-mode command again before the configuration command."; :error "device-mode" }`);
   say("Router mode is fine. Continuing.");
+  // The port this WinBox is using must stay where it is. Moving it drops the
+  // terminal, and a dropped terminal stops the import, so the command has to be pasted again.
+  add(`:do { :local hpReady true; :global hpKeep "" } on-error={ }`);
+  add(`:do { :local hpMe ""; :foreach u in=[/user active find] do={ :local v [/user active get $u via]; :if ($v = "winbox" || $v = "mac-winbox" || $v = "telnet" || $v = "ssh") do={ :set hpMe [/user active get $u address] } }; :local hpMac ""; :if ([:len $hpMe] > 0) do={ :if ([:find $hpMe ":"] >= 0) do={ :set hpMac $hpMe } else={ :do { :set hpMac [/ip arp get [find where address=$hpMe] mac-address] } on-error={ } } }; :if ([:len $hpMac] > 0) do={ :do { :set hpKeep [/interface bridge host get [find where mac-address=$hpMac] interface] } on-error={ }; :if ([:len $hpKeep] = 0) do={ :do { :set hpKeep [/interface bridge host get [find where mac-address=$hpMac] on-interface] } on-error={ } } }; :if ([:len $hpKeep] > 0) do={ :put ("HotspotPro: WinBox is on " . $hpKeep . ". That port stays where it is, so this window stays connected.") } else={ :put "HotspotPro: the admin port stays connected." } } on-error={ }`);
   const wan = wanOf(router);
   const mgmt = mgmtOf(router);
+  const keepPort = (port: string) => {
+    const name = port.replace(/[^A-Za-z0-9._-]/g, "");
+    if (!name) return;
+    add(`:do { :if ($hpKeep != "${name}") do={ /interface bridge port remove [find where interface=${name}]; /interface bridge port add bridge=hotspotpro-bridge interface=${name} comment="HotspotPro" } else={ :put "HotspotPro: ${name} is left alone so WinBox stays connected." } } on-error={ }`);
+  };
 
   // MikroTik sends this name as NAS-Identifier on every RADIUS packet. Accounting and Disconnect match the router by it.
   say("Setting the router name...");
@@ -276,7 +285,7 @@ export function buildProvisionScript(input: {
   // The ISP port gets its address by DHCP (ether1 unless the owner chose another port).
   // A new MikroTik keeps that port inside the factory bridge, and a DHCP client on a bridge port never gets an address.
   say(`Setting the internet port ${wan}...`);
-  if (!input.existing) safe(`/interface bridge port remove [find where interface=${wan}]`, true);
+  if (!input.existing) add(`:do { :if ($hpKeep != "${wan}") do={ /interface bridge port remove [find where interface=${wan}]; :put "Internet port ${wan} can take an address from the ISP." } else={ :put "HotspotPro: WinBox is using ${wan}, so that cable stays as it is." } } on-error={ }`);
   safe(`/ip dhcp-client add interface=${wan} disabled=no use-peer-dns=yes use-peer-ntp=yes add-default-route=yes comment="HotspotPro WAN DHCP Client"`, true, `DHCP client added on ${wan}`);
   safe(`/ip dhcp-client set [find where interface=${wan}] disabled=no use-peer-dns=yes use-peer-ntp=yes add-default-route=yes`, false, `DHCP client is on ${wan}`);
   say("Configuring DNS...");
@@ -339,7 +348,7 @@ export function buildProvisionScript(input: {
       // (192.168.88.1/24); a blank router gets one now. Either way this port is never touched, so you never lose the connection.
       add(`# --- Admin port ${mgmt}: stays outside the hotspot (your computer)`);
       say(`Keeping ${mgmt} as the admin port for your computer...`);
-      add(`:do { :if ([:len [/ip address find where address="192.168.88.1/24"]] = 0) do={ /interface bridge add name=hotspotpro-admin comment="HotspotPro admin"; /interface bridge port remove [find where interface=${mgmt}]; /interface bridge port add bridge=hotspotpro-admin interface=${mgmt} comment="HotspotPro admin"; /ip address add address=192.168.88.1/24 interface=hotspotpro-admin comment="HotspotPro admin"; /ip pool add name=hotspotpro-admin-pool ranges=192.168.88.10-192.168.88.60; /ip dhcp-server network add address=192.168.88.0/24 gateway=192.168.88.1 dns-server=192.168.88.1 comment="HotspotPro admin"; /ip dhcp-server add name=hotspotpro-admin-dhcp interface=hotspotpro-admin address-pool=hotspotpro-admin-pool disabled=no; /interface list member add list=LAN interface=hotspotpro-admin; :put "Admin port ${mgmt} is ready." } else={ :put "Admin port ${mgmt} was already set." } } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: admin port setup"; :put "HotspotPro: the admin port step had a problem and was skipped. Setup continues." }`);
+      add(`:do { :if ([:len [/ip address find where address="192.168.88.1/24"]] = 0 && $hpKeep != "${mgmt}") do={ /interface bridge add name=hotspotpro-admin comment="HotspotPro admin"; /interface bridge port remove [find where interface=${mgmt}]; /interface bridge port add bridge=hotspotpro-admin interface=${mgmt} comment="HotspotPro admin"; /ip address add address=192.168.88.1/24 interface=hotspotpro-admin comment="HotspotPro admin"; /ip pool add name=hotspotpro-admin-pool ranges=192.168.88.10-192.168.88.60; /ip dhcp-server network add address=192.168.88.0/24 gateway=192.168.88.1 dns-server=192.168.88.1 comment="HotspotPro admin"; /ip dhcp-server add name=hotspotpro-admin-dhcp interface=hotspotpro-admin address-pool=hotspotpro-admin-pool disabled=no; /interface list member add list=LAN interface=hotspotpro-admin; :put "Admin port ${mgmt} is ready." } else={ :put "Admin port ${mgmt} stays connected." } } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: admin port setup"; :put "HotspotPro: the admin port step had a problem and was skipped. Setup continues." }`);
     }
     add(`# --- Hotspot network ${plan.network} (these pieces are replaced if the script is run again)`);
     say(`Preparing the hotspot network ${plan.network}...`);
@@ -360,15 +369,11 @@ export function buildProvisionScript(input: {
       // A new MikroTik ships with ether2-5 already inside its default bridge; a port can only be in one
       // bridge, so take them out of the old one first, then add them to ours. Boards with more ports
       // (ether6+, sfp) are picked up by the loop below.
-      for (const port of ["ether1", "ether2", "ether3", "ether4", "ether5"].filter((p) => p !== wan && p !== mgmt)) {
-        safe(`/interface bridge port remove [find where interface=${port}]`, true);
-        // Quiet: a board with fewer ports does not have ether4 or ether5, and that is not a failed setup.
-        safe(`/interface bridge port add bridge=hotspotpro-bridge interface=${port} comment="HotspotPro"`, true);
-      }
+      for (const port of ["ether1", "ether2", "ether3", "ether4", "ether5"].filter((p) => p !== wan && p !== mgmt)) keepPort(port);
       const skipWan = wan.replace(/[^A-Za-z0-9._-]/g, "") || "ether1";
       const skipMgmt = mgmt.replace(/[^A-Za-z0-9._-]/g, "");
       const notMgmt = skipMgmt ? ` && $n != "${skipMgmt}"` : "";
-      add(`:do { :foreach p in=[/interface ethernet find] do={ :local n [/interface ethernet get $p name]; :if ($n != "${skipWan}"${notMgmt}) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`);
+      add(`:do { :foreach p in=[/interface ethernet find] do={ :local n [/interface ethernet get $p name]; :if ($n != "${skipWan}"${notMgmt} && $n != $hpKeep) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`);
       say("Ethernet ports added to the hotspot bridge.");
     }
     // The factory firewall only lets "LAN" interfaces talk to the router (DHCP, DNS, login page).
@@ -453,14 +458,11 @@ export function buildProvisionScript(input: {
       `:do { /interface wireless security-profiles set [find default=yes] mode=none } on-error={ }`,
       `:do { /interface wireless set [find] disabled=no ssid=${q(ssid)} mode=ap-bridge security-profile=default } on-error={ }`,
       `:do { /interface wifi set [find] security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ }`,
-      `:do { :foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } on-error={ }`,
-      `:do { :foreach p in=[/interface wireless find] do={ :local n [/interface wireless get $p name]; :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } on-error={ }`,
+      `:do { :foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :if ($n != $hpKeep) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`,
+      `:do { :foreach p in=[/interface wireless find] do={ :local n [/interface wireless get $p name]; :if ($n != $hpKeep) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`,
     ].join("; ");
     add(`:do { :execute script="${wifiScript.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\$/g, "\\$")}" } on-error={ }`);
-    for (const name of ["wifi1", "wlan1"]) {
-      safe(`/interface bridge port remove [find where interface=${name}]`, true);
-      safe(`/interface bridge port add bridge=hotspotpro-bridge interface=${name} comment="HotspotPro"`, true);
-    }
+    for (const name of ["wifi1", "wlan1"]) keepPort(name);
     say("WiFi is set. Customers log in on the portal page.");
   } else if (!input.wireless) {
     say("Wireless setup skipped. This router is using its LAN ports.");
@@ -486,9 +488,10 @@ export function buildProvisionScript(input: {
   say("Continue to create a package and a voucher to enjoy this service.");
   say("==========================================");
   add(`:if ($hpFails > 0) do={ :put ("HotspotPro finished with " . $hpFails . " step(s) skipped. Look in the router log for HotspotPro step failed.") }`);
-  // The hotspot is already saved. A newer RouterOS on the router's own update channel is installed last, then the router restarts.
-  say("Checking for a newer RouterOS...");
-  add(`:do { /system package update check-for-updates } on-error={ :put "HotspotPro could not ask MikroTik for a newer RouterOS. The hotspot setup is already saved." }`);
-  add(`:do { :delay 3s; :local hpUp 0; :local hpSt ""; :while ($hpUp < 10) do={ :set hpSt [/system package update get status]; :if ($hpSt != "finding out latest version..." && $hpSt != "please wait..." && $hpSt != "downloading...") do={ :set hpUp 10 }; :delay 2s; :set hpUp ($hpUp + 1) }; :local hpNow [/system package update get installed-version]; :local hpNew [/system package update get latest-version]; :put ("RouterOS " . $hpNow); :if ([:len $hpNew] > 0 && $hpNow != $hpNew) do={ :put ("A newer RouterOS is available: " . $hpNew . ". Installing it now. The router will restart. The hotspot setup is already saved."); /system package update install } else={ :put "RouterOS is already the newest version." } } on-error={ :put "HotspotPro could not install a RouterOS update. The hotspot setup is already saved." }`);
+  // Do not install a RouterOS update here. Install restarts the router, WinBox drops,
+  // and the import stops, so the same command has to be pasted again.
+  say("Checking RouterOS without restarting...");
+  add(`:do { /system package update check-for-updates } on-error={ :put "HotspotPro could not ask MikroTik for a newer RouterOS. This window stays connected." }`);
+  add(`:do { :local hpNow [/system package update get installed-version]; :local hpNew [/system package update get latest-version]; :put ("RouterOS " . $hpNow); :if ([:len $hpNew] > 0 && $hpNow != $hpNew) do={ :put ("A newer RouterOS is available: " . $hpNew . ". It was not installed, so WinBox stays connected. Update it later from the router page when a restart is alright.") } else={ :put "RouterOS is already the newest version. WinBox stays connected." } } on-error={ :put "WinBox stays connected. The hotspot setup is already saved." }`);
   return lines.join("\n") + "\n";
 }

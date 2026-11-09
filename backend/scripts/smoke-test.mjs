@@ -144,7 +144,7 @@ try {
   const lint = await json(await send("GET", "/api/provision/tok-live-12345678/check?origin=" + encodeURIComponent("http://192.168.88.10:4000"), undefined, amaCookie));
   check("the setup script passes the RouterOS check", lint.report?.ok === true, JSON.stringify(lint.report?.errors ?? lint));
   check("script checks the router's device-mode", scriptA.includes("/system device-mode get mode") && scriptA.includes("mode=advanced") && scriptA.includes("/system device-mode get fetch") && scriptA.includes("&dm=") && scriptA.includes(':error "device-mode"'));
-  check("script upgrades RouterOS when a newer version is available", scriptA.includes("/system package update check-for-updates") && scriptA.includes("/system package update install") && scriptA.includes("RouterOS is already the newest version."));
+  check("script does not restart the router, so WinBox stays connected", scriptA.includes("/system package update check-for-updates") && !scriptA.includes("/system package update install") && scriptA.includes("WinBox stays connected") && scriptA.includes("$hpKeep"));
   await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], wanInterface: "ether3" }] }, amaCookie);
   const scriptWan = await (await fetch(base + "/api/provision/tok-ama-12345678")).text();
   check("a chosen ISP port is used, and ether1 joins the LAN bridge", scriptWan.includes("/ip dhcp-client add interface=ether3") && scriptWan.includes("interface=ether1 comment=\"HotspotPro\"") && !scriptWan.includes("bridge port add bridge=hotspotpro-bridge interface=ether3"));
