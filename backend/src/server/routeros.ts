@@ -256,6 +256,7 @@ export function buildProvisionScript(input: {
   add(`:local hpWan ""`);
   add(`:local hpNet ""`);
   add(`:local hpDir "hotspot"`);
+  add(`:global hpKeep ""`);
   say("==========================================");
   say("HotspotPro setup is starting...");
   say("==========================================");
@@ -267,8 +268,7 @@ export function buildProvisionScript(input: {
   say("Router mode is fine. Continuing.");
   // The port this WinBox is using must stay where it is. Moving it drops the
   // terminal, and a dropped terminal stops the import, so the command has to be pasted again.
-  add(`:do { :local hpReady true; :global hpKeep "" } on-error={ }`);
-  add(`:do { :local hpMe ""; :foreach u in=[/user active find] do={ :local v [/user active get $u via]; :if ($v = "winbox" || $v = "mac-winbox" || $v = "telnet" || $v = "ssh") do={ :set hpMe [/user active get $u address] } }; :local hpMac ""; :if ([:len $hpMe] > 0) do={ :if ([:find $hpMe ":"] >= 0) do={ :set hpMac $hpMe } else={ :do { :set hpMac [/ip arp get [find where address=$hpMe] mac-address] } on-error={ } } }; :if ([:len $hpMac] > 0) do={ :do { :set hpKeep [/interface bridge host get [find where mac-address=$hpMac] interface] } on-error={ }; :if ([:len $hpKeep] = 0) do={ :do { :set hpKeep [/interface bridge host get [find where mac-address=$hpMac] on-interface] } on-error={ } } }; :if ([:len $hpKeep] > 0) do={ :put ("HotspotPro: WinBox is on " . $hpKeep . ". That port stays where it is, so this window stays connected.") } else={ :put "HotspotPro: the admin port stays connected." } } on-error={ }`);
+  add(`:do { :local hpMe ""; :local hpMac ""; :local hpId ""; :foreach u in=[/user active find] do={ :local v [/user active get $u via]; :if ($v = "winbox" || $v = "mac-winbox" || $v = "telnet" || $v = "ssh") do={ :set hpMe [/user active get $u address] } }; :if ([:len $hpMe] > 0) do={ :if ([:typeof [:find $hpMe "."]] = "num") do={ :do { :set hpMac [/ip arp get [find where address=$hpMe] mac-address] } on-error={ } } else={ :set hpMac $hpMe } }; :if ([:len $hpMac] > 0) do={ :do { :set hpId [/interface bridge host find where mac-address=$hpMac]; :if ([:len $hpId] > 0) do={ :do { :set hpKeep [/interface bridge host get $hpId interface] } on-error={ }; :if ([:len $hpKeep] = 0) do={ :do { :set hpKeep [/interface bridge host get $hpId on-interface] } on-error={ } } } } on-error={ } }; :if ([:len $hpKeep] > 0) do={ :put ("HotspotPro: WinBox is on " . $hpKeep . ". That port stays where it is, so this window stays connected.") } else={ :put "HotspotPro: the admin port stays connected." } } on-error={ }`);
   const wan = wanOf(router);
   const mgmt = mgmtOf(router);
   const keepPort = (port: string) => {

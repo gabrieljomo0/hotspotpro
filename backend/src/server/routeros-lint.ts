@@ -76,7 +76,7 @@ export function lintScript(script: string, options: { addon?: boolean } = {}): L
     if (line.startsWith("#")) return;
     const where = `Line ${n}`;
 
-    if (!/^(:do \{ |:local |:log |:put |:if )/.test(line)) {
+    if (!/^(:do \{ |:local |:global |:log |:put |:if )/.test(line)) {
       errors.push(`${where}: starts with something unexpected ("${line.slice(0, 30)}").`);
       return;
     }
