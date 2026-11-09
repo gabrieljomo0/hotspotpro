@@ -260,12 +260,7 @@ export function buildProvisionScript(input: {
   say("==========================================");
   say("HotspotPro setup is starting...");
   say("==========================================");
-  say("Checking the router mode...");
-  // Home mode (RouterOS 7) blocks the download and the 30-second check-in. Switch to advanced first.
-  // The router does not apply that until someone presses reset or power-cycles it, so setup stops here and waits.
-  add(`:do { :local hpMode [/system device-mode get mode]; :local dmF [/system device-mode get fetch]; :local dmS [/system device-mode get scheduler]; :if ($hpMode = "home" || !$dmF || !$dmS) do={ :set hpDm "blocked"; :log warning "HotspotPro: device-mode is home, or downloads are off. Switching to advanced. Press the reset button briefly, or switch the power off and on, within 5 minutes. Then run the HotspotPro command again."; /system device-mode update mode=advanced fetch=yes scheduler=yes } } on-error={ }`);
-  add(`:if ($hpDm = "blocked") do={ :put "HotspotPro stopped. This router is still in home mode. Paste the device-mode command, press reset or power-cycle within 5 minutes, then paste the device-mode command again before the configuration command."; :error "device-mode" }`);
-  say("Router mode is fine. Continuing.");
+  // Device mode is a separate short command. Calling it here asks for a restart before the hotspot exists.
   // The port this WinBox is using must stay where it is. Moving it drops the
   // terminal, and a dropped terminal stops the import, so the command has to be pasted again.
   add(`:do { :local hpMe ""; :local hpMac ""; :local hpId ""; :foreach u in=[/user active find] do={ :local v [/user active get $u via]; :if ($v = "winbox" || $v = "mac-winbox" || $v = "telnet" || $v = "ssh") do={ :set hpMe [/user active get $u address] } }; :if ([:len $hpMe] > 0) do={ :if ([:typeof [:find $hpMe "."]] = "num") do={ :do { :set hpMac [/ip arp get [find where address=$hpMe] mac-address] } on-error={ } } else={ :set hpMac $hpMe } }; :if ([:len $hpMac] > 0) do={ :do { :set hpId [/interface bridge host find where mac-address=$hpMac]; :if ([:len $hpId] > 0) do={ :do { :set hpKeep [/interface bridge host get $hpId interface] } on-error={ }; :if ([:len $hpKeep] = 0) do={ :do { :set hpKeep [/interface bridge host get $hpId on-interface] } on-error={ } } } } on-error={ } }; :if ([:len $hpKeep] > 0) do={ :put ("HotspotPro: WinBox is on " . $hpKeep . ". That port stays where it is, so this window stays connected.") } else={ :put "HotspotPro: the admin port stays connected." } } on-error={ }`);
@@ -494,10 +489,5 @@ export function buildProvisionScript(input: {
   say("Continue to create a package and a voucher to enjoy this service.");
   say("==========================================");
   add(`:if ($hpFails > 0) do={ :put ("HotspotPro finished with " . $hpFails . " step(s) skipped. Look in the router log for HotspotPro step failed.") }`);
-  // Do not install a RouterOS update here. Install restarts the router, WinBox drops,
-  // and the import stops, so the same command has to be pasted again.
-  say("Checking RouterOS without restarting...");
-  add(`:do { /system package update check-for-updates } on-error={ :put "HotspotPro could not ask MikroTik for a newer RouterOS. This window stays connected." }`);
-  add(`:do { :local hpNow [/system package update get installed-version]; :local hpNew [/system package update get latest-version]; :put ("RouterOS " . $hpNow); :if ([:len $hpNew] > 0 && $hpNow != $hpNew) do={ :put ("A newer RouterOS is available: " . $hpNew . ". It was not installed, so WinBox stays connected. Update it later from the router page when a restart is alright.") } else={ :put "RouterOS is already the newest version. WinBox stays connected." } } on-error={ :put "WinBox stays connected. The hotspot setup is already saved." }`);
   return lines.join("\n") + "\n";
 }
