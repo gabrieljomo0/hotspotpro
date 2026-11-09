@@ -146,7 +146,7 @@ try {
   check("script uses the right hotspot folder (flash-aware)", scriptA.includes("html-directory=$hpDir") && scriptA.includes("flash/hotspot"));
   check("setup disables free trial and plants the offline portal lock", scriptA.includes("trial-uptime-limit=0s") && !scriptA.includes("trial-uptime=0s") && scriptA.includes("hotspotpro-guard") && scriptA.includes("HotspotPro access lock"));
   const loginHtml = await (await fetch(base + "/api/provision/tok-ama-12345678/login.html")).text();
-  check("login page forwards to the website portal (port 3000, not the backend)", loginHtml.includes(":3000/portal?rt=tok-ama-12345678&login=$(link-login-only-esc)") && !loginHtml.includes(":4000/portal"), loginHtml.slice(0, 240));
+  check("login page is the captive portal on the router", loginHtml.includes('action="$(link-login-only)"') && loginHtml.includes('name="username"') && loginHtml.includes("/portal?rt=tok-ama-12345678") && !loginHtml.includes(":4000/portal"), loginHtml.slice(0, 240));
   check("login page for an unknown router is refused", (await fetch(base + "/api/provision/not-a-real-token/login.html")).status === 404);
   const alogin = await (await fetch(base + "/api/provision/tok-ama-12345678/alogin.html")).text();
   check("success page is served for the router", alogin.includes("$(link-redirect)"));

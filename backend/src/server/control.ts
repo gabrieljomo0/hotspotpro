@@ -90,12 +90,16 @@ export function controlScript(token: string, origin?: string): string | null {
       `:global hpMiss 0`,
       `:do { /ip firewall raw disable [find where comment="${ACCESS_LOCK}"] } on-error={ }`,
       // No open free session. The chosen mode is the only way a voucher gets online.
-      `:do { /ip hotspot profile set [find where name=hotspotpro] trial-uptime-limit=0s use-radius=${local ? "no" : "yes"} } on-error={ }`,
+      `:do { /ip hotspot profile set [find where name=hotspotpro] login-by=http-pap,http-chap,mac-cookie trial-uptime-limit=0s use-radius=${local ? "no" : "yes"} } on-error={ }`,
     );
     if (origin) {
+      const pages = ["login.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html"];
+      const fetches = pages.flatMap((page) => [pageFetch(origin, token, page, `hotspot/${page}`), pageFetch(origin, token, page, `flash/hotspot/${page}`)]).join("; ");
       lines.push(
         `:global hpLockState`,
         `:if ($hpLockState != "open") do={ ${pageFetch(origin, token, "login.html", "hotspot/login.html")}; ${pageFetch(origin, token, "login.html", "flash/hotspot/login.html")}; :set hpLockState "open" }`,
+        `:global hpPages; :if ($hpPages != "v2") do={ ${fetches}; :set hpPages "v2" }`,
+        `:do { /system scheduler set [find where name=hotspotpro-control] interval=10s } on-error={ }`,
       );
     }
     if (local) lines.push(...localUserLines(token, router.ip));

@@ -1644,20 +1644,16 @@ function CaptivePortalPageInner() {
 
   // Hand the customer's login back to the router, which is what really lets them online.
   function routerLogin(username: string, password: string) {
-    if (!hotspotLoginUrl || !/^https?:\/\//.test(hotspotLoginUrl)) return;
-    const form = document.createElement("form");
-    form.method = "post";
-    form.action = hotspotLoginUrl;
-    const fields: Record<string, string> = { username, password, dst: hotspotDst ?? "" };
-    for (const [name, value] of Object.entries(fields)) {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = name;
-      input.value = value;
-      form.appendChild(input);
+    if (!hotspotLoginUrl || !/^https?:\/\//.test(hotspotLoginUrl)) {
+      setVoucherError("Open the WiFi login page on this network, then enter the voucher there. It connects immediately.");
+      setConnectedFromVoucher(false);
+      return;
     }
-    document.body.appendChild(form);
-    form.submit();
+    const url = new URL(hotspotLoginUrl);
+    url.searchParams.set("username", username);
+    url.searchParams.set("password", password);
+    if (hotspotDst) url.searchParams.set("dst", hotspotDst);
+    window.location.assign(url.toString());
   }
 
   const selectedPackage =
@@ -1782,26 +1778,21 @@ function CaptivePortalPageInner() {
       return;
     }
 
-    if (payMode !== null) {
-      fetch("/api/portal/voucher", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...(routerToken ? { "x-hsp-rt": routerToken } : {}) },
-        body: JSON.stringify({ username, password }),
+    fetch("/api/portal/voucher", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(routerToken ? { "x-hsp-rt": routerToken } : {}) },
+      body: JSON.stringify({ username, password }),
+    })
+      .then(async (response) => ({ ok: response.ok, body: await response.json().catch(() => ({})) }))
+      .then(({ ok, body }) => {
+        if (!ok || !body.valid) {
+          setVoucherError(body.message ?? "That voucher isn't valid.");
+          return;
+        }
+        setConnectedFromVoucher(true);
+        routerLogin(username, password);
       })
-        .then(async (response) => ({ ok: response.ok, body: await response.json().catch(() => ({})) }))
-        .then(({ ok, body }) => {
-          if (!ok || !body.valid) {
-            setVoucherError(body.message ?? "That voucher isn't valid.");
-            return;
-          }
-          setConnectedFromVoucher(true);
-          routerLogin(username, password);
-        })
-        .catch(() => setVoucherError("Could not reach the service. Try again."));
-      return;
-    }
-
-    setConnectedFromVoucher(true);
+      .catch(() => setVoucherError("Could not reach the service. Try again."));
   }
 
   // Real payment: ask the server to start it, then watch for the result.

@@ -6,8 +6,7 @@
 import { getState, setState } from "./store";
 import { type Pkg, type Vch, findPackageByName, list, packageBytes, packageSeconds, routerAllowsPackage } from "./packages";
 
-const BATCH = 30;
-const REFRESH_MS = 6 * 60 * 60 * 1000;
+const BATCH = 40;
 
 function quote(value: string) {
   return `"${value.replace(/[\\"$\r\n]/g, "")}"`;
@@ -22,7 +21,7 @@ function rosDuration(seconds: number) {
 }
 
 function userName(code: string) {
-  return code.replace(/[^A-Za-z0-9]/g, "").slice(0, 32);
+  return code.trim().replace(/[^A-Za-z0-9_-]/g, "").slice(0, 32);
 }
 
 function profileName(pkg: Pkg | null, fallback: string) {
@@ -67,21 +66,20 @@ export function forgetLocalUsers(token: string) {
   setState("routerUserSync", file, "server");
 }
 
-/** RouterOS lines that add the next batch of local voucher users and drop ones that no longer exist. */
+/** RouterOS lines that add the current vouchers and drop ones that no longer exist. Sent on every check-in, so a missed copy is tried again. */
 export function localUserLines(token: string, routerIp: string, now = Date.now()): string[] {
   const file = syncFile();
-  const previous = file[token] ?? { codes: [], at: 0 };
-  const known = now - previous.at > REFRESH_MS ? [] : previous.codes;
-  const users = wanted(routerIp, now);
+  const previous = file[token]?.codes ?? [];
+  const users = wanted(routerIp, now).slice(0, BATCH);
   const desired = new Set(users.map((u) => u.name));
-  const knownSet = new Set(known);
-  const remove = known.filter((code) => !desired.has(code)).slice(0, BATCH);
-  const add = users.filter((u) => !knownSet.has(u.name)).slice(0, BATCH);
-  const removed = new Set(remove);
-  const nextCodes = known.filter((code) => !removed.has(code)).concat(add.map((u) => u.name));
-  const at = previous.at && now - previous.at < REFRESH_MS ? previous.at : now;
-  file[token] = { codes: nextCodes, at };
-  if (remove.length > 0 || add.length > 0 || at !== previous.at) setState("routerUserSync", file, "server");
+  const remove = previous.filter((code) => !desired.has(code)).slice(0, BATCH);
+  const add = users;
+  const nextCodes = users.map((u) => u.name);
+  const same = nextCodes.length === previous.length && nextCodes.every((code, index) => code === previous[index]);
+  if (!same) {
+    file[token] = { codes: nextCodes, at: now };
+    setState("routerUserSync", file, "server");
+  }
 
   const lines: string[] = ["# HotspotPro local vouchers (kept on this router; each one has a time limit)"];
   const profiles = new Set<string>();

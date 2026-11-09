@@ -55,14 +55,6 @@ export function SystemInformationTab({
 
   return (
     <div className="space-y-5">
-      {router.provisioningStatus === "Provisioned" && !router.lastError && (
-        <article data-testid="router-connected-note" className="rounded-2xl border border-[#1a1a1a] bg-[#1a1a1a] p-5 text-white">
-          <p className="text-base font-bold">Router connected successfully.</p>
-          <p className="mt-2 text-sm leading-6">
-            Thank you for using our system. Continue to create a package and a voucher to enjoy this service.
-          </p>
-        </article>
-      )}
       <div className="grid gap-4 sm:grid-cols-4">
         <div className="rounded-xl border border-[#f4f4f4] p-4">
           <p className="text-xs text-[#737373]">CPU Usage</p>

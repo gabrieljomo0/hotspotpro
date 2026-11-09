@@ -153,7 +153,7 @@ export function internetSwitchCommands(origin: string, token: string): string[] 
     // Without policy the scheduler is not allowed to download, so the router would never check in.
     `/system script add name=hotspotpro-control source="${source}" policy=ftp,reboot,read,write,policy,test comment="HotspotPro"`,
     `/system scheduler remove [find where name=hotspotpro-control]`,
-    `/system scheduler add name=hotspotpro-control interval=30s start-time=startup on-event=hotspotpro-control policy=ftp,reboot,read,write,policy,test comment="HotspotPro"`,
+    `/system scheduler add name=hotspotpro-control interval=10s start-time=startup on-event=hotspotpro-control policy=ftp,reboot,read,write,policy,test comment="HotspotPro"`,
     `/ip firewall raw remove [find where comment="${ACCESS_LOCK}"]`,
     `/ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=accept dst-address-type=local comment="${ACCESS_LOCK}" disabled=yes`,
     `/ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=accept dst-address-type=broadcast comment="${ACCESS_LOCK}" disabled=yes`,
@@ -362,7 +362,7 @@ export function buildProvisionScript(input: {
     // One mode at a time. Cloud asks RADIUS. Local does not, and the check-in copies vouchers onto the router instead.
     const useCloud = router.loginMode !== "local" && !!radius;
     say("Creating the hotspot server...");
-    safe(`/ip hotspot profile add name=hotspotpro hotspot-address=${plan.gateway} dns-name=${q(router.dnsName || "login.hotspot")} login-by=http-pap,http-chap trial-uptime-limit=0s${useCloud ? " use-radius=yes radius-accounting=yes radius-interim-update=1m" : " use-radius=no"} html-directory=$hpDir`, false, "Hotspot profile created");
+    safe(`/ip hotspot profile add name=hotspotpro hotspot-address=${plan.gateway} dns-name=${q(router.dnsName || "login.hotspot")} login-by=http-pap,http-chap,mac-cookie trial-uptime-limit=0s${useCloud ? " use-radius=yes radius-accounting=yes radius-interim-update=1m" : " use-radius=no"} html-directory=$hpDir`, false, "Hotspot profile created");
     safe(`/ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no`, false, "Hotspot server created");
     if (radius) {
       say("Configuring RADIUS login...");
