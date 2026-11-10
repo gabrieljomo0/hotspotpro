@@ -131,9 +131,12 @@ export function controlScript(token: string, origin?: string): string | null {
       `:do { /ip firewall raw disable [find where comment="${ACCESS_LOCK}"] } on-error={ }`,
       // No open free session. The chosen mode is the only way a voucher gets online.
       `:do { /ip hotspot profile set [find where name=hotspotpro] login-by=http-pap,http-chap,mac-cookie trial-uptime-limit=0s use-radius=${local ? "no" : "yes"} } on-error={ }`,
+      `:do { /ip hotspot user profile set [find where name=default] mac-cookie-timeout=1d keepalive-timeout=none } on-error={ }`,
+      `:do { /system clock set time-zone-name=Africa/Accra } on-error={ }`,
+      `:do { :if ([:len [/ip firewall mangle find where comment="HotspotPro tethering"]] = 0) do={ /ip firewall mangle add chain=postrouting action=change-ttl new-ttl=set:1 passthrough=yes out-interface=hotspotpro-bridge comment="HotspotPro tethering" } } on-error={ }`,
     );
     if (origin) {
-      const pages = ["login.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html", "md5.js"];
+      const pages = ["login.html", "rlogin.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html", "md5.js"];
       const fetches = [
         ...pages.flatMap((page) => [pageFetch(origin, token, page, `hotspot/${page}`), pageFetch(origin, token, page, `flash/hotspot/${page}`)]),
         pageFetch(origin, token, "hotspotpro.css", "hotspot/css/hotspotpro.css"),
@@ -142,7 +145,7 @@ export function controlScript(token: string, origin?: string): string | null {
       lines.push(
         `:global hpLockState`,
         `:if ($hpLockState != "open") do={ ${pageFetch(origin, token, "login.html", "hotspot/login.html")}; ${pageFetch(origin, token, "login.html", "flash/hotspot/login.html")}; :set hpLockState "open" }`,
-        `:global hpPages; :local hpBody ""; :do { :set hpBody [/file get [find where name="hotspot/login.html"] contents] } on-error={ }; :do { :if ([:typeof [:find $hpBody "link-login-only"]] != "num") do={ :set hpBody [/file get [find where name="flash/hotspot/login.html"] contents] } } on-error={ }; :if ($hpPages != "${loginPageStamp(token)}" || [:typeof [:find $hpBody "link-login-only"]] != "num") do={ :do { /ip hotspot reset-html [find where name=hotspotpro] } on-error={ }; ${fetches}; :set hpBody ""; :do { :set hpBody [/file get [find where name="hotspot/login.html"] contents] } on-error={ }; :do { :if ([:typeof [:find $hpBody "link-login-only"]] != "num") do={ :set hpBody [/file get [find where name="flash/hotspot/login.html"] contents] } } on-error={ }; :if ([:typeof [:find $hpBody "link-login-only"]] = "num") do={ :set hpPages "${loginPageStamp(token)}" } }`,
+        `:global hpPages; :local hpBody ""; :local hpRelogin ""; :do { :set hpBody [/file get [find where name="hotspot/login.html"] contents] } on-error={ }; :do { :set hpRelogin [/file get [find where name="hotspot/rlogin.html"] contents] } on-error={ }; :do { :if ([:typeof [:find $hpBody "link-login-only"]] != "num") do={ :set hpBody [/file get [find where name="flash/hotspot/login.html"] contents] } } on-error={ }; :do { :if ([:typeof [:find $hpRelogin "link-login-only"]] != "num") do={ :set hpRelogin [/file get [find where name="flash/hotspot/rlogin.html"] contents] } } on-error={ }; :if ($hpPages != "${loginPageStamp(token)}" || [:typeof [:find $hpBody "link-login-only"]] != "num" || [:typeof [:find $hpRelogin "link-login-only"]] != "num") do={ :do { /ip hotspot reset-html [find where name=hotspotpro] } on-error={ }; ${fetches}; :set hpBody ""; :set hpRelogin ""; :do { :set hpBody [/file get [find where name="hotspot/login.html"] contents] } on-error={ }; :do { :set hpRelogin [/file get [find where name="hotspot/rlogin.html"] contents] } on-error={ }; :do { :if ([:typeof [:find $hpBody "link-login-only"]] != "num") do={ :set hpBody [/file get [find where name="flash/hotspot/login.html"] contents] } } on-error={ }; :do { :if ([:typeof [:find $hpRelogin "link-login-only"]] != "num") do={ :set hpRelogin [/file get [find where name="flash/hotspot/rlogin.html"] contents] } } on-error={ }; :if ([:typeof [:find $hpBody "link-login-only"]] = "num" && [:typeof [:find $hpRelogin "link-login-only"]] = "num") do={ :set hpPages "${loginPageStamp(token)}" } }`,
         `:do { /system scheduler set [find where name=hotspotpro-control] interval=10s } on-error={ }`,
       );
     }

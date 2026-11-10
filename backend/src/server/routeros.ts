@@ -266,6 +266,7 @@ export function buildProvisionScript(input: {
   say("==========================================");
   say("HotspotPro setup is starting...");
   say("==========================================");
+  add(`:do { :local v [/system resource get version]; :put ("RouterOS version check passed: " . $v) } on-error={ :put "RouterOS version could not be read. Setup continues." }`);
   // Device mode is a separate short command. Calling it here asks for a restart before the hotspot exists.
   // The port this WinBox is using must stay where it is. Moving it drops the
   // terminal, and a dropped terminal stops the import, so the command has to be pasted again.
@@ -291,10 +292,17 @@ export function buildProvisionScript(input: {
   safe(`/ip dhcp-client set [find where interface=${wan}] disabled=no use-peer-dns=yes use-peer-ntp=yes add-default-route=yes`, false, `DHCP client is on ${wan}`);
   say("Configuring DNS...");
   safe(`/ip dns set allow-remote-requests=yes servers=8.8.8.8,1.1.1.1`, false, "DNS configured");
+  say("Configuring API and services...");
+  safe(`/ip service set telnet disabled=yes`, true);
+  safe(`/ip service set ftp disabled=yes`, true);
+  safe(`/ip service set api-ssl disabled=yes`, true);
+  safe(`/ip service set api port=8728 address=192.168.88.0/24 disabled=no`, true, "API service is on port 8728");
+  say("Security settings configured");
   // Voucher time limits depend on the router's clock.
   say("Setting the clock...");
   safe(`/system ntp client set enabled=yes`, true);
   safe(`/system ntp client servers add address=pool.ntp.org`, true, "Clock service turned on");
+  safe(`/system clock set time-zone-name=Africa/Accra`, false, "Timezone set to Africa/Accra");
   // The login pages and the "I'm finished" call need this port to have an address first.
   if (!input.existing) {
     say(`Waiting for the internet cable on ${wan}...`);
@@ -393,6 +401,8 @@ export function buildProvisionScript(input: {
     say("Creating the hotspot server...");
     safe(`/ip hotspot profile add name=hotspotpro hotspot-address=${plan.gateway} dns-name=${q(router.dnsName || "login.hotspot")} login-by=http-pap,http-chap,mac-cookie trial-uptime-limit=0s${useCloud ? " use-radius=yes radius-accounting=yes radius-interim-update=1m" : " use-radius=no"} html-directory=$hpDir`, false, "Hotspot profile created");
     safe(`/ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no`, false, "Hotspot server created");
+    say("Creating hotspot user profiles...");
+    safe(`/ip hotspot user profile set [find where name=default] mac-cookie-timeout=1d keepalive-timeout=none`, false, "Default profile mac-cookie-timeout set to 1d");
     if (radius) {
       say("Configuring RADIUS login...");
       // RouterOS asks this server whether each voucher may get online (time, data and speed limits come back in the answer).
@@ -407,7 +417,7 @@ export function buildProvisionScript(input: {
         safe(`/radius add service=hotspot address=$hpRad secret=${secret} ${ports} timeout=3s comment="HotspotPro"`, false, "RADIUS server added");
       }
     } else {
-      say("Login stays on the router. Cloud RADIUS is not used for this site.");
+      say("RADIUS is not used. Vouchers stay on this router.");
     }
     // Login pages go on the router either way. Cloud and local both send the phone to the same portal.
     const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
@@ -419,7 +429,7 @@ export function buildProvisionScript(input: {
       safe(`/file remove [find where name=${dest}]`, true);
       safe(`/tool fetch url="${origin}/api/provision/${token}/${page}" dst-path=${dest}${tls}`, quiet, done);
     };
-    for (const page of ["login.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html", "md5.js"]) {
+    for (const page of ["login.html", "rlogin.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html", "md5.js"]) {
       pull(page, `($hpDir . "/${page}")`, false, `Downloaded ${page}`);
       pull(page, `("hotspot/${page}")`, true);
       pull(page, `("flash/hotspot/${page}")`, true);
@@ -428,12 +438,14 @@ export function buildProvisionScript(input: {
     pull("hotspotpro.css", `("hotspot/css/hotspotpro.css")`, true);
     pull("hotspotpro.css", `("flash/hotspot/css/hotspotpro.css")`, true);
     const loginUrl = `${origin}/api/provision/${token}/login.html`;
+    const rloginUrl = `${origin}/api/provision/${token}/rlogin.html`;
     add(`:do { :local hpTry 0; :local hpBody ""; :while ($hpTry < 4) do={ :do { :set hpBody [/file get [find where name=($hpDir . "/login.html")] contents] } on-error={ }; :if ([:typeof [:find $hpBody "link-login-only"]] = "num") do={ :set hpTry 4; :put "Your login page is on the router." } else={ :do { /file remove [find where name=($hpDir . "/login.html")] } on-error={ }; :do { /file remove [find where name="hotspot/login.html"] } on-error={ }; :do { /file remove [find where name="flash/hotspot/login.html"] } on-error={ }; :do { /tool fetch url="${loginUrl}" dst-path=($hpDir . "/login.html")${tls} } on-error={ }; :do { /tool fetch url="${loginUrl}" dst-path="hotspot/login.html"${tls} } on-error={ }; :do { /tool fetch url="${loginUrl}" dst-path="flash/hotspot/login.html"${tls} } on-error={ }; :set hpTry ($hpTry + 1); :delay 4s; :put "HotspotPro is downloading your login page again..." } } } on-error={ }`);
+    add(`:do { :local hpTry 0; :local hpBody ""; :while ($hpTry < 4) do={ :do { :set hpBody [/file get [find where name=($hpDir . "/rlogin.html")] contents] } on-error={ }; :if ([:typeof [:find $hpBody "link-login-only"]] = "num") do={ :set hpTry 4; :put "Downloaded rlogin.html" } else={ :do { /file remove [find where name=($hpDir . "/rlogin.html")] } on-error={ }; :do { /file remove [find where name="hotspot/rlogin.html"] } on-error={ }; :do { /file remove [find where name="flash/hotspot/rlogin.html"] } on-error={ }; :do { /tool fetch url="${rloginUrl}" dst-path=($hpDir . "/rlogin.html")${tls} } on-error={ }; :do { /tool fetch url="${rloginUrl}" dst-path="hotspot/rlogin.html"${tls} } on-error={ }; :do { /tool fetch url="${rloginUrl}" dst-path="flash/hotspot/rlogin.html"${tls} } on-error={ }; :set hpTry ($hpTry + 1); :delay 4s; :put "HotspotPro is downloading your login page again..." } } } on-error={ }`);
     say("The hotspot skin is in the hotspot folder. Open Files in WinBox to see it.");
     if (input.apiPassword && /^[A-Za-z0-9]{12,32}$/.test(input.apiPassword)) {
       const secret = q(input.apiPassword);
       say("Creating the management login...");
-      add(`:do { :if ([:len [/user find where name=hotspotpro]] = 0) do={ /user add name=hotspotpro group=full password=${secret} comment="HotspotPro" } else={ /user set [find where name=hotspotpro] password=${secret} }; /ip service set api port=8728 address=192.168.88.0/24 disabled=no; :put "Management login hotspotpro is ready on port 8728." } on-error={ :put "HotspotPro: the management login step had a problem and was skipped. Setup continues." }`);
+      add(`:do { :if ([:len [/user find where name=hotspotpro]] = 0) do={ /user add name=hotspotpro group=full password=${secret} comment="HotspotPro" } else={ /user set [find where name=hotspotpro] password=${secret} }; /ip service set api port=8728 address=192.168.88.0/24 disabled=no; :put "API user created: hotspotpro" } on-error={ :put "HotspotPro: the management login step had a problem and was skipped. Setup continues." }`);
     }
     // Disconnect / Reconnect support for the whole router (see internetSwitchCommands).
     for (const command of internetSwitchCommands(origin, token)) safe(command, command.includes(" remove "));
@@ -453,8 +465,15 @@ export function buildProvisionScript(input: {
     say("Allowing the login page before a customer has paid...");
     garden(host);
     try { garden(new URL(portalBase).hostname); } catch { /* portal address was not a URL */ }
+    say("Configuring firewall rules...");
+    say("Configuring tethering protection...");
+    safe(`/ip firewall mangle remove [find where comment="HotspotPro tethering"]`, true);
+    safe(`/ip firewall mangle add chain=postrouting action=change-ttl new-ttl=set:1 passthrough=yes out-interface=hotspotpro-bridge comment="HotspotPro tethering"`, false, "Tethering protection enabled");
     say("Login page access is set.");
-    say("The 30-second check-in is scheduled.");
+    say("The check-in is scheduled.");
+    say("Final check, turning the services on...");
+    safe(`/ip dhcp-server enable [find where name=hotspotpro-dhcp]`, true, "DHCP server enabled");
+    safe(`/ip hotspot enable [find where name=hotspotpro]`, true, "Hotspot server enabled");
   }
 
   if (router.pppoeEnabled) {
@@ -499,6 +518,7 @@ export function buildProvisionScript(input: {
   say("HotspotPro setup is complete.");
   say("==========================================");
   say("Your hotspot is configured and ready.");
+  say("Customers who connect are sent to your login page.");
   if (hotspotNetwork) say(`Hotspot network: ${hotspotNetwork}`);
   if (hotspotGateway) say(`Gateway: ${hotspotGateway}`);
   say("Thank you for using our system.");

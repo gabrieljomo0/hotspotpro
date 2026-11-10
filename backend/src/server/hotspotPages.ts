@@ -8,7 +8,7 @@ import { getState } from "./store";
 
 const TOKEN = /^[A-Za-z0-9_-]{8,128}$/;
 
-export const HOTSPOT_PAGES = ["login.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html", "locked.html"] as const;
+export const HOTSPOT_PAGES = ["login.html", "rlogin.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html", "locked.html"] as const;
 export type HotspotPage = (typeof HOTSPOT_PAGES)[number];
 
 /** One voucher box, or username and password, from the captive portal setting for this router. */
@@ -23,7 +23,7 @@ export function voucherOnlyLogin(token: string): boolean {
 }
 
 export function loginPageStamp(token: string): string {
-  return voucherOnlyLogin(token) ? "v7-pin" : "v7-user";
+  return voucherOnlyLogin(token) ? "v8-pin" : "v8-user";
 }
 
 /** Files that make the hotspot folder a skin WinBox can open: the stylesheet and the CHAP helper. */
@@ -52,6 +52,7 @@ function pageBody(page: HotspotPage, portal: string, title: string, oneLogin: bo
   const submit = oneLogin ? ` onsubmit="this.password.value=this.username.value"` : "";
   switch (page) {
     case "login.html":
+    case "rlogin.html":
       return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="pragma" content="no-cache"><title>${title}</title><style>body{margin:0;background:#f7f7f7;color:#1a1a1a;font-family:system-ui,sans-serif}main{max-width:420px;margin:0 auto;padding:36px 20px}h1{font-size:32px;line-height:1.1;margin:0}p{color:#525252;line-height:1.5}form{margin-top:24px;background:#fff;border:1px solid #e6e6e6;border-radius:18px;padding:18px}input{width:100%;box-sizing:border-box;margin-top:10px;border:1px solid #d4d4d4;border-radius:12px;padding:14px;font-size:16px}button{width:100%;margin-top:14px;border:0;border-radius:12px;background:#1a1a1a;color:#fff;padding:14px;font-size:16px;font-weight:700}a{color:#1a1a1a;font-weight:700}</style></head><body><main><h1>${title}</h1><p>${note} Connection starts on this router, so it is immediate.</p><form method="post" action="$(link-login-only)"${submit}>${fields}<input type="hidden" name="dst" value="$(link-orig)"><button type="submit">Connect</button></form><p><a href="${portal}">Buy a package</a></p></main></body></html>\n`;
     case "alogin.html":
       return `<html><head><meta http-equiv="refresh" content="0; url=$(link-redirect)"><meta http-equiv="pragma" content="no-cache"></head><body>You are online. <a href="$(link-redirect)">Continue</a></body></html>\n`;

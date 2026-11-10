@@ -48,19 +48,20 @@ import * as r43 from "../routes/api/provision/[token]/login.html/route";
 import * as r44 from "../routes/api/provision/[token]/logout.html/route";
 import * as r45 from "../routes/api/provision/[token]/md5.js/route";
 import * as r46 from "../routes/api/provision/[token]/redirect.html/route";
-import * as r47 from "../routes/api/provision/[token]/simulate/route";
-import * as r48 from "../routes/api/provision/[token]/status/route";
-import * as r49 from "../routes/api/provision/[token]/status.html/route";
-import * as r50 from "../routes/api/provision/[token]/winbox/route";
-import * as r51 from "../routes/api/provision/[token]/route";
-import * as r52 from "../routes/api/state/[key]/route";
-import * as r53 from "../routes/api/access/route";
-import * as r54 from "../routes/api/events/route";
-import * as r55 from "../routes/api/health/route";
-import * as r56 from "../routes/api/payments/route";
-import * as r57 from "../routes/api/provision/route";
-import * as r58 from "../routes/api/sms/route";
-import * as r59 from "../routes/api/state/route";
+import * as r47 from "../routes/api/provision/[token]/rlogin.html/route";
+import * as r48 from "../routes/api/provision/[token]/simulate/route";
+import * as r49 from "../routes/api/provision/[token]/status/route";
+import * as r50 from "../routes/api/provision/[token]/status.html/route";
+import * as r51 from "../routes/api/provision/[token]/winbox/route";
+import * as r52 from "../routes/api/provision/[token]/route";
+import * as r53 from "../routes/api/state/[key]/route";
+import * as r54 from "../routes/api/access/route";
+import * as r55 from "../routes/api/events/route";
+import * as r56 from "../routes/api/health/route";
+import * as r57 from "../routes/api/payments/route";
+import * as r58 from "../routes/api/provision/route";
+import * as r59 from "../routes/api/sms/route";
+import * as r60 from "../routes/api/state/route";
 
 export type RouteEntry = { pattern: string; segments: string[]; module: RouteModule };
 
@@ -113,17 +114,18 @@ export const routeTable: RouteEntry[] = [
   { pattern: "/api/provision/:token/logout.html", segments: ["api","provision",":token","logout.html"], module: r44 as unknown as RouteModule },
   { pattern: "/api/provision/:token/md5.js", segments: ["api","provision",":token","md5.js"], module: r45 as unknown as RouteModule },
   { pattern: "/api/provision/:token/redirect.html", segments: ["api","provision",":token","redirect.html"], module: r46 as unknown as RouteModule },
-  { pattern: "/api/provision/:token/simulate", segments: ["api","provision",":token","simulate"], module: r47 as unknown as RouteModule },
-  { pattern: "/api/provision/:token/status", segments: ["api","provision",":token","status"], module: r48 as unknown as RouteModule },
-  { pattern: "/api/provision/:token/status.html", segments: ["api","provision",":token","status.html"], module: r49 as unknown as RouteModule },
-  { pattern: "/api/provision/:token/winbox", segments: ["api","provision",":token","winbox"], module: r50 as unknown as RouteModule },
-  { pattern: "/api/provision/:token", segments: ["api","provision",":token"], module: r51 as unknown as RouteModule },
-  { pattern: "/api/state/:key", segments: ["api","state",":key"], module: r52 as unknown as RouteModule },
-  { pattern: "/api/access", segments: ["api","access"], module: r53 as unknown as RouteModule },
-  { pattern: "/api/events", segments: ["api","events"], module: r54 as unknown as RouteModule },
-  { pattern: "/api/health", segments: ["api","health"], module: r55 as unknown as RouteModule },
-  { pattern: "/api/payments", segments: ["api","payments"], module: r56 as unknown as RouteModule },
-  { pattern: "/api/provision", segments: ["api","provision"], module: r57 as unknown as RouteModule },
-  { pattern: "/api/sms", segments: ["api","sms"], module: r58 as unknown as RouteModule },
-  { pattern: "/api/state", segments: ["api","state"], module: r59 as unknown as RouteModule },
+  { pattern: "/api/provision/:token/rlogin.html", segments: ["api","provision",":token","rlogin.html"], module: r47 as unknown as RouteModule },
+  { pattern: "/api/provision/:token/simulate", segments: ["api","provision",":token","simulate"], module: r48 as unknown as RouteModule },
+  { pattern: "/api/provision/:token/status", segments: ["api","provision",":token","status"], module: r49 as unknown as RouteModule },
+  { pattern: "/api/provision/:token/status.html", segments: ["api","provision",":token","status.html"], module: r50 as unknown as RouteModule },
+  { pattern: "/api/provision/:token/winbox", segments: ["api","provision",":token","winbox"], module: r51 as unknown as RouteModule },
+  { pattern: "/api/provision/:token", segments: ["api","provision",":token"], module: r52 as unknown as RouteModule },
+  { pattern: "/api/state/:key", segments: ["api","state",":key"], module: r53 as unknown as RouteModule },
+  { pattern: "/api/access", segments: ["api","access"], module: r54 as unknown as RouteModule },
+  { pattern: "/api/events", segments: ["api","events"], module: r55 as unknown as RouteModule },
+  { pattern: "/api/health", segments: ["api","health"], module: r56 as unknown as RouteModule },
+  { pattern: "/api/payments", segments: ["api","payments"], module: r57 as unknown as RouteModule },
+  { pattern: "/api/provision", segments: ["api","provision"], module: r58 as unknown as RouteModule },
+  { pattern: "/api/sms", segments: ["api","sms"], module: r59 as unknown as RouteModule },
+  { pattern: "/api/state", segments: ["api","state"], module: r60 as unknown as RouteModule },
 ];

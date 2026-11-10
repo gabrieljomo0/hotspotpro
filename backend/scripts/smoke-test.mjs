@@ -140,7 +140,8 @@ try {
   check("the check-in is allowed to download", scriptA.includes("policy=ftp,reboot,read,write,policy,test"));
   check("setup downloads the captive portal pages", scriptA.includes("/login.html") && scriptA.includes("alogin.html") && scriptA.includes("HotspotPro login: cloud"));
   check("setup puts the hotspot skin in WinBox Files", scriptA.includes("/ip hotspot reset-html") && scriptA.includes("md5.js") && scriptA.includes("hotspot/css/hotspotpro.css"));
-  check("setup replaces the MikroTik login page", scriptA.includes('/file remove [find where name=($hpDir . "/login.html")]') && scriptA.includes("link-login-only") && scriptA.indexOf("/ip hotspot reset-html") < scriptA.indexOf('name=($hpDir . "/login.html")'));
+  check("setup replaces the MikroTik login page", scriptA.includes('/file remove [find where name=($hpDir . "/login.html")]') && scriptA.includes("rlogin.html") && scriptA.includes("link-login-only") && scriptA.indexOf("/ip hotspot reset-html") < scriptA.indexOf('name=($hpDir . "/login.html")'));
+  check("setup sets the clock, the API login and tethering protection", scriptA.includes("time-zone-name=Africa/Accra") && scriptA.includes("API user created: hotspotpro") && scriptA.includes("new-ttl=set:1") && scriptA.includes("mac-cookie-timeout=1d"));
   const registered = await send("POST", "/api/provision", { token: "tok-live-12345678", router: { name: "Live Router", loginMode: "local", hotspotEnabled: true, routerType: "New Router", wanInterface: "ether1" } }, amaCookie);
   const liveScript = await (await fetch(base + "/api/provision/tok-live-12345678")).text();
   check("the login mode chosen while adding a router is in the setup script", registered.status === 200 && liveScript.includes("HotspotPro login: local") && liveScript.includes("use-radius=no") && !liveScript.includes("use-radius=yes"), String(registered.status));
@@ -177,6 +178,8 @@ try {
   check("setup disables free trial and plants the offline portal lock", scriptA.includes("trial-uptime-limit=0s") && !scriptA.includes("trial-uptime=0s") && scriptA.includes("hotspotpro-guard") && scriptA.includes("HotspotPro access lock"));
   const loginHtml = await (await fetch(base + "/api/provision/tok-ama-12345678/login.html")).text();
   check("login page is the captive portal on the router", loginHtml.includes('action="$(link-login-only)"') && loginHtml.includes('name="username"') && loginHtml.includes("/portal?rt=tok-ama-12345678") && !loginHtml.includes(":4000/portal") && !loginHtml.includes("hotspotpro.css"), loginHtml.slice(0, 240));
+  const rloginHtml = await (await fetch(base + "/api/provision/tok-ama-12345678/rlogin.html")).text();
+  check("the redirect login page is the same captive portal", rloginHtml.includes('action="$(link-login-only)"') && rloginHtml.includes('name="username"'));
   check("login page for an unknown router is refused", (await fetch(base + "/api/provision/not-a-real-token/login.html")).status === 404);
   const alogin = await (await fetch(base + "/api/provision/tok-ama-12345678/alogin.html")).text();
   check("success page is served for the router", alogin.includes("$(link-redirect)"));

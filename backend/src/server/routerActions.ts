@@ -17,7 +17,7 @@ export const ROUTER_ACTIONS = [
   "reboot",
 ] as const;
 
-const PAGES = ["login.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html", "md5.js"];
+const PAGES = ["login.html", "rlogin.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html", "md5.js"];
 
 function step(command: string) {
   return `:do { ${command} } on-error={ }`;
