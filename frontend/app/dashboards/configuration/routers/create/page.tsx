@@ -90,7 +90,6 @@ export default function AddRouterPage() {
 
   // Hotspot address range, chosen from how many people use it at once.
   const [peak, setPeak] = useState<PeakChoice>(DEFAULT_PEAK);
-  const [advancedIp, setAdvancedIp] = useState(false);
   const [lanIp, setLanIp] = useState("");
 
   const [started, setStarted] = useState(false);
@@ -521,19 +520,15 @@ export default function AddRouterPage() {
             </div>
 
             <label className="block" data-testid="wan-field">
-              <span className="mb-2 block text-sm font-semibold text-[#525252]">
-                Internet (ISP) port
-              </span>
+              <span className="mb-1 block text-sm font-semibold text-[#525252]">Internet port</span>
               <input
                 value={wanInterface}
                 onChange={(event) => setWanInterface(event.target.value)}
                 placeholder="ether1"
-                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
+                className="h-10 w-full max-w-[180px] rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
               <span className="mt-1 block text-xs text-[#a3a3a3]">
-                The port your internet cable goes into. It is ether1 unless you change it here. That port gets its
-                address from your ISP automatically (DHCP client) and is shared with everyone on the hotspot (NAT);
-                the other ports become the hotspot network.
+                The internet cable uses port 1. Leave this as ether1 unless the cable is in a different port.
                 {wanInterface.trim() && wanClean !== wanInterface.trim() ? " That name is not valid, so ether1 will be used." : ""}
               </span>
             </label>
@@ -541,11 +536,9 @@ export default function AddRouterPage() {
             <label className="flex items-start gap-3 rounded-xl border border-[#e6e6e6] bg-white p-3" data-testid="admin-from-wan">
               <input type="checkbox" checked={adminFromWan} onChange={(event) => setAdminFromWan(event.target.checked)} className="mt-1 h-4 w-4" />
               <span className="text-sm text-[#525252]">
-                <span className="block font-semibold">Let me use WinBox from the network my ISP cable comes from</span>
+                <span className="block font-semibold">Open WinBox when I am on the same network as this router</span>
                 <span className="mt-0.5 block text-xs text-[#a3a3a3]">
-                  Tick this if your computer is on the WiFi of the modem/router the internet cable plugs into (for example a Starlink
-                  router). It opens WinBox (port 8291) only to private addresses on the ISP port, still password protected, never to
-                  the public internet. The router&apos;s factory settings block this.
+                  Your computer can be plugged into the MikroTik, or on the WiFi of the modem the internet cable comes from. WinBox stays password protected and is not opened to the public internet. Customers on the hotspot cannot use it.
                 </span>
               </span>
             </label>
@@ -711,10 +704,6 @@ export default function AddRouterPage() {
                       setPeak(next);
                       setLanIp("");
                     }}
-                    lanIp={lanIp}
-                    onLanIp={setLanIp}
-                    customizing={advancedIp}
-                    onCustomizing={setAdvancedIp}
                   />
                 )}
               </div>

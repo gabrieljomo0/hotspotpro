@@ -142,15 +142,28 @@ export function checkInBody(origin: string, token: string): string {
 }
 
 /** Open or close WinBox from outside the shop. Off keeps it on the admin port only. */
-export function remoteWinboxLines(enabled: boolean, origin: string, token: string): string[] {
+export function remoteWinboxLines(enabled: boolean, origin: string, token: string, sameNetwork = false, wan = "ether1"): string[] {
+  const port = /^(ether|sfp|sfp-sfpplus|sfpplus|lte|wlan|wifi|vlan|pppoe-out)[A-Za-z0-9._-]*$/.test(wan) ? wan : "ether1";
   if (!enabled) {
-    return [
+    const lines = [
       `:do { /ip firewall filter remove [find where comment="HotspotPro remote WinBox"] } on-error={ }`,
       `:do { /ip firewall filter remove [find where comment="HotspotPro remote API"] } on-error={ }`,
-      `:do { /ip service set winbox address=192.168.88.0/24 disabled=no } on-error={ }`,
       `:do { /ip service set api address=192.168.88.0/24 disabled=no } on-error={ }`,
       `:do { :if ([/ip cloud get back-to-home-vpn] = "enabled") do={ /ip cloud set back-to-home-vpn=revoked-and-disabled } } on-error={ }`,
     ];
+    if (sameNetwork) {
+      lines.push(
+        `:do { /ip service set winbox address=192.168.0.0/16,10.0.0.0/8,172.16.0.0/12 disabled=no } on-error={ }`,
+        `:do { :if ([:len [/ip firewall address-list find where list=hotspotpro-private address=192.168.0.0/16]] = 0) do={ /ip firewall address-list add list=hotspotpro-private address=192.168.0.0/16 } } on-error={ }`,
+        `:do { :if ([:len [/ip firewall address-list find where list=hotspotpro-private address=10.0.0.0/8]] = 0) do={ /ip firewall address-list add list=hotspotpro-private address=10.0.0.0/8 } } on-error={ }`,
+        `:do { :if ([:len [/ip firewall address-list find where list=hotspotpro-private address=172.16.0.0/12]] = 0) do={ /ip firewall address-list add list=hotspotpro-private address=172.16.0.0/12 } } on-error={ }`,
+        `:do { :if ([:len [/ip firewall filter find where comment="HotspotPro block WinBox from customers"]] = 0) do={ /ip firewall filter add chain=input action=drop in-interface=hotspotpro-bridge protocol=tcp dst-port=8291 comment="HotspotPro block WinBox from customers" place-before=0 } } on-error={ }`,
+        `:do { :if ([:len [/ip firewall filter find where comment="HotspotPro WinBox from ISP network"]] = 0) do={ /ip firewall filter add chain=input action=accept in-interface=${port} src-address-list=hotspotpro-private protocol=tcp dst-port=8291 comment="HotspotPro WinBox from ISP network" place-before=0 } } on-error={ }`,
+      );
+    } else {
+      lines.push(`:do { /ip service set winbox address=192.168.88.0/24 disabled=no } on-error={ }`);
+    }
+    return lines;
   }
   const lines = [
     `:do { /ip cloud set ddns-enabled=yes } on-error={ }`,
@@ -322,6 +335,7 @@ export function buildProvisionScript(input: {
     }
     safe(`/ip firewall filter remove [find where comment="HotspotPro WinBox from ISP network"]`, true);
     safe(`/ip firewall filter add chain=input action=accept in-interface=${wan} src-address-list=hotspotpro-private protocol=tcp dst-port=8291 comment="HotspotPro WinBox from ISP network" place-before=0`, true);
+    safe(`/ip service set winbox address=192.168.0.0/16,10.0.0.0/8,172.16.0.0/12 disabled=no`, true, "WinBox is open on this network");
     add(`:do { :if ([:len [/ip firewall filter find where comment="HotspotPro WinBox from ISP network"]] = 0) do={ /ip firewall filter add chain=input action=accept in-interface=${wan} src-address-list=hotspotpro-private protocol=tcp dst-port=8291 comment="HotspotPro WinBox from ISP network" } } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: WinBox firewall rule" }`);
     safe(`/interface list add name=hotspotpro-admin include=LAN`, true);
     safe(`/interface list member add list=hotspotpro-admin interface=${wan}`, true);
@@ -374,6 +388,10 @@ export function buildProvisionScript(input: {
       `/ip hotspot walled-garden remove [find where comment="HotspotPro"]`,
     ]) safe(command, true);
     safe(`/interface bridge add name=hotspotpro-bridge comment="HotspotPro"`, true);
+    if (router.adminFromWan === true) {
+      safe(`/ip firewall filter remove [find where comment="HotspotPro block WinBox from customers"]`, true);
+      safe(`/ip firewall filter add chain=input action=drop in-interface=hotspotpro-bridge protocol=tcp dst-port=8291 comment="HotspotPro block WinBox from customers" place-before=0`, true, "Customers cannot open WinBox");
+    }
     if (!input.existing) {
       // A new MikroTik ships with ether2-5 already inside its default bridge; a port can only be in one
       // bridge, so take them out of the old one first, then add them to ours. Boards with more ports

@@ -24,7 +24,7 @@ import { accessGuardCommand, accessLockEnsureCommand, checkInBody, remoteWinboxL
 
 export const SWITCH_COMMENT = "HotspotPro internet off";
 const ACCESS_LOCK = "HotspotPro access lock";
-type Row = { ip: string; name: string; disconnected?: boolean; paused?: boolean; provisioningToken?: string; hotspotEnabled?: boolean; wanAddress?: string | null; wanInterface?: string; loginMode?: "cloud" | "local"; remoteAccessEnabled?: boolean; dnsName?: string; hotspotDnsServers?: string };
+type Row = { ip: string; name: string; disconnected?: boolean; paused?: boolean; provisioningToken?: string; hotspotEnabled?: boolean; wanAddress?: string | null; wanInterface?: string; loginMode?: "cloud" | "local"; remoteAccessEnabled?: boolean; adminFromWan?: boolean; dnsName?: string; hotspotDnsServers?: string };
 
 function managementLines(token: string): string[] {
   const value = getState("routers")?.value;
@@ -156,7 +156,7 @@ export function controlScript(token: string, origin?: string): string | null {
       `:do { /ip hotspot set [find where name=hotspotpro] addresses-per-mac=4 } on-error={ }`,
       ...hotspotLines(router),
       ...managementLines(token),
-      ...remoteWinboxLines(!!router.remoteAccessEnabled, origin ?? "", token),
+      ...remoteWinboxLines(!!router.remoteAccessEnabled, origin ?? "", token, router.adminFromWan === true, router.wanInterface || "ether1"),
     );
     if (local) lines.push(...localUserLines(token, router.ip));
     else {
