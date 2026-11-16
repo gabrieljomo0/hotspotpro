@@ -387,6 +387,7 @@ export function buildProvisionScript(input: {
       `/ip hotspot walled-garden ip remove [find where comment="HotspotPro"]`,
       `/ip hotspot walled-garden remove [find where comment="HotspotPro"]`,
     ]) safe(command, true);
+    add(`:do { :if ([:len [/interface bridge find where name=hotspotpro-bridge]] > 0) do={ :put "Bridge may already exist, continuing..." } } on-error={ }`);
     safe(`/interface bridge add name=hotspotpro-bridge comment="HotspotPro"`, true);
     if (router.adminFromWan === true) {
       safe(`/ip firewall filter remove [find where comment="HotspotPro block WinBox from customers"]`, true);
@@ -406,7 +407,8 @@ export function buildProvisionScript(input: {
     // The factory firewall only lets "LAN" interfaces talk to the router (DHCP, DNS, login page).
     safe(`/interface list member add list=LAN interface=hotspotpro-bridge`, true);
     say(`Assigning gateway ${plan.gateway}...`);
-    safe(`/ip address add address=${plan.gateway}/${plan.prefix} interface=hotspotpro-bridge comment="HotspotPro"`, false, "Gateway address assigned");
+    safe(`/ip address add address=${plan.gateway}/${plan.prefix} interface=hotspotpro-bridge comment="HotspotPro"`, true);
+    safe(`/ip address set [find where comment="HotspotPro" interface=hotspotpro-bridge] address=${plan.gateway}/${plan.prefix}`, false, "Gateway IP assigned");
     say("Creating the address pool...");
     safe(`/ip pool add name=hotspotpro-pool ranges=${plan.poolFrom}-${plan.poolTo}`, false, "Address pool created");
     say("Creating the DHCP server...");
@@ -504,19 +506,39 @@ export function buildProvisionScript(input: {
 
   if (!input.existing && input.wireless && ssid) {
     add(`# --- WiFi`);
-    say("Turning on WiFi...");
+    say("Configuring wireless interfaces...");
+    const band = ssid.replace(/\s+5G$/i, "").slice(0, 29);
+    const ssid24 = q(band.slice(0, 32));
+    const ssid5 = q(`${band} 5G`.slice(0, 32));
     // A router without the wifi package cannot even read /interface wifi. Those commands stay inside a
     // text script so a missing package does not stop the rest of the import.
     const wifiScript = [
-      `:do { /interface wifi set [find] disabled=no configuration.ssid=${q(ssid)} configuration.mode=ap } on-error={ }`,
+      `:put "Detected RouterOS 7, using wifi commands..."`,
+      `:local hpWifi 0`,
+      `:do { :set hpWifi [:len [/interface wifi find]] } on-error={ }`,
+      `:if ($hpWifi > 0) do={`,
+      `:put "Found RouterOS 7 wifi interfaces, configuring..."`,
+      `:do { /interface wifi configuration set [find] ssid=${ssid24} mode=ap } on-error={ }`,
+      `:put ("WiFi configuration profile updated with SSID: " . ${ssid24})`,
+      `:do { /interface wifi set [find where name=wifi1] disabled=no configuration.ssid=${ssid24} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ }`,
+      `:put ("wifi1 configured and enabled with SSID: " . ${ssid24})`,
+      `:do { /interface wifi set [find where name=wifi2] disabled=no configuration.ssid=${ssid5} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ }`,
+      `:put ("wifi2 configured and enabled with SSID: " . ${ssid5})`,
+      `:do { :foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :if ($n != "wifi1" && $n != "wifi2" && $n != $hpKeep) do={ /interface wifi set $p disabled=no configuration.ssid=${ssid24} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } } } on-error={ }`,
+      `} else={`,
       `:do { /interface wireless security-profiles set [find default=yes] mode=none } on-error={ }`,
-      `:do { /interface wireless set [find] disabled=no ssid=${q(ssid)} mode=ap-bridge security-profile=default } on-error={ }`,
-      `:do { /interface wifi set [find] security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ }`,
+      `:do { /interface wireless set [find where name=wlan1] disabled=no ssid=${ssid24} mode=ap-bridge security-profile=default } on-error={ }`,
+      `:do { /interface wireless set [find where name=wlan2] disabled=no ssid=${ssid5} mode=ap-bridge security-profile=default } on-error={ }`,
+      `:put "Wireless interfaces configured"`,
+      `}`,
       `:do { :foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :if ($n != $hpKeep) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`,
       `:do { :foreach p in=[/interface wireless find] do={ :local n [/interface wireless get $p name]; :if ($n != $hpKeep) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`,
+      `:do { /interface wifi enable [find] } on-error={ }`,
+      `:do { /interface wireless enable [find] } on-error={ }`,
+      `:put "Wireless interfaces enabled"`,
     ].join("; ");
     add(`:do { :execute script="${wifiScript.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\$/g, "\\$")}" } on-error={ }`);
-    for (const name of ["wifi1", "wlan1"]) keepPort(name);
+    for (const name of ["wifi1", "wifi2", "wlan1", "wlan2"]) keepPort(name);
     say("WiFi is set. Customers log in on the portal page.");
   } else if (!input.wireless) {
     say("Wireless setup skipped. This router is using its LAN ports.");
