@@ -80,9 +80,8 @@ export default function AddRouterPage() {
   const [hasWireless, setHasWireless] = useState(true);
   // The port the ISP cable goes into. Always ether1 unless the owner says otherwise.
   const [wanInterface, setWanInterface] = useState("ether1");
-  // The port my computer is plugged into: kept out of the hotspot so I never lose the connection while setting up.
-  const [mgmtPort, setMgmtPort] = useState("ether5");
-  const mgmtClean = /^ether[0-9]+$/.test(mgmtPort.trim()) && mgmtPort.trim() !== wanInterface.trim() ? mgmtPort.trim() : "";
+  // The script counts the ports and keeps the highest numbered one out of the hotspot.
+  const [lastPortFree, setLastPortFree] = useState(true);
   // WinBox over the network the ISP cable comes from (e.g. my computer is on the Starlink router's WiFi).
   const [adminFromWan, setAdminFromWan] = useState(true);
   const wanClean = /^(ether|sfp|sfp-sfpplus|sfpplus|lte|wlan|wifi|vlan|pppoe-out)[A-Za-z0-9._-]*$/.test(wanInterface.trim()) ? wanInterface.trim() : "ether1";
@@ -260,7 +259,8 @@ export default function AddRouterPage() {
           pppoeNetwork: pppoeEnabled ? pppoeNetwork : "",
           hasWireless: routerType === "New Router" ? hasWireless : undefined,
           wanInterface: wanClean,
-          managementPort: mgmtClean,
+          managementPort: "",
+          lastPortFree,
           adminFromWan,
         },
       }),
@@ -374,7 +374,8 @@ export default function AddRouterPage() {
       newSiteName: siteChoice === "__new__" ? newSiteName.trim() : undefined,
       hasWireless: routerType === "New Router" ? hasWireless : undefined,
       wanInterface: wanClean,
-      managementPort: mgmtClean,
+      managementPort: "",
+      lastPortFree,
       adminFromWan,
       wifiSsid: hasWireless ? wifiSsid.trim() : undefined,
       provisioningToken: provisioningToken.current,
@@ -544,21 +545,13 @@ export default function AddRouterPage() {
             </label>
 
             {routerType === "New Router" && (
-              <label className="block" data-testid="mgmt-field">
-                <span className="mb-2 block text-sm font-semibold text-[#525252]">
-                  Port my computer is plugged into <span className="font-normal text-[#a3a3a3]">(admin port)</span>
-                </span>
-                <input
-                  value={mgmtPort}
-                  onChange={(event) => setMgmtPort(event.target.value)}
-                  placeholder="ether5"
-                  className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
-                />
-                <span className="mt-1 block text-xs text-[#a3a3a3]">
-                  This port is kept OUT of the hotspot, so the computer running HotspotPro stays connected to the router and
-                  never loses it during setup. Customers use the other ports and the WiFi. Leave it empty only if HotspotPro
-                  runs somewhere else on the internet.
-                  {mgmtPort.trim() && !mgmtClean ? " That is not a valid port name (like ether5), or it is the ISP port, so no admin port will be kept." : ""}
+              <label className="flex items-start gap-3 rounded-xl border border-[#e6e6e6] bg-white p-3" data-testid="mgmt-field">
+                <input type="checkbox" checked={lastPortFree} onChange={(event) => setLastPortFree(event.target.checked)} className="mt-1 h-4 w-4" />
+                <span className="text-sm text-[#525252]">
+                  <span className="block font-semibold">Keep the last port free</span>
+                  <span className="mt-0.5 block text-xs text-[#a3a3a3]">
+                    The script counts the ethernet ports on the router. Port 1 is the internet cable unless you change the internet port above. The last port stays out of the hotspot for your computer. Turn this off if that last port should be part of the hotspot.
+                  </span>
                 </span>
               </label>
             )}

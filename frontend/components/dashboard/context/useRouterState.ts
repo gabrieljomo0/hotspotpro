@@ -174,6 +174,7 @@ export function useRouterState(
     hasWireless?: boolean;
     wanInterface?: string;
     managementPort?: string;
+    lastPortFree?: boolean;
     adminFromWan?: boolean;
     wifiSsid?: string;
     routerType?: "New Router" | "Existing Router";
@@ -251,6 +252,7 @@ export function useRouterState(
       hasWireless: input.hasWireless ?? true,
       wanInterface: input.wanInterface || "ether1",
       managementPort: input.managementPort || "",
+      lastPortFree: input.lastPortFree !== false,
       adminFromWan: input.adminFromWan ?? false,
       siteId: resolvedSiteId,
       provisioningToken: input.provisioningToken,

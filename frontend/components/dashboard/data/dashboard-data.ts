@@ -200,6 +200,8 @@ export type RouterInfo = {
   wanInterface?: string;
   // The port the owner's computer is plugged into (kept out of the hotspot).
   managementPort?: string;
+  /** The setup script keeps the highest numbered ethernet port out of the hotspot. */
+  lastPortFree?: boolean;
   // WinBox allowed from the private network on the ISP port.
   adminFromWan?: boolean;
 

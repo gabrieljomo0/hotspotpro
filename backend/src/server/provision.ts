@@ -206,6 +206,7 @@ export function completeProvision(token: string, details: { failed: number; sour
       dnsName: text(config.dnsName),
       wanInterface: text(config.wanInterface, "ether1"),
       managementPort: text(config.managementPort),
+      ...(typeof config.lastPortFree === "boolean" ? { lastPortFree: config.lastPortFree } : {}),
       adminFromWan: config.adminFromWan === true,
       hasWireless: config.hasWireless === true,
       provisioningToken: token,

@@ -20,6 +20,8 @@ export type ProvisionRouter = {
   wanInterface?: string;
   /** The port the owner's computer (the one running HotspotPro) is plugged into. It stays OUT of the hotspot, so the connection is never lost. */
   managementPort?: string;
+  /** When true, the script counts the ethernet ports and keeps the last one out of the hotspot. */
+  lastPortFree?: boolean;
   /** Let WinBox reach the router from the PRIVATE network on the ISP port (e.g. the Starlink router's WiFi), which the factory firewall blocks. */
   adminFromWan?: boolean;
   pppoeEnabled?: boolean;
@@ -275,6 +277,7 @@ export function buildProvisionScript(input: {
   add(`:local hpWan ""`);
   add(`:local hpNet ""`);
   add(`:local hpDir "hotspot"`);
+  add(`:local hpLast ""`);
   add(`:global hpKeep ""`);
   say("==========================================");
   say("HotspotPro setup is starting...");
@@ -366,12 +369,17 @@ export function buildProvisionScript(input: {
     // Routers with a "flash" folder keep their files there; the hotspot pages go with them.
     add(`:do { :if ([:len [/file find where name="flash"]] > 0) do={ :set hpDir "flash/hotspot" } } on-error={ }`);
     const dns = (router.hotspotDnsServers || "8.8.8.8,8.8.4.4").replace(/[^0-9.,]/g, "");
-    if (mgmt && !input.existing) {
+    const autoLast = router.lastPortFree === true && !input.existing;
+    if (autoLast) {
+      add(`:do { :local hpCount 0; :local hpMax 0; :set hpLast ""; :foreach p in=[/interface ethernet find] do={ :set hpCount ($hpCount + 1); :local n [/interface ethernet get $p name]; :if ([:pick $n 0 5] = "ether") do={ :local num [:tonum [:pick $n 5 [:len $n]]]; :if ($num > $hpMax) do={ :set hpMax $num; :set hpLast $n } } }; :if ($hpLast = "${wan}" || [:len $hpLast] = 0) do={ :set hpLast ""; :put ("This router has " . $hpCount . " ethernet ports. Internet uses ${wan}. The last port joins the hotspot.") } else={ :put ("This router has " . $hpCount . " ethernet ports. Internet uses ${wan}. The last port " . $hpLast . " stays free.") } } on-error={ :put "Could not count the ethernet ports. Setup continues." }`);
+      add(`:do { :if ([:len $hpLast] > 0 && $hpKeep != $hpLast) do={ :if ([:len [/ip address find where address="192.168.88.1/24"]] = 0) do={ /interface bridge add name=hotspotpro-admin comment="HotspotPro admin"; /interface bridge port remove [find where interface=$hpLast]; /interface bridge port add bridge=hotspotpro-admin interface=$hpLast comment="HotspotPro admin"; /ip address add address=192.168.88.1/24 interface=hotspotpro-admin comment="HotspotPro admin"; /ip pool add name=hotspotpro-admin-pool ranges=192.168.88.10-192.168.88.60; /ip dhcp-server network add address=192.168.88.0/24 gateway=192.168.88.1 dns-server=192.168.88.1 comment="HotspotPro admin"; /ip dhcp-server add name=hotspotpro-admin-dhcp interface=hotspotpro-admin address-pool=hotspotpro-admin-pool disabled=no; /interface list member add list=LAN interface=hotspotpro-admin comment="HotspotPro admin"; :put ("The last port " . $hpLast . " is free for your computer.") } else={ :put ("The last port " . $hpLast . " stays free.") } } else={ :if ([:len $hpLast] > 0) do={ :put ("WinBox is on " . $hpLast . ", so that port stays where it is.") } } } on-error={ :set hpFails ($hpFails + 1); :put "HotspotPro: the free port step had a problem and was skipped. Setup continues." }`);
+    }
+    if (mgmt && !input.existing && !autoLast) {
       // Your computer keeps its own small network, outside the hotspot. A factory-default router already has one
       // (192.168.88.1/24); a blank router gets one now. Either way this port is never touched, so you never lose the connection.
       add(`# --- Admin port ${mgmt}: stays outside the hotspot (your computer)`);
       say(`Keeping ${mgmt} as the admin port for your computer...`);
-      add(`:do { :if ([:len [/ip address find where address="192.168.88.1/24"]] = 0 && $hpKeep != "${mgmt}") do={ /interface bridge add name=hotspotpro-admin comment="HotspotPro admin"; /interface bridge port remove [find where interface=${mgmt}]; /interface bridge port add bridge=hotspotpro-admin interface=${mgmt} comment="HotspotPro admin"; /ip address add address=192.168.88.1/24 interface=hotspotpro-admin comment="HotspotPro admin"; /ip pool add name=hotspotpro-admin-pool ranges=192.168.88.10-192.168.88.60; /ip dhcp-server network add address=192.168.88.0/24 gateway=192.168.88.1 dns-server=192.168.88.1 comment="HotspotPro admin"; /ip dhcp-server add name=hotspotpro-admin-dhcp interface=hotspotpro-admin address-pool=hotspotpro-admin-pool disabled=no; /interface list member add list=LAN interface=hotspotpro-admin; :put "Admin port ${mgmt} is ready." } else={ :put "Admin port ${mgmt} stays connected." } } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: admin port setup"; :put "HotspotPro: the admin port step had a problem and was skipped. Setup continues." }`);
+      add(`:do { :if ([:len [/ip address find where address="192.168.88.1/24"]] = 0 && $hpKeep != "${mgmt}") do={ /interface bridge add name=hotspotpro-admin comment="HotspotPro admin"; /interface bridge port remove [find where interface=${mgmt}]; /interface bridge port add bridge=hotspotpro-admin interface=${mgmt} comment="HotspotPro admin"; /ip address add address=192.168.88.1/24 interface=hotspotpro-admin comment="HotspotPro admin"; /ip pool add name=hotspotpro-admin-pool ranges=192.168.88.10-192.168.88.60; /ip dhcp-server network add address=192.168.88.0/24 gateway=192.168.88.1 dns-server=192.168.88.1 comment="HotspotPro admin"; /ip dhcp-server add name=hotspotpro-admin-dhcp interface=hotspotpro-admin address-pool=hotspotpro-admin-pool disabled=no; /interface list member add list=LAN interface=hotspotpro-admin comment="HotspotPro admin"; :put "Admin port ${mgmt} is ready." } else={ :put "Admin port ${mgmt} stays connected." } } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: admin port setup"; :put "HotspotPro: the admin port step had a problem and was skipped. Setup continues." }`);
     }
     add(`# --- Hotspot network ${plan.network} (these pieces are replaced if the script is run again)`);
     say(`Preparing the hotspot network ${plan.network}...`);
@@ -394,14 +402,15 @@ export function buildProvisionScript(input: {
       safe(`/ip firewall filter add chain=input action=drop in-interface=hotspotpro-bridge protocol=tcp dst-port=8291 comment="HotspotPro block WinBox from customers" place-before=0`, true, "Customers cannot open WinBox");
     }
     if (!input.existing) {
-      // A new MikroTik ships with ether2-5 already inside its default bridge; a port can only be in one
-      // bridge, so take them out of the old one first, then add them to ours. Boards with more ports
-      // (ether6+, sfp) are picked up by the loop below.
-      for (const port of ["ether1", "ether2", "ether3", "ether4", "ether5"].filter((p) => p !== wan && p !== mgmt)) keepPort(port);
+      // A new MikroTik ships with its ethernet ports already inside the factory bridge. A port can only
+      // be in one bridge, so take each one out, then add it to ours. The internet port and the free
+      // last port stay out. The count is whatever this router actually has.
+      if (!autoLast) {
+        for (const port of ["ether1", "ether2", "ether3", "ether4", "ether5"].filter((p) => p !== wan && p !== mgmt)) keepPort(port);
+      }
       const skipWan = wan.replace(/[^A-Za-z0-9._-]/g, "") || "ether1";
-      const skipMgmt = mgmt.replace(/[^A-Za-z0-9._-]/g, "");
-      const notMgmt = skipMgmt ? ` && $n != "${skipMgmt}"` : "";
-      add(`:do { :foreach p in=[/interface ethernet find] do={ :local n [/interface ethernet get $p name]; :if ($n != "${skipWan}"${notMgmt} && $n != $hpKeep) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`);
+      const skipMgmt = !autoLast && mgmt ? ` && $n != "${mgmt.replace(/[^A-Za-z0-9._-]/g, "")}"` : "";
+      add(`:do { :foreach p in=[/interface ethernet find] do={ :local n [/interface ethernet get $p name]; :if ($n != "${skipWan}"${skipMgmt} && $n != $hpLast && $n != $hpKeep) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`);
       say("Ethernet ports added to the hotspot bridge.");
     }
     // The factory firewall only lets "LAN" interfaces talk to the router (DHCP, DNS, login page).

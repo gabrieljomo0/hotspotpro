@@ -163,6 +163,14 @@ try {
   await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], wanInterface: "ether1", managementPort: "ether1" }] }, amaCookie);
   const scriptM2 = await (await fetch(base + "/api/provision/tok-ama-12345678")).text();
   check("the ISP port can never be the admin port", !scriptM2.includes("hotspotpro-admin"));
+  await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], wanInterface: "ether1", managementPort: "", lastPortFree: true, routerType: "New Router" }] }, amaCookie);
+  const scriptAuto = await (await fetch(base + "/api/provision/tok-ama-12345678")).text();
+  check("the script counts the ports and keeps the last one free", scriptAuto.includes(":set hpLast") && scriptAuto.includes("ethernet ports") && !scriptAuto.includes("bridge=hotspotpro-bridge interface=ether5"));
+  const lintAuto = await json(await send("GET", "/api/provision/tok-ama-12345678/check?origin=" + encodeURIComponent("http://192.168.88.10:4000"), undefined, amaCookie));
+  check("the automatic port script passes the RouterOS check", lintAuto.report?.ok === true, JSON.stringify(lintAuto.report?.errors ?? lintAuto));
+  await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], wanInterface: "ether3", managementPort: "", lastPortFree: false, routerType: "New Router" }] }, amaCookie);
+  const scriptJoin = await (await fetch(base + "/api/provision/tok-ama-12345678")).text();
+  check("a chosen internet port is used and the last port can join the hotspot", scriptJoin.includes("interface=ether3") && scriptJoin.includes('$n != "ether3"') && !scriptJoin.includes(":set hpLast"));
   await send("PUT", "/api/state/routers", { value: routerA }, amaCookie);
 
   // ---- WinBox from the ISP-side private network (e.g. computer on the Starlink router's WiFi) ----

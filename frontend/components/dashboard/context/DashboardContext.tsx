@@ -188,6 +188,7 @@ type DashboardContextValue = {
     hasWireless?: boolean;
     wanInterface?: string;
     managementPort?: string;
+    lastPortFree?: boolean;
     adminFromWan?: boolean;
     wifiSsid?: string;
     routerType?: "New Router" | "Existing Router";
