@@ -171,6 +171,9 @@ try {
   await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], wanInterface: "ether3", managementPort: "", lastPortFree: false, routerType: "New Router" }] }, amaCookie);
   const scriptJoin = await (await fetch(base + "/api/provision/tok-ama-12345678")).text();
   check("a chosen internet port is used and the last port can join the hotspot", scriptJoin.includes("interface=ether3") && scriptJoin.includes('$n != "ether3"') && !scriptJoin.includes(":set hpLast"));
+  await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], pppoeEnabled: true, pppoeNetwork: "192.168.91.0/24", routerType: "New Router", hotspotEnabled: true }] }, amaCookie);
+  const scriptPppoe = await (await fetch(base + "/api/provision/tok-ama-12345678")).text();
+  check("PPPoE service is started on the customer bridge", scriptPppoe.includes("service-name=hotspotpro") && scriptPppoe.includes("interface=hotspotpro-bridge default-profile=hotspotpro-pppoe") && scriptPppoe.includes("/ppp aaa set use-radius=no") && scriptPppoe.includes("PPPoE server started"));
   await send("PUT", "/api/state/routers", { value: routerA }, amaCookie);
 
   // ---- WinBox from the ISP-side private network (e.g. computer on the Starlink router's WiFi) ----

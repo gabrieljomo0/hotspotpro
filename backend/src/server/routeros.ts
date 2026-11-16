@@ -514,8 +514,13 @@ export function buildProvisionScript(input: {
     const pppoe = planNetwork(router.pppoeNetwork || "192.168.91.0/24", undefined);
     add(`# --- PPPoE network ${pppoe.network}`);
     say("Configuring PPPoE...");
+    safe(`/interface pppoe-server server remove [find where service-name=hotspotpro]`, true);
+    safe(`/ppp profile remove [find where name=hotspotpro-pppoe]`, true);
+    safe(`/ip pool remove [find where name=hotspotpro-pppoe-pool]`, true);
+    safe(`/ppp aaa set use-radius=no`, true);
     safe(`/ip pool add name=hotspotpro-pppoe-pool ranges=${pppoe.poolFrom}-${pppoe.poolTo}`, false, "PPPoE address pool created");
-    safe(`/ppp profile add name=hotspotpro-pppoe local-address=${pppoe.gateway} remote-address=hotspotpro-pppoe-pool`, false, "PPPoE profile created");
+    safe(`/ppp profile add name=hotspotpro-pppoe local-address=${pppoe.gateway} remote-address=hotspotpro-pppoe-pool dns-server=${pppoe.gateway} change-tcp-mss=yes only-one=yes`, false, "PPPoE profile created");
+    safe(`/interface pppoe-server server add service-name=hotspotpro interface=hotspotpro-bridge default-profile=hotspotpro-pppoe authentication=pap,chap,mschap2 one-session-per-host=yes disabled=no`, false, "PPPoE server started");
   }
 
   if (!input.existing && input.wireless && ssid) {
