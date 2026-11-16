@@ -104,7 +104,7 @@ export function lintScript(script: string, options: { addon?: boolean } = {}): L
       for (const m of out.matchAll(/\baddress=([\d.]+)\/(\d+)/g)) {
         const ip = ipInt(m[1]);
         const pf = Number(m[2]);
-        if (ip === null || pf < 1 || pf > 32) errors.push(`${where}: bad address ${m[1]}/${m[2]}.`);
+        if (ip === null || pf < 0 || pf > 32 || (pf === 0 && m[1] !== "0.0.0.0")) errors.push(`${where}: bad address ${m[1]}/${m[2]}.`);
         else if (command.startsWith("/ip address add")) gateway = ip;
         else if (command.startsWith("/ip dhcp-server network")) {
           const mask = (0xffffffff << (32 - pf)) >>> 0;

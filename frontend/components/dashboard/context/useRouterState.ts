@@ -211,7 +211,6 @@ export function useRouterState(
       provisioningStatus: "Pending",
       health: "checking",
       connectionMode: "Hybrid+",
-      remoteAccessEnabled: false,
       winboxAddress: "",
       bypassModeEnabled: false,
       isDefault: false,
@@ -253,7 +252,8 @@ export function useRouterState(
       wanInterface: input.wanInterface || "ether1",
       managementPort: input.managementPort || "",
       lastPortFree: input.lastPortFree !== false,
-      adminFromWan: input.adminFromWan ?? false,
+      adminFromWan: input.adminFromWan !== false,
+      remoteAccessEnabled: true,
       siteId: resolvedSiteId,
       provisioningToken: input.provisioningToken,
       // The router already ran its setup script while the "Add router" page
@@ -529,6 +529,7 @@ export function useRouterState(
           ? {
               ...r,
               remoteAccessEnabled: next,
+              remoteAccessHold: !next,
               winboxAddress: next ? r.winboxAddress || "192.168.88.1" : "192.168.88.1",
               winboxReach: next ? r.winboxReach : "lan",
               wireguardConfig: next ? r.wireguardConfig : null,

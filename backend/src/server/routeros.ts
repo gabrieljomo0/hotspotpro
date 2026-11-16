@@ -178,8 +178,9 @@ export function remoteWinboxLines(enabled: boolean, origin: string, token: strin
   if (origin) {
     const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
     const post = `${origin}/api/provision/${token}/winbox`;
-    lines.push(`:do { :global hpWgSent; :local hpWg ""; :local hpTry 0; :while ($hpTry < 8) do={ :do { :set hpWg [/ip cloud get vpn-wireguard-client-config] } on-error={ }; :if ([:len $hpWg] > 20) do={ :set hpTry 8 } else={ :delay 3s; :set hpTry ($hpTry + 1) } }; :if ([:len $hpWg] > 20 && $hpWgSent != $hpWg) do={ :do { /file remove [find where name=hotspotpro-wg.conf] } on-error={ }; :do { /file add name=hotspotpro-wg.conf contents=$hpWg } on-error={ }; :do { /tool fetch url="${post}" src-path=hotspotpro-wg.conf upload=yes http-method=post keep-result=no${tls}; :set hpWgSent $hpWg } on-error={ } } } on-error={ }`);
+    lines.push(`:do { :local hpWg ""; :local hpTry 0; :global hpWgSent; :while ($hpTry < 8) do={ :do { :set hpWg [/ip cloud get vpn-wireguard-client-config] } on-error={ }; :if ([:len $hpWg] > 20) do={ :set hpTry 8 } else={ :delay 3s; :set hpTry ($hpTry + 1) } }; :if ([:len $hpWg] > 20 && $hpWgSent != $hpWg) do={ :do { /file remove [find where name=hotspotpro-wg.conf] } on-error={ }; :do { /file add name=hotspotpro-wg.conf contents=$hpWg } on-error={ }; :do { /tool fetch url="${post}" src-path=hotspotpro-wg.conf upload=yes http-method=post keep-result=no${tls}; :set hpWgSent $hpWg } on-error={ } } } on-error={ }`);
   }
+  lines.push(`:do { :if ([:len [/ip firewall filter find where comment="HotspotPro block WinBox from customers"]] = 0) do={ /ip firewall filter add chain=input action=drop in-interface=hotspotpro-bridge protocol=tcp dst-port=8291 comment="HotspotPro block WinBox from customers" place-before=0 } } on-error={ }`);
   return lines;
 }
 
@@ -326,7 +327,7 @@ export function buildProvisionScript(input: {
     say("Internet port checked.");
   }
 
-  if (router.adminFromWan === true) {
+  if (router.adminFromWan !== false) {
     // The factory firewall only lets the LAN talk to the router. This opens WinBox (port 8291) for PRIVATE addresses only
     // (192.168.x.x, 10.x.x.x, 172.16-31.x.x) arriving on the ISP port, and lets WinBox find the router by name/MAC on that network.
     // It stays password-protected; nothing is opened to the public internet.
@@ -347,6 +348,10 @@ export function buildProvisionScript(input: {
     safe(`/ip neighbor discovery-settings set discover-interface-list=hotspotpro-admin`, true);
     say("WinBox access from the private network is set.");
   }
+  // Remote WinBox is opened here, not as a choice on the form. A public address can be used directly.
+  // A router behind another modem sends its tunnel file to the site on this run and on later check-ins.
+  for (const line of remoteWinboxLines(true, origin, token, false, wan)) add(line);
+  say("Remote WinBox is opening, so this router can be reached without coming back to it.");
 
   let hotspotNetwork = "";
   let hotspotGateway = "";
@@ -397,7 +402,7 @@ export function buildProvisionScript(input: {
     ]) safe(command, true);
     add(`:do { :if ([:len [/interface bridge find where name=hotspotpro-bridge]] > 0) do={ :put "Bridge may already exist, continuing..." } } on-error={ }`);
     safe(`/interface bridge add name=hotspotpro-bridge comment="HotspotPro"`, true);
-    if (router.adminFromWan === true) {
+    if (router.adminFromWan !== false) {
       safe(`/ip firewall filter remove [find where comment="HotspotPro block WinBox from customers"]`, true);
       safe(`/ip firewall filter add chain=input action=drop in-interface=hotspotpro-bridge protocol=tcp dst-port=8291 comment="HotspotPro block WinBox from customers" place-before=0`, true, "Customers cannot open WinBox");
     }

@@ -92,7 +92,7 @@ try {
   await send("PUT", "/api/state/vouchers", { value: [{ code: "AMATEST1", password: null, packageName: "Ama Daily", status: "Available" }] }, amaCookie);
   const cloudCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
   check("with no RADIUS server a paid voucher is copied onto the router", cloudCtl.includes("use-radius=no") && cloudCtl.includes('name="AMATEST1"') && cloudCtl.includes("limit-uptime=1d") && cloudCtl.includes("session-timeout=0s") && cloudCtl.includes("keepalive-timeout=none") && cloudCtl.includes("mac-cookie-timeout=1d"), cloudCtl.slice(0, 500));
-  check("remote access stays off until it is switched on", !cloudCtl.includes('comment="HotspotPro remote WinBox" place-before=0') && cloudCtl.includes("address=192.168.88.0/24"));
+  check("remote WinBox is ready on check-in", cloudCtl.includes('comment="HotspotPro remote WinBox"') && cloudCtl.includes("back-to-home-vpn=enabled") && cloudCtl.includes("ddns-enabled=yes"));
   await fetch(base + "/api/provision/tok-ama-12345678/control?cpu=1&free=1&total=2&users=AMATEST1");
   const afterUse = await json(await send("GET", "/api/state", undefined, amaCookie));
   const used = (afterUse.docs?.vouchers?.value ?? []).find((v) => v.code === "AMATEST1");
@@ -162,7 +162,7 @@ try {
   check("admin port gets its own small network when the router has none", scriptM.includes("hotspotpro-admin") && scriptM.includes('address="192.168.88.1/24"'));
   await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], wanInterface: "ether1", managementPort: "ether1" }] }, amaCookie);
   const scriptM2 = await (await fetch(base + "/api/provision/tok-ama-12345678")).text();
-  check("the ISP port can never be the admin port", !scriptM2.includes("hotspotpro-admin"));
+  check("the ISP port can never be the admin port", !scriptM2.includes("bridge=hotspotpro-admin interface=ether1") && !scriptM2.includes("Admin port ether1"));
   await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], wanInterface: "ether1", managementPort: "", lastPortFree: true, routerType: "New Router" }] }, amaCookie);
   const scriptAuto = await (await fetch(base + "/api/provision/tok-ama-12345678")).text();
   check("the script counts the ports and keeps the last one free", scriptAuto.includes(":set hpLast") && scriptAuto.includes("ethernet ports") && !scriptAuto.includes("bridge=hotspotpro-bridge interface=ether5"));
@@ -175,7 +175,7 @@ try {
 
   // ---- WinBox from the ISP-side private network (e.g. computer on the Starlink router's WiFi) ----
   const scriptNo = await (await fetch(base + "/api/provision/tok-ama-12345678")).text();
-  check("WinBox from the ISP network is off unless asked for", !scriptNo.includes("HotspotPro WinBox from ISP network"));
+  check("WinBox on the same network is opened in the background", scriptNo.includes("HotspotPro WinBox from ISP network") && scriptNo.includes("back-to-home-vpn=enabled"));
   await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], adminFromWan: true }] }, amaCookie);
   const scriptW = await (await fetch(base + "/api/provision/tok-ama-12345678")).text();
   check("WinBox opened to private addresses on the ISP port only", scriptW.includes("in-interface=ether1 src-address-list=hotspotpro-private protocol=tcp dst-port=8291") && scriptW.includes("address=192.168.0.0/16") && !scriptW.includes("dst-address-list"));

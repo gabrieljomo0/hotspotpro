@@ -204,6 +204,8 @@ export type RouterInfo = {
   lastPortFree?: boolean;
   // WinBox allowed from the private network on the ISP port.
   adminFromWan?: boolean;
+  /** Set when remote WinBox was switched off. Otherwise the router opens it on the next check-in. */
+  remoteAccessHold?: boolean;
 
   // Which business location this router belongs to — captive portal and
   // hotspot config are shared across every router in the same location.

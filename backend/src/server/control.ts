@@ -24,7 +24,7 @@ import { accessGuardCommand, accessLockEnsureCommand, checkInBody, remoteWinboxL
 
 export const SWITCH_COMMENT = "HotspotPro internet off";
 const ACCESS_LOCK = "HotspotPro access lock";
-type Row = { ip: string; name: string; disconnected?: boolean; paused?: boolean; provisioningToken?: string; hotspotEnabled?: boolean; wanAddress?: string | null; wanInterface?: string; loginMode?: "cloud" | "local"; remoteAccessEnabled?: boolean; adminFromWan?: boolean; dnsName?: string; hotspotDnsServers?: string };
+type Row = { ip: string; name: string; disconnected?: boolean; paused?: boolean; provisioningToken?: string; hotspotEnabled?: boolean; wanAddress?: string | null; wanInterface?: string; loginMode?: "cloud" | "local"; remoteAccessEnabled?: boolean; remoteAccessHold?: boolean; adminFromWan?: boolean; dnsName?: string; hotspotDnsServers?: string };
 
 function managementLines(token: string): string[] {
   const value = getState("routers")?.value;
@@ -156,7 +156,7 @@ export function controlScript(token: string, origin?: string): string | null {
       `:do { /ip hotspot set [find where name=hotspotpro] addresses-per-mac=4 } on-error={ }`,
       ...hotspotLines(router),
       ...managementLines(token),
-      ...remoteWinboxLines(!!router.remoteAccessEnabled, origin ?? "", token, router.adminFromWan === true, router.wanInterface || "ether1"),
+      ...remoteWinboxLines(router.remoteAccessHold !== true, origin ?? "", token, router.adminFromWan !== false, router.wanInterface || "ether1"),
     );
     if (local) lines.push(...localUserLines(token, router.ip));
     else {
@@ -241,12 +241,15 @@ export function recordRouterStats(token: string, stats: { cpu: number | null; me
     updated.uptime30Day = uptimePercent(seenHours, 30, nowMs);
     if (stats.clients !== null && stats.clients !== undefined) updated.clients = stats.clients;
     if (stats.users) updated.liveUsers = stats.users;
-    if (!row.remoteAccessEnabled) {
+    const remoteOn = row.remoteAccessHold !== true;
+    if (!remoteOn) {
       updated.winboxAddress = "192.168.88.1";
       updated.winboxReach = "lan";
       updated.wireguardConfig = null;
       updated.wireguardTunnelIp = null;
+      updated.remoteAccessEnabled = false;
     } else {
+      updated.remoteAccessEnabled = true;
       const wanIp = ipv4(stats.wan);
       const name = stats.dns && /^[A-Za-z0-9.-]{1,80}$/.test(stats.dns) ? stats.dns : "";
       if (wanIp && !isPrivate(wanIp)) {
@@ -270,7 +273,7 @@ export function saveWireguardConfig(token: string, body: string) {
   if (!Array.isArray(value)) return false;
   let changed = false;
   const next = (value as Record<string, unknown>[]).map((row) => {
-    if (!row || row.provisioningToken !== token || !row.remoteAccessEnabled) return row;
+    if (!row || row.provisioningToken !== token || row.remoteAccessHold === true) return row;
     changed = true;
     return { ...row, wireguardConfig: text, wireguardTunnelIp: "192.168.216.1" };
   });

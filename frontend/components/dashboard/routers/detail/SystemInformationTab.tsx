@@ -232,7 +232,7 @@ export function SystemInformationTab({
                   ? <>Import the tunnel file into WireGuard, then connect the WinBox app to <span className="font-mono">192.168.216.1</span>. You do not open WinBox on the router.</>
                   : router.remoteAccessEnabled
                     ? "The router is creating the WireGuard tunnel on its next check-in. The tunnel address shows here when the file is ready."
-                    : "Enable remote access from More Actions menu"}
+                    : "Remote WinBox turns on by itself the next time this router checks in. You do not go back to it. A public address is used directly. A router behind another modem shows a tunnel file here."}
             </p>
           </div>
         </div>
