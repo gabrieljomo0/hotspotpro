@@ -82,8 +82,8 @@ export default function AddRouterPage() {
   const [wanInterface, setWanInterface] = useState("ether1");
   // The script counts the ports and keeps the highest numbered one out of the hotspot.
   const [lastPortFree, setLastPortFree] = useState(true);
-  // WinBox over the network the ISP cable comes from (e.g. my computer is on the Starlink router's WiFi).
-  const [adminFromWan, setAdminFromWan] = useState(true);
+  // WinBox stays open on the same network. There is no separate choice for it.
+  const adminFromWan = true;
   const wanClean = /^(ether|sfp|sfp-sfpplus|sfpplus|lte|wlan|wifi|vlan|pppoe-out)[A-Za-z0-9._-]*$/.test(wanInterface.trim()) ? wanInterface.trim() : "ether1";
   const [wifiSsid, setWifiSsid] = useState("");
 
@@ -531,16 +531,6 @@ export default function AddRouterPage() {
               <span className="mt-1 block text-xs text-[#a3a3a3]">
                 The internet cable uses port 1. Leave this as ether1 unless the cable is in a different port.
                 {wanInterface.trim() && wanClean !== wanInterface.trim() ? " That name is not valid, so ether1 will be used." : ""}
-              </span>
-            </label>
-
-            <label className="flex items-start gap-3 rounded-xl border border-[#e6e6e6] bg-white p-3" data-testid="admin-from-wan">
-              <input type="checkbox" checked={adminFromWan} onChange={(event) => setAdminFromWan(event.target.checked)} className="mt-1 h-4 w-4" />
-              <span className="text-sm text-[#525252]">
-                <span className="block font-semibold">Open WinBox when I am on the same network as this router</span>
-                <span className="mt-0.5 block text-xs text-[#a3a3a3]">
-                  Your computer can be plugged into the MikroTik, or on the WiFi of the modem the internet cable comes from. WinBox stays password protected and is not opened to the public internet. Customers on the hotspot cannot use it.
-                </span>
               </span>
             </label>
 
