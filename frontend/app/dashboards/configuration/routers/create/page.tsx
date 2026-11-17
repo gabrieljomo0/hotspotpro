@@ -226,7 +226,7 @@ export default function AddRouterPage() {
 
   const setupUrl = `${origin}/api/provision/${provisioningToken.current}${routerType === "New Router" ? wifiQuery : ""}`;
   const tlsFlag = fetchMode === "https" ? " check-certificate=no" : "";
-  const modeCommand = `:put "HotspotPro: checking device mode..."; :global hpMode "ok"; :do { :local m [/system device-mode get mode]; :local f [/system device-mode get fetch]; :local s [/system device-mode get scheduler]; :if ($m = "home" || !$f || !$s) do={ :set hpMode "wait" } } on-error={ }; :do { :local h [/system device-mode get hotspot]; :if (!$h) do={ :set hpMode "wait" } } on-error={ }; :if ($hpMode = "wait") do={ /system device-mode update mode=advanced fetch=yes scheduler=yes hotspot=yes; :put "Press the reset button once within 5 minutes. When the router is back, paste the configuration command." } else={ :put "Device mode is already ready. Paste the configuration command." }`;
+  const modeCommand = "/system device-mode update mode=advanced";
   const provisioningCommand = `:global hpFile "hotspotpro.rsc"; :do { /interface bridge port remove [find where interface=${wanClean}] } on-error={ }; :do { /ip dhcp-client add interface=${wanClean} disabled=no add-default-route=yes use-peer-dns=yes comment="HotspotPro WAN DHCP Client" } on-error={ }; :delay 8s; :do { /tool fetch mode=${fetchMode} url="${setupUrl}" dst-path=$hpFile${tlsFlag} } on-error={ :delay 8s; /tool fetch mode=${fetchMode} url="${setupUrl}" dst-path=$hpFile${tlsFlag} }; :delay 2s; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; /import file-name=$hpFile; /file remove $hpFile`;
 
   const provisionSteps = buildProvisionSteps(routerType, hotspotEnabled, pppoeEnabled);
@@ -404,7 +404,7 @@ export default function AddRouterPage() {
       </div>
       <h1 className="mb-2 text-3xl font-black text-[#1a1a1a] md:text-4xl">Provision Router</h1>
       <p className="mb-6 text-sm text-[#737373]">
-        Copy the mode command first and paste it on the router. Press the reset button if it asks. When the router is back, paste the configuration command.
+        If the router says device mode is not allowed, copy the mode command and paste it in the MikroTik terminal. Unplug the power cord for 10 seconds, then restore power. When the router is back, paste the configuration command.
       </p>
 
       <div className="mb-6 flex items-center gap-2 rounded-2xl border border-[#e6e6e6] bg-white p-4">
@@ -770,7 +770,7 @@ export default function AddRouterPage() {
               <div className="mb-2 flex items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-bold text-[#1a1a1a]">1. Mode command</p>
-                  <p className="text-xs text-[#a3a3a3]">Paste this first. If the router asks you to press the reset button, press it once and wait until WinBox is back. Then use the configuration command.</p>
+                  <p className="text-xs text-[#a3a3a3]">Copy only switches the router from home to advanced. Paste it in the terminal, unplug the power cord for 10 seconds, restore power, then paste the configuration command.</p>
                 </div>
                 <button
                   type="button"
@@ -975,7 +975,7 @@ export default function AddRouterPage() {
 
             {!connected && (
               <p className="rounded-xl bg-[#f4f4f4] p-3 text-xs text-[#525252]">
-                Paste the mode command first. Press the reset button if the router asks, wait until it is back, then paste the configuration command.
+                If the router says device mode is not allowed, paste the mode command, unplug the power cord for 10 seconds, restore power, then paste the configuration command.
               </p>
             )}
 
