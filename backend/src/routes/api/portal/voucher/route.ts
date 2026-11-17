@@ -15,6 +15,7 @@ export async function POST(request: Request) {
   const now = Date.now();
   const limitBy = voucherLimitBy(v);
   const calendar = voucherUsesCalendar(v);
+  if (v.status === "Used" || v.activatedAtMs) return NextResponse.json({ valid: false, message: "This voucher has already been used." }, { status: 403 });
   if (v.status === "Expired" || (calendar && v.expiresAtMs && v.expiresAtMs <= now)) return NextResponse.json({ valid: false, message: "This voucher has expired." }, { status: 403 });
   const cap = limitBy === "days" ? null : pkg ? packageBytes(pkg) : null;
   const used = Math.max(usedBytes(v.code), v.bytesUsed ?? 0);

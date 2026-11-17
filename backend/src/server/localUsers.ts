@@ -96,7 +96,8 @@ export function localUserLines(token: string, routerIp: string, now = Date.now()
     if (profiles.has(name)) continue;
     profiles.add(name);
     const seconds = user.pkg ? packageSeconds(user.pkg) : 86400;
-    const devices = user.pkg?.devices && user.pkg.devices > 0 ? user.pkg.devices : 1;
+    // One device unless the package on the site says a higher shared-users count.
+    const devices = user.pkg?.devices && user.pkg.devices > 1 ? Math.floor(user.pkg.devices) : 1;
     // session-timeout=0s is the RouterOS default: no extra session cap. A cap
     // equal to the bundle was logging phones out, and the 2-minute keepalive
     // then made a fresh voucher look finished. The phone may leave and come
@@ -125,5 +126,9 @@ export function localUserLines(token: string, routerIp: string, now = Date.now()
   for (const code of remove) {
     lines.push(`:do { /ip hotspot user remove [find where name=${quote(code)} comment="HotspotPro"] } on-error={ }`);
   }
+  // The first phone that logs in owns the voucher. Any other phone typing that code is refused.
+  lines.push(
+    `:do { :foreach i in=[/ip hotspot active find] do={ :local u [/ip hotspot active get $i user]; :local m [/ip hotspot active get $i mac-address]; :if ([:len $u] > 0 && [:len $m] > 0 && [:len [/ip hotspot user find where name=$u comment="HotspotPro"]] > 0) do={ /ip hotspot user set [find where name=$u comment="HotspotPro"] mac-address=$m } } } on-error={ }`,
+  );
   return lines;
 }

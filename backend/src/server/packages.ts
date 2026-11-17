@@ -20,6 +20,8 @@ export type Vch = {
   agentId: string; batchId: string | null;
   // set by the server when the voucher is first used to log in
   activatedAtMs?: number; expiresAtMs?: number; bytesUsed?: number; serverIssuedMs?: number;
+  /** First phone that used this voucher. Another phone cannot use the same code. */
+  boundMac?: string;
   /** days, data, or both. Missing means both. */
   limitBy?: "days" | "data" | "both";
   /** signin: the day runs from the first login. usage: the day runs only while online. Missing means signin. */

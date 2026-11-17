@@ -128,6 +128,17 @@ export function decide(
   const calendar = voucherUsesCalendar(voucher);
   if (calendar && voucher.expiresAtMs && voucher.expiresAtMs <= now) return { ok: false, reason: "This voucher has expired." };
 
+  const macOf = (value: string | undefined) => (value || "").toLowerCase().replace(/[^a-f0-9]/g, "");
+  const bound = macOf(voucher.boundMac);
+  const here = macOf(station);
+  // A used voucher belongs to the first phone. Nobody else can use that code.
+  if ((voucher.status === "Used" || !!voucher.activatedAtMs) && bound && here && bound !== here) {
+    return { ok: false, reason: "This voucher has already been used." };
+  }
+  if ((voucher.status === "Used" || !!voucher.activatedAtMs) && bound && !here) {
+    return { ok: false, reason: "This voucher has already been used." };
+  }
+
   const pkg: Pkg | null = findPackageByName(voucher.packageName);
   const total = pkg ? packageSeconds(pkg) : 24 * 3600;
   const expires = calendar ? voucher.expiresAtMs ?? now + total * 1000 : now + (limitBy === "data" ? 30 * 86400 : total) * 1000;
@@ -137,7 +148,7 @@ export function decide(
   const used = Math.max(usedBytes(voucher.code), voucher.bytesUsed ?? 0);
   if (cap !== null && used >= cap) return { ok: false, reason: "Your data is finished." };
 
-  const devices = pkg?.devices && pkg.devices > 0 ? pkg.devices : 1;
+  const devices = pkg?.devices && pkg.devices > 1 ? Math.floor(pkg.devices) : 1;
   const open = openSessions(voucher.code, now);
   const alreadyThisDevice = !!station && open.some((s) => s.callingStation === station);
   if (!alreadyThisDevice && open.length >= devices) return { ok: false, reason: `This voucher is already in use on ${devices} device${devices === 1 ? "" : "s"}.` };
@@ -152,9 +163,12 @@ export function decide(
   };
 }
 
-/** First successful login starts the clock. */
-function activate(voucher: Vch, now = Date.now()) {
-  if (voucher.activatedAtMs) return;
+/** First successful login starts the clock and locks the voucher to that phone. */
+function activate(voucher: Vch, station?: string, now = Date.now()) {
+  if (voucher.activatedAtMs) {
+    if (!voucher.boundMac && station) updateVoucher(voucher.code, { boundMac: station });
+    return;
+  }
   const pkg = findPackageByName(voucher.packageName);
   const seconds = pkg ? packageSeconds(pkg) : 24 * 3600;
   const calendar = voucherUsesCalendar(voucher);
@@ -163,6 +177,7 @@ function activate(voucher: Vch, now = Date.now()) {
     ...(calendar ? { expiresAtMs: now + seconds * 1000 } : {}),
     status: "Used",
     usedAtMs: voucher.usedAtMs ?? now,
+    ...(station ? { boundMac: station } : {}),
   });
 }
 
@@ -287,7 +302,7 @@ function serveAccess(
   const decision = decide(voucher, proof, station);
   if (!decision.ok) return reject(decision.reason);
 
-  activate(voucher!);
+  activate(voucher!, station);
   const attrs: Attr[] = [
     attr(A.SessionTimeout, decision.seconds),
     attr(A.AcctInterim, decision.interim),

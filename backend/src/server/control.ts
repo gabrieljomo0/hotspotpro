@@ -53,7 +53,7 @@ function hotspotLines(router: Row): string[] {
   }
   const lines = [
     `:do { /ip hotspot enable [find where name=hotspotpro] } on-error={ }`,
-    `:do { /ip hotspot set [find where name=hotspotpro] disabled=no addresses-per-mac=4 } on-error={ }`,
+    `:do { /ip hotspot set [find where name=hotspotpro] disabled=no addresses-per-mac=1 } on-error={ }`,
     // A phone that uses 8.8.8.8 never hits the login page. Keep every customer DNS query on this router.
     `:do { :local a ""; :do { :set a [/ip address get [find where interface=hotspotpro-bridge comment="HotspotPro"] address] } on-error={ }; :if ([:len $a] > 0) do={ :local g [:pick $a 0 [:find $a "/"]]; /ip dhcp-server network set [find where comment="HotspotPro"] dns-server=$g gateway=$g } } on-error={ }`,
     `:do { :if ([:len [/ip firewall nat find where comment="HotspotPro DNS"]] = 0) do={ /ip firewall nat add chain=dstnat in-interface=hotspotpro-bridge protocol=udp dst-port=53 action=redirect to-ports=53 comment="HotspotPro DNS"; /ip firewall nat add chain=dstnat in-interface=hotspotpro-bridge protocol=tcp dst-port=53 action=redirect to-ports=53 comment="HotspotPro DNS" } } on-error={ }`,
@@ -139,8 +139,8 @@ export function controlScript(token: string, origin?: string): string | null {
       `:global hpMiss 0`,
       `:do { /ip firewall raw disable [find where comment="${ACCESS_LOCK}"] } on-error={ }`,
       // No open free session. The chosen mode is the only way a voucher gets online.
-      `:do { /ip hotspot profile set [find where name=hotspotpro] login-by=http-pap,http-chap,mac-cookie trial-uptime-limit=0s use-radius=${local ? "no" : "yes"} } on-error={ }`,
-      `:do { /ip hotspot user profile set [find where name=default] mac-cookie-timeout=1d keepalive-timeout=none } on-error={ }`,
+      `:do { /ip hotspot profile set [find where name=hotspotpro] login-by=mac,http-chap,http-pap,mac-cookie trial-uptime-limit=0s use-radius=${local ? "no" : "yes"} } on-error={ }`,
+      `:do { /ip hotspot user profile set [find where name=default] shared-users=1 session-timeout=0s idle-timeout=none keepalive-timeout=none mac-cookie-timeout=1d } on-error={ }`,
       `:do { /system clock set time-zone-name=Africa/Accra } on-error={ }`,
       `:do { :if ([:len [/ip firewall mangle find where comment="HotspotPro tethering"]] = 0) do={ /ip firewall mangle add chain=postrouting action=change-ttl new-ttl=set:1 passthrough=yes out-interface=hotspotpro-bridge comment="HotspotPro tethering" } } on-error={ }`,
     );
@@ -162,7 +162,7 @@ export function controlScript(token: string, origin?: string): string | null {
     lines.push(
       `:do { :if ([:len [/ip firewall nat find where comment="HotspotPro NAT"]] = 0) do={ /ip firewall nat add chain=srcnat out-interface=${wan} action=masquerade comment="HotspotPro NAT" } } on-error={ }`,
       `:do { /ip dns set allow-remote-requests=yes } on-error={ }`,
-      `:do { /ip hotspot set [find where name=hotspotpro] addresses-per-mac=4 } on-error={ }`,
+      `:do { /ip hotspot set [find where name=hotspotpro] addresses-per-mac=1 } on-error={ }`,
       ...hotspotLines(router),
       ...managementLines(token),
       ...remoteWinboxLines(router.remoteAccessHold !== true, origin ?? "", token, router.adminFromWan !== false, router.wanInterface || "ether1"),

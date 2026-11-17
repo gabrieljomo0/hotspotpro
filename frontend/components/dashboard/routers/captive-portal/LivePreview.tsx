@@ -237,8 +237,8 @@ export function LivePreview({
       setError("This voucher has expired.");
       return;
     }
-    if (voucher.status === "Used" && !activated.includes(typed)) {
-      setError("This voucher has already been used on another device.");
+    if (voucher.status === "Used") {
+      setError("This voucher has already been used.");
       return;
     }
     setActivated((list) => (list.includes(typed) ? list : [...list, typed]));

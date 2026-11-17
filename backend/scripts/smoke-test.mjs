@@ -91,14 +91,15 @@ try {
   check("an unknown router token is refused", (await fetch(base + "/api/provision/not-a-real-token/control")).status === 404);
   await send("PUT", "/api/state/vouchers", { value: [{ code: "AMATEST1", password: null, packageName: "Ama Daily", status: "Available" }] }, amaCookie);
   const cloudCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
-  check("with no RADIUS server a paid voucher is copied onto the router", cloudCtl.includes("use-radius=no") && cloudCtl.includes('name="AMATEST1"') && cloudCtl.includes("limit-uptime=1d") && cloudCtl.includes("session-timeout=0s") && cloudCtl.includes("keepalive-timeout=none") && cloudCtl.includes("mac-cookie-timeout=1d"), cloudCtl.slice(0, 500));
+  check("with no RADIUS server a paid voucher is copied onto the router", cloudCtl.includes("use-radius=no") && cloudCtl.includes('name="AMATEST1"') && cloudCtl.includes("limit-uptime=1d") && cloudCtl.includes("session-timeout=0s") && cloudCtl.includes("keepalive-timeout=none") && cloudCtl.includes("mac-cookie-timeout=1d") && cloudCtl.includes("shared-users=1"), cloudCtl.slice(0, 500));
   check("remote WinBox is ready on check-in", cloudCtl.includes('comment="HotspotPro remote WinBox"') && cloudCtl.includes("back-to-home-vpn=enabled") && cloudCtl.includes("ddns-enabled=yes"));
+  check("hotspot login includes MAC and one device per MAC", cloudCtl.includes("login-by=mac,http-chap,http-pap,mac-cookie") && cloudCtl.includes("addresses-per-mac=1") && cloudCtl.includes("mac-address=$m"), cloudCtl.slice(0, 800));
   await fetch(base + "/api/provision/tok-ama-12345678/control?cpu=1&free=1&total=2&users=AMATEST1");
   const afterUse = await json(await send("GET", "/api/state", undefined, amaCookie));
   const used = (afterUse.docs?.vouchers?.value ?? []).find((v) => v.code === "AMATEST1");
   check("the voucher clock starts when the customer gets online", used?.status === "Used" && typeof used?.activatedAtMs === "number" && used.expiresAtMs > Date.now(), JSON.stringify(used));
   const again = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
-  check("the same voucher stays on the router so they can reconnect", again.includes('name="AMATEST1"') && again.includes("limit-uptime=1d") && again.includes("limit-bytes-total=0"));
+  check("the first phone keeps the voucher and other phones are locked out", again.includes('name="AMATEST1"') && again.includes("limit-uptime=1d") && again.includes("limit-bytes-total=0") && again.includes("mac-address=$m"));
   const kept = (await json(await send("GET", "/api/state", undefined, amaCookie))).docs?.vouchers?.value ?? [];
   await send("PUT", "/api/state/vouchers", { value: [...kept, { code: "USEONLY1", password: null, packageName: "Ama Daily", status: "Available", countFrom: "usage", limitBy: "days" }, { code: "DATAONLY1", password: null, packageName: "Ama Daily", status: "Available", countFrom: "signin", limitBy: "data" }] }, amaCookie);
   const choiceCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();

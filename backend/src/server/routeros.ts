@@ -443,16 +443,17 @@ export function buildProvisionScript(input: {
     const useCloud = router.loginMode === "cloud" && !!radius;
     say("Creating the hotspot server...");
     const loginName = loginDnsFromName(router.name, router.dnsName);
-    safe(`/ip hotspot profile add name=hotspotpro hotspot-address=${plan.gateway} dns-name=${q(loginName)} login-by=http-pap,http-chap,mac-cookie trial-uptime-limit=0s${useCloud ? " use-radius=yes radius-accounting=yes radius-interim-update=1m" : " use-radius=no"} html-directory=$hpDir`, false, "Hotspot profile created");
+    safe(`/ip hotspot profile add name=hotspotpro hotspot-address=${plan.gateway} dns-name=${q(loginName)} login-by=mac,http-chap,http-pap,mac-cookie trial-uptime-limit=0s${useCloud ? " use-radius=yes radius-accounting=yes radius-interim-update=1m" : " use-radius=no"} html-directory=$hpDir`, false, "Hotspot profile created");
     safe(`/ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no`, false, "Hotspot server created");
-    safe(`/ip hotspot set [find where name=hotspotpro] disabled=no addresses-per-mac=4`, true);
+    // One phone per MAC. Shared users stay at 1 unless a package on the site says more.
+    safe(`/ip hotspot set [find where name=hotspotpro] disabled=no addresses-per-mac=1`, true);
     safe(`/ip dns static remove [find where comment="HotspotPro login"]`, true);
     safe(`/ip dns static add name=${q(loginName)} address=${plan.gateway} comment="HotspotPro login"`, true, "Login name points at this router");
     safe(`/ip firewall nat remove [find where comment="HotspotPro DNS"]`, true);
     safe(`/ip firewall nat add chain=dstnat in-interface=hotspotpro-bridge protocol=udp dst-port=53 action=redirect to-ports=53 comment="HotspotPro DNS"`, false, "Customer DNS stays on this router");
     safe(`/ip firewall nat add chain=dstnat in-interface=hotspotpro-bridge protocol=tcp dst-port=53 action=redirect to-ports=53 comment="HotspotPro DNS"`, true);
     say("Creating hotspot user profiles...");
-    safe(`/ip hotspot user profile set [find where name=default] mac-cookie-timeout=1d keepalive-timeout=none`, false, "Default profile mac-cookie-timeout set to 1d");
+    safe(`/ip hotspot user profile set [find where name=default] shared-users=1 session-timeout=0s idle-timeout=none keepalive-timeout=none mac-cookie-timeout=1d`, false, "Default profile allows one device");
     if (radius) {
       say("Configuring RADIUS login...");
       // RouterOS asks this server whether each voucher may get online (time, data and speed limits come back in the answer).
