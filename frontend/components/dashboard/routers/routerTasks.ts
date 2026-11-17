@@ -76,7 +76,7 @@ export const ROUTER_TASKS: Record<RouterTaskKind, RouterTaskDef> = {
     success: "services are hardened. Telnet, FTP and API-SSL are off. WinBox stays available on the admin port.",
   },
   winbox: {
-    title: "Regenerate WinBox address",
+    title: "Refresh WinBox access",
     confirm: "This limits WinBox to the admin computer on 192.168.88.1. It does not create a public address.",
     needsReachable: true,
     steps: ["Connecting to the router", "Closing the old remote port", "Opening a new remote port", "Testing the new address"],

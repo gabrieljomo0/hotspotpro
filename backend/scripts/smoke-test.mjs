@@ -244,6 +244,9 @@ try {
   const remoteJob = await send("POST", "/api/routers/jobs", { ip: "10.0.0.1", action: "remote-winbox" }, amaCookie);
   const remoteBody = (await json(remoteJob)).job;
   check("remote WinBox action is queued for the router", remoteJob.status === 200 && remoteBody?.script?.includes("hotspotpro-action:remote-winbox") && remoteBody.script.includes("back-to-home-vpn=enabled"), remoteBody?.script?.slice(0, 300));
+  const refreshJob = await send("POST", "/api/routers/jobs", { ip: "10.0.0.1", action: "winbox" }, amaCookie);
+  const refreshBody = (await json(refreshJob)).job;
+  check("Regenerate WinBox keeps remote access when it is on", refreshJob.status === 200 && refreshBody?.script?.includes("back-to-home-vpn=enabled") && refreshBody.script.includes("0.0.0.0/0"), refreshBody?.script?.slice(0, 300));
   const wanJob = await send("POST", "/api/routers/jobs", {
     ip: "10.0.0.1",
     action: "multiwan",

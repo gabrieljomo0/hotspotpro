@@ -1849,6 +1849,9 @@ function CaptivePortalPageInner() {
             if (buyerType === "self") {
               setBuyStage("connected");
               if (result.voucherUsername) routerLogin(result.voucherUsername, result.voucherPassword ?? result.voucherUsername);
+            } else if (buyerType === "device") {
+              // Package is locked to the TV MAC on the router; show success for that device.
+              setBuyStage("connected");
             } else {
               setBuyStage("voucher-sent");
             }

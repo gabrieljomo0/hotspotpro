@@ -346,13 +346,19 @@ export function useRouterState(
     const router = routers.find((r) => r.ip === ip);
     if (!router) return;
 
-    if (!isRouterReachable(ip)) {
-      showToast("Failed to regenerate WinBox address — unable to connect to router.");
-      return;
+    const remoteOn = router.remoteAccessHold !== true;
+    void fetch("/api/routers/jobs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ip, action: remoteOn ? "remote-winbox" : "winbox" }),
+    }).catch(() => {});
+    if (remoteOn) {
+      patchRouter(ip, { remoteAccessEnabled: true, remoteAccessHold: false }, "Remote WinBox refresh queued.");
+      showToast(`Refreshing remote WinBox for ${router.name}. The address updates on the next check-in.`);
+    } else {
+      patchRouter(ip, { winboxAddress: "192.168.88.1", remoteAccessEnabled: false, winboxReach: "lan" }, "WinBox limited to the admin port 192.168.88.1.");
+      showToast(`WinBox for ${router.name} stays on the admin port at 192.168.88.1.`);
     }
-
-    patchRouter(ip, { winboxAddress: "192.168.88.1", remoteAccessEnabled: true }, "WinBox limited to the admin port 192.168.88.1.");
-    showToast(`WinBox for ${router.name} is 192.168.88.1 on the admin port.`);
     logActivity("Router", `Regenerated WinBox address for ${router.name}.`);
   }
 

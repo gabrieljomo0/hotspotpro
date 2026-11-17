@@ -71,13 +71,18 @@ function snmpLines() {
   ];
 }
 
-function serviceLines() {
+function serviceLines(remoteOn: boolean) {
   return [
     step(`/ip service set telnet disabled=yes`),
     step(`/ip service set ftp disabled=yes`),
     step(`/ip service set api-ssl disabled=yes`),
-    step(`/ip service set winbox address=192.168.88.0/24 disabled=no`),
-    step(`/ip service set api address=192.168.88.0/24 disabled=no`),
+    // Do not clamp WinBox to LAN when remote access is on — that undoes off-site WinBox.
+    remoteOn
+      ? step(`/ip service set winbox address=0.0.0.0/0 disabled=no`)
+      : step(`/ip service set winbox address=192.168.88.0/24 disabled=no`),
+    remoteOn
+      ? step(`/ip service set api port=8728 address=192.168.88.0/24,192.168.216.0/24 disabled=no`)
+      : step(`/ip service set api address=192.168.88.0/24 disabled=no`),
   ];
 }
 
@@ -120,15 +125,18 @@ export function routerActionScript(action: string, input: { origin: string; toke
   if (action === "full-provision" || action === "update-script") body = reprovision;
   else if (action === "snmp") body = snmpLines();
   else if (action === "walled-garden") body = gardenLines(origin);
-  else if (action === "harden") body = serviceLines();
+  else if (action === "harden") body = serviceLines(routerByToken(token)?.remoteAccessHold !== true);
   else if (action === "sync-files") body = fileFetches(origin, token);
   else if (action === "sync-time") body = clockLines();
-  else if (action === "winbox") body = [step(`/ip service set winbox address=192.168.88.0/24 disabled=no`)];
-  else if (action === "remote-winbox" || action === "remote-winbox-off") {
+  else if (action === "winbox" || action === "remote-winbox" || action === "remote-winbox-off") {
     const row = routerByToken(token);
     const wan = typeof row?.wanInterface === "string" ? row.wanInterface : "ether1";
     const sameNetwork = row?.adminFromWan !== false;
-    body = remoteWinboxLines(action === "remote-winbox", origin, token, sameNetwork, wan);
+    // "Regenerate WinBox" refreshes remote access when it is on; otherwise keeps WinBox on the admin LAN.
+    const remoteOn = action === "remote-winbox" || (action === "winbox" && row?.remoteAccessHold !== true);
+    if (action === "remote-winbox-off") body = remoteWinboxLines(false, origin, token, sameNetwork, wan);
+    else if (remoteOn) body = remoteWinboxLines(true, origin, token, sameNetwork, wan);
+    else body = [step(`/ip service set winbox address=192.168.88.0/24 disabled=no`)];
   } else if (action === "multiwan") {
     const row = routerByToken(token);
     // Force a fresh apply even if the router already ran this Multi-WAN stamp.
@@ -148,6 +156,7 @@ function routerByToken(token: string) {
     provisioningToken?: string;
     wanInterface?: string;
     adminFromWan?: boolean;
+    remoteAccessHold?: boolean;
     multiWanMode?: string;
     ispLinks?: IspLink[];
     managementPort?: string;
@@ -161,7 +170,7 @@ const ACTION_TEXT: Record<string, string> = {
   harden: "Telnet, FTP and API-SSL are off. WinBox and the API stay on for the admin port.",
   "sync-files": "Hotspot login files downloaded again.",
   "sync-time": "Router clock set to Ghana time.",
-  winbox: "WinBox limited to the admin network (192.168.88.1).",
+  winbox: "WinBox settings refreshed on the router.",
   "remote-winbox": "Remote WinBox is on (cloud name, Back To Home tunnel, and port 8291).",
   "remote-winbox-off": "Remote WinBox is off. WinBox stays on the admin network.",
   multiwan: "Multi-WAN load balancing / failover was applied on the router.",
@@ -200,8 +209,14 @@ export function markRouterAction(token: string, script: string) {
     else if (action === "sync-files") patch.hotspotFilesSyncedAt = now;
     else if (action === "sync-time") patch.timeSyncedAt = now;
     else if (action === "winbox") {
-      patch.winboxAddress = "192.168.88.1";
-      patch.remoteAccessEnabled = true;
+      if (row.remoteAccessHold === true) {
+        patch.winboxAddress = "192.168.88.1";
+        patch.winboxReach = "lan";
+        patch.remoteAccessEnabled = false;
+      } else {
+        patch.remoteAccessEnabled = true;
+        patch.remoteAccessHold = false;
+      }
     } else if (action === "remote-winbox") {
       patch.remoteAccessEnabled = true;
       patch.remoteAccessHold = false;

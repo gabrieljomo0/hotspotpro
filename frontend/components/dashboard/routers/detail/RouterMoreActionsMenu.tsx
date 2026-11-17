@@ -97,7 +97,7 @@ export function RouterMoreActionsMenu({
         onClick={() => { onClose(); startRouterTask("winbox", router.ip); }}
         className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#525252] hover:bg-[#f4f4f4]"
       >
-        <RefreshCcw size={14} /> Regenerate winbox
+        <RefreshCcw size={14} /> Refresh WinBox
       </button>
       <button
         type="button"

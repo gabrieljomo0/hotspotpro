@@ -92,7 +92,7 @@ export function RouterActionsMenu({
         className={itemClass}
         onClick={() => run(() => startRouterTask("winbox", router.ip))}
       >
-        <KeyRound size={14} className="text-[#1a1a1a]" /> Regenerate winbox
+        <KeyRound size={14} className="text-[#1a1a1a]" /> Refresh WinBox
       </button>
 
       <button
