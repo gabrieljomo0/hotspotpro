@@ -4,7 +4,7 @@
 // WinBox to this router from another location (cloud name or WireGuard tunnel).
 
 import { useEffect, useMemo, useState } from "react";
-import { Copy, Download, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { Copy, Loader2, Plus, RefreshCw, Trash2 } from "lucide-react";
 
 import { useDashboard } from "@/components/dashboard/context/DashboardContext";
 import type { RouterInfo, RouterISPLink } from "@/components/dashboard/data/dashboard-data";
@@ -43,15 +43,23 @@ export function MultiWanTab({ router }: { router: RouterInfo }) {
   const [savedMode, setSavedMode] = useState(wanMode);
   const [savedLinks, setSavedLinks] = useState(ispLinks);
   const [applying, setApplying] = useState(false);
+  const [prepareStatus, setPrepareStatus] = useState<"idle" | "preparing" | "ready" | "timeout">("idle");
   const dirty = useMemo(
     () => wanMode !== savedMode || JSON.stringify(ispLinks) !== JSON.stringify(savedLinks),
     [wanMode, savedMode, ispLinks, savedLinks],
   );
+  const remoteOn = router.remoteAccessEnabled !== false && router.remoteAccessHold !== true;
 
   useEffect(() => {
     if (needsDefaults) updateMultiWanConfig(router.ip, wanMode, ispLinks, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (prepareStatus !== "preparing") return;
+    if (router.winboxReach === "direct" && router.winboxAddress) setPrepareStatus("ready");
+    else if (router.wireguardConfig) setPrepareStatus("ready");
+  }, [prepareStatus, router.winboxReach, router.winboxAddress, router.wireguardConfig]);
 
   function addIspLink() {
     if (ispLinks.length === 1 && wanMode === "Single WAN") setWanMode(DEFAULT_WAN_MODE);
@@ -87,13 +95,14 @@ export function MultiWanTab({ router }: { router: RouterInfo }) {
       }
       setSavedMode(wanMode);
       setSavedLinks(ispLinks);
-      showToast("Multi-WAN saved and sent to the router. It applies on the next check-in (~10 seconds).");
+      setPrepareStatus("preparing");
+      showToast("Multi-WAN saved. Preparing remote WinBox automatically…");
+      if (!remoteOn) toggleRemoteAccess(router.ip, true);
+      else regenerateWinboxAddress(router.ip);
     } finally {
       setApplying(false);
     }
   }
-
-  const remoteOn = router.remoteAccessEnabled !== false && router.remoteAccessHold !== true;
   const connectHost =
     remoteOn && router.winboxReach === "direct" && router.winboxAddress
       ? router.winboxAddress.replace(/:8291$/, "")
@@ -114,29 +123,14 @@ export function MultiWanTab({ router }: { router: RouterInfo }) {
       await navigator.clipboard.writeText(connectHost);
       showToast(
         remoteOn && router.winboxReach === "direct"
-          ? `Copied ${connectHost}. Open WinBox → Connect To → paste that address → login with the admin password.`
+          ? `Copied ${connectHost}. Open WinBox → Connect To → paste → admin password.`
           : remoteOn
-            ? "Copied 192.168.216.1. Import the WireGuard file first, turn the tunnel on, then open WinBox to that address."
-            : "Copied 192.168.88.1. Enable Remote WinBox below to reach this router from another location.",
+            ? "Copied 192.168.216.1. Open WinBox after the tunnel file activates."
+            : "Copied 192.168.88.1. Enable Remote WinBox to reach this router from another location.",
       );
     } catch {
       showToast(`WinBox address: ${connectHost}`);
     }
-  }
-
-  function downloadTunnel() {
-    if (!router.wireguardConfig) {
-      showToast("Tunnel file is not ready yet. Enable Remote WinBox and wait for the next check-in.");
-      return;
-    }
-    const blob = new Blob([router.wireguardConfig], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${router.name}-winbox.conf`;
-    link.click();
-    URL.revokeObjectURL(url);
-    showToast("Tunnel downloaded. Import into WireGuard, activate it, then open WinBox to 192.168.216.1.");
   }
 
   return (
@@ -147,8 +141,8 @@ export function MultiWanTab({ router }: { router: RouterInfo }) {
       >
         <h3 className="text-base font-bold text-[#1a1a1a]">Remote WinBox</h3>
         <p className="mt-1 text-sm text-[#737373]">
-          Open WinBox from anywhere to this router — a shop across town, another city, or any site on your account.
-          Each router has its own address or tunnel.
+          Enable Remote WinBox or Apply Multi-WAN — the tunnel file and WinBox address are prepared automatically
+          after the router checks in. Each site keeps its own connection.
         </p>
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -159,24 +153,44 @@ export function MultiWanTab({ router }: { router: RouterInfo }) {
           >
             {remoteOn ? "Remote access on" : "Remote access off"}
           </span>
+          {prepareStatus === "preparing" && (
+            <span data-testid="multiwan-winbox-preparing" className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#525252]">
+              <Loader2 size={14} className="animate-spin" /> Preparing connection…
+            </span>
+          )}
+          {prepareStatus === "ready" && (
+            <span data-testid="multiwan-winbox-ready" className="text-xs font-semibold text-[#111111]">
+              Ready — details delivered
+            </span>
+          )}
           <p className="font-mono text-sm font-semibold text-[#1a1a1a]">{connectLabel}</p>
         </div>
 
         <p className="mt-3 text-sm text-[#525252]">
-          {remoteOn && router.winboxReach === "direct"
-            ? "This router has a public path. Open the WinBox app on your PC, paste the address above, and sign in with the admin password."
-            : remoteOn && router.wireguardConfig
-              ? "This router is behind another modem. Download the WireGuard file, import and activate the tunnel on your PC, then open WinBox to 192.168.216.1."
-              : remoteOn
-                ? "Remote WinBox is on. The router is preparing a cloud name or WireGuard tunnel on the next check-in (~10 seconds). Refresh if the address stays empty."
-                : "Turn Remote WinBox on so you can manage this router from a different location."}
+          {prepareStatus === "preparing"
+            ? "Waiting for this router’s check-in. The public address or WireGuard tunnel will download by itself."
+            : remoteOn && router.winboxReach === "direct"
+              ? "Public path ready. WinBox address was copied — paste it in WinBox Connect To."
+              : remoteOn && router.wireguardConfig
+                ? "Behind another modem: the WireGuard tunnel file was downloaded automatically and 192.168.216.1 was copied for WinBox."
+                : remoteOn
+                  ? "Remote WinBox is on. Connection details arrive automatically on the next check-in."
+                  : "Turn Remote WinBox on (or Apply Multi-WAN) to prepare access from another location automatically."}
         </p>
 
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
             data-testid="multiwan-winbox-toggle"
-            onClick={() => toggleRemoteAccess(router.ip, !remoteOn)}
+            onClick={() => {
+              if (remoteOn) {
+                setPrepareStatus("idle");
+                toggleRemoteAccess(router.ip, false);
+              } else {
+                setPrepareStatus("preparing");
+                toggleRemoteAccess(router.ip, true);
+              }
+            }}
             className="rounded-xl bg-[#1a1a1a] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#111111]"
           >
             {remoteOn ? "Turn remote off" : "Enable Remote WinBox"}
@@ -193,20 +207,13 @@ export function MultiWanTab({ router }: { router: RouterInfo }) {
             <button
               type="button"
               data-testid="multiwan-winbox-refresh"
-              onClick={() => regenerateWinboxAddress(router.ip)}
+              onClick={() => {
+                setPrepareStatus("preparing");
+                regenerateWinboxAddress(router.ip);
+              }}
               className="inline-flex items-center gap-2 rounded-xl border border-[#e6e6e6] bg-white px-4 py-2.5 text-sm font-bold text-[#1a1a1a] hover:bg-[#f4f4f4]"
             >
               <RefreshCw size={15} /> Refresh connection
-            </button>
-          )}
-          {remoteOn && router.wireguardConfig && (
-            <button
-              type="button"
-              data-testid="multiwan-winbox-wg"
-              onClick={downloadTunnel}
-              className="inline-flex items-center gap-2 rounded-xl border border-[#e6e6e6] bg-white px-4 py-2.5 text-sm font-bold text-[#1a1a1a] hover:bg-[#f4f4f4]"
-            >
-              <Download size={15} /> Download WireGuard file
             </button>
           )}
         </div>

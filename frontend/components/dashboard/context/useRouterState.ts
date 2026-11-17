@@ -337,19 +337,32 @@ export function useRouterState(
     if (!router) return;
 
     const remoteOn = router.remoteAccessHold !== true;
-    void fetch("/api/routers/jobs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ip, action: remoteOn ? "remote-winbox" : "winbox" }),
-    }).catch(() => {});
-    if (remoteOn) {
-      patchRouter(ip, { remoteAccessEnabled: true, remoteAccessHold: false }, "Remote WinBox refresh queued.");
-      showToast(`Refreshing remote WinBox for ${router.name}. The address updates on the next check-in.`);
-    } else {
+    if (!remoteOn) {
+      void fetch("/api/routers/jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ip, action: "winbox" }),
+      }).catch(() => {});
       patchRouter(ip, { winboxAddress: "192.168.88.1", remoteAccessEnabled: false, winboxReach: "lan" }, "WinBox limited to the admin port 192.168.88.1.");
       showToast(`WinBox for ${router.name} stays on the admin port at 192.168.88.1.`);
+      logActivity("Router", `Regenerated WinBox address for ${router.name}.`);
+      return;
     }
+
+    patchRouter(ip, { remoteAccessEnabled: true, remoteAccessHold: false }, "Remote WinBox refresh queued.");
     logActivity("Router", `Regenerated WinBox address for ${router.name}.`);
+    void import("../routers/autoRemoteWinbox").then(({ autoPrepareRemoteWinbox }) =>
+      autoPrepareRemoteWinbox({
+        ip,
+        name: router.name,
+        force: true,
+        queueJob: true,
+        patchRouter: (target, patch) => {
+          setRouters((current) => current.map((r) => (r.ip === target ? { ...r, ...patch } : r)));
+        },
+        showToast,
+      }),
+    );
   }
 
   function syncHotspotFiles(ip: string) {
@@ -389,15 +402,15 @@ export function useRouterState(
         link.download = `${router.name}-winbox.conf`;
         link.click();
         URL.revokeObjectURL(url);
-        showToast("Tunnel file downloaded. Import it into WireGuard, then connect the WinBox app to 192.168.216.1.");
+        showToast("Tunnel file downloaded. WinBox address is 192.168.216.1 after WireGuard activates it.");
         logActivity("Router", `Downloaded the WireGuard tunnel for ${router.name}.`);
         return;
       }
       const address = router.winboxReach === "direct" && router.winboxAddress ? router.winboxAddress : "192.168.88.1";
       void navigator.clipboard?.writeText(address);
       showToast(router.remoteAccessEnabled
-        ? `Copied ${address}. The tunnel file appears here after the router checks in.`
-        : `Copied ${address}. Enable remote access from More Actions to open WinBox from outside.`);
+        ? `Copied ${address}. Enable or refresh Remote WinBox to prepare the tunnel automatically.`
+        : `Copied ${address}. Enable Remote WinBox to prepare a remote connection automatically.`);
       logActivity("Router", `Copied the WinBox address for ${router.name}.`);
       return;
     }
@@ -496,17 +509,31 @@ export function useRouterState(
           : r,
       ),
     );
-    void fetch("/api/routers/jobs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ip, action: next ? "remote-winbox" : "remote-winbox-off" }),
-    }).catch(() => {});
-    showToast(
-      next
-        ? `Remote WinBox is on for ${router.name}. The router opens WinBox, its cloud name and the Back To Home tunnel within about 10 seconds. Connect with the address shown on this page once it appears.`
-        : `Remote WinBox is off for ${router.name}. WinBox stays on the admin port at 192.168.88.1.`,
+    if (!next) {
+      void fetch("/api/routers/jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ip, action: "remote-winbox-off" }),
+      }).catch(() => {});
+      showToast(`Remote WinBox is off for ${router.name}. WinBox stays on the admin port at 192.168.88.1.`);
+      logActivity("Router", `Disabled remote WinBox for ${router.name}.`);
+      return;
+    }
+
+    logActivity("Router", `Enabled remote WinBox for ${router.name}.`);
+    // Job + tunnel/address delivery are handled automatically (no manual download step).
+    void import("../routers/autoRemoteWinbox").then(({ autoPrepareRemoteWinbox }) =>
+      autoPrepareRemoteWinbox({
+        ip,
+        name: router.name,
+        force: true,
+        queueJob: true,
+        patchRouter: (target, patch) => {
+          setRouters((current) => current.map((r) => (r.ip === target ? { ...r, ...patch } : r)));
+        },
+        showToast,
+      }),
     );
-    logActivity("Router", `${next ? "Enabled" : "Disabled"} remote WinBox for ${router.name}.`);
   }
 
   function updateConnectionMode(ip: string, mode: RouterInfo["connectionMode"]) {
