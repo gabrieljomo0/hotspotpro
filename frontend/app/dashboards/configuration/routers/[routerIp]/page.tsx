@@ -35,6 +35,8 @@ import { MultiWanTab } from "@/components/dashboard/routers/detail/MultiWanTab";
 import { AdvancedTab } from "@/components/dashboard/routers/detail/AdvancedTab";
 import { RouterMoreActionsMenu } from "@/components/dashboard/routers/detail/RouterMoreActionsMenu";
 import { RouterConfirmDialog, type ConfirmDialogState } from "@/components/dashboard/routers/detail/RouterConfirmDialog";
+import { useRouterControl } from "@/components/dashboard/routers/useRouterControl";
+import { routerLiveStatus } from "@/components/dashboard/routers/routerLiveStatus";
 
 // A rarely-opened settings popup — loaded only when actually needed.
 const NotificationContactsModal = dynamic(
@@ -55,6 +57,7 @@ function RouterDetailPageInner({
   const searchParams = useSearchParams();
 
   const { routers, routerEnabled, agents, users, startRouterTask, businessLocations } = useDashboard();
+  const { control } = useRouterControl(decodedIp, 5000);
   const router = routers.find((r) => r.ip === decodedIp);
 
   const setupDone = searchParams.get("setup") === "done";
@@ -98,7 +101,8 @@ function RouterDetailPageInner({
     );
   }
 
-  const isEnabled = routerEnabled[router.ip] ?? router.status === "Online";
+  const live = routerLiveStatus(router, control[router.ip], routerEnabled);
+  const isEnabled = live === "Online";
 
   // A rough "who's connected to this router" and "which agents work here"
   // list, based on a consistent hash of each user/agent — see the shared
@@ -126,7 +130,7 @@ function RouterDetailPageInner({
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-black text-[#1a1a1a] md:text-3xl">{router.name}</h1>
           <span className={`rounded-full px-3 py-1 text-xs font-bold ${isEnabled ? "bg-[#f4f4f4] text-[#111111]" : "bg-red-100 text-red-700"}`}>
-            {isEnabled ? "Online" : "Offline"}
+            {live}
           </span>
           {site && (
             <Link

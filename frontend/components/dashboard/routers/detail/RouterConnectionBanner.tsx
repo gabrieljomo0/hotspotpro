@@ -94,7 +94,7 @@ export function RouterConnectionBanner({ router, onReconnect }: { router: Router
         </span>
         <WifiOff size={22} className="mt-0.5 shrink-0 text-[#1a1a1a]" />
         <div className="min-w-[240px] flex-1">
-          <p className="text-base font-black text-[#1a1a1a]">{lost ? "Router lost internet" : "Router disconnected — internet is cut"}</p>
+          <p className="text-base font-black text-[#1a1a1a]">{lost ? "Router offline" : "Router disconnected — internet is cut"}</p>
           <p className="text-sm">
             {lost
               ? `${router.name} hasn't contacted HotspotPro for ${indicator.since ? fmtDuration((tick - Date.parse(indicator.since)) / 1000) : "a while"} (last contact ${since}). It may have lost its internet connection or power, so customers on it are offline.`

@@ -12,6 +12,8 @@ import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Too
 
 import { useDashboard } from "@/components/dashboard/context/DashboardContext";
 import type { RouterInfo } from "@/components/dashboard/data/dashboard-data";
+import { useRouterControl } from "@/components/dashboard/routers/useRouterControl";
+import { routerLiveStatus } from "@/components/dashboard/routers/routerLiveStatus";
 
 const WARN_AT = 75;
 const OVERLOAD_AT = 90;
@@ -52,7 +54,9 @@ export function SystemInformationTab({
   isEnabled: boolean;
   connectedUserCount: number;
 }) {
-  const { showToast, updateRouterDetails } = useDashboard();
+  const { showToast, updateRouterDetails, routerEnabled } = useDashboard();
+  const { control } = useRouterControl(router.ip, 5000);
+  const live = routerLiveStatus(router, control[router.ip], routerEnabled);
   const [showPassword, setShowPassword] = useState(false);
   const [hotspotOn, setHotspotOn] = useState(router.hotspotEnabled);
   const [network, setNetwork] = useState(router.hotspotNetwork || "");
@@ -110,8 +114,8 @@ export function SystemInformationTab({
         </div>
         <div className="rounded-xl border border-[#f4f4f4] p-4">
           <p className="text-xs text-[#737373]">Router Status</p>
-          <p className={`text-xl font-black ${isEnabled ? "text-[#1a1a1a]" : "text-red-600"}`}>
-            {isEnabled ? "Online" : "Offline"}
+          <p className={`text-xl font-black ${live === "Online" ? "text-[#1a1a1a]" : "text-red-600"}`}>
+            {live}
           </p>
         </div>
       </div>
@@ -271,8 +275,8 @@ export function SystemInformationTab({
           <div className="rounded-xl border border-[#f4f4f4] p-4">
             <p className="text-xs text-[#737373]">Current Uptime</p>
             <p className="text-xl font-black text-[#1a1a1a]">{router.uptime || "Unknown"}</p>
-            <p className={`mt-1 text-xs font-semibold ${router.status === "Online" ? "text-emerald-600" : "text-[#737373]"}`}>
-              {router.status === "Online" ? "Online" : router.status || "Waiting"}
+            <p className={`mt-1 text-xs font-semibold ${live === "Online" ? "text-emerald-600" : "text-red-600"}`}>
+              {live}
             </p>
           </div>
         </div>

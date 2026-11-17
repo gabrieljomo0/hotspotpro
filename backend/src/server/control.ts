@@ -45,6 +45,7 @@ type Row = {
   ispLinks?: IspLink[];
   managementPort?: string;
   siteId?: string | null;
+  provisioningStatus?: string;
 };
 
 function managementLines(token: string): string[] {
@@ -338,20 +339,73 @@ export function controlStatus(routerIp: string, list: Row[] = rows()): ControlSt
   const token = router.provisioningToken ?? null;
   const last = token ? beatOf(token) : null;
   const quietFor = last ? Date.now() - Date.parse(last) : null;
+  // Provisioned but never checked in counts as offline for the dashboard.
+  const neverHeard = !!token && !last && router.provisioningStatus === "Provisioned";
   return {
     disconnected: !!router.disconnected,
     hasToken: !!token,
     hotspot: router.hotspotEnabled !== false,
     lastCheckInAt: last,
     enforced: quietFor !== null && quietFor < SILENT_MS,
-    lostSignal: quietFor !== null && quietFor >= SILENT_MS,
+    lostSignal: neverHeard || (quietFor !== null && quietFor >= SILENT_MS),
     outage: token ? outageOf(token) : null,
     setupPath: token ? `/api/provision/${token}/control-setup` : null,
   };
 }
 
+/**
+ * When a router stops asking for instructions (power/internet gone), mark it Offline
+ * on the saved router row so every status badge shows Offline — not stuck on Online.
+ * Admin Disconnect already sets Offline; check-in sets Online again when contact returns.
+ */
+export function syncRouterPresenceFromBeats(): void {
+  const value = getState("routers")?.value;
+  if (!Array.isArray(value)) return;
+  let changed = false;
+  const now = Date.now();
+  const next = (value as Record<string, unknown>[]).map((row) => {
+    if (!row || typeof row.provisioningToken !== "string" || !row.provisioningToken) return row;
+    if (row.disconnected === true) {
+      // Admin cut internet — stay Offline even while the router still checks in.
+      if (row.status !== "Offline") {
+        changed = true;
+        return { ...row, status: "Offline", health: "offline" };
+      }
+      return row;
+    }
+    const last = beatOf(row.provisioningToken);
+    const provisioned = row.provisioningStatus === "Provisioned";
+    if (!last) {
+      if (provisioned && row.status === "Online") {
+        changed = true;
+        return { ...row, status: "Offline", health: "offline", lastSeen: "No contact yet" };
+      }
+      return row;
+    }
+    const quiet = now - Date.parse(last);
+    if (!Number.isFinite(quiet)) return row;
+    if (quiet >= SILENT_MS) {
+      const minutes = Math.max(1, Math.round(quiet / 60000));
+      const lastSeen = `Offline · no contact for ${minutes}m`;
+      if (row.status !== "Offline" || row.health !== "offline" || row.lastSeen !== lastSeen) {
+        changed = true;
+        return { ...row, status: "Offline", health: "offline", lastSeen };
+      }
+      return row;
+    }
+    // In contact again — restore Online unless something else already did.
+    if (row.status === "Offline" && row.health === "offline") {
+      changed = true;
+      return { ...row, status: "Online", health: "ok", lastSeen: "Just now" };
+    }
+    return row;
+  });
+  if (changed) setState("routers", next, "router");
+}
+
 /** Every router at once, keyed by ip (the lists poll this). */
 export function allControlStatus(): Record<string, ControlStatus> {
+  syncRouterPresenceFromBeats();
   const list = rows();
   const out: Record<string, ControlStatus> = {};
   for (const r of list) {

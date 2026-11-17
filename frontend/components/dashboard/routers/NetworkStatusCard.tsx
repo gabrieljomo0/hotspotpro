@@ -11,6 +11,7 @@ import { PercentageBar } from "../shared/PercentageBar";
 import { RouterActionsMenu } from "./RouterActionsMenu";
 import { ConnectionBadge } from "./ConnectionBadge";
 import { useRouterControl } from "./useRouterControl";
+import { isRouterLiveOnline, routerLiveStatus } from "./routerLiveStatus";
 
 export function NetworkStatusCard({
   expanded = false,
@@ -39,7 +40,7 @@ export function NetworkStatusCard({
     openRouterActions(ip);
   }
 
-  const onlineCount = routers.filter((r) => routerEnabled[r.ip]).length;
+  const onlineCount = routers.filter((r) => isRouterLiveOnline(r, control[r.ip], routerEnabled)).length;
   const offlineCount = routers.length - onlineCount;
 
   return (
@@ -101,7 +102,8 @@ export function NetworkStatusCard({
 
           <tbody>
             {routers.map((router) => {
-              const online = router.status === "Online";
+              const live = routerLiveStatus(router, control[router.ip], routerEnabled);
+              const online = live === "Online";
 
               return (
                 <tr
@@ -126,10 +128,10 @@ export function NetworkStatusCard({
                       className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
                         online
                           ? "bg-[#f4f4f4] text-[#1a1a1a] "
-                          : "bg-[#f3f1ec] text-[#1a1a1a] "
+                          : "bg-red-100 text-red-700 "
                       }`}
                     >
-                      {routerEnabled[router.ip] ? "Online" : "Disabled"}
+                      {live}
                     </span>
                   </td>
 

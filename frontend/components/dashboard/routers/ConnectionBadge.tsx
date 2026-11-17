@@ -16,7 +16,7 @@ export function ConnectionBadge({
   const indicator = connectionIndicator(router, control, Date.now());
   if (!indicator) return null;
   const red = indicator.kind !== "back";
-  const label = indicator.kind === "lost" ? "Lost internet" : indicator.kind === "disconnected" ? "Disconnected" : "Back online";
+  const label = indicator.kind === "lost" ? "Offline" : indicator.kind === "disconnected" ? "Disconnected" : "Back online";
   return (
     <span
       data-testid="router-connection-badge"

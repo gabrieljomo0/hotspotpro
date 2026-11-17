@@ -11,6 +11,7 @@ import { BackLink } from "@/components/dashboard/shared/BackLink";
 import { RouterActionsMenu } from "@/components/dashboard/routers/RouterActionsMenu";
 import { ConnectionBadge } from "@/components/dashboard/routers/ConnectionBadge";
 import { useRouterControl } from "@/components/dashboard/routers/useRouterControl";
+import { isRouterLiveOnline, routerLiveStatus } from "@/components/dashboard/routers/routerLiveStatus";
 
 type StatusFilter = "All" | "Online" | "Offline" | "Pending" | "Error";
 
@@ -36,13 +37,13 @@ export default function RoutersPage() {
   const [deviceChooserOpen, setDeviceChooserOpen] = useState(false);
   const [menuRect, setMenuRect] = useState<DOMRect | null>(null);
 
-  const onlineCount = routers.filter((r) => routerEnabled[r.ip] ?? r.status === "Online").length;
+  const onlineCount = routers.filter((r) => isRouterLiveOnline(r, control[r.ip], routerEnabled)).length;
   const offlineCount = routers.length - onlineCount;
   const pendingCount = routers.filter((r) => r.provisioningStatus === "Pending").length;
   const errorCount = routers.filter((r) => !!r.lastError).length;
 
   const visibleRouters = routers.filter((router) => {
-    const isOnline = routerEnabled[router.ip] ?? router.status === "Online";
+    const isOnline = isRouterLiveOnline(router, control[router.ip], routerEnabled);
     const matchesStatus =
       statusFilter === "All" ||
       (statusFilter === "Online" && isOnline) ||
@@ -185,7 +186,8 @@ export default function RoutersPage() {
                 </tr>
               )}
               {visibleRouters.map((router) => {
-                const isOnline = routerEnabled[router.ip] ?? router.status === "Online";
+                const live = routerLiveStatus(router, control[router.ip], routerEnabled);
+                const isOnline = live === "Online";
                 const detailHref = `/dashboards/configuration/routers/${router.ip}`;
 
                 return (
@@ -223,7 +225,7 @@ export default function RoutersPage() {
                         }`}
                       >
                         <span className={`h-1.5 w-1.5 rounded-full ${isOnline ? "bg-[#1a1a1a]" : "bg-red-500"}`} />
-                        {isOnline ? "Online" : "Offline"}
+                        {live}
                       </span>
                     </td>
                     <td className="hidden px-4 py-4 lg:table-cell">

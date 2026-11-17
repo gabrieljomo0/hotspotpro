@@ -281,6 +281,14 @@ try {
   check("captive portal agent application is saved for the business", apply.status === 200 && applyBody.ok === true && applyBody.status === "Pending", JSON.stringify(applyBody));
   const agentsAfter = (await json(await send("GET", "/api/state", undefined, amaCookie))).docs?.agents?.value ?? [];
   check("admin sees the portal agent application", agentsAfter.some((a) => a.email === "portal-agent@example.com" && a.status === "Pending" && a.appliedViaPortal === true), JSON.stringify(agentsAfter.map((a) => a.email)));
+  await send("PUT", "/api/state/routers", { value: [{ ip: "10.0.0.1", name: "Ama Router", status: "Online", provisioningStatus: "Provisioned", provisioningToken: "tok-quiet-offline1", health: "ok", lastSeen: "Just now" }] }, amaCookie);
+  const quietCtl = await json(await send("GET", "/api/routers/control?ip=10.0.0.1", undefined, amaCookie));
+  check("a provisioned router with no check-in is reported as lost signal", quietCtl.lostSignal === true && quietCtl.hasToken === true, JSON.stringify(quietCtl));
+  const quietRow = (await json(await send("GET", "/api/state", undefined, amaCookie))).docs?.routers?.value?.find((r) => r.ip === "10.0.0.1");
+  check("router status flips to Offline when the system has no contact", quietRow?.status === "Offline" && quietRow?.health === "offline", JSON.stringify(quietRow));
+  // Restore Ama's live token for the rest of the suite.
+  await send("PUT", "/api/state/routers", { value: [{ ip: "10.0.0.1", name: "Ama Router", status: "Online", provisioningToken: "tok-ama-12345678", provisioningStatus: "Provisioned" }] }, amaCookie);
+  await fetch(base + "/api/provision/tok-ama-12345678/control");
 
   // ---- super admin powers; others are kept out ----
   check("a business cannot open the super admin area", (await send("GET", "/api/super/overview", undefined, amaCookie)).status === 403);
