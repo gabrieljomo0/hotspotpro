@@ -163,6 +163,10 @@ try {
   await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], wanInterface: "ether1", managementPort: "ether1" }] }, amaCookie);
   const scriptM2 = await (await fetch(base + "/api/provision/tok-ama-12345678")).text();
   check("the ISP port can never be the admin port", !scriptM2.includes("bridge=hotspotpro-admin interface=ether1") && !scriptM2.includes("Admin port ether1"));
+  await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], pppoeEnabled: true, pppoeNetwork: "192.168.91.0/24", routerType: "New Router" }] }, amaCookie);
+  const scriptPpp = await (await fetch(base + "/api/provision/tok-ama-12345678")).text();
+  check("PPPoE starts a server on the hotspot without RADIUS", scriptPpp.includes("interface pppoe-server server add service-name=hotspotpro interface=hotspotpro-bridge") && scriptPpp.includes("/ppp aaa set use-radius=no") && !scriptPpp.includes("/radius add"));
+  await send("PUT", "/api/state/routers", { value: routerA }, amaCookie);
   await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], wanInterface: "ether1", managementPort: "", lastPortFree: true, routerType: "New Router" }] }, amaCookie);
   const scriptAuto = await (await fetch(base + "/api/provision/tok-ama-12345678")).text();
   check("the script counts the ports and keeps the last one free", scriptAuto.includes(":set hpLast") && scriptAuto.includes("ethernet ports") && !scriptAuto.includes("bridge=hotspotpro-bridge interface=ether5"));
@@ -171,9 +175,6 @@ try {
   await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], wanInterface: "ether3", managementPort: "", lastPortFree: false, routerType: "New Router" }] }, amaCookie);
   const scriptJoin = await (await fetch(base + "/api/provision/tok-ama-12345678")).text();
   check("a chosen internet port is used and the last port can join the hotspot", scriptJoin.includes("interface=ether3") && scriptJoin.includes('$n != "ether3"') && !scriptJoin.includes(":set hpLast"));
-  await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], pppoeEnabled: true, pppoeNetwork: "192.168.91.0/24", routerType: "New Router", hotspotEnabled: true }] }, amaCookie);
-  const scriptPppoe = await (await fetch(base + "/api/provision/tok-ama-12345678")).text();
-  check("PPPoE service is started on the customer bridge", scriptPppoe.includes("service-name=hotspotpro") && scriptPppoe.includes("interface=hotspotpro-bridge default-profile=hotspotpro-pppoe") && scriptPppoe.includes("/ppp aaa set use-radius=no") && scriptPppoe.includes("PPPoE server started"));
   await send("PUT", "/api/state/routers", { value: routerA }, amaCookie);
 
   // ---- WinBox from the ISP-side private network (e.g. computer on the Starlink router's WiFi) ----

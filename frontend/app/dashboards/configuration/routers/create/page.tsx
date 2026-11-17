@@ -653,7 +653,7 @@ export default function AddRouterPage() {
                         {pppoeEnabled && <Check size={11} />}
                       </span>
                     </div>
-                    <p className="text-xs text-[#a3a3a3]">Wired PPPoE for fiber/DSL</p>
+                    <p className="text-xs text-[#a3a3a3]">Wired customers dial in on the hotspot. Logins stay on the router.</p>
                     <p className="font-mono text-xs text-[#a3a3a3]">Network: {pppoeNetwork}</p>
                   </button>
                 </div>
@@ -751,18 +751,6 @@ export default function AddRouterPage() {
 
         {step === 1 && (
           <div className="space-y-5">
-            <div className="rounded-xl border border-[#e6e6e6] bg-white p-4" data-testid="provision-review">
-              <p className="text-sm font-bold text-[#1a1a1a]">What this command configures</p>
-              <dl className="mt-3 grid gap-2 text-xs text-[#525252] sm:grid-cols-2">
-                <div><dt className="text-[#a3a3a3]">Internet port</dt><dd className="font-mono">{wanClean}</dd></div>
-                <div><dt className="text-[#a3a3a3]">Customer bridge</dt><dd className="font-mono">hotspotpro-bridge</dd></div>
-                <div><dt className="text-[#a3a3a3]">Hotspot</dt><dd className="font-mono">{hotspotEnabled ? hotspotNetwork : "Off"}</dd></div>
-                <div><dt className="text-[#a3a3a3]">Gateway and DNS</dt><dd className="font-mono">{hotspotEnabled && !("error" in lanParsed) ? lanParsed.ip : "—"} · 8.8.8.8, 8.8.4.4</dd></div>
-                <div><dt className="text-[#a3a3a3]">Login name</dt><dd className="font-mono">{dnsName.trim() || "login.hotspot"}</dd></div>
-                <div><dt className="text-[#a3a3a3]">PPPoE</dt><dd className="font-mono">{pppoeEnabled ? `${pppoeNetwork} on the customer bridge` : "Off"}</dd></div>
-              </dl>
-              <p className="mt-3 text-xs text-[#a3a3a3]">The router checks in by itself after the paste. WinBox works on the same network, and from outside once the router is online. A queued change is not done until the router reports back.</p>
-            </div>
             <div className="rounded-xl border border-[#f4f4f4] p-4">
               <div className="mb-2 flex items-center justify-between gap-3">
                 <div>
