@@ -8,7 +8,7 @@
 import dns from "node:dns";
 
 /** Bump this when the setup script changes. Connected routers download the new setup on the next check-in. */
-export const SETUP_VERSION = "v10";
+export const SETUP_VERSION = "v11";
 
 /** The hotspot login name: letters from the router name, fewer than 5. A saved name is kept only when it is already that short. */
 export function loginDnsFromName(routerName: string, given?: string): string {
@@ -480,11 +480,18 @@ export function buildProvisionScript(input: {
       say("Vouchers are stored on this router.");
     }
     // Login pages go on the router either way. Cloud and local both send the phone to the same portal.
+    // Do NOT run /ip hotspot reset-html — it asks "Current html pages will be lost? [y/N]" in the
+    // terminal and stops a pasted setup. We clear old pages and download HotspotPro's captive portal instead.
     const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
-    say("Installing the hotspot skin...");
-    safe(`/ip hotspot reset-html [find where name=hotspotpro]`, true, "Hotspot skin installed");
+    say("Installing the HotspotPro captive portal...");
+    safe(`/ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir`, true);
+    // Remove MikroTik defaults (and any previous HotspotPro pages) so fetch can write ours.
+    for (const page of ["login.html", "rlogin.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html", "md5.js", "css/hotspotpro.css"]) {
+      safe(`/file remove [find where name=($hpDir . "/${page}")]`, true);
+      safe(`/file remove [find where name="hotspot/${page}"]`, true);
+      safe(`/file remove [find where name="flash/hotspot/${page}"]`, true);
+    }
     say("Downloading the captive portal pages...");
-    // reset-html writes MikroTik's own login.html. Fetch will not replace a file that is already there, so remove it first.
     const pull = (page: string, dest: string, quiet: boolean, done?: string) => {
       safe(`/file remove [find where name=${dest}]`, true);
       safe(`/tool fetch url="${origin}/api/provision/${token}/${page}" dst-path=${dest}${tls}`, quiet, done);

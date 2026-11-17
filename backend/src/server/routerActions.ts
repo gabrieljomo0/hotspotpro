@@ -51,8 +51,11 @@ function password() {
 }
 
 function fileFetches(origin: string, token: string) {
+  // No reset-html — that command asks y/N in the terminal and blocks setup/sync.
   const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
-  const lines = [step(`/ip hotspot reset-html [find where name=hotspotpro]`)];
+  const lines = [
+    step(`/ip hotspot profile set [find where name=hotspotpro] html-directory=hotspot`),
+  ];
   for (const page of PAGES) {
     const url = `${origin}/api/provision/${token}/${page}`;
     for (const dest of [`hotspot/${page}`, `flash/hotspot/${page}`]) {

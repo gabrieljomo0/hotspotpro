@@ -94,7 +94,7 @@ try {
   check("with no RADIUS server a paid voucher is copied onto the router", cloudCtl.includes("use-radius=no") && cloudCtl.includes('name="AMATEST1"') && cloudCtl.includes("limit-uptime=1d") && cloudCtl.includes("session-timeout=0s") && cloudCtl.includes("keepalive-timeout=none") && cloudCtl.includes("mac-cookie-timeout=1d") && cloudCtl.includes("shared-users=1"), cloudCtl.slice(0, 500));
   check("remote WinBox is ready on check-in", cloudCtl.includes('comment="HotspotPro remote WinBox"') && cloudCtl.includes("back-to-home-vpn=enabled") && cloudCtl.includes("ddns-enabled=yes") && cloudCtl.includes("update-time=yes"));
   check("hotspot login includes MAC and one device per MAC", cloudCtl.includes("login-by=mac,http-chap,http-pap,mac-cookie") && cloudCtl.includes("addresses-per-mac=1") && cloudCtl.includes("mac-address=$m"), cloudCtl.slice(0, 800));
-  check("connected routers download the latest setup by themselves", cloudCtl.includes("applying the latest setup") && cloudCtl.includes('hpSetup != "v10"') && cloudCtl.includes("/api/provision/tok-ama-12345678"), cloudCtl.slice(cloudCtl.indexOf("hpSetup"), cloudCtl.indexOf("hpSetup") + 400));
+  check("connected routers download the latest setup by themselves", cloudCtl.includes("applying the latest setup") && cloudCtl.includes('hpSetup != "v11"') && cloudCtl.includes("/api/provision/tok-ama-12345678"), cloudCtl.slice(cloudCtl.indexOf("hpSetup"), cloudCtl.indexOf("hpSetup") + 400));
   await fetch(base + "/api/provision/tok-ama-12345678/control?cpu=1&free=1&total=2&users=AMATEST1");
   const afterUse = await json(await send("GET", "/api/state", undefined, amaCookie));
   const used = (afterUse.docs?.vouchers?.value ?? []).find((v) => v.code === "AMATEST1");
@@ -157,8 +157,8 @@ try {
   check("the ISP port is taken out of the old bridge so it can get an address", scriptA.includes("bridge port remove [find where interface=ether1]"));
   check("the check-in is allowed to download", scriptA.includes("policy=ftp,reboot,read,write,policy,test"));
   check("setup downloads the captive portal pages", scriptA.includes("/login.html") && scriptA.includes("alogin.html") && scriptA.includes("HotspotPro login: cloud"));
-  check("setup puts the hotspot skin in WinBox Files", scriptA.includes("/ip hotspot reset-html") && scriptA.includes("md5.js") && scriptA.includes("hotspot/css/hotspotpro.css"));
-  check("setup replaces the MikroTik login page", scriptA.includes('/file remove [find where name=($hpDir . "/login.html")]') && scriptA.includes("rlogin.html") && scriptA.includes("link-login-only") && scriptA.indexOf("/ip hotspot reset-html") < scriptA.indexOf('name=($hpDir . "/login.html")'));
+  check("setup installs the captive portal without reset-html prompt", !scriptA.includes("/ip hotspot reset-html") && scriptA.includes("Installing the HotspotPro captive portal") && scriptA.includes("md5.js") && scriptA.includes("hotspot/css/hotspotpro.css"));
+  check("setup replaces the MikroTik login page", scriptA.includes('/file remove [find where name=($hpDir . "/login.html")]') && scriptA.includes("rlogin.html") && scriptA.includes("link-login-only") && scriptA.includes("/tool fetch url="));
   check("setup sets the clock, the API login and tethering protection", scriptA.includes("time-zone-name=Africa/Accra") && scriptA.includes("API user created: hotspotpro") && scriptA.includes("new-ttl=set:1") && scriptA.includes("mac-cookie-timeout=1d"));
   const registered = await send("POST", "/api/provision", { token: "tok-live-12345678", router: { name: "Live Router", loginMode: "local", hotspotEnabled: true, routerType: "New Router", wanInterface: "ether1" } }, amaCookie);
   const liveScript = await (await fetch(base + "/api/provision/tok-live-12345678")).text();
