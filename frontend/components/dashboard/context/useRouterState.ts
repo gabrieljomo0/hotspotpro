@@ -444,8 +444,13 @@ export function useRouterState(
     ispLinks: RouterISPLink[],
     silent = false,
   ) {
+    const primary = ispLinks.map((l) => l.interface.trim()).find((name) => /^(ether|sfp|sfp-sfpplus|sfpplus|lte|wlan|wifi|vlan|pppoe-out)[A-Za-z0-9._-]*$/.test(name));
     setRouters((current) =>
-      current.map((r) => (r.ip === ip ? { ...r, multiWanMode: mode, ispLinks } : r)),
+      current.map((r) =>
+        r.ip === ip
+          ? { ...r, multiWanMode: mode, ispLinks, ...(primary ? { wanInterface: primary } : {}) }
+          : r,
+      ),
     );
     if (silent) return;
     showToast("Multi-WAN configuration saved.");

@@ -67,8 +67,10 @@ function RouterDetailPageInner({
       : searchParams.get("tab") === "hotspot"
         ? "Hotspot"
         : searchParams.get("tab") === "data-usage"
-        ? "Data Usage"
-        : "System Information",
+          ? "Data Usage"
+          : searchParams.get("tab") === "multiwan"
+            ? "Multi-WAN"
+            : "System Information",
   );
   const [setupNotice, setSetupNotice] = useState(setupDone);
   const [giveUp, setGiveUp] = useState(false);

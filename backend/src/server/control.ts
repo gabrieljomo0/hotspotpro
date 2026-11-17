@@ -21,6 +21,7 @@ import { forgetLocalUsers, localUserLines } from "./localUsers";
 import { noteLiveVouchers } from "./packages";
 import { loginPageStamp } from "./hotspotPages";
 import { SETUP_VERSION, accessGuardCommand, accessLockEnsureCommand, checkInBody, loginDnsFromName, remoteWinboxLines } from "./routeros";
+import { primaryWanInterface } from "./primaryWan";
 import { type IspLink, multiWanLines } from "./multiWan";
 import { ssidForRouter, wifiApplyLines } from "./wifiApply";
 
@@ -182,14 +183,14 @@ export function controlScript(token: string, origin?: string): string | null {
         `:do { /system scheduler set [find where name=hotspotpro-control] interval=10s } on-error={ }`,
       );
     }
-    const wan = (router.wanInterface || "ether1").replace(/[^A-Za-z0-9._-]/g, "") || "ether1";
+    const wan = primaryWanInterface(router);
     lines.push(
       `:do { :if ([:len [/ip firewall nat find where comment="HotspotPro NAT"]] = 0) do={ /ip firewall nat add chain=srcnat out-interface=${wan} action=masquerade comment="HotspotPro NAT" } } on-error={ }`,
       `:do { /ip dns set allow-remote-requests=yes } on-error={ }`,
       `:do { /ip hotspot set [find where name=hotspotpro] addresses-per-mac=1 } on-error={ }`,
       ...hotspotLines(router),
       ...managementLines(token),
-      ...remoteWinboxLines(router.remoteAccessHold !== true, origin ?? "", token, router.adminFromWan !== false, router.wanInterface || "ether1"),
+      ...remoteWinboxLines(router.remoteAccessHold !== true, origin ?? "", token, router.adminFromWan !== false, wan),
       ...multiWanLines(router.multiWanMode, router.ispLinks, router.managementPort || ""),
       ...wifiApplyLines(ssidForRouter(router)),
     );

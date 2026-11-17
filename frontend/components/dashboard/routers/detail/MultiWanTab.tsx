@@ -1,12 +1,10 @@
 "use client";
 
-// This router's Multi-WAN tab: choose how it uses multiple internet links
-// (single/load-balancing/failover), and manage the list of ISP connections.
-// This component owns all its own editing state — nothing here is shared
-// with other tabs, so changes here can never accidentally affect them.
+// Multi-WAN: ISP links / load balancing, plus remote WinBox so you can open
+// WinBox to this router from another location (cloud name or WireGuard tunnel).
 
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Copy, Download, Plus, RefreshCw, Trash2 } from "lucide-react";
 
 import { useDashboard } from "@/components/dashboard/context/DashboardContext";
 import type { RouterInfo, RouterISPLink } from "@/components/dashboard/data/dashboard-data";
@@ -17,17 +15,30 @@ import {
 } from "@/components/dashboard/routers/multiWanDefaults";
 import { DirtyApplyBar } from "@/components/dashboard/shared/DirtyApplyBar";
 
+function seedIspLinks(router: RouterInfo): RouterISPLink[] {
+  if (router.ispLinks.length > 0) return router.ispLinks;
+  const links = ensureMinimumIspLinks([]);
+  const wan = (router.wanInterface || "ether1").trim() || "ether1";
+  links[0] = { ...links[0], interface: wan, label: "Primary ISP" };
+  if (links[1]?.interface === wan) {
+    const alt = wan === "ether1" ? "ether2" : "ether1";
+    links[1] = { ...links[1], interface: alt };
+  }
+  return links;
+}
+
 export function MultiWanTab({ router }: { router: RouterInfo }) {
-  const { updateMultiWanConfig, showToast } = useDashboard();
-  // A router with fewer than two links opens with two already filled in
-  // (and the mode set to use both) — saved straight away, nothing to type.
-  // Only a router with no links at all gets the two defaults; one with a single
-  // link is a deliberate single-ISP setup and is left alone.
+  const {
+    updateMultiWanConfig,
+    showToast,
+    toggleRemoteAccess,
+    regenerateWinboxAddress,
+  } = useDashboard();
   const needsDefaults = router.ispLinks.length === 0;
   const [wanMode, setWanMode] = useState<RouterInfo["multiWanMode"]>(
     needsDefaults && router.multiWanMode === "Single WAN" ? DEFAULT_WAN_MODE : router.multiWanMode,
   );
-  const [ispLinks, setIspLinks] = useState<RouterISPLink[]>(() => (needsDefaults ? ensureMinimumIspLinks(router.ispLinks) : router.ispLinks));
+  const [ispLinks, setIspLinks] = useState<RouterISPLink[]>(() => seedIspLinks(router));
   const [filledIn] = useState(needsDefaults);
   const [savedMode, setSavedMode] = useState(wanMode);
   const [savedLinks, setSavedLinks] = useState(ispLinks);
@@ -43,7 +54,6 @@ export function MultiWanTab({ router }: { router: RouterInfo }) {
   }, []);
 
   function addIspLink() {
-    // Adding a second link to a single-ISP router switches on balancing.
     if (ispLinks.length === 1 && wanMode === "Single WAN") setWanMode(DEFAULT_WAN_MODE);
     setIspLinks((current) => [...current, defaultIspLink(current)]);
   }
@@ -53,7 +63,6 @@ export function MultiWanTab({ router }: { router: RouterInfo }) {
   }
 
   function removeIspLink(id: string) {
-    // At least one link must stay. Down to one link means a single ISP.
     setIspLinks((current) => {
       if (current.length <= 1) return current;
       const next = current.filter((link) => link.id !== id);
@@ -67,21 +76,142 @@ export function MultiWanTab({ router }: { router: RouterInfo }) {
     setApplying(true);
     try {
       updateMultiWanConfig(router.ip, wanMode, ispLinks);
-      await fetch("/api/routers/jobs", {
+      const res = await fetch("/api/routers/jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ip: router.ip, action: "multiwan", multiWanMode: wanMode, ispLinks }),
-      }).catch(() => {});
+      }).catch(() => null);
+      if (!res || !res.ok) {
+        showToast("Could not queue Multi-WAN on the router. Check that this router is set up and online.");
+        return;
+      }
       setSavedMode(wanMode);
       setSavedLinks(ispLinks);
-      showToast("Multi-WAN saved and sent to the router.");
+      showToast("Multi-WAN saved and sent to the router. It applies on the next check-in (~10 seconds).");
     } finally {
       setApplying(false);
     }
   }
 
+  const remoteOn = router.remoteAccessEnabled !== false && router.remoteAccessHold !== true;
+  const connectHost =
+    remoteOn && router.winboxReach === "direct" && router.winboxAddress
+      ? router.winboxAddress.replace(/:8291$/, "")
+      : remoteOn
+        ? "192.168.216.1"
+        : "192.168.88.1";
+  const connectLabel =
+    remoteOn && router.winboxReach === "direct" && router.winboxAddress
+      ? router.winboxAddress.includes(":8291")
+        ? router.winboxAddress
+        : `${router.winboxAddress}:8291`
+      : remoteOn
+        ? "192.168.216.1"
+        : "192.168.88.1 (admin LAN only)";
+
+  async function copyWinboxAddress() {
+    try {
+      await navigator.clipboard.writeText(connectHost);
+      showToast(
+        remoteOn && router.winboxReach === "direct"
+          ? `Copied ${connectHost}. Open WinBox → Connect To → paste that address → login with the admin password.`
+          : remoteOn
+            ? "Copied 192.168.216.1. Import the WireGuard file first, turn the tunnel on, then open WinBox to that address."
+            : "Copied 192.168.88.1. Enable Remote WinBox below to reach this router from another location.",
+      );
+    } catch {
+      showToast(`WinBox address: ${connectHost}`);
+    }
+  }
+
+  function downloadTunnel() {
+    if (!router.wireguardConfig) {
+      showToast("Tunnel file is not ready yet. Enable Remote WinBox and wait for the next check-in.");
+      return;
+    }
+    const blob = new Blob([router.wireguardConfig], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${router.name}-winbox.conf`;
+    link.click();
+    URL.revokeObjectURL(url);
+    showToast("Tunnel downloaded. Import into WireGuard, activate it, then open WinBox to 192.168.216.1.");
+  }
+
   return (
     <div className="space-y-5" data-testid="multiwan">
+      <article
+        data-testid="multiwan-remote-winbox"
+        className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]"
+      >
+        <h3 className="text-base font-bold text-[#1a1a1a]">Remote WinBox</h3>
+        <p className="mt-1 text-sm text-[#737373]">
+          Open WinBox from anywhere to this router — a shop across town, another city, or any site on your account.
+          Each router has its own address or tunnel.
+        </p>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <span
+            className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${
+              remoteOn ? "bg-[#f4f4f4] text-[#111111]" : "bg-slate-200 text-slate-700"
+            }`}
+          >
+            {remoteOn ? "Remote access on" : "Remote access off"}
+          </span>
+          <p className="font-mono text-sm font-semibold text-[#1a1a1a]">{connectLabel}</p>
+        </div>
+
+        <p className="mt-3 text-sm text-[#525252]">
+          {remoteOn && router.winboxReach === "direct"
+            ? "This router has a public path. Open the WinBox app on your PC, paste the address above, and sign in with the admin password."
+            : remoteOn && router.wireguardConfig
+              ? "This router is behind another modem. Download the WireGuard file, import and activate the tunnel on your PC, then open WinBox to 192.168.216.1."
+              : remoteOn
+                ? "Remote WinBox is on. The router is preparing a cloud name or WireGuard tunnel on the next check-in (~10 seconds). Refresh if the address stays empty."
+                : "Turn Remote WinBox on so you can manage this router from a different location."}
+        </p>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            data-testid="multiwan-winbox-toggle"
+            onClick={() => toggleRemoteAccess(router.ip, !remoteOn)}
+            className="rounded-xl bg-[#1a1a1a] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#111111]"
+          >
+            {remoteOn ? "Turn remote off" : "Enable Remote WinBox"}
+          </button>
+          <button
+            type="button"
+            data-testid="multiwan-winbox-copy"
+            onClick={() => void copyWinboxAddress()}
+            className="inline-flex items-center gap-2 rounded-xl border border-[#1a1a1a] bg-white px-4 py-2.5 text-sm font-bold text-[#1a1a1a] hover:bg-[#f4f4f4]"
+          >
+            <Copy size={15} /> Copy WinBox address
+          </button>
+          {remoteOn && (
+            <button
+              type="button"
+              data-testid="multiwan-winbox-refresh"
+              onClick={() => regenerateWinboxAddress(router.ip)}
+              className="inline-flex items-center gap-2 rounded-xl border border-[#e6e6e6] bg-white px-4 py-2.5 text-sm font-bold text-[#1a1a1a] hover:bg-[#f4f4f4]"
+            >
+              <RefreshCw size={15} /> Refresh connection
+            </button>
+          )}
+          {remoteOn && router.wireguardConfig && (
+            <button
+              type="button"
+              data-testid="multiwan-winbox-wg"
+              onClick={downloadTunnel}
+              className="inline-flex items-center gap-2 rounded-xl border border-[#e6e6e6] bg-white px-4 py-2.5 text-sm font-bold text-[#1a1a1a] hover:bg-[#f4f4f4]"
+            >
+              <Download size={15} /> Download WireGuard file
+            </button>
+          )}
+        </div>
+      </article>
+
       {filledIn && (
         <p data-testid="multiwan-defaults-note" className="rounded-xl bg-[#f4f4f4] p-3 text-xs text-[#525252]">
           Two ISP links were set up for you with the standard settings (DHCP, public DNS and health checks)

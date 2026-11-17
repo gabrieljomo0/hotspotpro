@@ -84,6 +84,8 @@ export function multiWanLines(
     `:do { /ip route remove [find where comment~"HotspotPro WAN"] } on-error={ }`,
     `:do { /ip firewall mangle remove [find where comment~"HotspotPro WAN"] } on-error={ }`,
     `:do { /ip dhcp-client remove [find where comment="HotspotPro WAN"] } on-error={ }`,
+    // Remove the single-WAN client from first setup so Multi-WAN owns the default route and wanip reporting.
+    `:do { /ip dhcp-client remove [find where comment="HotspotPro WAN DHCP Client"] } on-error={ }`,
   ];
 
   unique.forEach((link, index) => {

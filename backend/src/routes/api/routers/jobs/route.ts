@@ -21,12 +21,15 @@ function routerToken(ip: string): string | null {
   return row?.provisioningToken ?? null;
 }
 
-/** Persist Multi-WAN from the Submit button before the job script is built. */
+/** Persist Multi-WAN from Apply/Save before the job script is built. */
 function saveMultiWan(ip: string, mode: string | undefined, links: IspLink[] | undefined) {
   if (!mode && !links) return;
   const value = getState("routers")?.value;
   if (!Array.isArray(value)) return;
   let changed = false;
+  const primary = Array.isArray(links)
+    ? links.map((l) => (l.interface || "").trim()).find((name) => /^(ether|sfp|sfp-sfpplus|sfpplus|lte|wlan|wifi|vlan|pppoe-out)[A-Za-z0-9._-]*$/.test(name))
+    : undefined;
   const next = (value as Record<string, unknown>[]).map((row) => {
     if (!row || row.ip !== ip) return row;
     changed = true;
@@ -34,6 +37,7 @@ function saveMultiWan(ip: string, mode: string | undefined, links: IspLink[] | u
       ...row,
       ...(mode ? { multiWanMode: mode } : {}),
       ...(Array.isArray(links) ? { ispLinks: links } : {}),
+      ...(primary ? { wanInterface: primary } : {}),
     };
   });
   if (changed) setState("routers", next, "router");

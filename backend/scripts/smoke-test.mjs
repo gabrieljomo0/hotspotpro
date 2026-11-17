@@ -125,7 +125,8 @@ try {
     }],
   }, amaCookie);
   const wanCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
-  check("Multi-WAN load balancing is applied on check-in", wanCtl.includes("HotspotPro Multi-WAN") && wanCtl.includes("interface=ether1") && wanCtl.includes("interface=ether2") && wanCtl.includes("default-route-distance=1") && wanCtl.includes('comment="HotspotPro WAN"'), wanCtl.slice(wanCtl.indexOf("Multi-WAN"), wanCtl.indexOf("Multi-WAN") + 500));
+  check("Multi-WAN load balancing is applied on check-in", wanCtl.includes("HotspotPro Multi-WAN") && wanCtl.includes("interface=ether1") && wanCtl.includes("interface=ether2") && wanCtl.includes("default-route-distance=1") && wanCtl.includes('comment="HotspotPro WAN"') && wanCtl.includes('comment="HotspotPro WAN DHCP Client"'), wanCtl.slice(wanCtl.indexOf("Multi-WAN"), wanCtl.indexOf("Multi-WAN") + 500));
+  check("check-in reports WAN IP from Multi-WAN or the first DHCP client", wanCtl.includes('comment="HotspotPro WAN"') && wanCtl.includes("HotspotPro WAN DHCP Client") && wanCtl.includes("wanip="), "wanip reporting");
   await send("PUT", "/api/state/vouchers", { value: [{ code: "TVBOX01", password: null, packageName: "Ama Daily", status: "Used", boundMac: "AA:BB:CC:DD:EE:FF", activatedAtMs: Date.now(), expiresAtMs: Date.now() + 86400000 }] }, amaCookie);
   const tvCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
   check("buy-for-TV locks the voucher to that MAC on the router", tvCtl.includes('name="TVBOX01"') && tvCtl.includes("mac-address=AA:BB:CC:DD:EE:FF") && tvCtl.includes('name="AA:BB:CC:DD:EE:FF"'), tvCtl.slice(0, 900));

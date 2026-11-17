@@ -5,6 +5,7 @@
 import { getState, setState } from "./store";
 import { type IspLink, multiWanLines } from "./multiWan";
 import { remoteWinboxLines } from "./routeros";
+import { primaryWanInterface } from "./primaryWan";
 import { forgetLocalUsers, localUserLines } from "./localUsers";
 import { ssidForRouter, wifiApplyLines } from "./wifiApply";
 
@@ -137,7 +138,7 @@ export function routerActionScript(action: string, input: { origin: string; toke
   else if (action === "sync-time") body = clockLines();
   else if (action === "winbox" || action === "remote-winbox" || action === "remote-winbox-off") {
     const row = routerByToken(token);
-    const wan = typeof row?.wanInterface === "string" ? row.wanInterface : "ether1";
+    const wan = primaryWanInterface(row);
     const sameNetwork = row?.adminFromWan !== false;
     // "Regenerate WinBox" refreshes remote access when it is on; otherwise keeps WinBox on the admin LAN.
     const remoteOn = action === "remote-winbox" || (action === "winbox" && row?.remoteAccessHold !== true);
