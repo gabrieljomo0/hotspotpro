@@ -5,6 +5,8 @@
 import { getState, setState } from "./store";
 import { type IspLink, multiWanLines } from "./multiWan";
 import { remoteWinboxLines } from "./routeros";
+import { forgetLocalUsers, localUserLines } from "./localUsers";
+import { ssidForRouter, wifiApplyLines } from "./wifiApply";
 
 export const ROUTER_ACTIONS = [
   "full-provision",
@@ -17,6 +19,8 @@ export const ROUTER_ACTIONS = [
   "remote-winbox",
   "remote-winbox-off",
   "multiwan",
+  "wifi",
+  "sync-vouchers",
   "api-credentials",
   "update-script",
   "reboot",
@@ -141,6 +145,13 @@ export function routerActionScript(action: string, input: { origin: string; toke
     const row = routerByToken(token);
     // Force a fresh apply even if the router already ran this Multi-WAN stamp.
     body = [":global hpWan; :set hpWan \"\"", ...multiWanLines(row?.multiWanMode, row?.ispLinks, row?.managementPort || "")];
+  } else if (action === "wifi") {
+    const row = routerByToken(token);
+    body = [":global hpWifiSsid; :set hpWifiSsid \"\"", ...wifiApplyLines(ssidForRouter(row ?? {}))];
+  } else if (action === "sync-vouchers") {
+    const row = routerByToken(token);
+    forgetLocalUsers(token);
+    body = localUserLines(token, row?.ip || "");
   } else if (action === "api-credentials") {
     const secret = password();
     body = [`# hotspotpro-password:${secret}`, step(`/user remove [find where name=hotspotpro]`), `/user add name=hotspotpro group=full password=${secret} comment="HotspotPro"`];
@@ -160,6 +171,8 @@ function routerByToken(token: string) {
     multiWanMode?: string;
     ispLinks?: IspLink[];
     managementPort?: string;
+    ip?: string;
+    siteId?: string | null;
   }[]).find((row) => row?.provisioningToken === token) ?? null;
 }
 
@@ -174,6 +187,8 @@ const ACTION_TEXT: Record<string, string> = {
   "remote-winbox": "Remote WinBox is on (cloud name, Back To Home tunnel, and port 8291).",
   "remote-winbox-off": "Remote WinBox is off. WinBox stays on the admin network.",
   multiwan: "Multi-WAN load balancing / failover was applied on the router.",
+  wifi: "WiFi SSID and access-point radios were updated on the router.",
+  "sync-vouchers": "Vouchers were copied onto the router for local login.",
   "api-credentials": "API user hotspotpro was created on the router.",
   "update-script": "The router downloaded and ran the latest HotspotPro setup.",
   reboot: "Reboot sent.",
@@ -228,6 +243,10 @@ export function markRouterAction(token: string, script: string) {
       patch.wireguardConfig = null;
     } else if (action === "multiwan") {
       patch.multiWanAppliedAt = now;
+    } else if (action === "wifi") {
+      patch.wifiAppliedAt = now;
+    } else if (action === "sync-vouchers") {
+      patch.vouchersSyncedAt = now;
     } else if (action === "api-credentials" && secret) {
       patch.apiUsername = "hotspotpro";
       patch.apiPassword = secret;

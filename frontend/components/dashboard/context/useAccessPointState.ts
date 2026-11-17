@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { usePersistedState } from "./usePersistedState";
+import { queueRouterAction } from "./queueRouterAction";
 
 import type { AccessPointDevice, AccessPointStatus } from "../shared/types";
 
@@ -8,10 +9,17 @@ export function useAccessPointState(
   showToast: (message: string) => void,
   logActivity: (category: "Router" | "Settings", message: string) => void,
 ) {
-  const [accessPoints, setAccessPoints] = useState<AccessPointDevice[]>(initialAccessPoints);
+  // Persisted so APs survive refresh and sync across admin sessions.
+  const [accessPoints, setAccessPoints] = usePersistedState<AccessPointDevice[]>("accessPoints", initialAccessPoints);
 
   function findAccessPoint(id: string) {
     return accessPoints.find((ap) => ap.id === id);
+  }
+
+  function applyApOnRouter(routerIp: string | null | undefined) {
+    if (!routerIp) return;
+    // Keep the router's radios on the hotspot bridge so customers on APs/WiFi hit the captive portal.
+    queueRouterAction(routerIp, "wifi");
   }
 
   function addAccessPoint(input: {
@@ -35,7 +43,12 @@ export function useAccessPointState(
       createdAt: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
     };
     setAccessPoints((current) => [newAccessPoint, ...current]);
-    showToast(`"${input.name}" added.${input.routerIp ? "" : " Not linked to a router — connected standalone."}`);
+    applyApOnRouter(input.routerIp);
+    showToast(
+      input.routerIp
+        ? `"${input.name}" added and linked. WiFi on that router will refresh within about 10 seconds.`
+        : `"${input.name}" added. Not linked to a router — connected standalone.`,
+    );
     logActivity("Router", `Added access point "${input.name}".`);
     return newAccessPoint;
   }
@@ -44,10 +57,15 @@ export function useAccessPointState(
     id: string,
     updates: Partial<Pick<AccessPointDevice, "name" | "macAddress" | "ipAddress" | "model" | "siteId" | "routerIp">>,
   ) {
+    const previous = accessPoints.find((a) => a.id === id);
     setAccessPoints((current) => current.map((ap) => (ap.id === id ? { ...ap, ...updates } : ap)));
-    const ap = accessPoints.find((a) => a.id === id);
-    showToast(`"${ap?.name ?? "Access point"}" updated.`);
-    logActivity("Router", `Updated access point "${ap?.name ?? id}".`);
+    const nextRouter = updates.routerIp !== undefined ? updates.routerIp : previous?.routerIp;
+    applyApOnRouter(nextRouter);
+    if (previous?.routerIp && updates.routerIp && updates.routerIp !== previous.routerIp) {
+      applyApOnRouter(previous.routerIp);
+    }
+    showToast(`"${previous?.name ?? "Access point"}" updated.`);
+    logActivity("Router", `Updated access point "${previous?.name ?? id}".`);
   }
 
   function deleteAccessPoint(id: string) {

@@ -23,6 +23,7 @@ import { makePackageGuard } from "../agents/agentPackages";
 import { useAlertsState } from "./useAlertsState";
 import { nowTimestamp, DEFAULT_AGENT_ID } from "./utils";
 import { usePersistedState, useSyncReady } from "./usePersistedState";
+import { queueRouterActionMany } from "./queueRouterAction";
 import type { RouterTaskKind } from "../routers/routerTasks";
 import {
   createContext,
@@ -1497,6 +1498,14 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         ...current,
         [confirmAction.routerIp]: false,
       }));
+      // Cut internet on the MikroTik the same way Disconnect does.
+      setRouters((current) =>
+        current.map((r) =>
+          r.ip === confirmAction.routerIp
+            ? { ...r, status: "Offline", disconnected: true, lastSeen: "Disconnected", disconnectedAt: new Date().toISOString() }
+            : r,
+        ),
+      );
       logActivity("Router", `Disabled router ${confirmAction.routerName}.`);
     }
 
@@ -1505,6 +1514,13 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         ...current,
         [confirmAction.routerIp]: true,
       }));
+      setRouters((current) =>
+        current.map((r) =>
+          r.ip === confirmAction.routerIp
+            ? { ...r, status: "Online", disconnected: false, lastSeen: "Just now", reconnectedAt: new Date().toISOString() }
+            : r,
+        ),
+      );
       logActivity("Router", `Enabled router ${confirmAction.routerName}.`);
     }
 
@@ -2181,6 +2197,15 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         );
       }
     }
+
+    // Push the new codes onto the routers that should accept them (local login).
+    const targetIps =
+      input.routerIps.length > 0
+        ? input.routerIps
+        : currentAgent?.routerIp
+          ? [currentAgent.routerIp]
+          : routers.map((r) => r.ip);
+    queueRouterActionMany(targetIps, "sync-vouchers");
 
     return newBatch;
   }

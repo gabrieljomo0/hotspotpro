@@ -1512,7 +1512,7 @@ function ResellerApplication({
 /* -------------------------------------------------------------------------- */
 
 function CaptivePortalPageInner() {
-  const { addAgent, fireAlert, routers, agents, getCaptivePortalConfig } = useDashboard();
+  const { fireAlert, routers, agents, getCaptivePortalConfig } = useDashboard();
   const searchParams = useSearchParams();
   // Which router's captive portal this page represents. In a real system
   // each router serves its own portal at its own address; here, since
@@ -2022,7 +2022,7 @@ function CaptivePortalPageInner() {
     setResellerModalOpen(false);
   }
 
-  function handleResellerSubmit(
+  async function handleResellerSubmit(
     event: FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
@@ -2112,28 +2112,36 @@ function CaptivePortalPageInner() {
       return;
     }
 
-    addAgent(
-      resellerForm.fullName.trim(),
-      resellerForm.email.trim(),
-      "Field Agent",
-      portalRouterIp,
-      {
-        phone: resellerForm.phone,
-        whatsapp: resellerForm.whatsapp,
-        location: resellerForm.location,
-        password: resellerForm.password,
-        appliedViaPortal: true,
-        idFrontFileName: resellerForm.idFrontFileName,
-        idBackFileName: resellerForm.idBackFileName,
-        faceCaptureFileName: resellerForm.faceCaptureFileName,
-        // Everything the form asked for goes through — including the username
-        // they chose and the pictures of their ID and face.
-        username: resellerForm.username,
-        idFrontImage: resellerForm.idFrontImage || undefined,
-        idBackImage: resellerForm.idBackImage || undefined,
-        faceCaptureImage: resellerForm.faceCaptureImage || undefined,
-      },
-    );
+    try {
+      const response = await fetch("/api/portal/agent-apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(routerToken ? { "x-hsp-rt": routerToken } : {}) },
+        body: JSON.stringify({
+          name: resellerForm.fullName.trim(),
+          email: resellerForm.email.trim(),
+          username: resellerForm.username,
+          phone: resellerForm.phone,
+          whatsapp: resellerForm.whatsapp,
+          location: resellerForm.location,
+          password: resellerForm.password,
+          routerIp: portalRouterIp,
+          idFrontFileName: resellerForm.idFrontFileName,
+          idBackFileName: resellerForm.idBackFileName,
+          faceCaptureFileName: resellerForm.faceCaptureFileName,
+          idFrontImage: resellerForm.idFrontImage || undefined,
+          idBackImage: resellerForm.idBackImage || undefined,
+          faceCaptureImage: resellerForm.faceCaptureImage || undefined,
+        }),
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setResellerError(body.message ?? "Could not submit your application. Try again.");
+        return;
+      }
+    } catch {
+      setResellerError("Could not reach the service. Try again.");
+      return;
+    }
 
     const appliedRouter = routers.find((r) => r.ip === portalRouterIp);
     fireAlert(

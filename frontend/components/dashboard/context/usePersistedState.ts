@@ -60,7 +60,7 @@ export function useSyncReady() {
 const START_EMPTY = new Set([
   "routers", "packages", "vouchers", "activeUsers", "voucherBatches", "activityLog", "alertEvents", "approvalRequests",
   "installDispatches", "agentTickets", "agentEmails", "agentSmsLog", "agentVoucherAlertLog", "agentCollections",
-  "businessLocations", "systemUsers", "installers",
+  "businessLocations", "systemUsers", "installers", "accessPoints", "applicationFiles",
 ]);
 
 function startingValue<T>(name: string, initial: T | (() => T)): T {

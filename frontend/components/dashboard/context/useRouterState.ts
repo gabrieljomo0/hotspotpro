@@ -11,6 +11,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePersistedState } from "./usePersistedState";
+import { queueRouterAction, queueRouterActionMany } from "./queueRouterAction";
 import { ROUTER_TASKS, TASK_STEP_MS, type RouterTaskKind } from "../routers/routerTasks";
 import { DEFAULT_WAN_MODE, defaultIspLinks } from "../routers/multiWanDefaults";
 
@@ -328,18 +329,7 @@ export function useRouterState(
   }
 
   function regenerateApiCredentials(ip: string) {
-    const router = routers.find((r) => r.ip === ip);
-    if (!router) return;
-
-    if (!isRouterReachable(ip)) {
-      showToast("Failed to regenerate credentials — unable to connect to router or update credentials.");
-      return;
-    }
-
-    const newPassword = Math.random().toString(36).slice(2, 14);
-    patchRouter(ip, { apiPassword: newPassword }, "API credentials regenerated.");
-    showToast(`API credentials regenerated for ${router.name}.`);
-    logActivity("Router", `Regenerated API credentials for ${router.name}.`);
+    startRouterTask("api-credentials", ip);
   }
 
   function regenerateWinboxAddress(ip: string) {
@@ -363,81 +353,27 @@ export function useRouterState(
   }
 
   function syncHotspotFiles(ip: string) {
-    const router = routers.find((r) => r.ip === ip);
-    if (!router) return;
-
-    if (!isRouterReachable(ip)) {
-      showToast("Failed to sync hotspot files — unable to connect to router or verify hotspot configuration.");
-      return;
-    }
-    patchRouter(ip, { hotspotFilesSyncedAt: stamp() }, "Hotspot files synced.");
-    showToast(`Hotspot files synced for ${router.name}.`);
-    logActivity("Router", `Synced hotspot files for ${router.name}.`);
+    startRouterTask("sync-files", ip);
   }
 
   function syncRouterTime(ip: string) {
-    const router = routers.find((r) => r.ip === ip);
-    if (!router) return;
-
-    if (!isRouterReachable(ip)) {
-      showToast("Failed to sync router time — unable to connect to router or update time.");
-      return;
-    }
-    patchRouter(ip, { timeSyncedAt: stamp() }, "Router clock synced.");
-    showToast(`Router time synced for ${router.name}.`);
-    logActivity("Router", `Synced router time for ${router.name}.`);
+    startRouterTask("sync-time", ip);
   }
 
   function configureSnmp(ip: string) {
-    const router = routers.find((r) => r.ip === ip);
-    if (!router) return;
-
-    if (!isRouterReachable(ip)) {
-      showToast("Failed to configure SNMP — unable to connect to router or configure SNMP.");
-      return;
-    }
-    patchRouter(ip, { snmpConfigured: true }, "SNMP configured.");
-    showToast(`SNMP configured for ${router.name}.`);
-    logActivity("Router", `Configured SNMP for ${router.name}.`);
+    startRouterTask("snmp", ip);
   }
 
   function configureWalledGarden(ip: string) {
-    const router = routers.find((r) => r.ip === ip);
-    if (!router) return;
-
-    if (!isRouterReachable(ip)) {
-      showToast("Failed to configure walled garden — unable to add all walled garden rules.");
-      return;
-    }
-    patchRouter(ip, { walledGardenConfigured: true }, "Walled garden configured.");
-    showToast(`Walled garden configured for ${router.name}.`);
-    logActivity("Router", `Configured walled garden for ${router.name}.`);
+    startRouterTask("walled-garden", ip);
   }
 
   function hardenServices(ip: string) {
-    const router = routers.find((r) => r.ip === ip);
-    if (!router) return;
-
-    if (!isRouterReachable(ip)) {
-      showToast("Failed to harden services — unable to connect to router.");
-      return;
-    }
-    patchRouter(ip, { servicesHardened: true }, "Services hardened (Telnet, FTP and SSL off).");
-    showToast(`Services hardened for ${router.name} — Telnet, FTP, and SSL disabled; only API remains enabled.`);
-    logActivity("Router", `Hardened services for ${router.name}.`);
+    startRouterTask("harden", ip);
   }
 
   function updateRouterScript(ip: string) {
-    const router = routers.find((r) => r.ip === ip);
-    if (!router) return;
-
-    if (!isRouterReachable(ip)) {
-      showToast("Failed to update script — unable to connect to router.");
-      return;
-    }
-    patchRouter(ip, { scriptUpdatedAt: stamp() }, "Provisioning script updated.");
-    showToast(`Provisioning script updated for ${router.name}.`);
-    logActivity("Router", `Updated provisioning script for ${router.name}.`);
+    startRouterTask("update-script", ip);
   }
 
   function downloadRouterFile(ip: string, kind: "provision-script" | "wireguard-config") {
@@ -520,7 +456,19 @@ export function useRouterState(
     setRouters((current) =>
       current.map((r) => (r.ip === ip ? { ...r, ...updates } : r)),
     );
-    showToast("Router details saved.");
+    // Hotspot / DNS / login mode are read on every check-in. Queue a page + WiFi refresh so it lands quickly.
+    if (
+      updates.hotspotEnabled !== undefined ||
+      updates.hotspotDnsServers !== undefined ||
+      updates.dnsName !== undefined ||
+      updates.loginMode !== undefined ||
+      updates.pppoeEnabled !== undefined
+    ) {
+      queueRouterAction(ip, "sync-files");
+      queueRouterAction(ip, "wifi");
+      if (updates.loginMode === "local" || updates.loginMode === undefined) queueRouterAction(ip, "sync-vouchers");
+    }
+    showToast("Router details saved. Applying on the router…");
     logActivity("Router", `Updated details for router ${ip}.`);
   }
 
@@ -595,49 +543,29 @@ export function useRouterState(
   }
 
   function syncRouter(ip: string) {
+    // Push vouchers + login pages + WiFi from the site onto this router now.
+    void fetch("/api/routers/jobs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ip, action: "sync-vouchers" }),
+    }).catch(() => {});
+    void fetch("/api/routers/jobs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ip, action: "sync-files" }),
+    }).catch(() => {});
+    void fetch("/api/routers/jobs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ip, action: "wifi" }),
+    }).catch(() => {});
     const router = routers.find((r) => r.ip === ip);
-    if (!router) return;
-
-    setRouters((current) =>
-      current.map((r) =>
-        r.ip === ip
-          ? {
-              ...r,
-              lastSeen: "Just now",
-              clients: Math.max(0, r.clients + Math.round((Math.random() - 0.5) * 6)),
-            }
-          : r,
-      ),
-    );
-    showToast(`${router.name} synced — client and status data refreshed.`);
-    logActivity("Router", `Synced router ${router.name}.`);
+    showToast(`${router?.name ?? "Router"} will sync vouchers, login pages and WiFi within about 10 seconds.`);
+    logActivity("Router", `Queued a live sync for ${router?.name ?? ip}.`);
   }
 
   function restartRouter(ip: string) {
-    const router = routers.find((r) => r.ip === ip);
-    if (!router) return;
-
-    showToast(`${router.name} is restarting — it will be back in a few seconds...`);
-    logActivity("Router", `Restarted router ${router.name}.`);
-
-    // Visibly go offline while "rebooting", then come back — makes the
-    // restart action unmistakably different from Health Check / Sync.
-    setRouterEnabled((current) => ({ ...current, [ip]: false }));
-    setRouters((current) =>
-      current.map((r) =>
-        r.ip === ip ? { ...r, uptime: "0m", lastSeen: "Restarting…" } : r,
-      ),
-    );
-
-    window.setTimeout(() => {
-      setRouterEnabled((current) => ({ ...current, [ip]: true }));
-      setRouters((current) =>
-        current.map((r) =>
-          r.ip === ip ? { ...r, uptime: "0m", lastSeen: "Just now" } : r,
-        ),
-      );
-      showToast(`${router.name} is back online.`);
-    }, 3000);
+    startRouterTask("reboot", ip);
   }
 
   // Pauses/resumes traffic through a router without fully disconnecting
@@ -698,14 +626,17 @@ export function useRouterState(
         });
         return next;
       });
+      queueRouterActionMany(routers.map((r) => r.ip), "wifi");
+    } else if (updates.ssid !== undefined) {
+      queueRouterActionMany(routers.map((r) => r.ip), "wifi");
     }
 
     showToast(
       updates.ssidStrategy
         ? nextStrategy === "same"
-          ? `All routers now use the same SSID: "${nextSsid}".`
+          ? `All routers now use the same SSID: "${nextSsid}". Applying on the routers…`
           : "Each router can now use its own SSID."
-        : "Hotspot settings saved.",
+        : "Hotspot settings saved. Applying on the routers…",
     );
     logActivity("Settings", "Updated hotspot configuration.");
   }
@@ -728,13 +659,24 @@ export function useRouterState(
     return applyMaster(captivePortalConfigs[siteId] ?? defaultCaptivePortalConfig, masterPortal);
   }
 
+  function pushCaptivePortalToRouters(siteIdOrRouterIp: string, updates: Partial<CaptivePortalConfig>) {
+    const siteRouters = routers.filter((r) => (r.siteId || r.ip) === siteIdOrRouterIp || r.ip === siteIdOrRouterIp);
+    const ips = siteRouters.length ? siteRouters.map((r) => r.ip) : routers.filter((r) => r.ip === siteIdOrRouterIp).map((r) => r.ip);
+    if (updates.ssid !== undefined || updates.wifiPassword !== undefined) {
+      queueRouterActionMany(ips, "wifi");
+    }
+    // Login page look / auth method — refresh hotspot HTML on the routers.
+    queueRouterActionMany(ips, "sync-files");
+  }
+
   function updateCaptivePortalConfigForSite(siteId: string, updates: Partial<CaptivePortalConfig>) {
     setCaptivePortalConfigs((current) => ({
       ...current,
       [siteId]: { ...(current[siteId] ?? defaultCaptivePortalConfig), ...updates },
     }));
+    pushCaptivePortalToRouters(siteId, updates);
     const site = businessLocations.find((s) => s.id === siteId);
-    showToast(`Captive portal settings saved for ${site?.name ?? "this business"}.`);
+    showToast(`Captive portal settings saved for ${site?.name ?? "this business"}. Applying on the routers…`);
     logActivity("Settings", `Updated captive portal configuration for "${site?.name ?? siteId}".`);
   }
 
@@ -744,10 +686,13 @@ export function useRouterState(
       ...current,
       [key]: { ...(current[key] ?? defaultCaptivePortalConfig), ...updates },
     }));
+    pushCaptivePortalToRouters(key, updates);
+    queueRouterAction(routerIp, "wifi");
+    queueRouterAction(routerIp, "sync-files");
     const site = businessLocations.find((s) => s.id === key);
     const router = routers.find((r) => r.ip === routerIp);
     const label = site?.name ?? router?.name ?? "this router";
-    showToast(`Captive portal settings saved for ${label}.`);
+    showToast(`Captive portal settings saved for ${label}. Applying on the router…`);
     logActivity("Settings", `Updated captive portal configuration for "${label}".`);
   }
 

@@ -260,6 +260,27 @@ try {
   check("Multi-WAN action saves links and queues apply", wanJob.status === 200 && wanBody?.script?.includes("hotspotpro-action:multiwan") && wanBody.script.includes("ether2") && wanBody.script.includes("10.20.0.1"), wanBody?.script?.slice(0, 400));
   const wanSaved = (await json(await send("GET", "/api/state", undefined, amaCookie))).docs?.routers?.value?.find((r) => r.ip === "10.0.0.1");
   check("Multi-WAN Submit is stored on the router row", wanSaved?.multiWanMode === "Failover" && wanSaved?.ispLinks?.length === 2, JSON.stringify(wanSaved?.multiWanMode));
+  await send("PUT", "/api/state/captivePortalConfigs", { value: { "10.0.0.1": { ssid: "AmaCafeWiFi" } } }, amaCookie);
+  const wifiJob = await send("POST", "/api/routers/jobs", { ip: "10.0.0.1", action: "wifi" }, amaCookie);
+  const wifiBody = (await json(wifiJob)).job;
+  check("WiFi action applies the site SSID on the router", wifiJob.status === 200 && wifiBody?.script?.includes("AmaCafeWiFi") && wifiBody.script.includes("hotspotpro-bridge"), wifiBody?.script?.slice(0, 400));
+  const vouchersJob = await send("POST", "/api/routers/jobs", { ip: "10.0.0.1", action: "sync-vouchers" }, amaCookie);
+  const vouchersBody = (await json(vouchersJob)).job;
+  check("sync-vouchers action pushes hotspot users", vouchersJob.status === 200 && vouchersBody?.script?.includes("hotspotpro-action:sync-vouchers") && vouchersBody.script.includes("/ip hotspot user"), vouchersBody?.script?.slice(0, 300));
+  const apply = await send("POST", "/api/portal/agent-apply", {
+    name: "Portal Applicant",
+    email: "portal-agent@example.com",
+    username: "portalagent",
+    phone: "0244123456",
+    whatsapp: "0244123456",
+    location: "Accra",
+    password: "secret12",
+    routerIp: "10.0.0.1",
+  }, "", { "x-hsp-rt": "tok-ama-12345678" });
+  const applyBody = await json(apply);
+  check("captive portal agent application is saved for the business", apply.status === 200 && applyBody.ok === true && applyBody.status === "Pending", JSON.stringify(applyBody));
+  const agentsAfter = (await json(await send("GET", "/api/state", undefined, amaCookie))).docs?.agents?.value ?? [];
+  check("admin sees the portal agent application", agentsAfter.some((a) => a.email === "portal-agent@example.com" && a.status === "Pending" && a.appliedViaPortal === true), JSON.stringify(agentsAfter.map((a) => a.email)));
 
   // ---- super admin powers; others are kept out ----
   check("a business cannot open the super admin area", (await send("GET", "/api/super/overview", undefined, amaCookie)).status === 403);

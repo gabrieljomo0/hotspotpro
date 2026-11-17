@@ -22,6 +22,7 @@ import { noteLiveVouchers } from "./packages";
 import { loginPageStamp } from "./hotspotPages";
 import { SETUP_VERSION, accessGuardCommand, accessLockEnsureCommand, checkInBody, loginDnsFromName, remoteWinboxLines } from "./routeros";
 import { type IspLink, multiWanLines } from "./multiWan";
+import { ssidForRouter, wifiApplyLines } from "./wifiApply";
 
 export const SWITCH_COMMENT = "HotspotPro internet off";
 const ACCESS_LOCK = "HotspotPro access lock";
@@ -43,6 +44,7 @@ type Row = {
   multiWanMode?: string;
   ispLinks?: IspLink[];
   managementPort?: string;
+  siteId?: string | null;
 };
 
 function managementLines(token: string): string[] {
@@ -186,6 +188,7 @@ export function controlScript(token: string, origin?: string): string | null {
       ...managementLines(token),
       ...remoteWinboxLines(router.remoteAccessHold !== true, origin ?? "", token, router.adminFromWan !== false, router.wanInterface || "ether1"),
       ...multiWanLines(router.multiWanMode, router.ispLinks, router.managementPort || ""),
+      ...wifiApplyLines(ssidForRouter(router)),
     );
     if (local) lines.push(...localUserLines(token, router.ip));
     else {
