@@ -15,7 +15,7 @@ import { use, useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { MoreVertical, RefreshCcw, Settings2, Loader2 } from "lucide-react";
+import { MoreVertical, RefreshCcw, Loader2 } from "lucide-react";
 import { openReprovisionScript } from "@/components/dashboard/shared/editEvents";
 
 import { useDashboard } from "@/components/dashboard/context/DashboardContext";
@@ -156,15 +156,6 @@ function RouterDetailPageInner({
           >
             <RefreshCcw size={15} />
             Reprovision
-          </button>
-          <button
-            type="button"
-            data-testid="full-provision"
-            onClick={() => startRouterTask("full-provision", router.ip)}
-            className="inline-flex items-center gap-2 rounded-xl border border-[#e6e6e6] bg-white px-4 py-2.5 text-sm font-bold text-[#1a1a1a] hover:bg-[#f4f4f4]"
-          >
-            <Settings2 size={15} />
-            Full Provision
           </button>
 
           <div className="relative">
