@@ -355,7 +355,7 @@ export function useRouterState(
       autoPrepareRemoteWinbox({
         ip,
         name: router.name,
-        force: true,
+        forceDownload: false,
         queueJob: true,
         patchRouter: (target, patch) => {
           setRouters((current) => current.map((r) => (r.ip === target ? { ...r, ...patch } : r)));
@@ -521,12 +521,12 @@ export function useRouterState(
     }
 
     logActivity("Router", `Enabled remote WinBox for ${router.name}.`);
-    // Job + tunnel/address delivery are handled automatically (no manual download step).
+    // Tunnel comes from the setup script and is reused — no re-download every enable.
     void import("../routers/autoRemoteWinbox").then(({ autoPrepareRemoteWinbox }) =>
       autoPrepareRemoteWinbox({
         ip,
         name: router.name,
-        force: true,
+        forceDownload: false,
         queueJob: true,
         patchRouter: (target, patch) => {
           setRouters((current) => current.map((r) => (r.ip === target ? { ...r, ...patch } : r)));

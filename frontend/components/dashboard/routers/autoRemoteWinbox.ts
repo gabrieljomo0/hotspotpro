@@ -1,16 +1,33 @@
-// When Remote WinBox (or Multi-WAN with remote access) is turned on, wait for
-// the router’s check-in, then automatically deliver the connection details:
-// public WinBox address, or the WireGuard tunnel file + 192.168.216.1.
+// Remote WinBox: tunnel is created in the router setup script and stored on the site.
+// Enabling remote again reuses that stored tunnel — no re-download / re-setup every time.
+// Prefer “Open in browser” for day-to-day work without WireGuard on the laptop.
 
 import type { RouterInfo } from "@/components/dashboard/data/dashboard-data";
 
 const preparing = new Set<string>();
 const delivered = new Map<string, string>();
+const WG_ONCE_KEY = "hotspotpro:wg-once:";
 
 export type AutoRemoteResult = "direct" | "relay" | "timeout" | "busy" | "error";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function tunnelAlreadyKept(ip: string) {
+  try {
+    return window.localStorage.getItem(WG_ONCE_KEY + ip) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markTunnelKept(ip: string) {
+  try {
+    window.localStorage.setItem(WG_ONCE_KEY + ip, "1");
+  } catch {
+    /* ignore */
+  }
 }
 
 async function fetchRouterRow(ip: string): Promise<Partial<RouterInfo> | null> {
@@ -37,21 +54,7 @@ export function downloadWireguardTunnel(routerName: string, conf: string) {
   document.body.appendChild(link);
   link.click();
   link.remove();
-  // A second open without download= helps some Windows setups hand the file to WireGuard.
-  window.setTimeout(() => {
-    try {
-      const openLink = document.createElement("a");
-      openLink.href = url;
-      openLink.target = "_blank";
-      openLink.rel = "noopener";
-      document.body.appendChild(openLink);
-      openLink.click();
-      openLink.remove();
-    } catch {
-      // Ignore; the download above is enough.
-    }
-    URL.revokeObjectURL(url);
-  }, 400);
+  window.setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
 
 async function copyText(text: string) {
@@ -69,51 +72,13 @@ function fingerprint(row: Partial<RouterInfo>) {
   return "";
 }
 
-function openPreparePortal() {
-  try {
-    const portal = window.open("", "_blank", "noopener,noreferrer");
-    if (!portal) return null;
-    portal.document.write(
-      `<!doctype html><title>Remote WinBox</title><body style="font-family:system-ui;padding:24px;color:#1a1a1a">
-      <h1 style="font-size:18px">Preparing remote WinBox…</h1>
-      <p>Keep this tab open. The tunnel file or public address arrives when the router checks in.</p>
-      </body>`,
-    );
-    portal.document.close();
-    return portal;
-  } catch {
-    return null;
-  }
-}
-
-function deliverTunnel(portal: Window | null, routerName: string, conf: string) {
-  downloadWireguardTunnel(routerName, conf);
-  if (!portal || portal.closed) return;
-  try {
-    const safe = (routerName || "router").replace(/[^\w.-]+/g, "_").slice(0, 40);
-    const blob = new Blob([conf], { type: "application/x-wireguard-profile" });
-    const url = URL.createObjectURL(blob);
-    portal.document.open();
-    portal.document.write(
-      `<!doctype html><title>Remote WinBox tunnel</title><body style="font-family:system-ui;padding:24px;color:#1a1a1a">
-      <h1 style="font-size:18px">Tunnel ready</h1>
-      <p>WinBox address <strong>192.168.216.1</strong> was copied. The tunnel file should download now.</p>
-      <p><a id="wg" download="${safe}-winbox.conf" href="${url}">Open WireGuard tunnel file</a></p>
-      <script>document.getElementById("wg").click();</script>
-      </body>`,
-    );
-    portal.document.close();
-  } catch {
-    // Download helper above is enough.
-  }
-}
-
-/** Enable/refresh remote WinBox on the router, then auto-deliver address or tunnel file. */
+/** Enable/refresh remote WinBox. Reuses the setup-script tunnel when the site already has it. */
 export async function autoPrepareRemoteWinbox(opts: {
   ip: string;
   name: string;
-  /** When false, only wait/deliver — do not queue another remote-winbox job. */
   queueJob?: boolean;
+  /** Force a fresh tunnel download even if this browser already kept one. */
+  forceDownload?: boolean;
   force?: boolean;
   patchRouter: (ip: string, patch: Partial<RouterInfo>) => void;
   showToast: (message: string) => void;
@@ -122,8 +87,6 @@ export async function autoPrepareRemoteWinbox(opts: {
   if (preparing.has(opts.ip)) return "busy";
   preparing.add(opts.ip);
   opts.onStatus?.("preparing");
-  // Open during the click so the delayed tunnel download is not blocked by the browser.
-  const portal = openPreparePortal();
   try {
     if (opts.queueJob !== false) {
       const res = await fetch("/api/routers/jobs", {
@@ -134,82 +97,93 @@ export async function autoPrepareRemoteWinbox(opts: {
       if (!res || !res.ok) {
         opts.showToast("Could not start Remote WinBox on the router. Check that it is set up and online.");
         opts.onStatus?.("timeout");
-        try {
-          portal?.close();
-        } catch {
-          /* ignore */
-        }
         return "error";
       }
     }
 
-    opts.showToast("Preparing remote WinBox automatically… waiting for this router’s next check-in.");
-
-    const deadline = Date.now() + 90_000;
-    while (Date.now() < deadline) {
-      const row = await fetchRouterRow(opts.ip);
-      if (row) {
-        opts.patchRouter(opts.ip, {
-          remoteAccessEnabled: row.remoteAccessEnabled ?? true,
-          remoteAccessHold: row.remoteAccessHold,
-          winboxReach: row.winboxReach,
-          winboxAddress: row.winboxAddress,
-          wireguardConfig: row.wireguardConfig,
-          wireguardTunnelIp: row.wireguardTunnelIp,
-        });
-
-        const key = fingerprint(row);
-        const already = !opts.force && key && delivered.get(opts.ip) === key;
-
-        if (row.winboxReach === "direct" && row.winboxAddress) {
-          const host = String(row.winboxAddress).replace(/:8291$/, "");
-          if (!already) {
-            await copyText(host);
-            delivered.set(opts.ip, key);
-            opts.showToast(
-              `Remote WinBox is ready. Address copied (${host}). Open WinBox → Connect To → paste → admin password.`,
-            );
-          }
-          try {
-            if (portal && !portal.closed) {
-              portal.document.open();
-              portal.document.write(
-                `<!doctype html><title>Remote WinBox</title><body style="font-family:system-ui;padding:24px"><h1>Ready</h1><p>Connect WinBox to <strong>${host}</strong> (copied).</p></body>`,
-              );
-              portal.document.close();
-            }
-          } catch {
-            /* ignore */
-          }
-          opts.onStatus?.("ready");
-          return "direct";
-        }
-
-        if (typeof row.wireguardConfig === "string" && row.wireguardConfig.includes("[Interface]")) {
-          if (!already) {
-            deliverTunnel(portal, opts.name, row.wireguardConfig);
-            await copyText("192.168.216.1");
-            delivered.set(opts.ip, key);
-            opts.showToast(
-              "Tunnel prepared automatically. WinBox address 192.168.216.1 is copied — open WinBox after WireGuard activates the tunnel.",
-            );
-          } else {
-            try {
-              portal?.close();
-            } catch {
-              /* ignore */
-            }
-          }
-          opts.onStatus?.("ready");
-          return "relay";
-        }
+    // Fast path: setup already uploaded the tunnel / public address to the site.
+    const existing = await fetchRouterRow(opts.ip);
+    if (existing) {
+      opts.patchRouter(opts.ip, {
+        remoteAccessEnabled: existing.remoteAccessEnabled ?? true,
+        remoteAccessHold: existing.remoteAccessHold,
+        winboxReach: existing.winboxReach,
+        winboxAddress: existing.winboxAddress,
+        wireguardConfig: existing.wireguardConfig,
+        wireguardTunnelIp: existing.wireguardTunnelIp,
+      });
+      if (existing.winboxReach === "direct" && existing.winboxAddress) {
+        const host = String(existing.winboxAddress).replace(/:8291$/, "");
+        await copyText(host);
+        opts.showToast(`Remote access ready. Address copied (${host}). Prefer Open in browser, or paste into WinBox.`);
+        opts.onStatus?.("ready");
+        return "direct";
       }
-      await sleep(2500);
+      if (typeof existing.wireguardConfig === "string" && existing.wireguardConfig.includes("[Interface]")) {
+        const keep = tunnelAlreadyKept(opts.ip);
+        if (!keep || opts.forceDownload) {
+          downloadWireguardTunnel(opts.name, existing.wireguardConfig);
+          markTunnelKept(opts.ip);
+          await copyText("192.168.216.1");
+          opts.showToast(
+            "Tunnel from setup is ready (one-time save). Prefer Open in browser on this site — or import the .conf once for the WinBox app.",
+          );
+        } else {
+          await copyText("192.168.216.1");
+          opts.showToast(
+            "Remote access on. Tunnel was already set up during configuration — use Open in browser, or WinBox at 192.168.216.1 if your tunnel is active.",
+          );
+        }
+        delivered.set(opts.ip, fingerprint(existing));
+        opts.onStatus?.("ready");
+        return "relay";
+      }
     }
 
-    opts.showToast(
-      "Still waiting for the router. Leave this page open — the tunnel or public address is delivered as soon as the router checks in.",
-    );
+    opts.showToast("Waiting for this router’s next check-in (~3s) so remote access from setup can finish…");
+
+    const deadline = Date.now() + 60_000;
+    while (Date.now() < deadline) {
+      await sleep(1500);
+      const row = await fetchRouterRow(opts.ip);
+      if (!row) continue;
+      opts.patchRouter(opts.ip, {
+        remoteAccessEnabled: row.remoteAccessEnabled ?? true,
+        remoteAccessHold: row.remoteAccessHold,
+        winboxReach: row.winboxReach,
+        winboxAddress: row.winboxAddress,
+        wireguardConfig: row.wireguardConfig,
+        wireguardTunnelIp: row.wireguardTunnelIp,
+      });
+
+      const key = fingerprint(row);
+      if (row.winboxReach === "direct" && row.winboxAddress) {
+        const host = String(row.winboxAddress).replace(/:8291$/, "");
+        await copyText(host);
+        delivered.set(opts.ip, key);
+        opts.showToast(`Remote access ready. Address copied (${host}). Prefer Open in browser.`);
+        opts.onStatus?.("ready");
+        return "direct";
+      }
+
+      if (typeof row.wireguardConfig === "string" && row.wireguardConfig.includes("[Interface]")) {
+        const keep = tunnelAlreadyKept(opts.ip);
+        if (!keep || opts.forceDownload) {
+          downloadWireguardTunnel(opts.name, row.wireguardConfig);
+          markTunnelKept(opts.ip);
+          await copyText("192.168.216.1");
+          opts.showToast("Tunnel from setup saved once. Prefer Open in browser for daily work.");
+        } else {
+          await copyText("192.168.216.1");
+          opts.showToast("Remote access on — tunnel already kept from setup. Use Open in browser.");
+        }
+        delivered.set(opts.ip, key);
+        opts.onStatus?.("ready");
+        return "relay";
+      }
+    }
+
+    opts.showToast("Still waiting for the router. Open in browser works now; the tunnel appears after the next check-in.");
     opts.onStatus?.("timeout");
     return "timeout";
   } finally {

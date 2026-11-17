@@ -206,6 +206,8 @@ export type RouterInfo = {
   adminFromWan?: boolean;
   /** Set when remote WinBox was switched off. Otherwise the router opens it on the next check-in. */
   remoteAccessHold?: boolean;
+  /** When Multi-WAN last applied successfully on the live router. */
+  multiWanAppliedAt?: string | null;
 
   // Which business location this router belongs to — captive portal and
   // hotspot config are shared across every router in the same location.

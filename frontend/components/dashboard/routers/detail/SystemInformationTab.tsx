@@ -263,10 +263,10 @@ export function SystemInformationTab({
               {router.remoteAccessEnabled && router.winboxReach === "direct"
                 ? <>Connect the WinBox app to <span className="font-mono">{router.winboxAddress}</span> with the admin password. This port is open on the internet, so keep that password strong.</>
                 : router.remoteAccessEnabled && router.wireguardConfig
-                  ? <>Tunnel file is ready (downloaded automatically when you enable Remote WinBox). Connect WinBox to <span className="font-mono">192.168.216.1</span>.</>
+                  ? <>Tunnel was created in the router setup script and is stored here. Prefer Open in browser. WinBox app address: <span className="font-mono">192.168.216.1</span>.</>
                   : router.remoteAccessEnabled
-                    ? "Preparing automatically on the next check-in — the public address or WireGuard tunnel is delivered without a manual download step."
-                    : "Enable Remote WinBox (or Apply on Multi-WAN) and the connection is prepared automatically after the router checks in."}
+                    ? "Remote access is on. The setup script creates the tunnel once — use Open in browser for daily work."
+                    : "Remote WinBox and WireGuard are part of the configuration script. Enable remote access, then use Open in browser."}
             </p>
           </div>
         </div>

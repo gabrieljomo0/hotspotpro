@@ -28,7 +28,8 @@ export function defaultIspLink(existing: RouterISPLink[], salt = Date.now()): Ro
     gateway: "",
     dnsServers: DEFAULT_DNS[index % DEFAULT_DNS.length],
     healthCheckIp: DEFAULT_HEALTH[index % DEFAULT_HEALTH.length],
-    allowRemovalFromBridge: false,
+    // ISP cables must leave the hotspot bridge or load balancing / failover cannot use them.
+    allowRemovalFromBridge: true,
   };
 }
 

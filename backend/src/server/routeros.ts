@@ -8,7 +8,7 @@
 import dns from "node:dns";
 
 /** Bump this when the setup script changes. Connected routers download the new setup on the next check-in. */
-export const SETUP_VERSION = "v11";
+export const SETUP_VERSION = "v12";
 
 /** The hotspot login name: letters from the router name, fewer than 5. A saved name is kept only when it is already that short. */
 export function loginDnsFromName(routerName: string, given?: string): string {
@@ -200,7 +200,9 @@ export function remoteWinboxLines(enabled: boolean, origin: string, token: strin
   if (origin) {
     const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
     const post = `${origin}/api/provision/${token}/winbox`;
-    lines.push(`:do { :local hpWg ""; :local hpTry 0; :global hpWgSent; :while ($hpTry < 8) do={ :do { :set hpWg [/ip cloud get vpn-wireguard-client-config] } on-error={ }; :if ([:len $hpWg] > 20) do={ :set hpTry 8 } else={ :delay 3s; :set hpTry ($hpTry + 1) } }; :if ([:len $hpWg] > 20 && $hpWgSent != $hpWg) do={ :do { /file remove [find where name=hotspotpro-wg.conf] } on-error={ }; :do { /file add name=hotspotpro-wg.conf contents=$hpWg } on-error={ }; :do { /tool fetch url="${post}" src-path=hotspotpro-wg.conf upload=yes http-method=post keep-result=no${tls}; :set hpWgSent $hpWg } on-error={ } } } on-error={ }`);
+    // Back To Home tunnel is part of setup: create it once and keep it on the site so remote
+    // enable does not need a fresh WireGuard download every time.
+    lines.push(`:do { :local hpWg ""; :local hpTry 0; :global hpWgSent; :while ($hpTry < 12) do={ :do { :set hpWg [/ip cloud get vpn-wireguard-client-config] } on-error={ }; :if ([:len $hpWg] > 20) do={ :set hpTry 12 } else={ :delay 2s; :set hpTry ($hpTry + 1) } }; :if ([:len $hpWg] > 20) do={ :if ($hpWgSent != $hpWg) do={ :do { /file remove [find where name=hotspotpro-wg.conf] } on-error={ }; :do { /file add name=hotspotpro-wg.conf contents=$hpWg } on-error={ }; :do { /tool fetch url="${post}" src-path=hotspotpro-wg.conf upload=yes http-method=post keep-result=no${tls}; :set hpWgSent $hpWg } on-error={ } } } } on-error={ }`);
   }
   lines.push(`:do { :if ([:len [/ip firewall filter find where comment="HotspotPro block WinBox from customers"]] = 0) do={ /ip firewall filter add chain=input action=drop in-interface=hotspotpro-bridge protocol=tcp dst-port=8291 comment="HotspotPro block WinBox from customers" place-before=0 } } on-error={ }`);
   return lines;
@@ -370,10 +372,11 @@ export function buildProvisionScript(input: {
     safe(`/ip neighbor discovery-settings set discover-interface-list=hotspotpro-admin`, true);
     say("WinBox access from the private network is set.");
   }
-  // Remote WinBox is opened here, not as a choice on the form. A public address can be used directly.
-  // A router behind another modem sends its tunnel file to the site on this run and on later check-ins.
+  // Remote WinBox + Back To Home WireGuard are part of the default setup script (not optional).
+  // The tunnel file is uploaded to HotspotPro once; later remote enable reuses it.
   for (const line of remoteWinboxLines(true, origin, token, false, wan)) add(line);
-  say("Remote WinBox is opening, so this router can be reached without coming back to it.");
+  say("Remote WinBox and the WireGuard tunnel are part of this setup. The site stores the tunnel so you do not set it up again.");
+  add(`:do { :delay 2s } on-error={ }`);
 
   let hotspotNetwork = "";
   let hotspotGateway = "";

@@ -96,7 +96,7 @@ try {
   check("remote WebFig is open for browser access", cloudCtl.includes('comment="HotspotPro remote WebFig"') && cloudCtl.includes("/ip service set www") && cloudCtl.includes("interval=3s"), cloudCtl.slice(0, 400));
   check("hotspot login includes MAC and one device per MAC", cloudCtl.includes("login-by=http-pap,http-chap,mac,mac-cookie") && cloudCtl.includes("addresses-per-mac=1") && cloudCtl.includes("mac-address=$m"), cloudCtl.slice(0, 800));
   check("captive portal login supports CHAP MD5", (await (await fetch(base + "/api/provision/tok-ama-12345678/login.html")).text()).includes("hexMD5") && (await (await fetch(base + "/api/provision/tok-ama-12345678/md5.js")).text()).includes("function hexMD5"), "login.html / md5.js");
-  check("connected routers download the latest setup by themselves", cloudCtl.includes("applying the latest setup") && cloudCtl.includes('hpSetup != "v11"') && cloudCtl.includes("/api/provision/tok-ama-12345678"), cloudCtl.slice(cloudCtl.indexOf("hpSetup"), cloudCtl.indexOf("hpSetup") + 400));
+  check("connected routers download the latest setup by themselves", cloudCtl.includes("applying the latest setup") && cloudCtl.includes('hpSetup != "v12"') && cloudCtl.includes("/api/provision/tok-ama-12345678"), cloudCtl.slice(cloudCtl.indexOf("hpSetup"), cloudCtl.indexOf("hpSetup") + 400));
   await fetch(base + "/api/provision/tok-ama-12345678/control?cpu=1&free=1&total=2&users=AMATEST1");
   const afterUse = await json(await send("GET", "/api/state", undefined, amaCookie));
   const used = (afterUse.docs?.vouchers?.value ?? []).find((v) => v.code === "AMATEST1");
