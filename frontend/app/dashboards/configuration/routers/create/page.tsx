@@ -404,7 +404,7 @@ export default function AddRouterPage() {
       </div>
       <h1 className="mb-2 text-3xl font-black text-[#1a1a1a] md:text-4xl">Provision Router</h1>
       <p className="mb-6 text-sm text-[#737373]">
-        If the router says device mode is not allowed, copy the mode command and paste it in the MikroTik terminal. Unplug the power cord for 10 seconds, then restore power. When the router is back, paste the configuration command.
+        Paste the configuration command once. If the router says device mode is not allowed, use the small mode command under it, unplug the power cord for 10 seconds, restore power, then paste the configuration command again.
       </p>
 
       <div className="mb-6 flex items-center gap-2 rounded-2xl border border-[#e6e6e6] bg-white p-4">
@@ -769,31 +769,8 @@ export default function AddRouterPage() {
             <div className="rounded-xl border border-[#f4f4f4] p-4">
               <div className="mb-2 flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-bold text-[#1a1a1a]">1. Mode command</p>
-                  <p className="text-xs text-[#a3a3a3]">Copy only switches the router from home to advanced. Paste it in the terminal, unplug the power cord for 10 seconds, restore power, then paste the configuration command.</p>
-                </div>
-                <button
-                  type="button"
-                  data-testid="copy-mode"
-                  onClick={() => handleCopy("mode")}
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#1a1a1a] bg-white px-3 py-1.5 text-xs font-bold text-[#1a1a1a] hover:bg-[#f4f4f4]"
-                >
-                  {copied === "mode" ? <Check size={13} /> : <Copy size={13} />}
-                  {copied === "mode" ? "Copied" : "Copy"}
-                </button>
-              </div>
-              <code
-                data-testid="mode-text"
-                className="block max-h-28 overflow-y-auto whitespace-pre-wrap break-all rounded-lg bg-[#1a1a1a] px-3 py-2.5 text-xs text-white"
-              >
-                {modeCommand}
-              </code>
-            </div>
-            <div className="rounded-xl border border-[#f4f4f4] p-4">
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-bold text-[#1a1a1a]">2. Configuration command</p>
-                  <p className="text-xs text-[#a3a3a3]">Paste this once after the mode command. It downloads the setup, waits, imports it, and deletes the file. Leave the internet cable in {wanClean} and keep WinBox open until the setup finishes.</p>
+                  <p className="text-sm font-bold text-[#1a1a1a]">Configuration command</p>
+                  <p className="text-xs text-[#a3a3a3]">Paste this once. It downloads the setup, waits, imports it, and deletes the file. Leave the internet cable in {wanClean} and keep WinBox open until the setup finishes.</p>
                 </div>
                 <button
                   type="button"
@@ -812,6 +789,29 @@ export default function AddRouterPage() {
               >
                 {provisioningCommand}
               </code>
+              <div className="mt-3 rounded-lg border border-[#e6e6e6] bg-[#fafafa] p-3">
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold text-[#1a1a1a]">Mode command</p>
+                    <p className="text-[11px] text-[#a3a3a3]">Only if the terminal says device mode is not allowed. Paste this, unplug the power cord for 10 seconds, restore power, then paste the configuration command.</p>
+                  </div>
+                  <button
+                    type="button"
+                    data-testid="copy-mode"
+                    onClick={() => handleCopy("mode")}
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#1a1a1a] bg-white px-2.5 py-1 text-[11px] font-bold text-[#1a1a1a] hover:bg-[#f4f4f4]"
+                  >
+                    {copied === "mode" ? <Check size={12} /> : <Copy size={12} />}
+                    {copied === "mode" ? "Copied" : "Copy"}
+                  </button>
+                </div>
+                <code
+                  data-testid="mode-text"
+                  className="block whitespace-pre-wrap break-all rounded-md bg-[#1a1a1a] px-2.5 py-1.5 text-[11px] text-white"
+                >
+                  {modeCommand}
+                </code>
+              </div>
             </div>
 
             {/* Address the router will use to reach this server */}
@@ -975,7 +975,7 @@ export default function AddRouterPage() {
 
             {!connected && (
               <p className="rounded-xl bg-[#f4f4f4] p-3 text-xs text-[#525252]">
-                If the router says device mode is not allowed, paste the mode command, unplug the power cord for 10 seconds, restore power, then paste the configuration command.
+                Paste the configuration command once. If the router says device mode is not allowed, use the mode command under it, unplug the power cord for 10 seconds, restore power, then paste the configuration command again.
               </p>
             )}
 
