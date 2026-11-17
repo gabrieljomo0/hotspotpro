@@ -1,7 +1,7 @@
 "use client";
 
 // Advanced setup: send any RouterOS command to this router from the site.
-// The router already calls the server every 30 seconds, so the command is picked up on its next call
+// The router already calls the server every 3 seconds, so the command is picked up on its next call
 // (from anywhere, behind any modem, no ports opened on the router) and the router reports back whether it worked.
 
 import { useCallback, useEffect, useState } from "react";
@@ -51,7 +51,7 @@ export function AdvancedTab({ router }: { router: RouterInfo }) {
 
   useEffect(() => {
     void load();
-    const timer = setInterval(() => void load(), 5000);
+    const timer = setInterval(() => void load(), 3000);
     return () => clearInterval(timer);
   }, [load]);
 
@@ -78,14 +78,14 @@ export function AdvancedTab({ router }: { router: RouterInfo }) {
       <section className="rounded-2xl border border-[#e6e6e6] bg-white p-5">
         <h3 className="flex items-center gap-2 text-base font-bold text-[#1a1a1a]"><Terminal size={16} /> Advanced setup (RouterOS commands)</h3>
         <p className="mt-1 text-sm text-[#737373]">
-          Change anything on this router from here. Commands are picked up by the router on its next 30-second check-in, from anywhere
+          Change anything on this router from here. Commands are picked up by the router on its next check-in (~3 seconds), from anywhere
           (no ports need opening on the router), run once, and the router reports whether each one worked. Commands run with full
           rights, so a wrong one can lock you out: test on a spare router first.
         </p>
         <p className="mt-2 text-xs font-semibold">
           {control === null ? <span className="text-[#a3a3a3]">Checking the router&apos;s connection…</span>
             : !control.hasToken ? <span className="text-[#1a1a1a]">This router has no setup link yet, so it cannot receive commands. Add it with the Add router page.</span>
-            : online ? <span className="text-[#111111]">Router is in contact (last check-in {control.lastCheckInAt ? new Date(control.lastCheckInAt).toLocaleTimeString() : "—"}). Commands arrive within about 30 seconds.</span>
+            : online ? <span className="text-[#111111]">Router is in contact (last check-in {control.lastCheckInAt ? new Date(control.lastCheckInAt).toLocaleTimeString() : "—"}). Commands arrive within about 3 seconds.</span>
             : <span className="text-[#111111]">The router has not checked in recently. Commands will wait and run when it is back online.</span>}
         </p>
 

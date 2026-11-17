@@ -118,7 +118,7 @@ export function RouterConnectionBanner({ router, onReconnect }: { router: Router
         <div className="mt-3 text-sm" data-testid="router-banner-enforcement">
           {info.enforced ? (
             <p className="flex items-center gap-2 text-[#111111]">
-              <Check size={15} /> The router is following this — it last asked {ago(tick - Date.parse(info.lastCheckInAt ?? new Date(tick).toISOString()))} and checks every 30 seconds.
+              <Check size={15} /> The router is following this — it last asked {ago(tick - Date.parse(info.lastCheckInAt ?? new Date(tick).toISOString()))} and checks every 3 seconds.
             </p>
           ) : (
             <div className="rounded-lg bg-[#f3f1ec] p-4 text-[#111111]">

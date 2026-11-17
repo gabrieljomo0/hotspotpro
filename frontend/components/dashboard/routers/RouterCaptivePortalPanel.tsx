@@ -93,7 +93,7 @@ export function RouterCaptivePortalPanel({
       queueRouterAction(router.ip, "wifi");
       queueRouterAction(router.ip, "sync-vouchers");
       setSaved(form);
-      showToast("Settings saved and sent to the router. They take effect within about 10 seconds.");
+      showToast("Settings saved and sent to the router. They take effect within about 3 seconds.");
     } finally {
       setApplying(false);
     }

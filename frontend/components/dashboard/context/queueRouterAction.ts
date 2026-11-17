@@ -1,4 +1,4 @@
-/** Queue a RouterOS action for a live router. The router picks it up on the next check-in (~10s). */
+/** Queue a RouterOS action for a live router. The router picks it up on the next check-in (~3s). */
 export function queueRouterAction(ip: string, action: string, extra: Record<string, unknown> = {}) {
   if (!ip || !action) return;
   void fetch("/api/routers/jobs", {

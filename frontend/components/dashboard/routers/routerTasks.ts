@@ -34,7 +34,7 @@ export const ROUTER_TASKS: Record<RouterTaskKind, RouterTaskDef> = {
   "full-provision": {
     title: "Full Provision",
     confirm:
-      "This sends SNMP, service lockdown, the walled garden, hotspot login files and the clock to the router. Paid vouchers stay on the router, because this site has no RADIUS port. The router applies it within about 30 seconds. Make sure it is plugged in and has internet.",
+      "This sends SNMP, service lockdown, the walled garden, hotspot login files and the clock to the router. Paid vouchers stay on the router, because this site has no RADIUS port. The router applies it within about 3 seconds. Make sure it is plugged in and has internet.",
     needsReachable: false,
     steps: [
       "Sending the setup to the router",
@@ -120,15 +120,15 @@ export const ROUTER_TASKS: Record<RouterTaskKind, RouterTaskDef> = {
   disconnect: {
     title: "Disconnect router",
     confirm:
-      "Everyone on this router loses internet and is signed out, and new logins are refused until you reconnect it. Voucher time keeps counting meanwhile. The router applies this within 30 seconds.",
+      "Everyone on this router loses internet and is signed out, and new logins are refused until you reconnect it. Voucher time keeps counting meanwhile. The router applies this within 3 seconds.",
     needsReachable: false,
-    steps: ["Saving the disconnect", "Refusing new logins on this router", "Router receives the instruction (within 30 seconds)", "Signing customers out"],
+    steps: ["Saving the disconnect", "Refusing new logins on this router", "Router receives the instruction (within 3 seconds)", "Signing customers out"],
     success: "is disconnected. Customers have no internet until you reconnect it.",
   },
   reconnect: {
     title: "Reconnect router",
     needsReachable: false,
-    steps: ["Saving the reconnect", "Allowing logins on this router again", "Router receives the instruction (within 30 seconds)"],
+    steps: ["Saving the reconnect", "Allowing logins on this router again", "Router receives the instruction (within 3 seconds)"],
     success: "is reconnected. Customers can log in and browse again.",
   },
 

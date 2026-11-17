@@ -14,6 +14,7 @@ import {
   ensureMinimumIspLinks,
 } from "@/components/dashboard/routers/multiWanDefaults";
 import { DirtyApplyBar } from "@/components/dashboard/shared/DirtyApplyBar";
+import { OpenBrowserConsoleButton } from "@/components/dashboard/routers/detail/BrowserRouterConsole";
 
 function seedIspLinks(router: RouterInfo): RouterISPLink[] {
   if (router.ispLinks.length > 0) return router.ispLinks;
@@ -141,8 +142,8 @@ export function MultiWanTab({ router }: { router: RouterInfo }) {
       >
         <h3 className="text-base font-bold text-[#1a1a1a]">Remote WinBox</h3>
         <p className="mt-1 text-sm text-[#737373]">
-          Enable Remote WinBox or Apply Multi-WAN — the tunnel file and WinBox address are prepared automatically
-          after the router checks in. Each site keeps its own connection.
+          Use Open in browser to work on this router from the site (no WinBox app). Enable Remote WinBox or Apply Multi-WAN
+          to prepare the tunnel or public address automatically (~3 seconds).
         </p>
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -179,6 +180,7 @@ export function MultiWanTab({ router }: { router: RouterInfo }) {
         </p>
 
         <div className="mt-4 flex flex-wrap gap-2">
+          <OpenBrowserConsoleButton router={router} />
           <button
             type="button"
             data-testid="multiwan-winbox-toggle"
@@ -191,7 +193,7 @@ export function MultiWanTab({ router }: { router: RouterInfo }) {
                 toggleRemoteAccess(router.ip, true);
               }
             }}
-            className="rounded-xl bg-[#1a1a1a] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#111111]"
+            className="rounded-xl border border-[#1a1a1a] bg-white px-4 py-2.5 text-sm font-bold text-[#1a1a1a] hover:bg-[#f4f4f4]"
           >
             {remoteOn ? "Turn remote off" : "Enable Remote WinBox"}
           </button>
@@ -199,7 +201,7 @@ export function MultiWanTab({ router }: { router: RouterInfo }) {
             type="button"
             data-testid="multiwan-winbox-copy"
             onClick={() => void copyWinboxAddress()}
-            className="inline-flex items-center gap-2 rounded-xl border border-[#1a1a1a] bg-white px-4 py-2.5 text-sm font-bold text-[#1a1a1a] hover:bg-[#f4f4f4]"
+            className="inline-flex items-center gap-2 rounded-xl border border-[#e6e6e6] bg-white px-4 py-2.5 text-sm font-bold text-[#1a1a1a] hover:bg-[#f4f4f4]"
           >
             <Copy size={15} /> Copy WinBox address
           </button>

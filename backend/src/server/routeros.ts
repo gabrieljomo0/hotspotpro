@@ -161,8 +161,10 @@ export function remoteWinboxLines(enabled: boolean, origin: string, token: strin
   if (!enabled) {
     const lines = [
       `:do { /ip firewall filter remove [find where comment="HotspotPro remote WinBox"] } on-error={ }`,
+      `:do { /ip firewall filter remove [find where comment="HotspotPro remote WebFig"] } on-error={ }`,
       `:do { /ip firewall filter remove [find where comment="HotspotPro remote API"] } on-error={ }`,
       `:do { /ip service set api address=192.168.88.0/24 disabled=no } on-error={ }`,
+      `:do { /ip service set www address=192.168.88.0/24 disabled=no } on-error={ }`,
       `:do { :if ([/ip cloud get back-to-home-vpn] = "enabled") do={ /ip cloud set back-to-home-vpn=revoked-and-disabled } } on-error={ }`,
     ];
     if (sameNetwork) {
@@ -180,15 +182,19 @@ export function remoteWinboxLines(enabled: boolean, origin: string, token: strin
     return lines;
   }
   const lines = [
-    // Public WinBox: cloud DDNS when the ISP gives a real address, Back To Home VPN when it does not.
+    // Public WinBox + WebFig: cloud DDNS when the ISP gives a real address, Back To Home VPN when it does not.
     `:do { /ip cloud set ddns-enabled=yes update-time=yes } on-error={ }`,
     `:do { :if ([/ip cloud get back-to-home-vpn] != "enabled") do={ /ip cloud set back-to-home-vpn=enabled } } on-error={ }`,
     `:do { /ip service set winbox address=0.0.0.0/0 disabled=no } on-error={ }`,
+    // WebFig so the owner can open the router in a browser without installing WinBox.
+    `:do { /ip service set www address=0.0.0.0/0 disabled=no } on-error={ }`,
     `:do { /ip service set api port=8728 address=192.168.88.0/24,192.168.216.0/24 disabled=no } on-error={ }`,
     `:do { /ip firewall filter remove [find where comment="HotspotPro remote WinBox"] } on-error={ }`,
+    `:do { /ip firewall filter remove [find where comment="HotspotPro remote WebFig"] } on-error={ }`,
     `:do { /ip firewall filter remove [find where comment="HotspotPro remote API"] } on-error={ }`,
     `:do { /ip firewall filter add chain=input action=accept protocol=tcp dst-port=8291 comment="HotspotPro remote WinBox" place-before=0 } on-error={ }`,
     `:do { /ip firewall filter add chain=input action=accept protocol=tcp dst-port=8291 in-interface=${port} comment="HotspotPro remote WinBox" place-before=0 } on-error={ }`,
+    `:do { /ip firewall filter add chain=input action=accept protocol=tcp dst-port=80 comment="HotspotPro remote WebFig" place-before=0 } on-error={ }`,
     `:do { /ip firewall filter add chain=input action=accept protocol=tcp dst-port=8728 src-address=192.168.216.0/24 comment="HotspotPro remote API" place-before=0 } on-error={ }`,
   ];
   if (origin) {
@@ -212,7 +218,7 @@ export function internetSwitchCommands(origin: string, token: string): string[] 
     // Without policy the scheduler is not allowed to download, so the router would never check in.
     `/system script add name=hotspotpro-control source="${source}" policy=ftp,reboot,read,write,policy,test comment="HotspotPro"`,
     `/system scheduler remove [find where name=hotspotpro-control]`,
-    `/system scheduler add name=hotspotpro-control interval=10s start-time=startup on-event=hotspotpro-control policy=ftp,reboot,read,write,policy,test comment="HotspotPro"`,
+    `/system scheduler add name=hotspotpro-control interval=3s start-time=startup on-event=hotspotpro-control policy=ftp,reboot,read,write,policy,test comment="HotspotPro"`,
     `/ip firewall raw remove [find where comment="${ACCESS_LOCK}"]`,
     `/ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=accept dst-address-type=local comment="${ACCESS_LOCK}" disabled=yes`,
     `/ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=accept dst-address-type=broadcast comment="${ACCESS_LOCK}" disabled=yes`,

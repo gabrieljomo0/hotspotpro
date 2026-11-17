@@ -6,7 +6,7 @@ import { type IspLink } from "@/server/multiWan";
 import { addAudit, currentTenantId, getState, jobsFor, queueJob, setState } from "@/server/store";
 
 // Admin: the "Advanced" console. Queue RouterOS commands for one router; the router picks them up within
-// about 30 seconds (it already calls the server that often, so this works from anywhere, behind any NAT,
+// about 3 seconds (it already calls the server that often, so this works from anywhere, behind any NAT,
 // with no ports opened on the router) and reports whether each one ran.
 //   GET  ?ip=<router ip>             -> recent commands and their status
 //   POST { ip, script }              -> queue a command

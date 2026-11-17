@@ -15,6 +15,7 @@ import type { RouterInfo } from "@/components/dashboard/data/dashboard-data";
 import { useRouterControl } from "@/components/dashboard/routers/useRouterControl";
 import { routerLiveStatus } from "@/components/dashboard/routers/routerLiveStatus";
 import { DirtyApplyBar } from "@/components/dashboard/shared/DirtyApplyBar";
+import { OpenBrowserConsoleButton } from "@/components/dashboard/routers/detail/BrowserRouterConsole";
 
 const WARN_AT = 75;
 const OVERLOAD_AT = 90;
@@ -245,6 +246,10 @@ export function SystemInformationTab({
 
       <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
         <h3 className="mb-4 text-base font-bold text-[#1a1a1a]">Remote WinBox Access</h3>
+        <div className="mb-4">
+          <OpenBrowserConsoleButton router={router} />
+          <p className="mt-2 text-xs text-[#737373]">Open in browser works from this site — no WinBox install needed. Commands reach the router in about 3 seconds.</p>
+        </div>
         <div className="mb-5 space-y-4">
           <div>
             <p className="text-xs text-[#737373]">Status</p>
@@ -533,7 +538,7 @@ export function SystemInformationTab({
       {router.hotspotEnabled && (
         <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
           <h3 className="text-base font-bold text-[#1a1a1a]">Customer login</h3>
-          <p className="mt-1 text-sm text-[#737373]">Only one method runs at a time. The router follows this on its next check-in, about 30 seconds.</p>
+          <p className="mt-1 text-sm text-[#737373]">Only one method runs at a time. The router follows this on its next check-in, about 3 seconds.</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {([
               ["cloud", "Cloud", "Unavailable here. This site has no RADIUS port."],

@@ -180,7 +180,6 @@ export function controlScript(token: string, origin?: string): string | null {
         `:if ($hpLockState != "open") do={ ${pageFetch(origin, token, "login.html", "hotspot/login.html")}; ${pageFetch(origin, token, "login.html", "flash/hotspot/login.html")}; :set hpLockState "open" }`,
         // Never call reset-html here — it prompts y/N and can stall the check-in. Remove + fetch only.
         `:global hpPages; :local hpBody ""; :local hpRelogin ""; :do { :set hpBody [/file get [find where name="hotspot/login.html"] contents] } on-error={ }; :do { :set hpRelogin [/file get [find where name="hotspot/rlogin.html"] contents] } on-error={ }; :do { :if ([:typeof [:find $hpBody "link-login-only"]] != "num") do={ :set hpBody [/file get [find where name="flash/hotspot/login.html"] contents] } } on-error={ }; :do { :if ([:typeof [:find $hpRelogin "link-login-only"]] != "num") do={ :set hpRelogin [/file get [find where name="flash/hotspot/rlogin.html"] contents] } } on-error={ }; :if ($hpPages != "${loginPageStamp(token)}" || [:typeof [:find $hpBody "link-login-only"]] != "num" || [:typeof [:find $hpRelogin "link-login-only"]] != "num") do={ ${fetches}; :set hpBody ""; :set hpRelogin ""; :do { :set hpBody [/file get [find where name="hotspot/login.html"] contents] } on-error={ }; :do { :set hpRelogin [/file get [find where name="hotspot/rlogin.html"] contents] } on-error={ }; :do { :if ([:typeof [:find $hpBody "link-login-only"]] != "num") do={ :set hpBody [/file get [find where name="flash/hotspot/login.html"] contents] } } on-error={ }; :do { :if ([:typeof [:find $hpRelogin "link-login-only"]] != "num") do={ :set hpRelogin [/file get [find where name="flash/hotspot/rlogin.html"] contents] } } on-error={ }; :if ([:typeof [:find $hpBody "link-login-only"]] = "num" && [:typeof [:find $hpRelogin "link-login-only"]] = "num") do={ :set hpPages "${loginPageStamp(token)}" } }`,
-        `:do { /system scheduler set [find where name=hotspotpro-control] interval=10s } on-error={ }`,
       );
     }
     const wan = primaryWanInterface(router);
@@ -215,6 +214,8 @@ export function controlScript(token: string, origin?: string): string | null {
       );
     }
   }
+  // Keep check-ins fast so site actions and remote console land in about 3 seconds.
+  lines.push(`:do { /system scheduler set [find where name=hotspotpro-control] interval=3s } on-error={ }`);
   if (origin) {
     const source = checkInBody(origin, token).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\$/g, "\\$");
     // The copy already on the router may not send CPU and memory. Replace it so the next check-in does.

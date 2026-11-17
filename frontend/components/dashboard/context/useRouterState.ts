@@ -592,7 +592,7 @@ export function useRouterState(
       body: JSON.stringify({ ip, action: "wifi" }),
     }).catch(() => {});
     const router = routers.find((r) => r.ip === ip);
-    showToast(`${router?.name ?? "Router"} will sync vouchers, login pages and WiFi within about 10 seconds.`);
+    showToast(`${router?.name ?? "Router"} will sync vouchers, login pages and WiFi within about 3 seconds.`);
     logActivity("Router", `Queued a live sync for ${router?.name ?? ip}.`);
   }
 

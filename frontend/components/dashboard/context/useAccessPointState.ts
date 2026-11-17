@@ -46,7 +46,7 @@ export function useAccessPointState(
     applyApOnRouter(input.routerIp);
     showToast(
       input.routerIp
-        ? `"${input.name}" added and linked. WiFi on that router will refresh within about 10 seconds.`
+        ? `"${input.name}" added and linked. WiFi on that router will refresh within about 3 seconds.`
         : `"${input.name}" added. Not linked to a router — connected standalone.`,
     );
     logActivity("Router", `Added access point "${input.name}".`);
