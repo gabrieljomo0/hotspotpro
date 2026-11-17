@@ -51,10 +51,19 @@ function hotspotLines(router: Row): string[] {
   if (router.hotspotEnabled === false) {
     return [`:do { /ip hotspot disable [find where name=hotspotpro] } on-error={ }`];
   }
-  const lines = [`:do { /ip hotspot enable [find where name=hotspotpro] } on-error={ }`];
-  const name = (router.dnsName || "").trim().toLowerCase();
+  const lines = [
+    `:do { /ip hotspot enable [find where name=hotspotpro] } on-error={ }`,
+    `:do { /ip hotspot set [find where name=hotspotpro] disabled=no addresses-per-mac=4 } on-error={ }`,
+    // A phone that uses 8.8.8.8 never hits the login page. Keep every customer DNS query on this router.
+    `:do { :local a ""; :do { :set a [/ip address get [find where interface=hotspotpro-bridge comment="HotspotPro"] address] } on-error={ }; :if ([:len $a] > 0) do={ :local g [:pick $a 0 [:find $a "/"]]; /ip dhcp-server network set [find where comment="HotspotPro"] dns-server=$g gateway=$g } } on-error={ }`,
+    `:do { :if ([:len [/ip firewall nat find where comment="HotspotPro DNS"]] = 0) do={ /ip firewall nat add chain=dstnat in-interface=hotspotpro-bridge protocol=udp dst-port=53 action=redirect to-ports=53 comment="HotspotPro DNS"; /ip firewall nat add chain=dstnat in-interface=hotspotpro-bridge protocol=tcp dst-port=53 action=redirect to-ports=53 comment="HotspotPro DNS" } } on-error={ }`,
+    `:do { :foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :if ([:len [/interface bridge port find where interface=$n bridge=hotspotpro-bridge]] = 0) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`,
+    `:do { :foreach p in=[/interface wireless find] do={ :local n [/interface wireless get $p name]; :if ([:len [/interface bridge port find where interface=$n bridge=hotspotpro-bridge]] = 0) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`,
+  ];
+  const name = (router.dnsName || "login.hotspot").trim().toLowerCase();
   if (/^[a-z0-9][a-z0-9.-]{0,48}$/.test(name)) {
     lines.push(`:do { /ip hotspot profile set [find where name=hotspotpro] dns-name="${name}" } on-error={ }`);
+    lines.push(`:do { :local a ""; :do { :set a [/ip address get [find where interface=hotspotpro-bridge comment="HotspotPro"] address] } on-error={ }; :if ([:len $a] > 0) do={ :local g [:pick $a 0 [:find $a "/"]]; /ip dns static remove [find where comment="HotspotPro login"]; /ip dns static add name="${name}" address=$g comment="HotspotPro login" } } on-error={ }`);
   }
   const dns = (router.hotspotDnsServers || "").replace(/\s/g, "");
   if (/^(?:\d{1,3}\.){3}\d{1,3}(?:,(?:\d{1,3}\.){3}\d{1,3}){0,2}$/.test(dns)) {

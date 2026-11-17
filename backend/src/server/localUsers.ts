@@ -3,6 +3,7 @@
 // Every user gets a finite uptime and speed from its package, so a local
 // login cannot stay online forever. Local mode does not ask the cloud.
 
+import { voucherOnlyLogin } from "./hotspotPages";
 import { getState, setState } from "./store";
 import { type Pkg, type Vch, findPackageByName, list, packageBytes, packageSeconds, routerAllowsPackage, voucherCountFrom, voucherLimitBy } from "./packages";
 
@@ -87,6 +88,7 @@ export function localUserLines(token: string, routerIp: string, now = Date.now()
     setState("routerUserSync", file, "server");
   }
 
+  const pin = voucherOnlyLogin(token);
   const lines: string[] = ["# HotspotPro local vouchers (kept on this router; each one has a time limit)"];
   const profiles = new Set<string>();
   for (const user of add) {
@@ -114,8 +116,10 @@ export function localUserLines(token: string, routerIp: string, now = Date.now()
     const bytes = user.limitBy === "days" ? 0 : cap;
     const limits = `limit-uptime=${uptime} limit-bytes-total=${bytes}`;
     const profile = quote(profileName(user.pkg, user.name));
+    // One box sends the code as both names. Two boxes send the voucher password.
+    const secret = quote(pin ? user.name : user.password || user.name);
     lines.push(
-      `:do { :if ([:len [/ip hotspot user find where name=${quote(user.name)}]] = 0) do={ /ip hotspot user add name=${quote(user.name)} password=${quote(user.password)} profile=${profile} ${limits} comment="HotspotPro" } else={ /ip hotspot user set [find where name=${quote(user.name)}] password=${quote(user.password)} profile=${profile} ${limits} disabled=no } } on-error={ }`,
+      `:do { :if ([:len [/ip hotspot user find where name=${quote(user.name)}]] = 0) do={ /ip hotspot user add name=${quote(user.name)} password=${secret} profile=${profile} ${limits} comment="HotspotPro" } else={ /ip hotspot user set [find where name=${quote(user.name)}] password=${secret} profile=${profile} ${limits} disabled=no } } on-error={ }`,
     );
   }
   for (const code of remove) {

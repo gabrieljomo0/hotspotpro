@@ -373,7 +373,6 @@ export function buildProvisionScript(input: {
     hotspotGateway = plan.gateway;
     // Routers with a "flash" folder keep their files there; the hotspot pages go with them.
     add(`:do { :if ([:len [/file find where name="flash"]] > 0) do={ :set hpDir "flash/hotspot" } } on-error={ }`);
-    const dns = (router.hotspotDnsServers || "8.8.8.8,8.8.4.4").replace(/[^0-9.,]/g, "");
     const autoLast = router.lastPortFree === true && !input.existing;
     if (autoLast) {
       add(`:do { :local hpCount 0; :local hpMax 0; :set hpLast ""; :foreach p in=[/interface ethernet find] do={ :set hpCount ($hpCount + 1); :local n [/interface ethernet get $p name]; :if ([:pick $n 0 5] = "ether") do={ :local num [:tonum [:pick $n 5 [:len $n]]]; :if ($num > $hpMax) do={ :set hpMax $num; :set hpLast $n } } }; :if ($hpLast = "${wan}" || [:len $hpLast] = 0) do={ :set hpLast ""; :put ("This router has " . $hpCount . " ethernet ports. Internet uses ${wan}. The last port joins the hotspot.") } else={ :put ("This router has " . $hpCount . " ethernet ports. Internet uses ${wan}. The last port " . $hpLast . " stays free.") } } on-error={ :put "Could not count the ethernet ports. Setup continues." }`);
@@ -426,7 +425,9 @@ export function buildProvisionScript(input: {
     say("Creating the address pool...");
     safe(`/ip pool add name=hotspotpro-pool ranges=${plan.poolFrom}-${plan.poolTo}`, false, "Address pool created");
     say("Creating the DHCP server...");
-    safe(`/ip dhcp-server network add address=${plan.network} gateway=${plan.gateway} dns-server=${plan.gateway},${dns} comment="HotspotPro"`, false, "DHCP network created");
+    // Phones must use this router for DNS. A public DNS address lets them reach the internet check and the login page never opens.
+    safe(`/ip dhcp-server network add address=${plan.network} gateway=${plan.gateway} dns-server=${plan.gateway} comment="HotspotPro"`, false, "DHCP network created");
+    safe(`/ip dhcp-server network set [find where comment="HotspotPro"] dns-server=${plan.gateway} gateway=${plan.gateway}`, true);
     safe(`/ip dhcp-server add name=hotspotpro-dhcp interface=hotspotpro-bridge address-pool=hotspotpro-pool disabled=no`, false, "DHCP server created");
     say("Adding the internet sharing rule...");
     safe(`/ip firewall nat add chain=srcnat out-interface=${wan} action=masquerade comment="HotspotPro NAT"`, false, "Internet sharing rule added");
@@ -435,6 +436,13 @@ export function buildProvisionScript(input: {
     say("Creating the hotspot server...");
     safe(`/ip hotspot profile add name=hotspotpro hotspot-address=${plan.gateway} dns-name=${q(router.dnsName || "login.hotspot")} login-by=http-pap,http-chap,mac-cookie trial-uptime-limit=0s${useCloud ? " use-radius=yes radius-accounting=yes radius-interim-update=1m" : " use-radius=no"} html-directory=$hpDir`, false, "Hotspot profile created");
     safe(`/ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no`, false, "Hotspot server created");
+    safe(`/ip hotspot set [find where name=hotspotpro] disabled=no addresses-per-mac=4`, true);
+    const loginName = (router.dnsName || "login.hotspot").replace(/[^A-Za-z0-9.-]/g, "") || "login.hotspot";
+    safe(`/ip dns static remove [find where comment="HotspotPro login"]`, true);
+    safe(`/ip dns static add name=${q(loginName)} address=${plan.gateway} comment="HotspotPro login"`, true, "Login name points at this router");
+    safe(`/ip firewall nat remove [find where comment="HotspotPro DNS"]`, true);
+    safe(`/ip firewall nat add chain=dstnat in-interface=hotspotpro-bridge protocol=udp dst-port=53 action=redirect to-ports=53 comment="HotspotPro DNS"`, false, "Customer DNS stays on this router");
+    safe(`/ip firewall nat add chain=dstnat in-interface=hotspotpro-bridge protocol=tcp dst-port=53 action=redirect to-ports=53 comment="HotspotPro DNS"`, true);
     say("Creating hotspot user profiles...");
     safe(`/ip hotspot user profile set [find where name=default] mac-cookie-timeout=1d keepalive-timeout=none`, false, "Default profile mac-cookie-timeout set to 1d");
     if (radius) {
@@ -559,6 +567,9 @@ export function buildProvisionScript(input: {
       `:put "Wireless interfaces enabled"`,
     ].join("; ");
     add(`:do { :execute script="${wifiScript.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\$/g, "\\$")}" } on-error={ }`);
+    // The radio has to sit on the customer bridge during this paste. A later background script is too late: the phone joins and never sees the login page.
+    add(`:do { :foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :if ($n != $hpKeep && [:len [/interface bridge port find where interface=$n bridge=hotspotpro-bridge]] = 0) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`);
+    add(`:do { :foreach p in=[/interface wireless find] do={ :local n [/interface wireless get $p name]; :if ($n != $hpKeep && [:len [/interface bridge port find where interface=$n bridge=hotspotpro-bridge]] = 0) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`);
     for (const name of ["wifi1", "wifi2", "wlan1", "wlan2"]) keepPort(name);
     say("WiFi is set. Customers log in on the portal page.");
   } else if (!input.wireless) {
