@@ -518,9 +518,9 @@ export function buildProvisionScript(input: {
     safe(`/ppp profile remove [find where name=hotspotpro-pppoe]`, true);
     safe(`/interface pppoe-server server remove [find where service-name=hotspotpro]`, true);
     safe(`/ip pool add name=hotspotpro-pppoe-pool ranges=${pppoe.poolFrom}-${pppoe.poolTo}`, false, "PPPoE address pool created");
-    safe(`/ppp profile add name=hotspotpro-pppoe local-address=${pppoe.gateway} remote-address=hotspotpro-pppoe-pool`, false, "PPPoE profile created");
+    safe(`/ppp profile add name=hotspotpro-pppoe local-address=${pppoe.gateway} remote-address=hotspotpro-pppoe-pool dns-server=${pppoe.gateway} change-tcp-mss=yes only-one=yes`, false, "PPPoE profile created");
     safe(`/ppp aaa set use-radius=no`, true);
-    safe(`/interface pppoe-server server add service-name=hotspotpro interface=hotspotpro-bridge default-profile=hotspotpro-pppoe authentication=pap,chap one-session-per-host=yes disabled=no`, false, "PPPoE server created");
+    safe(`/interface pppoe-server server add service-name=hotspotpro interface=hotspotpro-bridge default-profile=hotspotpro-pppoe authentication=pap,chap,mschap2 one-session-per-host=yes disabled=no`, false, "PPPoE server started");
   }
 
   if (!input.existing && input.wireless && ssid) {
