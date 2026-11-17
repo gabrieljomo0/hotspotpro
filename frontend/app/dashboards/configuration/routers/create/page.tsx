@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, Check, Copy, RefreshCw } from "lucide-react";
+import { Check, Copy, RefreshCw } from "lucide-react";
 
 import { useDashboard } from "@/components/dashboard/context/DashboardContext";
 import { HotspotSizingPanel } from "@/components/dashboard/routers/HotspotSizingPanel";
@@ -120,6 +120,9 @@ export default function AddRouterPage() {
   const lanParsed = parseLanIp(lanInput);
   const lanError = "error" in lanParsed ? lanParsed.error : "";
   const hotspotNetwork = "error" in lanParsed ? planFor(peak).lanIp : lanParsed.network;
+  const typedDns = dnsName.toLowerCase().replace(/[^a-z]/g, "");
+  const nameDns = (name.match(/[a-zA-Z]/g) || []).join("").toLowerCase().slice(0, 4);
+  const loginDns = routerType === "Existing Router" && typedDns.length > 0 && typedDns.length < 5 ? typedDns : nameDns || "wifi";
   const pppoeNetwork = "192.168.91.0/24";
 
   // Only a new router is configured, so only it gets WiFi settings.
@@ -250,7 +253,7 @@ export default function AddRouterPage() {
         router: {
           name,
           routerType,
-          dnsName: dnsName.trim(),
+          dnsName: loginDns,
           hotspotEnabled,
           loginMode,
           hotspotNetwork: hotspotEnabled ? hotspotNetwork : "",
@@ -366,7 +369,7 @@ export default function AddRouterPage() {
     const newRouter = addRouter({
       name,
       routerType,
-      dnsName: dnsName.trim(),
+      dnsName: loginDns,
       hotspotEnabled,
       loginMode,
       hotspotNetwork: hotspotEnabled ? hotspotNetwork : "",
@@ -392,7 +395,6 @@ export default function AddRouterPage() {
 
   const canContinue =
     name.trim().length > 0 &&
-    (routerType === "New Router" || dnsName.trim().length > 0) &&
     (siteChoice !== "__new__" || newSiteName.trim().length > 0) &&
     !(routerType === "New Router" && hotspotEnabled && lanError) &&
     !(routerType === "New Router" && hasWireless && wifiSsid.trim().length === 0);
@@ -444,9 +446,12 @@ export default function AddRouterPage() {
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                placeholder="e.g., Main Office Router"
+                placeholder="e.g., Shop"
                 className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
+              <span className="mt-1 block text-xs text-[#a3a3a3]">
+                The WiFi login name is <span className="font-mono text-[#1a1a1a]">{loginDns}</span>. It is taken from this router name and stays under 5 letters.
+              </span>
             </label>
 
             <div>
@@ -548,34 +553,18 @@ export default function AddRouterPage() {
               </label>
             )}
 
-            <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#525252]">
-                DNS Name {routerType === "Existing Router" ? (
-                  <span className="text-red-500">*</span>
-                ) : (
-                  <span className="font-normal text-[#a3a3a3]">(Optional)</span>
-                )}
-              </span>
-              {routerType === "Existing Router" && (
-                <p className="mb-2 flex items-start gap-2 rounded-xl border border-[#d4d4d4] bg-white p-3 text-xs text-[#111111]">
-                  <AlertTriangle size={14} className="mt-0.5 shrink-0" />
-                  Enter the exact DNS name configured on your router (e.g.,
-                  &quot;mynetwork.wifi&quot;). This is required for the captive
-                  portal theme to work correctly.
-                </p>
-              )}
-              <input
-                value={dnsName}
-                onChange={(event) => setDnsName(event.target.value)}
-                placeholder="e.g., mynetwork.wifi or company.wifi"
-                className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
-              />
-              <span className="mt-1 block text-xs text-[#a3a3a3]">
-                DNS name for the hotspot captive portal login page. Must
-                include a domain (e.g., &quot;mynetwork.wifi&quot;, not just
-                &quot;wifi&quot;).
-              </span>
-            </label>
+            {routerType === "Existing Router" && (
+              <label className="block">
+                <span className="mb-2 block text-sm font-semibold text-[#525252]">DNS name</span>
+                <input
+                  value={dnsName}
+                  onChange={(event) => setDnsName(event.target.value.toLowerCase().replace(/[^a-z]/g, "").slice(0, 4))}
+                  placeholder={loginDns}
+                  className="h-11 w-full max-w-[180px] rounded-xl border border-[#e6e6e6] bg-white px-3 font-mono text-sm outline-none focus:border-[#1a1a1a]"
+                />
+                <span className="mt-1 block text-xs text-[#a3a3a3]">Leave this empty to use {loginDns} from the router name. Fewer than 5 letters.</span>
+              </label>
+            )}
 
             {routerType === "New Router" && (
               <div data-testid="wireless-card" className="rounded-xl border border-[#e6e6e6] bg-white p-4">
@@ -760,7 +749,7 @@ export default function AddRouterPage() {
                 <div><dt className="text-[#a3a3a3]">Customer bridge</dt><dd className="font-mono">hotspotpro-bridge</dd></div>
                 <div><dt className="text-[#a3a3a3]">Hotspot</dt><dd className="font-mono">{hotspotEnabled ? hotspotNetwork : "Off"}</dd></div>
                 <div><dt className="text-[#a3a3a3]">Gateway and DNS</dt><dd className="font-mono">{hotspotEnabled && !("error" in lanParsed) ? lanParsed.ip : "—"} · 8.8.8.8, 8.8.4.4</dd></div>
-                <div><dt className="text-[#a3a3a3]">Login name</dt><dd className="font-mono">{dnsName.trim() || "login.hotspot"}</dd></div>
+                <div><dt className="text-[#a3a3a3]">Login name</dt><dd className="font-mono">{loginDns}</dd></div>
                 <div><dt className="text-[#a3a3a3]">Vouchers</dt><dd className="font-mono">{loginMode === "cloud" ? "Cloud" : "On the router"}</dd></div>
                 <div><dt className="text-[#a3a3a3]">PPPoE</dt><dd className="font-mono">{pppoeEnabled ? `${pppoeNetwork} on the customer bridge` : "Off"}</dd></div>
               </dl>

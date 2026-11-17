@@ -20,7 +20,7 @@ import { accessDecision } from "./accessGate";
 import { forgetLocalUsers, localUserLines } from "./localUsers";
 import { noteLiveVouchers } from "./packages";
 import { loginPageStamp } from "./hotspotPages";
-import { accessGuardCommand, accessLockEnsureCommand, checkInBody, remoteWinboxLines } from "./routeros";
+import { accessGuardCommand, accessLockEnsureCommand, checkInBody, loginDnsFromName, remoteWinboxLines } from "./routeros";
 
 export const SWITCH_COMMENT = "HotspotPro internet off";
 const ACCESS_LOCK = "HotspotPro access lock";
@@ -60,7 +60,7 @@ function hotspotLines(router: Row): string[] {
     `:do { :foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :if ([:len [/interface bridge port find where interface=$n bridge=hotspotpro-bridge]] = 0) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`,
     `:do { :foreach p in=[/interface wireless find] do={ :local n [/interface wireless get $p name]; :if ([:len [/interface bridge port find where interface=$n bridge=hotspotpro-bridge]] = 0) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`,
   ];
-  const name = (router.dnsName || "login.hotspot").trim().toLowerCase();
+  const name = loginDnsFromName(router.name, router.dnsName);
   if (/^[a-z0-9][a-z0-9.-]{0,48}$/.test(name)) {
     lines.push(`:do { /ip hotspot profile set [find where name=hotspotpro] dns-name="${name}" } on-error={ }`);
     lines.push(`:do { :local a ""; :do { :set a [/ip address get [find where interface=hotspotpro-bridge comment="HotspotPro"] address] } on-error={ }; :if ([:len $a] > 0) do={ :local g [:pick $a 0 [:find $a "/"]]; /ip dns static remove [find where comment="HotspotPro login"]; /ip dns static add name="${name}" address=$g comment="HotspotPro login" } } on-error={ }`);

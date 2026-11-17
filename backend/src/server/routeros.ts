@@ -7,6 +7,14 @@
 
 import dns from "node:dns";
 
+/** The hotspot login name: letters from the router name, fewer than 5. A saved name is kept only when it is already that short. */
+export function loginDnsFromName(routerName: string, given?: string): string {
+  const letters = (value: string) => value.toLowerCase().replace(/[^a-z]/g, "");
+  const typed = letters(given || "");
+  if (typed.length > 0 && typed.length < 5) return typed;
+  return letters(routerName).slice(0, 4) || "wifi";
+}
+
 export type ProvisionRouter = {
   name: string;
   hotspotEnabled?: boolean;
@@ -434,10 +442,10 @@ export function buildProvisionScript(input: {
     // One mode at a time. Cloud asks RADIUS. Local does not, and the check-in copies vouchers onto the router instead.
     const useCloud = router.loginMode === "cloud" && !!radius;
     say("Creating the hotspot server...");
-    safe(`/ip hotspot profile add name=hotspotpro hotspot-address=${plan.gateway} dns-name=${q(router.dnsName || "login.hotspot")} login-by=http-pap,http-chap,mac-cookie trial-uptime-limit=0s${useCloud ? " use-radius=yes radius-accounting=yes radius-interim-update=1m" : " use-radius=no"} html-directory=$hpDir`, false, "Hotspot profile created");
+    const loginName = loginDnsFromName(router.name, router.dnsName);
+    safe(`/ip hotspot profile add name=hotspotpro hotspot-address=${plan.gateway} dns-name=${q(loginName)} login-by=http-pap,http-chap,mac-cookie trial-uptime-limit=0s${useCloud ? " use-radius=yes radius-accounting=yes radius-interim-update=1m" : " use-radius=no"} html-directory=$hpDir`, false, "Hotspot profile created");
     safe(`/ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no`, false, "Hotspot server created");
     safe(`/ip hotspot set [find where name=hotspotpro] disabled=no addresses-per-mac=4`, true);
-    const loginName = (router.dnsName || "login.hotspot").replace(/[^A-Za-z0-9.-]/g, "") || "login.hotspot";
     safe(`/ip dns static remove [find where comment="HotspotPro login"]`, true);
     safe(`/ip dns static add name=${q(loginName)} address=${plan.gateway} comment="HotspotPro login"`, true, "Login name points at this router");
     safe(`/ip firewall nat remove [find where comment="HotspotPro DNS"]`, true);

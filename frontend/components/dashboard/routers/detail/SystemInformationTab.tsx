@@ -17,9 +17,7 @@ const WARN_AT = 75;
 const OVERLOAD_AT = 90;
 
 function loginLabelFrom(dnsName?: string) {
-  const raw = (dnsName || "").trim().toLowerCase().replace(/\.local$/, "");
-  const label = raw.split(".")[0]?.replace(/[^a-z0-9-]/g, "") || "";
-  return label && label !== "login" ? label : "hotspot";
+  return (dnsName || "").toLowerCase().replace(/[^a-z]/g, "").slice(0, 4) || "wifi";
 }
 
 function uptimeSeries(hours: string[] | undefined, days: number) {
@@ -317,24 +315,23 @@ export function SystemInformationTab({
             <span className="mb-1 block text-xs text-[#737373]">Hotspot Login URL</span>
             <span className="flex h-11 items-center rounded-xl border border-[#e6e6e6] px-3 text-sm">
               <span className="text-[#a3a3a3]">http://</span>
-              <input value={loginLabel} onChange={(event) => setLoginLabel(event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 32))} className="mx-2 w-full bg-transparent font-mono outline-none" />
-              <span className="text-[#a3a3a3]">.local</span>
+              <input value={loginLabel} onChange={(event) => setLoginLabel(event.target.value.toLowerCase().replace(/[^a-z]/g, "").slice(0, 4))} className="mx-2 w-full bg-transparent font-mono outline-none" />
             </span>
-            <span className="mt-1 block text-xs text-[#a3a3a3]">Customers open this name when they connect. The .local ending stays fixed.</span>
+            <span className="mt-1 block text-xs text-[#a3a3a3]">Taken from the router name. Fewer than 5 letters. Customers open http://{loginLabel || "wifi"} when they connect.</span>
           </label>
         </div>
         <button
           type="button"
           className="mt-4 rounded-xl bg-[#1a1a1a] px-4 py-2 text-sm font-bold text-white"
           onClick={() => {
-            const label = loginLabel.trim() || "hotspot";
+            const label = loginLabel.toLowerCase().replace(/[^a-z]/g, "").slice(0, 4) || "wifi";
             updateRouterDetails(router.ip, {
               hotspotEnabled: hotspotOn,
               hotspotNetwork: network.trim(),
               hotspotGatewayIp: gateway.trim(),
               hotspotDnsServers: dnsServers.trim(),
-              dnsName: `${label}.local`,
-              hotspotLoginUrl: `http://${label}.local`,
+              dnsName: label,
+              hotspotLoginUrl: `http://${label}`,
             });
           }}
         >
