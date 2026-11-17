@@ -11,7 +11,7 @@
 // This file's job is just to: load the router, work out which tab is
 // active, and render the right piece for it.
 
-import { use, useState, Suspense } from "react";
+import { use, useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -57,6 +57,7 @@ function RouterDetailPageInner({
   const { routers, routerEnabled, agents, users, startRouterTask, businessLocations } = useDashboard();
   const router = routers.find((r) => r.ip === decodedIp);
 
+  const setupDone = searchParams.get("setup") === "done";
   const [tab, setTab] = useState<Tab>(
     searchParams.get("tab") === "captive-portal"
       ? "Captive Portal"
@@ -66,13 +67,30 @@ function RouterDetailPageInner({
         ? "Data Usage"
         : "System Information",
   );
+  const [setupNotice, setSetupNotice] = useState(setupDone);
+  const [giveUp, setGiveUp] = useState(false);
   const site = router?.siteId ? businessLocations.find((s) => s.id === router.siteId) : undefined;
   const [moreOpen, setMoreOpen] = useState(false);
   const [moreRect, setMoreRect] = useState<DOMRect | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState>(null);
   const [notifModalOpen, setNotifModalOpen] = useState(false);
 
+  useEffect(() => {
+    if (router || !setupDone) return;
+    const timer = window.setTimeout(() => setGiveUp(true), 12000);
+    return () => window.clearTimeout(timer);
+  }, [router, setupDone]);
+
   if (!router) {
+    if (setupDone && !giveUp) {
+      return (
+        <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-center">
+          <Loader2 className="h-9 w-9 animate-spin text-[#1a1a1a]" />
+          <p className="text-sm font-bold text-[#1a1a1a]">Router connected successfully.</p>
+          <p className="text-sm text-[#737373]">Opening the captive portal settings…</p>
+        </div>
+      );
+    }
     return (
       <div className="p-6">
         <NotFoundCard message="This router may have been removed." backHref="/dashboards/configuration/routers" />
@@ -158,6 +176,22 @@ function RouterDetailPageInner({
           </div>
         </div>
       </div>
+
+      {setupNotice && (
+        <div data-testid="setup-success" className="mb-6 flex flex-wrap items-start justify-between gap-3 rounded-xl bg-[#f4f4f4] p-4">
+          <div>
+            <p className="text-sm font-bold text-[#1a1a1a]">Router connected successfully. Thank you for using our system.</p>
+            <p className="mt-1 text-sm text-[#1a1a1a]">Set up the captive portal below. This is the login page customers see when they join the WiFi.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSetupNotice(false)}
+            className="rounded-lg border border-[#1a1a1a] bg-white px-3 py-1.5 text-xs font-bold text-[#1a1a1a] hover:bg-white"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       <RouterConnectionBanner router={router} onReconnect={() => startRouterTask("reconnect", router.ip)} />
 

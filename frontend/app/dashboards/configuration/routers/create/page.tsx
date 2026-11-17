@@ -355,9 +355,12 @@ export default function AddRouterPage() {
   function handleFinish() {
     if (finishedRef.current) return;
     finishedRef.current = true;
+    const openPortal = (ip: string) => {
+      showToast("Router connected successfully. Opening the captive portal settings.");
+      navigate.push(`/dashboards/configuration/routers/${encodeURIComponent(ip)}?tab=captive-portal&setup=done`);
+    };
     if (linkedIp.current) {
-      showToast("Router connected. It is live on the Routers page.");
-      navigate.push("/dashboards/configuration/routers");
+      openPortal(linkedIp.current);
       return;
     }
     const newRouter = addRouter({
@@ -382,8 +385,7 @@ export default function AddRouterPage() {
       provisioned: serverDone,
     });
     if (pruneOn) updateRouterCleanup(newRouter.ip, { pruneEnabled: true, pruneAfterDays: pruneDays }, true);
-    showToast("Router added — opening its dashboard.");
-    navigate.push(`/dashboards/configuration/routers/${encodeURIComponent(newRouter.ip)}?tab=hotspot`);
+    openPortal(newRouter.ip);
   }
 
   const shown = connected ? 2 : step; // the Confirm dot lights up when provisioning is done
@@ -987,12 +989,12 @@ export default function AddRouterPage() {
                     Router connected successfully. Thank you for using our system.
                   </p>
                   <p className="mt-1 text-sm text-[#1a1a1a]">
-                    Continue to create a package and a voucher to enjoy this service.
+                    The captive portal settings open next, so you can set the login page customers see.
                   </p>
                   <p data-testid="open-countdown" className="mt-1 text-xs text-[#737373]">
                     {countdown !== null && countdown > 0
-                      ? `Opening its dashboard in ${countdown}…`
-                      : "Opening the setup dashboard…"}
+                      ? `Opening the captive portal settings in ${countdown}…`
+                      : "Opening the captive portal settings…"}
                   </p>
                 </div>
                 <button
