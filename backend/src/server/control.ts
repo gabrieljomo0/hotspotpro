@@ -161,7 +161,8 @@ export function controlScript(token: string, origin?: string): string | null {
       `:global hpMiss 0`,
       `:do { /ip firewall raw disable [find where comment="${ACCESS_LOCK}"] } on-error={ }`,
       // No open free session. The chosen mode is the only way a voucher gets online.
-      `:do { /ip hotspot profile set [find where name=hotspotpro] login-by=mac,http-chap,http-pap,mac-cookie trial-uptime-limit=0s use-radius=${local ? "no" : "yes"} } on-error={ }`,
+      // http-pap first so a plain form still works; http-chap works when the login page sends CHAP MD5.
+      `:do { /ip hotspot profile set [find where name=hotspotpro] login-by=http-pap,http-chap,mac,mac-cookie trial-uptime-limit=0s use-radius=${local ? "no" : "yes"} } on-error={ }`,
       `:do { /ip hotspot user profile set [find where name=default] shared-users=1 session-timeout=0s idle-timeout=none keepalive-timeout=none mac-cookie-timeout=1d } on-error={ }`,
       `:do { /system clock set time-zone-name=Africa/Accra } on-error={ }`,
       `:do { :if ([:len [/ip firewall mangle find where comment="HotspotPro tethering"]] = 0) do={ /ip firewall mangle add chain=postrouting action=change-ttl new-ttl=set:1 passthrough=yes out-interface=hotspotpro-bridge comment="HotspotPro tethering" } } on-error={ }`,

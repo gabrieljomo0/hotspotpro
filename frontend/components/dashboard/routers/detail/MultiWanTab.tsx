@@ -5,7 +5,7 @@
 // This component owns all its own editing state — nothing here is shared
 // with other tabs, so changes here can never accidentally affect them.
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 
 import { useDashboard } from "@/components/dashboard/context/DashboardContext";
@@ -15,9 +15,10 @@ import {
   defaultIspLink,
   ensureMinimumIspLinks,
 } from "@/components/dashboard/routers/multiWanDefaults";
+import { DirtyApplyBar } from "@/components/dashboard/shared/DirtyApplyBar";
 
 export function MultiWanTab({ router }: { router: RouterInfo }) {
-  const { updateMultiWanConfig } = useDashboard();
+  const { updateMultiWanConfig, showToast } = useDashboard();
   // A router with fewer than two links opens with two already filled in
   // (and the mode set to use both) — saved straight away, nothing to type.
   // Only a router with no links at all gets the two defaults; one with a single
@@ -28,6 +29,13 @@ export function MultiWanTab({ router }: { router: RouterInfo }) {
   );
   const [ispLinks, setIspLinks] = useState<RouterISPLink[]>(() => (needsDefaults ? ensureMinimumIspLinks(router.ispLinks) : router.ispLinks));
   const [filledIn] = useState(needsDefaults);
+  const [savedMode, setSavedMode] = useState(wanMode);
+  const [savedLinks, setSavedLinks] = useState(ispLinks);
+  const [applying, setApplying] = useState(false);
+  const dirty = useMemo(
+    () => wanMode !== savedMode || JSON.stringify(ispLinks) !== JSON.stringify(savedLinks),
+    [wanMode, savedMode, ispLinks, savedLinks],
+  );
 
   useEffect(() => {
     if (needsDefaults) updateMultiWanConfig(router.ip, wanMode, ispLinks, true);
@@ -54,15 +62,22 @@ export function MultiWanTab({ router }: { router: RouterInfo }) {
     });
   }
 
-  function saveMultiWan() {
-    updateMultiWanConfig(router.ip, wanMode, ispLinks);
-    // Save first, then queue the server-built Multi-WAN script so the live router
-    // gets load balancing / failover on the next check-in (about 10 seconds).
-    void fetch("/api/routers/jobs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ip: router.ip, action: "multiwan", multiWanMode: wanMode, ispLinks }),
-    }).catch(() => {});
+  async function saveMultiWan() {
+    if (!dirty) return;
+    setApplying(true);
+    try {
+      updateMultiWanConfig(router.ip, wanMode, ispLinks);
+      await fetch("/api/routers/jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ip: router.ip, action: "multiwan", multiWanMode: wanMode, ispLinks }),
+      }).catch(() => {});
+      setSavedMode(wanMode);
+      setSavedLinks(ispLinks);
+      showToast("Multi-WAN saved and sent to the router.");
+    } finally {
+      setApplying(false);
+    }
   }
 
   return (
@@ -159,11 +174,15 @@ export function MultiWanTab({ router }: { router: RouterInfo }) {
         <Plus size={15} /> Add to ISP Links
       </button>
 
-      <div className="flex gap-3">
-        <button type="button" onClick={saveMultiWan} className="rounded-xl bg-[#1a1a1a] px-6 py-3 text-sm font-bold text-white hover:bg-[#111111]">
-          Submit
-        </button>
-      </div>
+      <DirtyApplyBar
+        dirty={dirty}
+        applying={applying}
+        onApply={saveMultiWan}
+        applyLabel="Apply"
+        saveLabel="Save"
+        hint="Multi-WAN changes are ready. Apply or Save pushes them to the router."
+        testId="multiwan-apply"
+      />
     </div>
   );
 }

@@ -450,7 +450,7 @@ export function buildProvisionScript(input: {
     const useCloud = router.loginMode === "cloud" && !!radius;
     say("Creating the hotspot server...");
     const loginName = loginDnsFromName(router.name, router.dnsName);
-    safe(`/ip hotspot profile add name=hotspotpro hotspot-address=${plan.gateway} dns-name=${q(loginName)} login-by=mac,http-chap,http-pap,mac-cookie trial-uptime-limit=0s${useCloud ? " use-radius=yes radius-accounting=yes radius-interim-update=1m" : " use-radius=no"} html-directory=$hpDir`, false, "Hotspot profile created");
+    safe(`/ip hotspot profile add name=hotspotpro hotspot-address=${plan.gateway} dns-name=${q(loginName)} login-by=http-pap,http-chap,mac,mac-cookie trial-uptime-limit=0s${useCloud ? " use-radius=yes radius-accounting=yes radius-interim-update=1m" : " use-radius=no"} html-directory=$hpDir`, false, "Hotspot profile created");
     safe(`/ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no`, false, "Hotspot server created");
     // One phone per MAC. Shared users stay at 1 unless a package on the site says more.
     safe(`/ip hotspot set [find where name=hotspotpro] disabled=no addresses-per-mac=1`, true);

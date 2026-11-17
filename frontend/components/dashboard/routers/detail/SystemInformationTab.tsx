@@ -6,7 +6,7 @@
 // RADIUS config. It only needs the router itself and how many users are
 // currently connected to it — everything else is computed from that.
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Eye, EyeOff, Copy, CheckCircle2, AlertTriangle } from "lucide-react";
 import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
@@ -14,6 +14,7 @@ import { useDashboard } from "@/components/dashboard/context/DashboardContext";
 import type { RouterInfo } from "@/components/dashboard/data/dashboard-data";
 import { useRouterControl } from "@/components/dashboard/routers/useRouterControl";
 import { routerLiveStatus } from "@/components/dashboard/routers/routerLiveStatus";
+import { DirtyApplyBar } from "@/components/dashboard/shared/DirtyApplyBar";
 
 const WARN_AT = 75;
 const OVERLOAD_AT = 90;
@@ -63,13 +64,39 @@ export function SystemInformationTab({
   const [gateway, setGateway] = useState(router.hotspotGatewayIp || "");
   const [dnsServers, setDnsServers] = useState(router.hotspotDnsServers || "8.8.8.8,8.8.4.4");
   const [loginLabel, setLoginLabel] = useState(loginLabelFrom(router.dnsName));
+  const [savedHotspot, setSavedHotspot] = useState({
+    hotspotOn: router.hotspotEnabled,
+    network: router.hotspotNetwork || "",
+    gateway: router.hotspotGatewayIp || "",
+    dnsServers: router.hotspotDnsServers || "8.8.8.8,8.8.4.4",
+    loginLabel: loginLabelFrom(router.dnsName),
+  });
+  const [applyingHotspot, setApplyingHotspot] = useState(false);
+  const hotspotDirty = useMemo(() => {
+    const label = loginLabel.toLowerCase().replace(/[^a-z]/g, "").slice(0, 4);
+    return (
+      hotspotOn !== savedHotspot.hotspotOn ||
+      network.trim() !== savedHotspot.network ||
+      gateway.trim() !== savedHotspot.gateway ||
+      dnsServers.trim() !== savedHotspot.dnsServers ||
+      label !== savedHotspot.loginLabel
+    );
+  }, [hotspotOn, network, gateway, dnsServers, loginLabel, savedHotspot]);
 
   useEffect(() => {
-    setHotspotOn(router.hotspotEnabled);
-    setNetwork(router.hotspotNetwork || "");
-    setGateway(router.hotspotGatewayIp || "");
-    setDnsServers(router.hotspotDnsServers || "8.8.8.8,8.8.4.4");
-    setLoginLabel(loginLabelFrom(router.dnsName));
+    const next = {
+      hotspotOn: router.hotspotEnabled,
+      network: router.hotspotNetwork || "",
+      gateway: router.hotspotGatewayIp || "",
+      dnsServers: router.hotspotDnsServers || "8.8.8.8,8.8.4.4",
+      loginLabel: loginLabelFrom(router.dnsName),
+    };
+    setHotspotOn(next.hotspotOn);
+    setNetwork(next.network);
+    setGateway(next.gateway);
+    setDnsServers(next.dnsServers);
+    setLoginLabel(next.loginLabel);
+    setSavedHotspot(next);
   }, [router.ip, router.hotspotEnabled, router.hotspotNetwork, router.hotspotGatewayIp, router.hotspotDnsServers, router.dnsName]);
 
   // Both charts use "fake but consistent" data — see chartHelpers.ts for why.
@@ -324,23 +351,45 @@ export function SystemInformationTab({
             <span className="mt-1 block text-xs text-[#a3a3a3]">Taken from the router name. Fewer than 5 letters. Customers open http://{loginLabel || "wifi"} when they connect.</span>
           </label>
         </div>
-        <button
-          type="button"
-          className="mt-4 rounded-xl bg-[#1a1a1a] px-4 py-2 text-sm font-bold text-white"
-          onClick={() => {
-            const label = loginLabel.toLowerCase().replace(/[^a-z]/g, "").slice(0, 4) || "wifi";
-            updateRouterDetails(router.ip, {
-              hotspotEnabled: hotspotOn,
-              hotspotNetwork: network.trim(),
-              hotspotGatewayIp: gateway.trim(),
-              hotspotDnsServers: dnsServers.trim(),
-              dnsName: label,
-              hotspotLoginUrl: `http://${label}`,
-            });
-          }}
-        >
-          Save hotspot
-        </button>
+        <div className="mt-4">
+          <DirtyApplyBar
+            dirty={hotspotDirty}
+            applying={applyingHotspot}
+            onApply={async () => {
+              const label = loginLabel.toLowerCase().replace(/[^a-z]/g, "").slice(0, 4) || "wifi";
+              setApplyingHotspot(true);
+              try {
+                updateRouterDetails(router.ip, {
+                  hotspotEnabled: hotspotOn,
+                  hotspotNetwork: network.trim(),
+                  hotspotGatewayIp: gateway.trim(),
+                  hotspotDnsServers: dnsServers.trim(),
+                  dnsName: label,
+                  hotspotLoginUrl: `http://${label}`,
+                });
+                await fetch("/api/routers/jobs", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ ip: router.ip, action: "wifi" }),
+                }).catch(() => {});
+                setSavedHotspot({
+                  hotspotOn,
+                  network: network.trim(),
+                  gateway: gateway.trim(),
+                  dnsServers: dnsServers.trim(),
+                  loginLabel: label,
+                });
+                showToast("Hotspot settings saved and sent to the router.");
+              } finally {
+                setApplyingHotspot(false);
+              }
+            }}
+            applyLabel="Apply"
+            saveLabel="Save"
+            hint="Hotspot changes are ready. Apply or Save pushes them to the router."
+            testId="hotspot-apply"
+          />
+        </div>
         <p className="mt-2 text-xs text-[#737373]">The login name and DNS servers are sent to the router on its next check-in. The network and gateway stay as this hotspot was set up.</p>
       </article>
 

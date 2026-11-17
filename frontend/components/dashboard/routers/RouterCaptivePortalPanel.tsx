@@ -1,17 +1,9 @@
 "use client";
 
-// The panel shown on a router's "Hotspot" and "Captive Portal" tabs. It
-// used to be one 830-line file with every sub-tab, the live preview, and
-// the bulk-apply panel all mixed together. It's now broken into small
-// focused pieces under components/dashboard/routers/captive-portal/, so
-// changing (say) the Design tab can't accidentally break the Network tab
-// or the live preview.
-//
-// This file's job is just to: hold the shared form state (since every
-// sub-tab edits the same underlying settings), and render whichever
-// sub-tab is currently selected.
+// Captive portal / hotspot settings for one router. Apply & Save only appear
+// after the owner changes something; they disappear once settings are pushed.
 
-import { useEffect, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import Link from "next/link";
 import { Crown } from "lucide-react";
 
@@ -19,6 +11,8 @@ import { useDashboard } from "../context/DashboardContext";
 import type { CaptivePortalConfig } from "../shared/types";
 import type { RouterInfo } from "../data/dashboard-data";
 import { masterIsOn } from "./masterPortal";
+import { DirtyApplyBar } from "../shared/DirtyApplyBar";
+import { queueRouterAction } from "../context/queueRouterAction";
 
 import { LivePreview } from "./captive-portal/LivePreview";
 import { NetworkTab } from "./captive-portal/NetworkTab";
@@ -32,14 +26,15 @@ type SubTab = "Network" | "Template" | "Design" | "Customer Experience" | "Ads &
 const HOTSPOT_SUB_TABS: SubTab[] = ["Network", "Ads & Free Trial", "Clean-up"];
 const PORTAL_SUB_TABS: SubTab[] = ["Template", "Design", "Customer Experience"];
 
+function sameConfig(a: CaptivePortalConfig, b: CaptivePortalConfig) {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 export function RouterCaptivePortalPanel({
   router,
   section,
 }: {
   router: RouterInfo;
-  // "hotspot" shows Network + Ads & Free Trial; "portal" shows the
-  // template/design/customer-experience sub-tabs. Same underlying data
-  // either way — this just controls which sub-tabs are offered.
   section: "hotspot" | "portal";
 }) {
   const SUB_TABS = section === "hotspot" ? HOTSPOT_SUB_TABS : PORTAL_SUB_TABS;
@@ -48,25 +43,24 @@ export function RouterCaptivePortalPanel({
     updateCaptivePortalConfigForSite,
     businessLocations,
     masterPortal,
+    showToast,
   } = useDashboard();
   const locked = masterIsOn(masterPortal, section);
 
-  // This panel only ever shows this router's own site (or, for a router
-  // with no site, the router itself). Other sites and sibling routers are
-  // not listed here — they live on the Sites pages.
   const selectedSiteId = router.siteId ?? router.ip;
-  const defaultSiteId = selectedSiteId;
-
   const [subTab, setSubTab] = useState<SubTab>(SUB_TABS[0]);
-  const [form, setForm] = useState<CaptivePortalConfig>(
-    getCaptivePortalConfigForSite(defaultSiteId),
-  );
+  const [saved, setSaved] = useState<CaptivePortalConfig>(() => getCaptivePortalConfigForSite(selectedSiteId));
+  const [form, setForm] = useState<CaptivePortalConfig>(saved);
+  const [applying, setApplying] = useState(false);
 
-  // Saved sites load just after the first render — reload the form then.
   useEffect(() => {
-    setForm(getCaptivePortalConfigForSite(selectedSiteId));
+    const next = getCaptivePortalConfigForSite(selectedSiteId);
+    setSaved(next);
+    setForm(next);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSiteId, masterPortal]);
+
+  const dirty = useMemo(() => !sameConfig(form, saved), [form, saved]);
 
   function set<K extends keyof CaptivePortalConfig>(key: K, value: CaptivePortalConfig[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -89,8 +83,20 @@ export function RouterCaptivePortalPanel({
     event.target.value = "";
   }
 
-  function save() {
-    updateCaptivePortalConfigForSite(selectedSiteId, form);
+  async function applyAndSave() {
+    if (locked || !dirty) return;
+    setApplying(true);
+    try {
+      updateCaptivePortalConfigForSite(selectedSiteId, form);
+      // Push login pages, WiFi, and vouchers so authentication matches the new settings right away.
+      queueRouterAction(router.ip, "sync-files");
+      queueRouterAction(router.ip, "wifi");
+      queueRouterAction(router.ip, "sync-vouchers");
+      setSaved(form);
+      showToast("Settings saved and sent to the router. They take effect within about 10 seconds.");
+    } finally {
+      setApplying(false);
+    }
   }
 
   const businessName = businessLocations.find((s) => s.id === router.siteId)?.name ?? router.name.split(" (")[0];
@@ -102,7 +108,7 @@ export function RouterCaptivePortalPanel({
           ? "Configure the network and free-trial/ads behaviour for"
           : "Design and customize the customer login page for"}{" "}
         <strong data-testid="portal-scope-name" className="text-[#1a1a1a]">{businessName}</strong>.
-        The preview on the right updates live as you make changes.
+        The preview on the right updates live as you make changes. Apply appears only after you change something.
       </p>
 
       {locked && subTab !== "Clean-up" && (
@@ -124,7 +130,7 @@ export function RouterCaptivePortalPanel({
       {section === "portal" && (
         <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
           <h3 className="text-lg font-bold text-[#1a1a1a]">Login</h3>
-          <p className="mb-4 text-sm text-[#737373]">Choose what a customer types on the WiFi page. Save, and the router switches within about a minute.</p>
+          <p className="mb-4 text-sm text-[#737373]">Choose what a customer types on the WiFi page. Apply to send the change to the router.</p>
           <div className="grid gap-3 sm:grid-cols-2">
             {([
               ["PIN Only", "One login", "Voucher code only"],
@@ -192,17 +198,16 @@ export function RouterCaptivePortalPanel({
       </div>
 
       {subTab !== "Clean-up" && (
-      <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={save}
+        <DirtyApplyBar
+          dirty={dirty}
+          applying={applying}
           disabled={locked}
-          data-testid="router-portal-save"
-          className="rounded-xl bg-[#1a1a1a] px-6 py-3 text-sm font-bold text-white hover:bg-[#111111] disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Save Captive Portal Settings
-        </button>
-      </div>
+          onApply={applyAndSave}
+          applyLabel="Apply"
+          saveLabel="Save"
+          hint="You have unsaved changes. Apply or Save pushes them to this router so voucher login and WiFi update."
+          testId="router-portal-save"
+        />
       )}
     </div>
   );
