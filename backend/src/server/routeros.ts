@@ -8,7 +8,7 @@
 import dns from "node:dns";
 
 /** Bump this when the setup script changes. Connected routers download the new setup on the next check-in. */
-export const SETUP_VERSION = "v12";
+export const SETUP_VERSION = "v13";
 
 /** The hotspot login name: letters from the router name, fewer than 5. A saved name is kept only when it is already that short. */
 export function loginDnsFromName(routerName: string, given?: string): string {
@@ -464,6 +464,10 @@ export function buildProvisionScript(input: {
     safe(`/ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no`, false, "Hotspot server created");
     // One phone per MAC. Shared users stay at 1 unless a package on the site says more.
     safe(`/ip hotspot set [find where name=hotspotpro] disabled=no addresses-per-mac=1`, true);
+    // Bypass bindings let phones skip the voucher page — clear them on every setup / reprovision.
+    safe(`/ip hotspot ip-binding remove [find where type=bypassed]`, true, "Removed hotspot bypass bindings");
+    safe(`/ip hotspot active remove [find]`, true, "Signed out active hotspot users for a clean captive portal");
+    safe(`/ip hotspot cookie remove [find]`, true);
     safe(`/ip dns static remove [find where comment="HotspotPro login"]`, true);
     safe(`/ip dns static add name=${q(loginName)} address=${plan.gateway} comment="HotspotPro login"`, true, "Login name points at this router");
     safe(`/ip firewall nat remove [find where comment="HotspotPro DNS"]`, true);
@@ -566,9 +570,9 @@ export function buildProvisionScript(input: {
     safe(`/interface pppoe-server server add service-name=hotspotpro interface=hotspotpro-bridge default-profile=hotspotpro-pppoe authentication=pap,chap,mschap2 one-session-per-host=yes disabled=no`, false, "PPPoE server started");
   }
 
-  // Always attach WiFi to the hotspot bridge when this router has wireless — even if SSID
-  // was not saved yet — otherwise joining the network never shows the voucher portal.
-  if (!input.existing && input.wireless) {
+  // Always attach WiFi to the hotspot bridge when wireless is on — including Existing Router
+  // reprovision — otherwise joining the SSID never shows the voucher portal.
+  if (input.wireless) {
     const wifiName = (ssid && ssid.trim()) || loginDnsFromName(router.name) || "HotspotPro";
     add(`# --- WiFi`);
     say("Configuring wireless interfaces for the captive portal...");

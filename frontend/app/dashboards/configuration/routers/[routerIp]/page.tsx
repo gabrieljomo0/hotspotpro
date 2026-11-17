@@ -34,6 +34,7 @@ import { AccessPointsTab } from "@/components/dashboard/routers/detail/AccessPoi
 import { MultiWanTab } from "@/components/dashboard/routers/detail/MultiWanTab";
 import { AdvancedTab } from "@/components/dashboard/routers/detail/AdvancedTab";
 import { RouterMoreActionsMenu } from "@/components/dashboard/routers/detail/RouterMoreActionsMenu";
+import { ReprovisionPastePanel } from "@/components/dashboard/routers/detail/ReprovisionPastePanel";
 import { RouterConfirmDialog, type ConfirmDialogState } from "@/components/dashboard/routers/detail/RouterConfirmDialog";
 import { useRouterControl } from "@/components/dashboard/routers/useRouterControl";
 import { routerLiveStatus } from "@/components/dashboard/routers/routerLiveStatus";
@@ -219,10 +220,18 @@ function RouterDetailPageInner({
       </nav>
 
       {tab === "System Information" && (
-        <SystemInformationTab router={router} isEnabled={isEnabled} connectedUserCount={router.clients ?? connectedUsers.length} />
+        <div className="space-y-6">
+          <SystemInformationTab router={router} isEnabled={isEnabled} connectedUserCount={router.clients ?? connectedUsers.length} />
+          <ReprovisionPastePanel router={router} />
+        </div>
       )}
 
-      {tab === "Hotspot" && <RouterCaptivePortalPanel router={router} section="hotspot" />}
+      {tab === "Hotspot" && (
+        <div className="space-y-6">
+          <ReprovisionPastePanel router={router} />
+          <RouterCaptivePortalPanel router={router} section="hotspot" />
+        </div>
+      )}
       {tab === "Captive Portal" && <RouterCaptivePortalPanel router={router} section="portal" />}
 
       {tab === "Data Usage" && <DataUsageTab router={router} />}

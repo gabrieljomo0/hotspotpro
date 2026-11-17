@@ -418,7 +418,8 @@ export function useRouterState(
       showToast("This router has no setup link yet. Add it from the Add Router page.");
       return;
     }
-    void fetch(`/api/provision/${router.provisioningToken}`)
+    const ssid = encodeURIComponent((getEffectiveSsid(ip) || router.name || "HotspotPro").trim().slice(0, 32));
+    void fetch(`/api/provision/${router.provisioningToken}?wireless=yes&ssid=${ssid}`)
       .then((response) => response.text())
       .then((content) => {
         const blob = new Blob([content], { type: "text/plain" });

@@ -77,6 +77,8 @@ function hotspotLines(router: Row): string[] {
   const lines = [
     `:do { /ip hotspot enable [find where name=hotspotpro] } on-error={ }`,
     `:do { /ip hotspot set [find where name=hotspotpro] disabled=no addresses-per-mac=1 } on-error={ }`,
+    // Bypass bindings skip the voucher page — keep them cleared.
+    `:do { /ip hotspot ip-binding remove [find where type=bypassed] } on-error={ }`,
     // html-directory must match where login.html lives (flash or root), or WiFi never shows the voucher page.
     `:do { :local hpDir "hotspot"; :if ([:len [/file find where name="flash/hotspot/login.html"]] > 0) do={ :set hpDir "flash/hotspot" }; /ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir } on-error={ }`,
     // A phone that uses 8.8.8.8 never hits the login page. Keep every customer DNS query on this router.
@@ -222,7 +224,7 @@ export function controlScript(token: string, origin?: string): string | null {
     // When the setup version changes, every connected router downloads and runs the latest setup by itself.
     lines.push(
       `:global hpSetup; :global hpSetupBusy`,
-      `:if ($hpSetup != "${SETUP_VERSION}" && $hpSetupBusy != "1") do={ :set hpSetupBusy "1"; :do { :put "HotspotPro: applying the latest setup..."; :do { /file remove [find where name=hotspotpro-setup.rsc] } on-error={ }; :do { /file remove [find where name="flash/hotspotpro-setup.rsc"] } on-error={ }; /tool fetch url="${origin}/api/provision/${token}" dst-path=hotspotpro-setup.rsc${tls}; :delay 2s; :local hpFile "hotspotpro-setup.rsc"; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; /import file-name=$hpFile; :set hpSetup "${SETUP_VERSION}"; :put "HotspotPro: router is updated." } on-error={ :put "HotspotPro: setup update will try again on the next check-in." }; :set hpSetupBusy "0" }`,
+      `:if ($hpSetup != "${SETUP_VERSION}" && $hpSetupBusy != "1") do={ :set hpSetupBusy "1"; :do { :put "HotspotPro: applying the latest setup..."; :do { /file remove [find where name=hotspotpro-setup.rsc] } on-error={ }; :do { /file remove [find where name="flash/hotspotpro-setup.rsc"] } on-error={ }; /tool fetch url="${origin}/api/provision/${token}?wireless=yes" dst-path=hotspotpro-setup.rsc${tls}; :do { :delay 2s } on-error={ }; :local hpFile "hotspotpro-setup.rsc"; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; /import file-name=$hpFile; :set hpSetup "${SETUP_VERSION}"; :put "HotspotPro: router is updated." } on-error={ :put "HotspotPro: setup update will try again on the next check-in." }; :set hpSetupBusy "0" }`,
     );
     for (const job of takeQueuedJobs(token)) {
       const base = `${origin}/api/provision/${token}/job/${job.id}`;

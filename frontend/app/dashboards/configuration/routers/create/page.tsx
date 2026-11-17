@@ -125,13 +125,14 @@ export default function AddRouterPage() {
   const loginDns = routerType === "Existing Router" && typedDns.length > 0 && typedDns.length < 5 ? typedDns : nameDns || "wifi";
   const pppoeNetwork = "192.168.91.0/24";
 
-  // Only a new router is configured, so only it gets WiFi settings.
+  // Always put WiFi on the hotspot bridge when the box has wireless — otherwise
+  // clients join the SSID with free internet and never see the voucher page.
   const wifiQuery =
-    routerType === "New Router"
-      ? hasWireless && wifiSsid.trim()
-        ? `?wireless=yes&ssid=${encodeURIComponent(wifiSsid.trim())}`
-        : "?wireless=no"
-      : "";
+    hasWireless && wifiSsid.trim()
+      ? `?wireless=yes&ssid=${encodeURIComponent(wifiSsid.trim())}`
+      : hasWireless
+        ? "?wireless=yes"
+        : "?wireless=no";
 
   // The router downloads its script from THIS server, so the address in the
   // command is the one the dashboard is opened at (set HOTSPOTPRO_PUBLIC_URL
@@ -178,7 +179,7 @@ export default function AddRouterPage() {
   const [scriptCheck, setScriptCheck] = useState<{ report: ScriptReport; script: string } | null>(null);
   const [checkError, setCheckError] = useState("");
   const [showScript, setShowScript] = useState(false);
-  const checkWireless = routerType === "New Router" && hasWireless && wifiSsid.trim() !== "";
+  const checkWireless = hasWireless;
 
   async function runScriptCheck() {
     setCheckError("");
@@ -227,7 +228,7 @@ export default function AddRouterPage() {
     URL.revokeObjectURL(link.href);
   }
 
-  const setupUrl = `${origin}/api/provision/${provisioningToken.current}${routerType === "New Router" ? wifiQuery : ""}`;
+  const setupUrl = `${origin}/api/provision/${provisioningToken.current}${wifiQuery}`;
   const tlsFlag = fetchMode === "https" ? " check-certificate=no" : "";
   const modeCommand = "/system device-mode update mode=advanced";
   const provisioningCommand = `:global hpFile "hotspotpro.rsc"; :do { /interface bridge port remove [find where interface=${wanClean}] } on-error={ }; :do { /ip dhcp-client add interface=${wanClean} disabled=no add-default-route=yes use-peer-dns=yes comment="HotspotPro WAN DHCP Client" } on-error={ }; :delay 8s; :do { /tool fetch mode=${fetchMode} url="${setupUrl}" dst-path=$hpFile${tlsFlag} } on-error={ :delay 8s; /tool fetch mode=${fetchMode} url="${setupUrl}" dst-path=$hpFile${tlsFlag} }; :delay 2s; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; /import file-name=$hpFile; /file remove $hpFile`;
