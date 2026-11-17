@@ -566,10 +566,13 @@ export function buildProvisionScript(input: {
     safe(`/interface pppoe-server server add service-name=hotspotpro interface=hotspotpro-bridge default-profile=hotspotpro-pppoe authentication=pap,chap,mschap2 one-session-per-host=yes disabled=no`, false, "PPPoE server started");
   }
 
-  if (!input.existing && input.wireless && ssid) {
+  // Always attach WiFi to the hotspot bridge when this router has wireless — even if SSID
+  // was not saved yet — otherwise joining the network never shows the voucher portal.
+  if (!input.existing && input.wireless) {
+    const wifiName = (ssid && ssid.trim()) || loginDnsFromName(router.name) || "HotspotPro";
     add(`# --- WiFi`);
-    say("Configuring wireless interfaces...");
-    const band = ssid.replace(/\s+5G$/i, "").slice(0, 29);
+    say("Configuring wireless interfaces for the captive portal...");
+    const band = wifiName.replace(/\s+5G$/i, "").slice(0, 29);
     const ssid24 = q(band.slice(0, 32));
     const ssid5 = q(`${band} 5G`.slice(0, 32));
     // A router without the wifi package cannot even read /interface wifi. Those commands stay inside a

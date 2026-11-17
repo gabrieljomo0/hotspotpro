@@ -55,7 +55,9 @@ function fileFetches(origin: string, token: string) {
   // No reset-html — that command asks y/N in the terminal and blocks setup/sync.
   const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
   const lines = [
-    step(`/ip hotspot profile set [find where name=hotspotpro] html-directory=hotspot`),
+    // Match setup: use flash/hotspot when the router stores files on flash.
+    `:local hpDir "hotspot"; :do { :if ([:len [/file find where name="flash"]] > 0) do={ :set hpDir "flash/hotspot" } } on-error={ }`,
+    step(`/ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir`),
   ];
   for (const page of PAGES) {
     const url = `${origin}/api/provision/${token}/${page}`;

@@ -77,11 +77,15 @@ function hotspotLines(router: Row): string[] {
   const lines = [
     `:do { /ip hotspot enable [find where name=hotspotpro] } on-error={ }`,
     `:do { /ip hotspot set [find where name=hotspotpro] disabled=no addresses-per-mac=1 } on-error={ }`,
+    // html-directory must match where login.html lives (flash or root), or WiFi never shows the voucher page.
+    `:do { :local hpDir "hotspot"; :if ([:len [/file find where name="flash/hotspot/login.html"]] > 0) do={ :set hpDir "flash/hotspot" }; /ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir } on-error={ }`,
     // A phone that uses 8.8.8.8 never hits the login page. Keep every customer DNS query on this router.
     `:do { :local a ""; :do { :set a [/ip address get [find where interface=hotspotpro-bridge comment="HotspotPro"] address] } on-error={ }; :if ([:len $a] > 0) do={ :local g [:pick $a 0 [:find $a "/"]]; /ip dhcp-server network set [find where comment="HotspotPro"] dns-server=$g gateway=$g } } on-error={ }`,
     `:do { :if ([:len [/ip firewall nat find where comment="HotspotPro DNS"]] = 0) do={ /ip firewall nat add chain=dstnat in-interface=hotspotpro-bridge protocol=udp dst-port=53 action=redirect to-ports=53 comment="HotspotPro DNS"; /ip firewall nat add chain=dstnat in-interface=hotspotpro-bridge protocol=tcp dst-port=53 action=redirect to-ports=53 comment="HotspotPro DNS" } } on-error={ }`,
+    // ROS7: datapath.bridge is required so joining the SSID lands on the hotspot (captive portal).
+    `:do { :foreach p in=[/interface wifi find] do={ :do { /interface wifi set $p disabled=no configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ } } } on-error={ }`,
     `:do { :foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :if ([:len [/interface bridge port find where interface=$n bridge=hotspotpro-bridge]] = 0) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`,
-    `:do { :foreach p in=[/interface wireless find] do={ :local n [/interface wireless get $p name]; :if ([:len [/interface bridge port find where interface=$n bridge=hotspotpro-bridge]] = 0) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`,
+    `:do { :foreach p in=[/interface wireless find] do={ :local n [/interface wireless get $p name]; :do { /interface wireless set $p disabled=no mode=ap-bridge } on-error={ }; :if ([:len [/interface bridge port find where interface=$n bridge=hotspotpro-bridge]] = 0) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`,
   ];
   const name = loginDnsFromName(router.name, router.dnsName);
   if (/^[a-z0-9][a-z0-9.-]{0,48}$/.test(name)) {
@@ -193,6 +197,19 @@ export function controlScript(token: string, origin?: string): string | null {
       ...multiWanLines(router.multiWanMode, router.ispLinks, router.managementPort || ""),
       ...wifiApplyLines(ssidForRouter(router)),
     );
+    // Keep the buy/portal host reachable before login so phones can open the voucher page.
+    if (origin) {
+      try {
+        const host = new URL(origin).hostname;
+        if (host && host !== "localhost" && !/^\d+\.\d+\.\d+\.\d+$/.test(host)) {
+          lines.push(
+            `:do { :if ([:len [/ip hotspot walled-garden find where dst-host="${host}" comment="HotspotPro"]] = 0) do={ /ip hotspot walled-garden add dst-host="${host}" comment="HotspotPro" } } on-error={ }`,
+          );
+        }
+      } catch {
+        /* ignore bad origin */
+      }
+    }
     if (local) lines.push(...localUserLines(token, router.ip));
     else {
       forgetLocalUsers(token);

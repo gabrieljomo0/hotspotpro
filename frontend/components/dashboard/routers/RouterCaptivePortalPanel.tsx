@@ -88,12 +88,13 @@ export function RouterCaptivePortalPanel({
     setApplying(true);
     try {
       updateCaptivePortalConfigForSite(selectedSiteId, form);
-      // Push login pages, WiFi, and vouchers so authentication matches the new settings right away.
+      // Push login pages, WiFi bridge, walled garden, and vouchers so WiFi opens the captive portal.
       queueRouterAction(router.ip, "sync-files");
       queueRouterAction(router.ip, "wifi");
+      queueRouterAction(router.ip, "walled-garden");
       queueRouterAction(router.ip, "sync-vouchers");
       setSaved(form);
-      showToast("Settings saved and sent to the router. They take effect within about 3 seconds.");
+      showToast("Settings saved. WiFi will open the voucher login page within about 3 seconds.");
     } finally {
       setApplying(false);
     }

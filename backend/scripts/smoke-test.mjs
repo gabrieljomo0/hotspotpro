@@ -266,7 +266,8 @@ try {
   await send("PUT", "/api/state/captivePortalConfigs", { value: { "10.0.0.1": { ssid: "AmaCafeWiFi" } } }, amaCookie);
   const wifiJob = await send("POST", "/api/routers/jobs", { ip: "10.0.0.1", action: "wifi" }, amaCookie);
   const wifiBody = (await json(wifiJob)).job;
-  check("WiFi action applies the site SSID on the router", wifiJob.status === 200 && wifiBody?.script?.includes("AmaCafeWiFi") && wifiBody.script.includes("hotspotpro-bridge"), wifiBody?.script?.slice(0, 400));
+  check("WiFi action applies the site SSID on the router", wifiJob.status === 200 && wifiBody?.script?.includes("AmaCafeWiFi") && wifiBody.script.includes("hotspotpro-bridge") && wifiBody.script.includes("datapath.bridge=hotspotpro-bridge"), wifiBody?.script?.slice(0, 400));
+  check("check-in keeps WiFi on the hotspot so captive portal opens", cloudCtl.includes("datapath.bridge=hotspotpro-bridge") && cloudCtl.includes("HotspotPro DNS") && cloudCtl.includes("html-directory=$hpDir"), "wifi + dns + html-directory");
   const vouchersJob = await send("POST", "/api/routers/jobs", { ip: "10.0.0.1", action: "sync-vouchers" }, amaCookie);
   const vouchersBody = (await json(vouchersJob)).job;
   check("sync-vouchers action pushes hotspot users", vouchersJob.status === 200 && vouchersBody?.script?.includes("hotspotpro-action:sync-vouchers") && vouchersBody.script.includes("/ip hotspot user"), vouchersBody?.script?.slice(0, 300));
