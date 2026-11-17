@@ -8,7 +8,7 @@
 import dns from "node:dns";
 
 /** Bump this when the setup script changes. Connected routers download the new setup on the next check-in. */
-export const SETUP_VERSION = "v14";
+export const SETUP_VERSION = "v15";
 
 /** The hotspot login name: letters from the router name, fewer than 5. A saved name is kept only when it is already that short. */
 export function loginDnsFromName(routerName: string, given?: string): string {
@@ -163,13 +163,13 @@ export function remoteWinboxLines(enabled: boolean, origin: string, token: strin
       `:do { /ip firewall filter remove [find where comment="HotspotPro remote WinBox"] } on-error={ }`,
       `:do { /ip firewall filter remove [find where comment="HotspotPro remote WebFig"] } on-error={ }`,
       `:do { /ip firewall filter remove [find where comment="HotspotPro remote API"] } on-error={ }`,
-      `:do { /ip service set api address=192.168.88.0/24 disabled=no } on-error={ }`,
-      `:do { /ip service set www address=192.168.88.0/24 disabled=no } on-error={ }`,
+      `:do { /ip service set api available-from=192.168.88.0/24 disabled=no } on-error={ }`,
+      `:do { /ip service set www available-from=192.168.88.0/24 disabled=no } on-error={ }`,
       `:do { :if ([/ip cloud get back-to-home-vpn] = "enabled") do={ /ip cloud set back-to-home-vpn=revoked-and-disabled } } on-error={ }`,
     ];
     if (sameNetwork) {
       lines.push(
-        `:do { /ip service set winbox address=192.168.0.0/16,10.0.0.0/8,172.16.0.0/12 disabled=no } on-error={ }`,
+        `:do { /ip service set winbox available-from=192.168.0.0/16,10.0.0.0/8,172.16.0.0/12 disabled=no } on-error={ }`,
         `:do { :if ([:len [/ip firewall address-list find where list=hotspotpro-private address=192.168.0.0/16]] = 0) do={ /ip firewall address-list add list=hotspotpro-private address=192.168.0.0/16 } } on-error={ }`,
         `:do { :if ([:len [/ip firewall address-list find where list=hotspotpro-private address=10.0.0.0/8]] = 0) do={ /ip firewall address-list add list=hotspotpro-private address=10.0.0.0/8 } } on-error={ }`,
         `:do { :if ([:len [/ip firewall address-list find where list=hotspotpro-private address=172.16.0.0/12]] = 0) do={ /ip firewall address-list add list=hotspotpro-private address=172.16.0.0/12 } } on-error={ }`,
@@ -177,7 +177,7 @@ export function remoteWinboxLines(enabled: boolean, origin: string, token: strin
         `:do { :if ([:len [/ip firewall filter find where comment="HotspotPro WinBox from ISP network"]] = 0) do={ /ip firewall filter add chain=input action=accept in-interface=${port} src-address-list=hotspotpro-private protocol=tcp dst-port=8291 comment="HotspotPro WinBox from ISP network" place-before=0 } } on-error={ }`,
       );
     } else {
-      lines.push(`:do { /ip service set winbox address=192.168.88.0/24 disabled=no } on-error={ }`);
+      lines.push(`:do { /ip service set winbox available-from=192.168.88.0/24 disabled=no } on-error={ }`);
     }
     return lines;
   }
@@ -185,10 +185,10 @@ export function remoteWinboxLines(enabled: boolean, origin: string, token: strin
     // Public WinBox + WebFig: cloud DDNS when the ISP gives a real address, Back To Home VPN when it does not.
     `:do { /ip cloud set ddns-enabled=yes update-time=yes } on-error={ }`,
     `:do { :if ([/ip cloud get back-to-home-vpn] != "enabled") do={ /ip cloud set back-to-home-vpn=enabled } } on-error={ }`,
-    `:do { /ip service set winbox address=0.0.0.0/0 disabled=no } on-error={ }`,
+    `:do { /ip service set winbox available-from=0.0.0.0/0 disabled=no } on-error={ }`,
     // WebFig so the owner can open the router in a browser without installing WinBox.
-    `:do { /ip service set www address=0.0.0.0/0 disabled=no } on-error={ }`,
-    `:do { /ip service set api port=8728 address=192.168.88.0/24,192.168.216.0/24 disabled=no } on-error={ }`,
+    `:do { /ip service set www available-from=0.0.0.0/0 disabled=no } on-error={ }`,
+    `:do { /ip service set api port=8728 available-from=192.168.88.0/24,192.168.216.0/24 disabled=no } on-error={ }`,
     `:do { /ip firewall filter remove [find where comment="HotspotPro remote WinBox"] } on-error={ }`,
     `:do { /ip firewall filter remove [find where comment="HotspotPro remote WebFig"] } on-error={ }`,
     `:do { /ip firewall filter remove [find where comment="HotspotPro remote API"] } on-error={ }`,
@@ -337,7 +337,7 @@ export function buildProvisionScript(input: {
   safe(`/ip service set telnet disabled=yes`, true);
   safe(`/ip service set ftp disabled=yes`, true);
   safe(`/ip service set api-ssl disabled=yes`, true);
-  safe(`/ip service set api port=8728 address=192.168.88.0/24 disabled=no`, true, "API service is on port 8728");
+  safe(`/ip service set api port=8728 available-from=192.168.88.0/24 disabled=no`, true, "API service is on port 8728");
   say("Security settings configured");
   // Voucher time limits depend on the router's clock.
   say("Setting the clock...");
@@ -363,7 +363,7 @@ export function buildProvisionScript(input: {
     }
     safe(`/ip firewall filter remove [find where comment="HotspotPro WinBox from ISP network"]`, true);
     safe(`/ip firewall filter add chain=input action=accept in-interface=${wan} src-address-list=hotspotpro-private protocol=tcp dst-port=8291 comment="HotspotPro WinBox from ISP network" place-before=0`, true);
-    safe(`/ip service set winbox address=192.168.0.0/16,10.0.0.0/8,172.16.0.0/12 disabled=no`, true, "WinBox is open on this network");
+    safe(`/ip service set winbox available-from=192.168.0.0/16,10.0.0.0/8,172.16.0.0/12 disabled=no`, true, "WinBox is open on this network");
     add(`:do { :if ([:len [/ip firewall filter find where comment="HotspotPro WinBox from ISP network"]] = 0) do={ /ip firewall filter add chain=input action=accept in-interface=${wan} src-address-list=hotspotpro-private protocol=tcp dst-port=8291 comment="HotspotPro WinBox from ISP network" } } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: WinBox firewall rule" }`);
     safe(`/interface list add name=hotspotpro-admin include=LAN`, true);
     safe(`/interface list member add list=hotspotpro-admin interface=${wan}`, true);
@@ -526,7 +526,7 @@ export function buildProvisionScript(input: {
     if (input.apiPassword && /^[A-Za-z0-9]{12,32}$/.test(input.apiPassword)) {
       const secret = q(input.apiPassword);
       say("Creating the management login...");
-      add(`:do { :if ([:len [/user find where name=hotspotpro]] = 0) do={ /user add name=hotspotpro group=full password=${secret} comment="HotspotPro" } else={ /user set [find where name=hotspotpro] password=${secret} }; /ip service set api port=8728 address=192.168.88.0/24 disabled=no; :put "API user created: hotspotpro" } on-error={ :put "HotspotPro: the management login step had a problem and was skipped. Setup continues." }`);
+      add(`:do { :if ([:len [/user find where name=hotspotpro]] = 0) do={ /user add name=hotspotpro group=full password=${secret} comment="HotspotPro" } else={ /user set [find where name=hotspotpro] password=${secret} }; /ip service set api port=8728 available-from=192.168.88.0/24 disabled=no; :put "API user created: hotspotpro" } on-error={ :put "HotspotPro: the management login step had a problem and was skipped. Setup continues." }`);
     }
     // Disconnect / Reconnect support for the whole router (see internetSwitchCommands).
     for (const command of internetSwitchCommands(origin, token)) safe(command, command.includes(" remove "));

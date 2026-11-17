@@ -66,7 +66,7 @@ function managementLines(token: string): string[] {
   }
   return [
     `:do { :if ([:len [/user find where name=hotspotpro]] = 0) do={ /user add name=hotspotpro group=full password="${password}" comment="HotspotPro" } } on-error={ }`,
-    `:do { /ip service set api port=8728 address=192.168.88.0/24 disabled=no } on-error={ }`,
+    `:do { /ip service set api port=8728 available-from=192.168.88.0/24 disabled=no } on-error={ }`,
   ];
 }
 

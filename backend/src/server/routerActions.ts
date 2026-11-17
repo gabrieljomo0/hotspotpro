@@ -88,11 +88,11 @@ function serviceLines(remoteOn: boolean) {
     step(`/ip service set api-ssl disabled=yes`),
     // Do not clamp WinBox to LAN when remote access is on — that undoes off-site WinBox.
     remoteOn
-      ? step(`/ip service set winbox address=0.0.0.0/0 disabled=no`)
-      : step(`/ip service set winbox address=192.168.88.0/24 disabled=no`),
+      ? step(`/ip service set winbox available-from=0.0.0.0/0 disabled=no`)
+      : step(`/ip service set winbox available-from=192.168.88.0/24 disabled=no`),
     remoteOn
-      ? step(`/ip service set api port=8728 address=192.168.88.0/24,192.168.216.0/24 disabled=no`)
-      : step(`/ip service set api address=192.168.88.0/24 disabled=no`),
+      ? step(`/ip service set api port=8728 available-from=192.168.88.0/24,192.168.216.0/24 disabled=no`)
+      : step(`/ip service set api available-from=192.168.88.0/24 disabled=no`),
   ];
 }
 
@@ -146,7 +146,7 @@ export function routerActionScript(action: string, input: { origin: string; toke
     const remoteOn = action === "remote-winbox" || (action === "winbox" && row?.remoteAccessHold !== true);
     if (action === "remote-winbox-off") body = remoteWinboxLines(false, origin, token, sameNetwork, wan);
     else if (remoteOn) body = remoteWinboxLines(true, origin, token, sameNetwork, wan);
-    else body = [step(`/ip service set winbox address=192.168.88.0/24 disabled=no`)];
+    else body = [step(`/ip service set winbox available-from=192.168.88.0/24 disabled=no`)];
   } else if (action === "multiwan") {
     const row = routerByToken(token);
     // Force a fresh apply even if the router already ran this Multi-WAN stamp.
