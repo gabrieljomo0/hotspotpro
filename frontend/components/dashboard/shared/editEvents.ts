@@ -9,3 +9,10 @@ export type EditRouterMode = "identity" | "full";
 export function openEditRouter(ip: string, mode: EditRouterMode = "full") {
   window.dispatchEvent(new CustomEvent<{ ip: string; mode: EditRouterMode }>(EDIT_ROUTER_EVENT, { detail: { ip, mode } }));
 }
+
+export const REPROVISION_SCRIPT_EVENT = "hotspotpro:reprovision-script";
+
+/** Open the paste-in-WinBox reconfiguration script for a router. */
+export function openReprovisionScript(ip: string) {
+  window.dispatchEvent(new CustomEvent<{ ip: string }>(REPROVISION_SCRIPT_EVENT, { detail: { ip } }));
+}

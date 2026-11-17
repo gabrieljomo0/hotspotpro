@@ -4,7 +4,7 @@
 // something on the router asks for confirmation first (via the onConfirm
 // callback passed in) — this menu never fires an action directly itself.
 
-import { openEditRouter } from "@/components/dashboard/shared/editEvents";
+import { openEditRouter, openReprovisionScript } from "@/components/dashboard/shared/editEvents";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Radio, Bell, Download, Clock3, Cpu, ShieldCheck, Lock, RefreshCcw, Power, KeyRound, Pencil, Trash2, PauseCircle, PlayCircle, PlugZap, Unplug, Monitor } from "lucide-react";
@@ -56,6 +56,14 @@ export function RouterMoreActionsMenu({
         className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#1a1a1a] hover:bg-[#f4f4f4]"
       >
         <Bell size={14} /> Notification Contacts
+      </button>
+      <button
+        type="button"
+        data-testid="reprovision-more"
+        onClick={() => { onClose(); openReprovisionScript(router.ip); }}
+        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-semibold text-[#1a1a1a] hover:bg-[#f4f4f4]"
+      >
+        <RefreshCcw size={14} /> Reprovision (paste script)
       </button>
       <button
         type="button"

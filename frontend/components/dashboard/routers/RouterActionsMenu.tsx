@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Eye, Power, Monitor, RefreshCcw, Pencil, Trash2, Bell, KeyRound, FolderSync, Clock3, FileCode2, PauseCircle, PlayCircle, PlugZap, Unplug } from "lucide-react";
 
-import { openEditRouter } from "../shared/editEvents";
+import { openEditRouter, openReprovisionScript } from "../shared/editEvents";
 import { DropdownMenuPortal } from "../shared/DropdownMenuPortal";
 import { useDashboard } from "../context/DashboardContext";
 import type { RouterInfo } from "../data/dashboard-data";
@@ -71,8 +71,12 @@ export function RouterActionsMenu({
 
       <button
         type="button"
+        data-testid="reprovision-router"
         className={itemClass}
-        onClick={() => run(() => startRouterTask("full-provision", router.ip))}
+        onClick={() => {
+          onClose();
+          openReprovisionScript(router.ip);
+        }}
       >
         <RefreshCcw size={14} className="text-[#1a1a1a]" /> Reprovision router
       </button>

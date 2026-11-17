@@ -8,6 +8,7 @@ import { ConfirmationDialog } from "../dialogs/ConfirmationDialog";
 import { RouterTaskHost } from "../routers/RouterTaskHost";
 import { ConfirmHost } from "../shared/ConfirmHost";
 import { RouterEditHost } from "../routers/RouterEditHost";
+import { ReprovisionScriptHost } from "../routers/ReprovisionScriptHost";
 import { DashboardLoader } from "../shared/DashboardLoader";
 import { Toast } from "../shared/Toast";
 import { CurrencyGate } from "../shared/CurrencyGate";
@@ -88,6 +89,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       />
       <RouterTaskHost />
       <RouterEditHost />
+      <ReprovisionScriptHost />
       <ConfirmHost />
 
       <Toast message={controller.toastMessage} />
