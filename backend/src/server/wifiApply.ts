@@ -50,6 +50,28 @@ export function bridgeWifiLines(): string[] {
 }
 
 /**
+ * Create the HotspotPro server + profile + bridge pieces if the owner never ran
+ * a full setup (WinBox → IP → Hotspot → Servers is empty).
+ * Safe to re-run: only adds what is missing.
+ */
+export function ensureHotspotServerLines(): string[] {
+  return [
+    `# Ensure HotspotPro hotspot server exists (Servers tab must not be empty)`,
+    `:do { :if ([:len [/interface bridge find where name=hotspotpro-bridge]] = 0) do={ /interface bridge add name=hotspotpro-bridge comment="HotspotPro" } } on-error={ }`,
+    `:do { /interface list member add list=LAN interface=hotspotpro-bridge } on-error={ }`,
+    `:do { :if ([:len [/ip address find where comment="HotspotPro" interface=hotspotpro-bridge]] = 0) do={ /ip address add address=10.10.0.1/16 interface=hotspotpro-bridge comment="HotspotPro" } } on-error={ }`,
+    `:do { :if ([:len [/ip pool find where name=hotspotpro-pool]] = 0) do={ /ip pool add name=hotspotpro-pool ranges=10.10.0.2-10.10.3.254 } } on-error={ }`,
+    `:do { :if ([:len [/ip dhcp-server network find where comment="HotspotPro"]] = 0) do={ /ip dhcp-server network add address=10.10.0.0/16 gateway=10.10.0.1 dns-server=10.10.0.1 comment="HotspotPro" } } on-error={ }`,
+    `:do { /ip dhcp-server network set [find where comment="HotspotPro"] dns-server=10.10.0.1 gateway=10.10.0.1 } on-error={ }`,
+    `:do { :if ([:len [/ip dhcp-server find where name=hotspotpro-dhcp]] = 0) do={ /ip dhcp-server add name=hotspotpro-dhcp interface=hotspotpro-bridge address-pool=hotspotpro-pool disabled=no } } on-error={ }`,
+    `:do { /ip dhcp-server enable [find where name=hotspotpro-dhcp] } on-error={ }`,
+    `:do { :local hpDir "hotspot"; :if ([:len [/file find where name="flash/hotspot/login.html"]] > 0) do={ :set hpDir "flash/hotspot" }; :if ([:len [/ip hotspot profile find where name=hotspotpro]] = 0) do={ /ip hotspot profile add name=hotspotpro hotspot-address=10.10.0.1 dns-name="wifi" login-by=http-pap,http-chap,mac,mac-cookie trial-uptime-limit=0s use-radius=no html-directory=$hpDir } else={ /ip hotspot profile set [find where name=hotspotpro] hotspot-address=10.10.0.1 login-by=http-pap,http-chap,mac,mac-cookie trial-uptime-limit=0s html-directory=$hpDir } } on-error={ }`,
+    `:do { :if ([:len [/ip hotspot find where name=hotspotpro]] = 0) do={ /ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no; :put "HotspotPro: hotspot server created on hotspotpro-bridge" } else={ /ip hotspot set [find where name=hotspotpro] interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no } } on-error={ }`,
+    `:do { /ip hotspot enable [find where name=hotspotpro] } on-error={ }`,
+  ];
+}
+
+/**
  * Stop factory LAN / IPv6 paths that let phones get online without the hotspot.
  * Leaves HotspotPro NAT and HotspotPro DHCP alone.
  */

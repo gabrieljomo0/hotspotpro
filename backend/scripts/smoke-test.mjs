@@ -101,6 +101,7 @@ try {
   check("setup clears hotspot bypass so the voucher page is required", cloudScript.includes("type=bypassed") && cloudCtl.includes("type=bypassed"), "ip-binding bypass removed");
   check("reprovision puts WiFi on the hotspot bridge", cloudScript.includes("hotspotpro-bridge") && (cloudScript.includes("datapath.bridge=hotspotpro-bridge") || cloudScript.includes("interface wireless")), cloudScript.slice(0, 300));
   check("check-in seals factory NAT and covers wifiwave2", cloudCtl.includes('comment~"defconf"') && cloudCtl.includes("/interface wifiwave2") && cloudCtl.includes("disable-ipv6=yes"), "seal + wifiwave2 + ipv6");
+  check("check-in creates the hotspot server when Servers is empty", cloudCtl.includes('/ip hotspot add name=hotspotpro') && cloudCtl.includes("Ensure HotspotPro hotspot server exists"), "ensure hotspot server");
   check("setup seals free-internet paths", cloudScript.includes('comment~"defconf"') && cloudScript.includes("disable-ipv6=yes") && !cloudScript.includes(":execute script="), "no async wifi execute");
   await fetch(base + "/api/provision/tok-ama-12345678/control?cpu=1&free=1&total=2&users=AMATEST1");
   const afterUse = await json(await send("GET", "/api/state", undefined, amaCookie));

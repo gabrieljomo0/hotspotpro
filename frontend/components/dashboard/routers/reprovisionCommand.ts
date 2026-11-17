@@ -1,6 +1,8 @@
 // Shared WinBox paste command: download full HotspotPro setup and import it
 // so old hotspot / WiFi config is replaced with the captive-portal layout.
 
+import { buildCreateHotspotServerCommand } from "./createHotspotServerCommand";
+
 export function cleanReprovisionSsid(value: string) {
   return value.replace(/[\\"$\r\n]/g, "").trim().slice(0, 32);
 }
@@ -12,8 +14,9 @@ export function buildReprovisionCommand(input: { origin: string; token: string; 
   const tls = origin.startsWith("https") ? " check-certificate=no" : "";
   const setupUrl = `${origin}/api/provision/${input.token}?wireless=yes&ssid=${encodeURIComponent(ssid)}`;
   return [
-    `:put "HotspotPro: resetting old HotspotPro config and applying a fresh setup (hotspot + captive portal + WiFi)..."`,
-    // Clear leftover bypass / sessions so the voucher page is required after import.
+    // First fill IP → Hotspot → Servers if it is empty (create hotspotpro).
+    buildCreateHotspotServerCommand(),
+    `:put "HotspotPro: downloading full setup to finish reconfiguration..."`,
     `:do { /ip hotspot ip-binding remove [find where type=bypassed] } on-error={ }`,
     `:do { /ip hotspot active remove [find] } on-error={ }`,
     `:do { /ip hotspot cookie remove [find] } on-error={ }`,

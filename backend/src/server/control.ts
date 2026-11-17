@@ -23,7 +23,7 @@ import { loginPageStamp } from "./hotspotPages";
 import { SETUP_VERSION, accessGuardCommand, accessLockEnsureCommand, checkInBody, loginDnsFromName, remoteWinboxLines } from "./routeros";
 import { primaryWanInterface } from "./primaryWan";
 import { type IspLink, multiWanLines } from "./multiWan";
-import { bridgeWifiLines, sealCaptivePortalLeakLines, ssidForRouter, wifiApplyLines } from "./wifiApply";
+import { bridgeWifiLines, ensureHotspotServerLines, sealCaptivePortalLeakLines, ssidForRouter, wifiApplyLines } from "./wifiApply";
 
 export const SWITCH_COMMENT = "HotspotPro internet off";
 const ACCESS_LOCK = "HotspotPro access lock";
@@ -75,7 +75,8 @@ function hotspotLines(router: Row): string[] {
     return [`:do { /ip hotspot disable [find where name=hotspotpro] } on-error={ }`];
   }
   const lines = [
-    `:do { /ip hotspot enable [find where name=hotspotpro] } on-error={ }`,
+    // If Servers is empty, create hotspotpro here — enable alone does nothing.
+    ...ensureHotspotServerLines(),
     // Bypass bindings skip the voucher page — keep them cleared.
     `:do { /ip hotspot ip-binding remove [find where type=bypassed] } on-error={ }`,
     // html-directory must match where login.html lives (flash or root), or WiFi never shows the voucher page.
