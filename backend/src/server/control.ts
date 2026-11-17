@@ -98,11 +98,11 @@ export function controlScript(token: string, origin?: string): string | null {
   const paused = !!router.paused && !off;
   const access = accessDecision();
   // With no RADIUS server, vouchers have to live on the router or a paid login can never get online.
-  const local = router.loginMode === "local" || process.env.HOTSPOTPRO_RADIUS === "off";
+  const local = router.loginMode !== "cloud" || process.env.HOTSPOTPRO_RADIUS === "off";
   const lines = [
     `# HotspotPro: ${oneLine(router.name)} is ${off ? "DISCONNECTED (internet cut)" : "CONNECTED"}`,
     `# HotspotPro access: ${access.locked ? "locked" : "open"}`,
-    `# HotspotPro login: ${local ? "local" : "cloud"}`,
+    `# HotspotPro login: ${router.loginMode === "cloud" ? "cloud" : "local"}`,
     `:do { /ip firewall raw ${off ? "enable" : "disable"} [find where comment="${SWITCH_COMMENT}"] } on-error={ }`,
     `:do { :if ([:len [/ip firewall raw find where comment="HotspotPro paused"]] = 0) do={ /ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=accept dst-address-type=local comment="HotspotPro paused" disabled=yes; /ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=accept dst-address-type=broadcast comment="HotspotPro paused" disabled=yes; /ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=drop comment="HotspotPro paused" disabled=yes } } on-error={ }`,
     `:do { /ip firewall raw ${paused ? "enable" : "disable"} [find where comment="HotspotPro paused"] } on-error={ }`,

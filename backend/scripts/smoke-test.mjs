@@ -129,7 +129,7 @@ try {
     && (await fetch(base + "/api/provision/tok-done-12345678/done?failed=0")).status === 200);
   const linked = await json(await send("GET", "/api/state", undefined, amaCookie));
   const finished = (linked.docs?.routers?.value ?? []).find((r) => r.provisioningToken === "tok-done-12345678");
-  check("the site shows that router connected", finished?.status === "Online" && finished?.provisioningStatus === "Provisioned" && finished?.name === "Finished Router" && finished?.loginMode === "local", JSON.stringify(finished));
+  check("the site shows that router connected", finished?.status === "Online" && finished?.provisioningStatus === "Provisioned" && finished?.name === "Finished Router" && finished?.loginMode === "cloud", JSON.stringify(finished));
   await send("PUT", "/api/state/routers", { value: routerA }, amaCookie);
 
   // ---- setup script: ISP port, device-mode check ----

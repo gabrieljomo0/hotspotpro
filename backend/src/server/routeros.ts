@@ -431,7 +431,7 @@ export function buildProvisionScript(input: {
     say("Adding the internet sharing rule...");
     safe(`/ip firewall nat add chain=srcnat out-interface=${wan} action=masquerade comment="HotspotPro NAT"`, false, "Internet sharing rule added");
     // One mode at a time. Cloud asks RADIUS. Local does not, and the check-in copies vouchers onto the router instead.
-    const useCloud = router.loginMode !== "local" && !!radius;
+    const useCloud = router.loginMode === "cloud" && !!radius;
     say("Creating the hotspot server...");
     safe(`/ip hotspot profile add name=hotspotpro hotspot-address=${plan.gateway} dns-name=${q(router.dnsName || "login.hotspot")} login-by=http-pap,http-chap,mac-cookie trial-uptime-limit=0s${useCloud ? " use-radius=yes radius-accounting=yes radius-interim-update=1m" : " use-radius=no"} html-directory=$hpDir`, false, "Hotspot profile created");
     safe(`/ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no`, false, "Hotspot server created");
@@ -450,8 +450,10 @@ export function buildProvisionScript(input: {
         add(`:do { :set hpRad [/resolve ${q(target.name)}] } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: could not resolve the RADIUS server"; :put "HotspotPro could not find the RADIUS server name. Setup continues." }`);
         safe(`/radius add service=hotspot address=$hpRad secret=${secret} ${ports} timeout=3s comment="HotspotPro"`, false, "RADIUS server added");
       }
+    } else if (router.loginMode === "cloud") {
+      say("Vouchers stay in HotspotPro and are sent to this router.");
     } else {
-      say("RADIUS is not used. Vouchers stay on this router.");
+      say("Vouchers are stored on this router.");
     }
     // Login pages go on the router either way. Cloud and local both send the phone to the same portal.
     const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
@@ -519,7 +521,7 @@ export function buildProvisionScript(input: {
     safe(`/interface pppoe-server server remove [find where service-name=hotspotpro]`, true);
     safe(`/ip pool add name=hotspotpro-pppoe-pool ranges=${pppoe.poolFrom}-${pppoe.poolTo}`, false, "PPPoE address pool created");
     safe(`/ppp profile add name=hotspotpro-pppoe local-address=${pppoe.gateway} remote-address=hotspotpro-pppoe-pool dns-server=${pppoe.gateway} change-tcp-mss=yes only-one=yes`, false, "PPPoE profile created");
-    safe(`/ppp aaa set use-radius=no`, true);
+    safe(`/ppp aaa set use-radius=${router.loginMode === "cloud" && !!radius ? "yes" : "no"}`, true);
     safe(`/interface pppoe-server server add service-name=hotspotpro interface=hotspotpro-bridge default-profile=hotspotpro-pppoe authentication=pap,chap,mschap2 one-session-per-host=yes disabled=no`, false, "PPPoE server started");
   }
 

@@ -92,14 +92,14 @@ export function scriptFor(token: string, options: { origin: string; wireless?: b
     ssid: options.ssid?.slice(0, 32) || undefined,
     existing: router.routerType === "Existing Router",
     radius:
-      process.env.HOTSPOTPRO_RADIUS === "off"
-        ? undefined
-        : {
+      router.loginMode === "cloud" && process.env.HOTSPOTPRO_RADIUS !== "off"
+        ? {
             host: process.env.HOTSPOTPRO_RADIUS_HOST || new URL(options.origin).hostname,
             secret: radiusSecret(),
             authPort: Number(process.env.HOTSPOTPRO_RADIUS_PORT || 1812),
             acctPort: Number(process.env.HOTSPOTPRO_RADIUS_ACCT_PORT || 1813),
-          },
+          }
+        : undefined,
   });
 }
 
@@ -165,7 +165,7 @@ export function completeProvision(token: string, details: { failed: number; sour
   if (!found && pending) {
     const config = (pending.config ?? {}) as Record<string, unknown>;
     const text = (value: unknown, fallback = "") => (typeof value === "string" && value.trim() ? value.trim() : fallback);
-    const onRouter = process.env.HOTSPOTPRO_RADIUS === "off" || config.loginMode === "local";
+    const onRouter = config.loginMode === "local";
     const ip = `linked-${token.slice(0, 12)}`;
     const created = {
       name: text(config.name, "Router"),
