@@ -7,6 +7,9 @@
 
 import dns from "node:dns";
 
+/** Bump this when the setup script changes. Connected routers download the new setup on the next check-in. */
+export const SETUP_VERSION = "v10";
+
 /** The hotspot login name: letters from the router name, fewer than 5. A saved name is kept only when it is already that short. */
 export function loginDnsFromName(routerName: string, given?: string): string {
   const letters = (value: string) => value.toLowerCase().replace(/[^a-z]/g, "");
@@ -606,5 +609,6 @@ export function buildProvisionScript(input: {
   say("Continue to create a package and a voucher to enjoy this service.");
   say("==========================================");
   add(`:if ($hpFails > 0) do={ :put ("HotspotPro finished with " . $hpFails . " step(s) skipped. Look in the router log for HotspotPro step failed.") }`);
+  add(`:global hpSetup "${SETUP_VERSION}"`);
   return lines.join("\n") + "\n";
 }

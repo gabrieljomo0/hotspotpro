@@ -104,7 +104,15 @@ export function routerActionScript(action: string, input: { origin: string; toke
   const { origin, token } = input;
   const head = `# hotspotpro-action:${action}`;
   let body: string[] = [];
-  if (action === "full-provision") body = [...snmpLines(), ...serviceLines(), ...gardenLines(origin), ...fileFetches(origin, token), ...clockLines(), ...loginLines()];
+  const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
+  const reprovision = [
+    step(`/file remove [find where name=hotspotpro-setup.rsc]`),
+    step(`/file remove [find where name="flash/hotspotpro-setup.rsc"]`),
+    step(`/tool fetch url="${origin}/api/provision/${token}" dst-path=hotspotpro-setup.rsc${tls}`),
+    `:delay 2s`,
+    `:local hpFile "hotspotpro-setup.rsc"; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; :if ([:len [/file find where name=$hpFile]] > 0) do={ /import file-name=$hpFile }`,
+  ];
+  if (action === "full-provision" || action === "update-script") body = reprovision;
   else if (action === "snmp") body = snmpLines();
   else if (action === "walled-garden") body = gardenLines(origin);
   else if (action === "harden") body = serviceLines();
@@ -114,20 +122,13 @@ export function routerActionScript(action: string, input: { origin: string; toke
   else if (action === "api-credentials") {
     const secret = password();
     body = [`# hotspotpro-password:${secret}`, step(`/user remove [find where name=hotspotpro]`), `/user add name=hotspotpro group=full password=${secret} comment="HotspotPro"`];
-  } else if (action === "update-script") {
-    const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
-    body = [
-      step(`/file remove [find where name=hotspotpro-setup.rsc]`),
-      step(`/tool fetch url="${origin}/api/provision/${token}" dst-path=hotspotpro-setup.rsc${tls}`),
-      `:if ([:len [/file find where name=hotspotpro-setup.rsc]] > 0) do={ /import file-name=hotspotpro-setup.rsc }`,
-    ];
   } else if (action === "reboot") body = [`/system reboot`];
   else return null;
   return [head, ...body].join("\n") + "\n";
 }
 
 const ACTION_TEXT: Record<string, string> = {
-  "full-provision": "Full provision ran on the router: SNMP, services, walled garden, hotspot files and clock. Paid logins stay on the router.",
+  "full-provision": "The router downloaded and ran the latest HotspotPro setup.",
   snmp: "SNMP is on for the admin network.",
   "walled-garden": "Walled garden updated so customers can open the login page.",
   harden: "Telnet, FTP and API-SSL are off. WinBox and the API stay on for the admin port.",
@@ -135,7 +136,7 @@ const ACTION_TEXT: Record<string, string> = {
   "sync-time": "Router clock set to Ghana time.",
   winbox: "WinBox limited to the admin network (192.168.88.1).",
   "api-credentials": "API user hotspotpro was created on the router.",
-  "update-script": "The router downloaded the latest setup.",
+  "update-script": "The router downloaded and ran the latest HotspotPro setup.",
   reboot: "Reboot sent.",
 };
 
@@ -152,7 +153,7 @@ export function markRouterAction(token: string, script: string) {
     if (!row || row.provisioningToken !== token) return row;
     changed = true;
     const patch: Record<string, unknown> = {};
-    if (action === "full-provision") {
+    if (action === "full-provision" || action === "update-script") {
       Object.assign(patch, {
         snmpConfigured: true,
         walledGardenConfigured: true,
@@ -160,11 +161,8 @@ export function markRouterAction(token: string, script: string) {
         hotspotFilesSyncedAt: now,
         timeSyncedAt: now,
         provisionedAt: now,
+        scriptUpdatedAt: now,
         provisioningStatus: "Provisioned",
-        winboxAddress: "192.168.88.1",
-        remoteAccessEnabled: false,
-        loginMode: "local",
-        radiusAddress: null,
       });
     } else if (action === "snmp") patch.snmpConfigured = true;
     else if (action === "walled-garden") patch.walledGardenConfigured = true;
@@ -177,8 +175,7 @@ export function markRouterAction(token: string, script: string) {
     } else if (action === "api-credentials" && secret) {
       patch.apiUsername = "hotspotpro";
       patch.apiPassword = secret;
-    } else if (action === "update-script") patch.scriptUpdatedAt = now;
-    else if (action === "reboot") {
+    } else if (action === "reboot") {
       patch.lastSeen = "Restarting…";
       patch.uptime = "0m";
     }

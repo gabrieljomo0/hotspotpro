@@ -78,18 +78,31 @@ function apiPasswordFor(token: string): string {
   return password;
 }
 
+function wifiFromStore(router: ProvisionRouter & { ip?: string; siteId?: string | null }, options: { wireless?: boolean; ssid?: string }) {
+  if (options.wireless === false) return { wireless: false as const, ssid: undefined };
+  if (options.wireless === true && options.ssid?.trim()) return { wireless: true as const, ssid: options.ssid.trim().slice(0, 32) };
+  if (router.routerType === "Existing Router" || router.hasWireless === false) return { wireless: false as const, ssid: undefined };
+  const configs = getState("captivePortalConfigs")?.value as Record<string, { ssid?: string }> | undefined;
+  const key = router.siteId || router.ip || "";
+  const saved = (key && configs?.[key]?.ssid ? configs[key].ssid : "").trim().slice(0, 32);
+  if (saved) return { wireless: true as const, ssid: saved };
+  if (options.ssid?.trim()) return { wireless: true as const, ssid: options.ssid.trim().slice(0, 32) };
+  return { wireless: router.hasWireless === true, ssid: undefined };
+}
+
 /** The setup script for a registered link, built for a given address (the address the ROUTER will use to reach this server). */
 export function scriptFor(token: string, options: { origin: string; wireless?: boolean; ssid?: string }): string | null {
   const router = routerForToken(token);
   if (!router) return null;
+  const wifi = wifiFromStore(router as ProvisionRouter & { ip?: string; siteId?: string | null }, options);
   return buildProvisionScript({
     router,
     origin: options.origin,
     portalOrigin: portalOrigin(options.origin),
     token,
     apiPassword: apiPasswordFor(token),
-    wireless: options.wireless,
-    ssid: options.ssid?.slice(0, 32) || undefined,
+    wireless: wifi.wireless,
+    ssid: wifi.ssid,
     existing: router.routerType === "Existing Router",
     radius:
       router.loginMode === "cloud" && process.env.HOTSPOTPRO_RADIUS !== "off"

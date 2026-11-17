@@ -94,6 +94,7 @@ try {
   check("with no RADIUS server a paid voucher is copied onto the router", cloudCtl.includes("use-radius=no") && cloudCtl.includes('name="AMATEST1"') && cloudCtl.includes("limit-uptime=1d") && cloudCtl.includes("session-timeout=0s") && cloudCtl.includes("keepalive-timeout=none") && cloudCtl.includes("mac-cookie-timeout=1d") && cloudCtl.includes("shared-users=1"), cloudCtl.slice(0, 500));
   check("remote WinBox is ready on check-in", cloudCtl.includes('comment="HotspotPro remote WinBox"') && cloudCtl.includes("back-to-home-vpn=enabled") && cloudCtl.includes("ddns-enabled=yes"));
   check("hotspot login includes MAC and one device per MAC", cloudCtl.includes("login-by=mac,http-chap,http-pap,mac-cookie") && cloudCtl.includes("addresses-per-mac=1") && cloudCtl.includes("mac-address=$m"), cloudCtl.slice(0, 800));
+  check("connected routers download the latest setup by themselves", cloudCtl.includes("applying the latest setup") && cloudCtl.includes('hpSetup != "v10"') && cloudCtl.includes("/api/provision/tok-ama-12345678"), cloudCtl.slice(cloudCtl.indexOf("hpSetup"), cloudCtl.indexOf("hpSetup") + 400));
   await fetch(base + "/api/provision/tok-ama-12345678/control?cpu=1&free=1&total=2&users=AMATEST1");
   const afterUse = await json(await send("GET", "/api/state", undefined, amaCookie));
   const used = (afterUse.docs?.vouchers?.value ?? []).find((v) => v.code === "AMATEST1");
@@ -219,11 +220,11 @@ try {
   check("result is recorded", list2.jobs?.[0]?.status === "ok");
   const action = await send("POST", "/api/routers/jobs", { ip: "10.0.0.1", action: "full-provision" }, amaCookie);
   const actionJob = (await json(action)).job;
-  check("full provision is sent to the router", action.status === 200 && actionJob?.script?.includes("hotspotpro-action:full-provision") && actionJob.script.includes("/snmp set") && actionJob.script.includes("walled-garden") && actionJob.script.includes("use-radius=no"));
+  check("full provision is sent to the router", action.status === 200 && actionJob?.script?.includes("hotspotpro-action:full-provision") && actionJob.script.includes("/api/provision/tok-ama-12345678") && actionJob.script.includes("/import file-name=$hpFile"), actionJob?.script?.slice(0, 400));
   if (actionJob?.id) await fetch(base + `/api/provision/tok-ama-12345678/job/${actionJob.id}/result?ok=1`);
   const after = await json(await send("GET", "/api/state", undefined, amaCookie));
   const amaRouter = after.docs?.routers?.value?.find((r) => r.ip === "10.0.0.1");
-  check("a finished full provision is recorded on the router", amaRouter?.snmpConfigured === true && amaRouter?.walledGardenConfigured === true && amaRouter?.loginMode === "local");
+  check("a finished full provision is recorded on the router", amaRouter?.snmpConfigured === true && amaRouter?.walledGardenConfigured === true && amaRouter?.provisioningStatus === "Provisioned");
 
   // ---- super admin powers; others are kept out ----
   check("a business cannot open the super admin area", (await send("GET", "/api/super/overview", undefined, amaCookie)).status === 403);

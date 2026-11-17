@@ -20,7 +20,7 @@ import { accessDecision } from "./accessGate";
 import { forgetLocalUsers, localUserLines } from "./localUsers";
 import { noteLiveVouchers } from "./packages";
 import { loginPageStamp } from "./hotspotPages";
-import { accessGuardCommand, accessLockEnsureCommand, checkInBody, loginDnsFromName, remoteWinboxLines } from "./routeros";
+import { SETUP_VERSION, accessGuardCommand, accessLockEnsureCommand, checkInBody, loginDnsFromName, remoteWinboxLines } from "./routeros";
 
 export const SWITCH_COMMENT = "HotspotPro internet off";
 const ACCESS_LOCK = "HotspotPro access lock";
@@ -176,6 +176,11 @@ export function controlScript(token: string, origin?: string): string | null {
   // Commands the owner queued on the site (Advanced). Each is downloaded and run once, and the router reports whether it worked.
   if (origin) {
     const tls = origin.startsWith("https://") ? " check-certificate=no" : "";
+    // When the setup version changes, every connected router downloads and runs the latest setup by itself.
+    lines.push(
+      `:global hpSetup; :global hpSetupBusy`,
+      `:if ($hpSetup != "${SETUP_VERSION}" && $hpSetupBusy != "1") do={ :set hpSetupBusy "1"; :do { :put "HotspotPro: applying the latest setup..."; :do { /file remove [find where name=hotspotpro-setup.rsc] } on-error={ }; :do { /file remove [find where name="flash/hotspotpro-setup.rsc"] } on-error={ }; /tool fetch url="${origin}/api/provision/${token}" dst-path=hotspotpro-setup.rsc${tls}; :delay 2s; :local hpFile "hotspotpro-setup.rsc"; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; /import file-name=$hpFile; :set hpSetup "${SETUP_VERSION}"; :put "HotspotPro: router is updated." } on-error={ :put "HotspotPro: setup update will try again on the next check-in." }; :set hpSetupBusy "0" }`,
+    );
     for (const job of takeQueuedJobs(token)) {
       const base = `${origin}/api/provision/${token}/job/${job.id}`;
       lines.push(
