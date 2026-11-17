@@ -404,7 +404,7 @@ export default function AddRouterPage() {
       </div>
       <h1 className="mb-2 text-3xl font-black text-[#1a1a1a] md:text-4xl">Provision Router</h1>
       <p className="mb-6 text-sm text-[#737373]">
-        Paste the configuration command once. If the router says device mode is not allowed, use the small mode command under it, unplug the power cord for 10 seconds, restore power, then paste the configuration command again.
+        Paste the configuration command once. If the router says device mode is not allowed, use the small mode command after it, unplug the power cord for 10 seconds, restore power, then paste the configuration command again.
       </p>
 
       <div className="mb-6 flex items-center gap-2 rounded-2xl border border-[#e6e6e6] bg-white p-4">
@@ -789,29 +789,29 @@ export default function AddRouterPage() {
               >
                 {provisioningCommand}
               </code>
-              <div className="mt-3 rounded-lg border border-[#e6e6e6] bg-[#fafafa] p-3">
-                <div className="mb-2 flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-bold text-[#1a1a1a]">Mode command</p>
-                    <p className="text-[11px] text-[#a3a3a3]">Only if the terminal says device mode is not allowed. Paste this, unplug the power cord for 10 seconds, restore power, then paste the configuration command.</p>
-                  </div>
-                  <button
-                    type="button"
-                    data-testid="copy-mode"
-                    onClick={() => handleCopy("mode")}
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#1a1a1a] bg-white px-2.5 py-1 text-[11px] font-bold text-[#1a1a1a] hover:bg-[#f4f4f4]"
-                  >
-                    {copied === "mode" ? <Check size={12} /> : <Copy size={12} />}
-                    {copied === "mode" ? "Copied" : "Copy"}
-                  </button>
+            </div>
+            <div className="rounded-lg border border-[#e6e6e6] bg-[#fafafa] p-3">
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold text-[#1a1a1a]">Mode command</p>
+                  <p className="text-[11px] text-[#a3a3a3]">Only if the terminal says device mode is not allowed. Paste this after the configuration command, unplug the power cord for 10 seconds, restore power, then paste the configuration command again.</p>
                 </div>
-                <code
-                  data-testid="mode-text"
-                  className="block whitespace-pre-wrap break-all rounded-md bg-[#1a1a1a] px-2.5 py-1.5 text-[11px] text-white"
+                <button
+                  type="button"
+                  data-testid="copy-mode"
+                  onClick={() => handleCopy("mode")}
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#1a1a1a] bg-white px-2.5 py-1 text-[11px] font-bold text-[#1a1a1a] hover:bg-[#f4f4f4]"
                 >
-                  {modeCommand}
-                </code>
+                  {copied === "mode" ? <Check size={12} /> : <Copy size={12} />}
+                  {copied === "mode" ? "Copied" : "Copy"}
+                </button>
               </div>
+              <code
+                data-testid="mode-text"
+                className="block whitespace-pre-wrap break-all rounded-md bg-[#1a1a1a] px-2.5 py-1.5 text-[11px] text-white"
+              >
+                {modeCommand}
+              </code>
             </div>
 
             {/* Address the router will use to reach this server */}
@@ -975,7 +975,7 @@ export default function AddRouterPage() {
 
             {!connected && (
               <p className="rounded-xl bg-[#f4f4f4] p-3 text-xs text-[#525252]">
-                Paste the configuration command once. If the router says device mode is not allowed, use the mode command under it, unplug the power cord for 10 seconds, restore power, then paste the configuration command again.
+                Paste the configuration command once. If the router says device mode is not allowed, use the mode command after it, unplug the power cord for 10 seconds, restore power, then paste the configuration command again.
               </p>
             )}
 
