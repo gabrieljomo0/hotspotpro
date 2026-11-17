@@ -92,7 +92,7 @@ try {
   await send("PUT", "/api/state/vouchers", { value: [{ code: "AMATEST1", password: null, packageName: "Ama Daily", status: "Available" }] }, amaCookie);
   const cloudCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
   check("with no RADIUS server a paid voucher is copied onto the router", cloudCtl.includes("use-radius=no") && cloudCtl.includes('name="AMATEST1"') && cloudCtl.includes("limit-uptime=1d") && cloudCtl.includes("session-timeout=0s") && cloudCtl.includes("keepalive-timeout=none") && cloudCtl.includes("mac-cookie-timeout=1d") && cloudCtl.includes("shared-users=1"), cloudCtl.slice(0, 500));
-  check("remote WinBox is ready on check-in", cloudCtl.includes('comment="HotspotPro remote WinBox"') && cloudCtl.includes("back-to-home-vpn=enabled") && cloudCtl.includes("ddns-enabled=yes"));
+  check("remote WinBox is ready on check-in", cloudCtl.includes('comment="HotspotPro remote WinBox"') && cloudCtl.includes("back-to-home-vpn=enabled") && cloudCtl.includes("ddns-enabled=yes") && cloudCtl.includes("update-time=yes"));
   check("hotspot login includes MAC and one device per MAC", cloudCtl.includes("login-by=mac,http-chap,http-pap,mac-cookie") && cloudCtl.includes("addresses-per-mac=1") && cloudCtl.includes("mac-address=$m"), cloudCtl.slice(0, 800));
   check("connected routers download the latest setup by themselves", cloudCtl.includes("applying the latest setup") && cloudCtl.includes('hpSetup != "v10"') && cloudCtl.includes("/api/provision/tok-ama-12345678"), cloudCtl.slice(cloudCtl.indexOf("hpSetup"), cloudCtl.indexOf("hpSetup") + 400));
   await fetch(base + "/api/provision/tok-ama-12345678/control?cpu=1&free=1&total=2&users=AMATEST1");
@@ -112,6 +112,22 @@ try {
   await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], remoteAccessEnabled: true, wanInterface: "ether1" }] }, amaCookie);
   const remoteCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
   check("switching remote access on opens WinBox", remoteCtl.includes('comment="HotspotPro remote WinBox"') && remoteCtl.includes("back-to-home-vpn=enabled") && remoteCtl.includes("ddns-enabled=yes") && remoteCtl.includes("192.168.216.0/24") && remoteCtl.includes('comment="HotspotPro remote API"'));
+  await send("PUT", "/api/state/routers", {
+    value: [{
+      ...routerA[0],
+      multiWanMode: "Load Balancing + Failover",
+      managementPort: "ether5",
+      ispLinks: [
+        { id: "1", label: "MTN", interface: "ether1", connectionType: "DHCP", gateway: "", dnsServers: "8.8.8.8", healthCheckIp: "8.8.8.8", allowRemovalFromBridge: true },
+        { id: "2", label: "Vodafone", interface: "ether2", connectionType: "DHCP", gateway: "", dnsServers: "1.1.1.1", healthCheckIp: "1.1.1.1", allowRemovalFromBridge: true },
+      ],
+    }],
+  }, amaCookie);
+  const wanCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
+  check("Multi-WAN load balancing is applied on check-in", wanCtl.includes("HotspotPro Multi-WAN") && wanCtl.includes("interface=ether1") && wanCtl.includes("interface=ether2") && wanCtl.includes("default-route-distance=1") && wanCtl.includes('comment="HotspotPro WAN"'), wanCtl.slice(wanCtl.indexOf("Multi-WAN"), wanCtl.indexOf("Multi-WAN") + 500));
+  await send("PUT", "/api/state/vouchers", { value: [{ code: "TVBOX01", password: null, packageName: "Ama Daily", status: "Used", boundMac: "AA:BB:CC:DD:EE:FF", activatedAtMs: Date.now(), expiresAtMs: Date.now() + 86400000 }] }, amaCookie);
+  const tvCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
+  check("buy-for-TV locks the voucher to that MAC on the router", tvCtl.includes('name="TVBOX01"') && tvCtl.includes("mac-address=AA:BB:CC:DD:EE:FF") && tvCtl.includes('name="AA:BB:CC:DD:EE:FF"'), tvCtl.slice(0, 900));
   await fetch(base + "/api/provision/tok-ama-12345678/control?cpu=1&wanip=41.1.1.1&dns=abc.sn.mynetname.net");
   const direct = (await json(await send("GET", "/api/state", undefined, amaCookie))).docs?.routers?.value?.[0];
   check("a public address is the WinBox address", direct?.winboxReach === "direct" && direct?.winboxAddress === "abc.sn.mynetname.net:8291", JSON.stringify(direct?.winboxAddress));
@@ -225,6 +241,22 @@ try {
   const after = await json(await send("GET", "/api/state", undefined, amaCookie));
   const amaRouter = after.docs?.routers?.value?.find((r) => r.ip === "10.0.0.1");
   check("a finished full provision is recorded on the router", amaRouter?.snmpConfigured === true && amaRouter?.walledGardenConfigured === true && amaRouter?.provisioningStatus === "Provisioned");
+  const remoteJob = await send("POST", "/api/routers/jobs", { ip: "10.0.0.1", action: "remote-winbox" }, amaCookie);
+  const remoteBody = (await json(remoteJob)).job;
+  check("remote WinBox action is queued for the router", remoteJob.status === 200 && remoteBody?.script?.includes("hotspotpro-action:remote-winbox") && remoteBody.script.includes("back-to-home-vpn=enabled"), remoteBody?.script?.slice(0, 300));
+  const wanJob = await send("POST", "/api/routers/jobs", {
+    ip: "10.0.0.1",
+    action: "multiwan",
+    multiWanMode: "Failover",
+    ispLinks: [
+      { id: "1", label: "Primary", interface: "ether1", connectionType: "DHCP", gateway: "", dnsServers: "8.8.8.8", healthCheckIp: "8.8.8.8", allowRemovalFromBridge: true },
+      { id: "2", label: "Backup", interface: "ether2", connectionType: "Static", gateway: "10.20.0.1", dnsServers: "1.1.1.1", healthCheckIp: "1.1.1.1", allowRemovalFromBridge: true },
+    ],
+  }, amaCookie);
+  const wanBody = (await json(wanJob)).job;
+  check("Multi-WAN action saves links and queues apply", wanJob.status === 200 && wanBody?.script?.includes("hotspotpro-action:multiwan") && wanBody.script.includes("ether2") && wanBody.script.includes("10.20.0.1"), wanBody?.script?.slice(0, 400));
+  const wanSaved = (await json(await send("GET", "/api/state", undefined, amaCookie))).docs?.routers?.value?.find((r) => r.ip === "10.0.0.1");
+  check("Multi-WAN Submit is stored on the router row", wanSaved?.multiWanMode === "Failover" && wanSaved?.ispLinks?.length === 2, JSON.stringify(wanSaved?.multiWanMode));
 
   // ---- super admin powers; others are kept out ----
   check("a business cannot open the super admin area", (await send("GET", "/api/super/overview", undefined, amaCookie)).status === 403);

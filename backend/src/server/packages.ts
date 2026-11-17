@@ -76,6 +76,13 @@ export function findVoucher(code: string) {
   return list<Vch>("vouchers").find((v) => v.code.toLowerCase() === wanted) ?? null;
 }
 
+/** AA:BB:CC:DD:EE:FF for RouterOS, or "" when the value is not a MAC. */
+export function normalizeMac(value: string | null | undefined): string {
+  const hex = (value || "").toLowerCase().replace(/[^a-f0-9]/g, "");
+  if (hex.length !== 12) return "";
+  return (hex.match(/.{2}/g) || []).join(":").toUpperCase();
+}
+
 /** First time a voucher is seen online, the calendar starts. Buying it does not. */
 export function noteLiveVouchers(names: string[], now = Date.now()) {
   if (names.length === 0) return;

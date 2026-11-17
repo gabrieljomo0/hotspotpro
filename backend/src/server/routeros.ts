@@ -179,12 +179,16 @@ export function remoteWinboxLines(enabled: boolean, origin: string, token: strin
     return lines;
   }
   const lines = [
-    `:do { /ip cloud set ddns-enabled=yes } on-error={ }`,
+    // Public WinBox: cloud DDNS when the ISP gives a real address, Back To Home VPN when it does not.
+    `:do { /ip cloud set ddns-enabled=yes update-time=yes } on-error={ }`,
     `:do { :if ([/ip cloud get back-to-home-vpn] != "enabled") do={ /ip cloud set back-to-home-vpn=enabled } } on-error={ }`,
     `:do { /ip service set winbox address=0.0.0.0/0 disabled=no } on-error={ }`,
     `:do { /ip service set api port=8728 address=192.168.88.0/24,192.168.216.0/24 disabled=no } on-error={ }`,
-    `:do { :if ([:len [/ip firewall filter find where comment="HotspotPro remote WinBox"]] = 0) do={ /ip firewall filter add chain=input action=accept protocol=tcp dst-port=8291 comment="HotspotPro remote WinBox" place-before=0 } } on-error={ }`,
-    `:do { :if ([:len [/ip firewall filter find where comment="HotspotPro remote API"]] = 0) do={ /ip firewall filter add chain=input action=accept protocol=tcp dst-port=8728 src-address=192.168.216.0/24 comment="HotspotPro remote API" place-before=0 } } on-error={ }`,
+    `:do { /ip firewall filter remove [find where comment="HotspotPro remote WinBox"] } on-error={ }`,
+    `:do { /ip firewall filter remove [find where comment="HotspotPro remote API"] } on-error={ }`,
+    `:do { /ip firewall filter add chain=input action=accept protocol=tcp dst-port=8291 comment="HotspotPro remote WinBox" place-before=0 } on-error={ }`,
+    `:do { /ip firewall filter add chain=input action=accept protocol=tcp dst-port=8291 in-interface=${port} comment="HotspotPro remote WinBox" place-before=0 } on-error={ }`,
+    `:do { /ip firewall filter add chain=input action=accept protocol=tcp dst-port=8728 src-address=192.168.216.0/24 comment="HotspotPro remote API" place-before=0 } on-error={ }`,
   ];
   if (origin) {
     const tls = origin.startsWith("https:") ? " check-certificate=no" : "";

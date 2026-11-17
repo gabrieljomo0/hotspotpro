@@ -3,6 +3,8 @@
 // Paid logins stay on the router: this host has no public RADIUS port.
 
 import { getState, setState } from "./store";
+import { type IspLink, multiWanLines } from "./multiWan";
+import { remoteWinboxLines } from "./routeros";
 
 export const ROUTER_ACTIONS = [
   "full-provision",
@@ -12,6 +14,9 @@ export const ROUTER_ACTIONS = [
   "walled-garden",
   "harden",
   "winbox",
+  "remote-winbox",
+  "remote-winbox-off",
+  "multiwan",
   "api-credentials",
   "update-script",
   "reboot",
@@ -119,12 +124,34 @@ export function routerActionScript(action: string, input: { origin: string; toke
   else if (action === "sync-files") body = fileFetches(origin, token);
   else if (action === "sync-time") body = clockLines();
   else if (action === "winbox") body = [step(`/ip service set winbox address=192.168.88.0/24 disabled=no`)];
-  else if (action === "api-credentials") {
+  else if (action === "remote-winbox" || action === "remote-winbox-off") {
+    const row = routerByToken(token);
+    const wan = typeof row?.wanInterface === "string" ? row.wanInterface : "ether1";
+    const sameNetwork = row?.adminFromWan !== false;
+    body = remoteWinboxLines(action === "remote-winbox", origin, token, sameNetwork, wan);
+  } else if (action === "multiwan") {
+    const row = routerByToken(token);
+    // Force a fresh apply even if the router already ran this Multi-WAN stamp.
+    body = [":global hpWan; :set hpWan \"\"", ...multiWanLines(row?.multiWanMode, row?.ispLinks, row?.managementPort || "")];
+  } else if (action === "api-credentials") {
     const secret = password();
     body = [`# hotspotpro-password:${secret}`, step(`/user remove [find where name=hotspotpro]`), `/user add name=hotspotpro group=full password=${secret} comment="HotspotPro"`];
   } else if (action === "reboot") body = [`/system reboot`];
   else return null;
   return [head, ...body].join("\n") + "\n";
+}
+
+function routerByToken(token: string) {
+  const value = getState("routers")?.value;
+  if (!Array.isArray(value)) return null;
+  return (value as {
+    provisioningToken?: string;
+    wanInterface?: string;
+    adminFromWan?: boolean;
+    multiWanMode?: string;
+    ispLinks?: IspLink[];
+    managementPort?: string;
+  }[]).find((row) => row?.provisioningToken === token) ?? null;
 }
 
 const ACTION_TEXT: Record<string, string> = {
@@ -135,6 +162,9 @@ const ACTION_TEXT: Record<string, string> = {
   "sync-files": "Hotspot login files downloaded again.",
   "sync-time": "Router clock set to Ghana time.",
   winbox: "WinBox limited to the admin network (192.168.88.1).",
+  "remote-winbox": "Remote WinBox is on (cloud name, Back To Home tunnel, and port 8291).",
+  "remote-winbox-off": "Remote WinBox is off. WinBox stays on the admin network.",
+  multiwan: "Multi-WAN load balancing / failover was applied on the router.",
   "api-credentials": "API user hotspotpro was created on the router.",
   "update-script": "The router downloaded and ran the latest HotspotPro setup.",
   reboot: "Reboot sent.",
@@ -172,6 +202,17 @@ export function markRouterAction(token: string, script: string) {
     else if (action === "winbox") {
       patch.winboxAddress = "192.168.88.1";
       patch.remoteAccessEnabled = true;
+    } else if (action === "remote-winbox") {
+      patch.remoteAccessEnabled = true;
+      patch.remoteAccessHold = false;
+    } else if (action === "remote-winbox-off") {
+      patch.remoteAccessEnabled = false;
+      patch.remoteAccessHold = true;
+      patch.winboxAddress = "192.168.88.1";
+      patch.winboxReach = "lan";
+      patch.wireguardConfig = null;
+    } else if (action === "multiwan") {
+      patch.multiWanAppliedAt = now;
     } else if (action === "api-credentials" && secret) {
       patch.apiUsername = "hotspotpro";
       patch.apiPassword = secret;

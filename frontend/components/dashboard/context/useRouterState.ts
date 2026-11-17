@@ -537,9 +537,14 @@ export function useRouterState(
           : r,
       ),
     );
+    void fetch("/api/routers/jobs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ip, action: next ? "remote-winbox" : "remote-winbox-off" }),
+    }).catch(() => {});
     showToast(
       next
-        ? `Remote WinBox is on for ${router.name}. The router opens the port, its cloud name and the tunnel on the next check-in. You do not open WinBox or paste a command.`
+        ? `Remote WinBox is on for ${router.name}. The router opens WinBox, its cloud name and the Back To Home tunnel within about 10 seconds. Connect with the address shown on this page once it appears.`
         : `Remote WinBox is off for ${router.name}. WinBox stays on the admin port at 192.168.88.1.`,
     );
     logActivity("Router", `${next ? "Enabled" : "Disabled"} remote WinBox for ${router.name}.`);

@@ -5,7 +5,7 @@
 
 import { voucherOnlyLogin } from "./hotspotPages";
 import { getState, setState } from "./store";
-import { type Pkg, type Vch, findPackageByName, list, packageBytes, packageSeconds, routerAllowsPackage, voucherCountFrom, voucherLimitBy } from "./packages";
+import { type Pkg, type Vch, findPackageByName, list, normalizeMac, packageBytes, packageSeconds, routerAllowsPackage, voucherCountFrom, voucherLimitBy } from "./packages";
 
 const BATCH = 40;
 
@@ -44,7 +44,7 @@ function syncFile(): SyncFile {
 }
 
 function wanted(routerIp: string, now: number) {
-  const out: { name: string; password: string; pkg: Pkg | null; limitBy: "days" | "data" | "both"; countFrom: "signin" | "usage" }[] = [];
+  const out: { name: string; password: string; pkg: Pkg | null; limitBy: "days" | "data" | "both"; countFrom: "signin" | "usage"; mac: string }[] = [];
   const seen = new Set<string>();
   for (const voucher of list<Vch>("vouchers")) {
     if (!voucher || voucher.status === "Expired") continue;
@@ -60,6 +60,7 @@ function wanted(routerIp: string, now: number) {
       pkg,
       limitBy: voucherLimitBy(voucher),
       countFrom: voucherCountFrom(voucher),
+      mac: normalizeMac(voucher.boundMac),
     });
   }
   return out;
@@ -78,10 +79,13 @@ export function localUserLines(token: string, routerIp: string, now = Date.now()
   const file = syncFile();
   const previous = file[token]?.codes ?? [];
   const users = wanted(routerIp, now).slice(0, BATCH);
-  const desired = new Set(users.map((u) => u.name));
+  const nextCodes = [
+    ...users.map((u) => u.name),
+    ...users.filter((u) => u.mac).map((u) => u.mac),
+  ];
+  const desired = new Set(nextCodes);
   const remove = previous.filter((code) => !desired.has(code)).slice(0, BATCH);
   const add = users;
-  const nextCodes = users.map((u) => u.name);
   const same = nextCodes.length === previous.length && nextCodes.every((code, index) => code === previous[index]);
   if (!same) {
     file[token] = { codes: nextCodes, at: now };
@@ -119,16 +123,25 @@ export function localUserLines(token: string, routerIp: string, now = Date.now()
     const profile = quote(profileName(user.pkg, user.name));
     // One box sends the code as both names. Two boxes send the voucher password.
     const secret = quote(pin ? user.name : user.password || user.name);
+    const macSet = user.mac ? ` mac-address=${user.mac}` : "";
     lines.push(
-      `:do { :if ([:len [/ip hotspot user find where name=${quote(user.name)}]] = 0) do={ /ip hotspot user add name=${quote(user.name)} password=${secret} profile=${profile} ${limits} comment="HotspotPro" } else={ /ip hotspot user set [find where name=${quote(user.name)}] password=${secret} profile=${profile} ${limits} disabled=no } } on-error={ }`,
+      `:do { :if ([:len [/ip hotspot user find where name=${quote(user.name)}]] = 0) do={ /ip hotspot user add name=${quote(user.name)} password=${secret} profile=${profile} ${limits}${macSet} comment="HotspotPro" } else={ /ip hotspot user set [find where name=${quote(user.name)}] password=${secret} profile=${profile} ${limits}${macSet} disabled=no } } on-error={ }`,
     );
+    // Buy-for-TV: also create a MAC-named user so login-by=mac brings that device online without typing the code on the TV.
+    if (user.mac) {
+      const macName = quote(user.mac);
+      lines.push(
+        `:do { :if ([:len [/ip hotspot user find where name=${macName}]] = 0) do={ /ip hotspot user add name=${macName} password=${macName} profile=${profile} ${limits} mac-address=${user.mac} comment="HotspotPro" } else={ /ip hotspot user set [find where name=${macName}] password=${macName} profile=${profile} ${limits} mac-address=${user.mac} disabled=no } } on-error={ }`,
+      );
+    }
   }
   for (const code of remove) {
     lines.push(`:do { /ip hotspot user remove [find where name=${quote(code)} comment="HotspotPro"] } on-error={ }`);
   }
   // The first phone that logs in owns the voucher. Any other phone typing that code is refused.
+  // Skip users that already have a MAC from a TV / other-device purchase.
   lines.push(
-    `:do { :foreach i in=[/ip hotspot active find] do={ :local u [/ip hotspot active get $i user]; :local m [/ip hotspot active get $i mac-address]; :if ([:len $u] > 0 && [:len $m] > 0 && [:len [/ip hotspot user find where name=$u comment="HotspotPro"]] > 0) do={ /ip hotspot user set [find where name=$u comment="HotspotPro"] mac-address=$m } } } on-error={ }`,
+    `:do { :foreach i in=[/ip hotspot active find] do={ :local u [/ip hotspot active get $i user]; :local m [/ip hotspot active get $i mac-address]; :if ([:len $u] > 0 && [:len $m] > 0 && [:len [/ip hotspot user find where name=$u comment="HotspotPro"]] > 0) do={ :local cur ""; :do { :set cur [/ip hotspot user get [find where name=$u comment="HotspotPro"] mac-address] } on-error={ }; :if ([:len $cur] = 0) do={ /ip hotspot user set [find where name=$u comment="HotspotPro"] mac-address=$m } } } } on-error={ }`,
   );
   return lines;
 }

@@ -21,10 +21,29 @@ import { forgetLocalUsers, localUserLines } from "./localUsers";
 import { noteLiveVouchers } from "./packages";
 import { loginPageStamp } from "./hotspotPages";
 import { SETUP_VERSION, accessGuardCommand, accessLockEnsureCommand, checkInBody, loginDnsFromName, remoteWinboxLines } from "./routeros";
+import { type IspLink, multiWanLines } from "./multiWan";
 
 export const SWITCH_COMMENT = "HotspotPro internet off";
 const ACCESS_LOCK = "HotspotPro access lock";
-type Row = { ip: string; name: string; disconnected?: boolean; paused?: boolean; provisioningToken?: string; hotspotEnabled?: boolean; wanAddress?: string | null; wanInterface?: string; loginMode?: "cloud" | "local"; remoteAccessEnabled?: boolean; remoteAccessHold?: boolean; adminFromWan?: boolean; dnsName?: string; hotspotDnsServers?: string };
+type Row = {
+  ip: string;
+  name: string;
+  disconnected?: boolean;
+  paused?: boolean;
+  provisioningToken?: string;
+  hotspotEnabled?: boolean;
+  wanAddress?: string | null;
+  wanInterface?: string;
+  loginMode?: "cloud" | "local";
+  remoteAccessEnabled?: boolean;
+  remoteAccessHold?: boolean;
+  adminFromWan?: boolean;
+  dnsName?: string;
+  hotspotDnsServers?: string;
+  multiWanMode?: string;
+  ispLinks?: IspLink[];
+  managementPort?: string;
+};
 
 function managementLines(token: string): string[] {
   const value = getState("routers")?.value;
@@ -166,6 +185,7 @@ export function controlScript(token: string, origin?: string): string | null {
       ...hotspotLines(router),
       ...managementLines(token),
       ...remoteWinboxLines(router.remoteAccessHold !== true, origin ?? "", token, router.adminFromWan !== false, router.wanInterface || "ether1"),
+      ...multiWanLines(router.multiWanMode, router.ispLinks, router.managementPort || ""),
     );
     if (local) lines.push(...localUserLines(token, router.ip));
     else {

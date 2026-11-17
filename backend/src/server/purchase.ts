@@ -7,7 +7,7 @@ import {
   type PaymentRecord, allPayments, getPayment, getState, savePayment,
 } from "./store";
 import {
-  type Pkg, addVoucher, list, priceOf, routerAllowsPackage, uniqueCode,
+  type Pkg, addVoucher, list, normalizeMac, packageSeconds, priceOf, routerAllowsPackage, uniqueCode,
 } from "./packages";
 import { detectNetwork, hubtelCharge, hubtelStatus, paymentMode, webhookSecret } from "./payments";
 import { sendSms } from "./sms";
@@ -107,6 +107,9 @@ export function markPaid(id: string, details: { providerTxId?: string; amount?: 
   const pkg = list<Pkg>("packages").find((p) => p.id === payment.packageId);
   const code = uniqueCode();
   const ms = Date.now();
+  const deviceMac = payment.buyerType === "device" ? normalizeMac(payment.deviceMac) : "";
+  // TV / other-device buys lock the voucher to that MAC so only that box can go online.
+  const seconds = pkg ? packageSeconds(pkg) : 86400;
   addVoucher({
     code,
     password: null,
@@ -122,6 +125,9 @@ export function markPaid(id: string, details: { providerTxId?: string; amount?: 
     agentId: defaultAgentId(payment.routerIp),
     batchId: null,
     serverIssuedMs: ms,
+    ...(deviceMac
+      ? { boundMac: deviceMac, activatedAtMs: ms, expiresAtMs: ms + seconds * 1000 }
+      : {}),
   });
 
   payment.status = "paid";
@@ -130,11 +136,16 @@ export function markPaid(id: string, details: { providerTxId?: string; amount?: 
   payment.voucherPassword = null;
   if (details.providerTxId) payment.providerTxId = details.providerTxId;
   payment.commission = Math.round(payment.amount * (payment.commissionRate ?? 0)) / 100;
-  note(payment, `Payment confirmed. Voucher ${code} issued.`);
+  note(payment, deviceMac
+    ? `Payment confirmed. Voucher ${code} locked to device ${deviceMac}.`
+    : `Payment confirmed. Voucher ${code} issued.`);
   savePayment(payment);
 
   const to = payment.buyerType === "other" ? payment.recipientPhone ?? payment.phone : payment.phone;
-  void sendSms(to, `Your ${payment.packageName} internet voucher: ${code}. Enter it on the WiFi login page. Ref ${payment.id}.`).then((r) => {
+  const sms = deviceMac
+    ? `Your ${payment.packageName} is ready for device ${deviceMac}. Code ${code} (only that device). Ref ${payment.id}.`
+    : `Your ${payment.packageName} internet voucher: ${code}. Enter it on the WiFi login page. Ref ${payment.id}.`;
+  void sendSms(to, sms).then((r) => {
     const p = getPayment(id);
     if (p) {
       note(p, r.ok ? "Voucher code sent by SMS." : `SMS not sent: ${r.detail}`);
