@@ -11,7 +11,7 @@ export type LintReport = {
   stats: { lines: number; steps: number; hasRadius: boolean; hasHotspot: boolean };
 };
 
-const ROOTS = /^\/(interface|ip|radius|file|system|tool|ppp)(\s|$)/;
+const ROOTS = /^\/(interface|ip|ipv6|radius|file|system|tool|ppp)(\s|$)/;
 const IP = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
 
 function ipInt(ip: string): number | null {

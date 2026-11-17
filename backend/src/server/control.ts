@@ -23,7 +23,7 @@ import { loginPageStamp } from "./hotspotPages";
 import { SETUP_VERSION, accessGuardCommand, accessLockEnsureCommand, checkInBody, loginDnsFromName, remoteWinboxLines } from "./routeros";
 import { primaryWanInterface } from "./primaryWan";
 import { type IspLink, multiWanLines } from "./multiWan";
-import { ssidForRouter, wifiApplyLines } from "./wifiApply";
+import { bridgeWifiLines, sealCaptivePortalLeakLines, ssidForRouter, wifiApplyLines } from "./wifiApply";
 
 export const SWITCH_COMMENT = "HotspotPro internet off";
 const ACCESS_LOCK = "HotspotPro access lock";
@@ -76,18 +76,16 @@ function hotspotLines(router: Row): string[] {
   }
   const lines = [
     `:do { /ip hotspot enable [find where name=hotspotpro] } on-error={ }`,
-    `:do { /ip hotspot set [find where name=hotspotpro] disabled=no addresses-per-mac=1 } on-error={ }`,
     // Bypass bindings skip the voucher page — keep them cleared.
     `:do { /ip hotspot ip-binding remove [find where type=bypassed] } on-error={ }`,
     // html-directory must match where login.html lives (flash or root), or WiFi never shows the voucher page.
     `:do { :local hpDir "hotspot"; :if ([:len [/file find where name="flash/hotspot/login.html"]] > 0) do={ :set hpDir "flash/hotspot" }; /ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir } on-error={ }`,
     // A phone that uses 8.8.8.8 never hits the login page. Keep every customer DNS query on this router.
     `:do { :local a ""; :do { :set a [/ip address get [find where interface=hotspotpro-bridge comment="HotspotPro"] address] } on-error={ }; :if ([:len $a] > 0) do={ :local g [:pick $a 0 [:find $a "/"]]; /ip dhcp-server network set [find where comment="HotspotPro"] dns-server=$g gateway=$g } } on-error={ }`,
-    `:do { :if ([:len [/ip firewall nat find where comment="HotspotPro DNS"]] = 0) do={ /ip firewall nat add chain=dstnat in-interface=hotspotpro-bridge protocol=udp dst-port=53 action=redirect to-ports=53 comment="HotspotPro DNS"; /ip firewall nat add chain=dstnat in-interface=hotspotpro-bridge protocol=tcp dst-port=53 action=redirect to-ports=53 comment="HotspotPro DNS" } } on-error={ }`,
-    // ROS7: datapath.bridge is required so joining the SSID lands on the hotspot (captive portal).
-    `:do { :foreach p in=[/interface wifi find] do={ :do { /interface wifi set $p disabled=no configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ } } } on-error={ }`,
-    `:do { :foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :if ([:len [/interface bridge port find where interface=$n bridge=hotspotpro-bridge]] = 0) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`,
-    `:do { :foreach p in=[/interface wireless find] do={ :local n [/interface wireless get $p name]; :do { /interface wireless set $p disabled=no mode=ap-bridge } on-error={ }; :if ([:len [/interface bridge port find where interface=$n bridge=hotspotpro-bridge]] = 0) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`,
+    // Close factory NAT / DHCP / IPv6 leaks and keep DNS hijack + hotspot on our bridge.
+    ...sealCaptivePortalLeakLines(),
+    // Radios must sit on hotspotpro-bridge every check-in (wifi / wifiwave2 / wireless).
+    ...bridgeWifiLines(),
   ];
   const name = loginDnsFromName(router.name, router.dnsName);
   if (/^[a-z0-9][a-z0-9.-]{0,48}$/.test(name)) {
@@ -224,7 +222,7 @@ export function controlScript(token: string, origin?: string): string | null {
     // When the setup version changes, every connected router downloads and runs the latest setup by itself.
     lines.push(
       `:global hpSetup; :global hpSetupBusy`,
-      `:if ($hpSetup != "${SETUP_VERSION}" && $hpSetupBusy != "1") do={ :set hpSetupBusy "1"; :do { :put "HotspotPro: applying the latest setup..."; :do { /file remove [find where name=hotspotpro-setup.rsc] } on-error={ }; :do { /file remove [find where name="flash/hotspotpro-setup.rsc"] } on-error={ }; /tool fetch url="${origin}/api/provision/${token}?wireless=yes" dst-path=hotspotpro-setup.rsc${tls}; :do { :delay 2s } on-error={ }; :local hpFile "hotspotpro-setup.rsc"; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; /import file-name=$hpFile; :set hpSetup "${SETUP_VERSION}"; :put "HotspotPro: router is updated." } on-error={ :put "HotspotPro: setup update will try again on the next check-in." }; :set hpSetupBusy "0" }`,
+      `:if ($hpSetup != "${SETUP_VERSION}" && $hpSetupBusy != "1") do={ :set hpSetupBusy "1"; :do { :put "HotspotPro: applying the latest setup..."; :do { /file remove [find where name=hotspotpro-setup.rsc] } on-error={ }; :do { /file remove [find where name="flash/hotspotpro-setup.rsc"] } on-error={ }; /tool fetch url="${origin}/api/provision/${token}?wireless=yes" dst-path=hotspotpro-setup.rsc${tls}; :do { :delay 2s } on-error={ }; :local hpFile "hotspotpro-setup.rsc"; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; /import file-name=$hpFile; :set hpSetup "${SETUP_VERSION}"; :global hpWifiSsid; :set hpWifiSsid ""; :put "HotspotPro: router is updated." } on-error={ :put "HotspotPro: setup update will try again on the next check-in." }; :set hpSetupBusy "0" }`,
     );
     for (const job of takeQueuedJobs(token)) {
       const base = `${origin}/api/provision/${token}/job/${job.id}`;

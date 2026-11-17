@@ -96,10 +96,12 @@ try {
   check("remote WebFig is open for browser access", cloudCtl.includes('comment="HotspotPro remote WebFig"') && cloudCtl.includes("/ip service set www") && cloudCtl.includes("interval=3s"), cloudCtl.slice(0, 400));
   check("hotspot login includes MAC and one device per MAC", cloudCtl.includes("login-by=http-pap,http-chap,mac,mac-cookie") && cloudCtl.includes("addresses-per-mac=1") && cloudCtl.includes("mac-address=$m"), cloudCtl.slice(0, 800));
   check("captive portal login supports CHAP MD5", (await (await fetch(base + "/api/provision/tok-ama-12345678/login.html")).text()).includes("hexMD5") && (await (await fetch(base + "/api/provision/tok-ama-12345678/md5.js")).text()).includes("function hexMD5"), "login.html / md5.js");
-  check("connected routers download the latest setup by themselves", cloudCtl.includes("applying the latest setup") && cloudCtl.includes('hpSetup != "v13"') && cloudCtl.includes("/api/provision/tok-ama-12345678?wireless=yes"), cloudCtl.slice(cloudCtl.indexOf("hpSetup"), cloudCtl.indexOf("hpSetup") + 400));
+  check("connected routers download the latest setup by themselves", cloudCtl.includes("applying the latest setup") && cloudCtl.includes('hpSetup != "v14"') && cloudCtl.includes("/api/provision/tok-ama-12345678?wireless=yes"), cloudCtl.slice(cloudCtl.indexOf("hpSetup"), cloudCtl.indexOf("hpSetup") + 400));
   const cloudScript = await (await fetch(base + "/api/provision/tok-ama-12345678?wireless=yes&ssid=AmaCafeWiFi")).text();
   check("setup clears hotspot bypass so the voucher page is required", cloudScript.includes("type=bypassed") && cloudCtl.includes("type=bypassed"), "ip-binding bypass removed");
   check("reprovision puts WiFi on the hotspot bridge", cloudScript.includes("hotspotpro-bridge") && (cloudScript.includes("datapath.bridge=hotspotpro-bridge") || cloudScript.includes("interface wireless")), cloudScript.slice(0, 300));
+  check("check-in seals factory NAT and covers wifiwave2", cloudCtl.includes('comment~"defconf"') && cloudCtl.includes("/interface wifiwave2") && cloudCtl.includes("disable-ipv6=yes"), "seal + wifiwave2 + ipv6");
+  check("setup seals free-internet paths", cloudScript.includes('comment~"defconf"') && cloudScript.includes("disable-ipv6=yes") && !cloudScript.includes(":execute script="), "no async wifi execute");
   await fetch(base + "/api/provision/tok-ama-12345678/control?cpu=1&free=1&total=2&users=AMATEST1");
   const afterUse = await json(await send("GET", "/api/state", undefined, amaCookie));
   const used = (afterUse.docs?.vouchers?.value ?? []).find((v) => v.code === "AMATEST1");
@@ -270,7 +272,7 @@ try {
   const wifiJob = await send("POST", "/api/routers/jobs", { ip: "10.0.0.1", action: "wifi" }, amaCookie);
   const wifiBody = (await json(wifiJob)).job;
   check("WiFi action applies the site SSID on the router", wifiJob.status === 200 && wifiBody?.script?.includes("AmaCafeWiFi") && wifiBody.script.includes("hotspotpro-bridge") && wifiBody.script.includes("datapath.bridge=hotspotpro-bridge"), wifiBody?.script?.slice(0, 400));
-  check("check-in keeps WiFi on the hotspot so captive portal opens", cloudCtl.includes("datapath.bridge=hotspotpro-bridge") && cloudCtl.includes("HotspotPro DNS") && cloudCtl.includes("html-directory=$hpDir"), "wifi + dns + html-directory");
+  check("check-in keeps WiFi on the hotspot so captive portal opens", cloudCtl.includes("datapath.bridge=hotspotpro-bridge") && cloudCtl.includes("HotspotPro DNS") && cloudCtl.includes("html-directory=$hpDir") && cloudCtl.includes("/interface wifiwave2"), "wifi + wifiwave2 + dns + html-directory");
   const vouchersJob = await send("POST", "/api/routers/jobs", { ip: "10.0.0.1", action: "sync-vouchers" }, amaCookie);
   const vouchersBody = (await json(vouchersJob)).job;
   check("sync-vouchers action pushes hotspot users", vouchersJob.status === 200 && vouchersBody?.script?.includes("hotspotpro-action:sync-vouchers") && vouchersBody.script.includes("/ip hotspot user"), vouchersBody?.script?.slice(0, 300));

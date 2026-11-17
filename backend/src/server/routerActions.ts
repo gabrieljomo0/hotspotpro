@@ -128,9 +128,9 @@ export function routerActionScript(action: string, input: { origin: string; toke
   const reprovision = [
     step(`/file remove [find where name=hotspotpro-setup.rsc]`),
     step(`/file remove [find where name="flash/hotspotpro-setup.rsc"]`),
-    step(`/tool fetch url="${origin}/api/provision/${token}" dst-path=hotspotpro-setup.rsc${tls}`),
-    `:delay 2s`,
-    `:local hpFile "hotspotpro-setup.rsc"; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; :if ([:len [/file find where name=$hpFile]] > 0) do={ /import file-name=$hpFile }`,
+    step(`/tool fetch url="${origin}/api/provision/${token}?wireless=yes" dst-path=hotspotpro-setup.rsc${tls}`),
+    `:do { :delay 2s } on-error={ }`,
+    `:local hpFile "hotspotpro-setup.rsc"; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; :if ([:len [/file find where name=$hpFile]] > 0) do={ /import file-name=$hpFile }; :global hpWifiSsid; :set hpWifiSsid ""`,
   ];
   if (action === "full-provision" || action === "update-script") body = reprovision;
   else if (action === "snmp") body = snmpLines();
