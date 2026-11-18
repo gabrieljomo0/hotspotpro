@@ -8,7 +8,7 @@ import dns from "node:dns";
 import { PORTAL_MARKER } from "./hotspotPages";
 
 /** Bump this when the setup script changes. Connected routers download the new setup on the next check-in. */
-export const SETUP_VERSION = "v33";
+export const SETUP_VERSION = "v34";
 
 /** Default check-in spacing. Keep modest so weak African links stay healthy with many routers. */
 export const CHECKIN_INTERVAL = "10s";
@@ -487,7 +487,7 @@ export function buildProvisionScript(input: {
     say("Adding the internet sharing rule...");
     add(`:do { :if ([:len [/ip firewall nat find where comment="HotspotPro NAT"]] = 0) do={ /ip firewall nat add chain=srcnat out-interface=${wan} action=masquerade comment="HotspotPro NAT"; :put "Internet sharing rule added" } else={ /ip firewall nat set [find where comment="HotspotPro NAT"] out-interface=${wan} action=masquerade; :put "Internet sharing rule kept" } } on-error={ :set hpFails ($hpFails + 1); :put "HotspotPro: NAT step skipped" }`);
     // One mode at a time. Cloud asks RADIUS. Local does not, and the check-in copies vouchers onto the router instead.
-    const useCloud = router.loginMode === "cloud" && !!radius;
+    const useCloud = router.loginMode === "cloud" && !!radius && process.env.HOTSPOTPRO_RADIUS === "on";
     say("Creating the hotspot server...");
     const loginName = loginDnsFromName(router.name, router.dnsName);
     // Upsert profile + server. Never remove a live hotspot — that signs everyone out.

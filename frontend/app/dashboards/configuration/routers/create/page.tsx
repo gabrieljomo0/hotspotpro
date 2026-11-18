@@ -69,7 +69,7 @@ export default function AddRouterPage() {
   const [newSiteName, setNewSiteName] = useState("");
 
   const [hotspotEnabled, setHotspotEnabled] = useState(true);
-  const [loginMode, setLoginMode] = useState<"cloud" | "local">("cloud");
+  const [loginMode, setLoginMode] = useState<"cloud" | "local">("local");
   const [pppoeEnabled, setPppoeEnabled] = useState(true);
 
   // Does the router have WiFi? If so, the name people will see when connecting.
@@ -676,13 +676,20 @@ export default function AddRouterPage() {
                     <p className="mt-1 text-xs text-[#737373]">Pick one. The router uses only that method, and you can change it later.</p>
                     <div className="mt-3 grid gap-3 sm:grid-cols-2">
                       {([
-                        ["cloud", "Cloud", "Vouchers stay in HotspotPro. The router asks the cloud when a customer logs in."],
-                        ["local", "On the router", "Vouchers are stored on the MikroTik and keep working if the cloud cannot be reached."],
+                        ["cloud", "Cloud", "Unavailable here. This site has no RADIUS port — vouchers stay on the router."],
+                        ["local", "On the router", "Vouchers and package profiles are copied onto the MikroTik so Connect works."],
                       ] as const).map(([id, label, detail]) => (
                         <button
                           key={id}
                           type="button"
-                          onClick={() => setLoginMode(id)}
+                          onClick={() => {
+                            if (id === "cloud") {
+                              showToast("This site has no RADIUS port, so paid vouchers stay on the router.");
+                              setLoginMode("local");
+                              return;
+                            }
+                            setLoginMode(id);
+                          }}
                           className={`rounded-xl border-2 p-3 text-left ${loginMode === id ? "border-[#1a1a1a] bg-[#f4f4f4]" : "border-[#e6e6e6]"}`}
                         >
                           <span className="text-sm font-bold text-[#1a1a1a]">{label}</span>

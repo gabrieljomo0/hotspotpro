@@ -239,7 +239,7 @@ export function useRouterState(
       multiWanMode: DEFAULT_WAN_MODE,
       ispLinks: defaultIspLinks(),
       hotspotEnabled: input.hotspotEnabled ?? true,
-      loginMode: input.loginMode === "local" ? "local" : "cloud",
+      loginMode: input.loginMode === "cloud" ? "cloud" : "local",
       hotspotNetwork: input.hotspotNetwork ?? "10.10.0.0/16",
       hotspotGatewayIp: input.hotspotGatewayIp ?? "10.10.0.1",
       hotspotDnsServers: input.hotspotDnsServers ?? "8.8.8.8,8.8.4.4",

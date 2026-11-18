@@ -5,7 +5,7 @@
 
 import { voucherOnlyLogin } from "./hotspotPages";
 import { getState, setState } from "./store";
-import { type Pkg, type Vch, findPackageByName, list, normalizeMac, packageBytes, packageSeconds, voucherAllowedOnRouter, voucherCountFrom, voucherLimitBy } from "./packages";
+import { type Pkg, type Vch, findPackageByName, list, normalizeMac, packageBytes, packageSeconds, routerAllowsPackage, voucherAllowedOnRouter, voucherCountFrom, voucherLimitBy } from "./packages";
 
 /** How many voucher accounts one check-in may add/remove. Kept modest so weak links stay fast. */
 const BATCH = 80;
@@ -112,17 +112,35 @@ function macBindLine() {
   return `:do { :foreach i in=[/ip hotspot active find] do={ :local u [/ip hotspot active get $i user]; :local m [/ip hotspot active get $i mac-address]; :if ([:len $u] > 0 && [:len $m] > 0 && [:len [/ip hotspot user find where name=$u comment="HotspotPro"]] > 0) do={ :local cur ""; :do { :set cur [/ip hotspot user get [find where name=$u comment="HotspotPro"] mac-address] } on-error={ }; :if ([:len $cur] = 0) do={ /ip hotspot user set [find where name=$u comment="HotspotPro"] mac-address=$m } } } } on-error={ }`;
 }
 
+function emitProfile(pkg: Pkg | null, fallbackName: string, lines: string[]) {
+  const name = profileName(pkg, fallbackName);
+  const seconds = pkg ? packageSeconds(pkg) : 86400;
+  const devices = pkg?.devices && pkg.devices > 1 ? Math.floor(pkg.devices) : 1;
+  const limit = `rate-limit=${rate(pkg)} shared-users=${devices} session-timeout=0s idle-timeout=none keepalive-timeout=none mac-cookie-timeout=${rosDuration(seconds)} on-logout=hotspotpro-logout`;
+  lines.push(`:do { /ip hotspot user profile set [find where name=${quote(name)}] ${limit} } on-error={ }`);
+  lines.push(`:do { :if ([:len [/ip hotspot user profile find where name=${quote(name)}]] = 0) do={ /ip hotspot user profile add name=${quote(name)} ${limit} comment="HotspotPro" } } on-error={ }`);
+  return name;
+}
+
+/** Push Hotspot user profiles for every active package on this router (WinBox → User Profiles). */
+function emitPackageProfiles(routerIp: string, lines: string[]) {
+  const seen = new Set<string>();
+  for (const pkg of list<Pkg>("packages")) {
+    if (!pkg || !routerAllowsPackage(pkg, routerIp)) continue;
+    const name = profileName(pkg, pkg.name || pkg.id || "default");
+    if (seen.has(name)) continue;
+    seen.add(name);
+    emitProfile(pkg, pkg.name || pkg.id || "default", lines);
+  }
+}
+
 function emitUsers(users: WantedUser[], pin: boolean, lines: string[]) {
   const profiles = new Set<string>();
   for (const user of users) {
     const name = profileName(user.pkg, user.name);
     if (profiles.has(name)) continue;
     profiles.add(name);
-    const seconds = user.pkg ? packageSeconds(user.pkg) : 86400;
-    const devices = user.pkg?.devices && user.pkg.devices > 1 ? Math.floor(user.pkg.devices) : 1;
-    const limit = `rate-limit=${rate(user.pkg)} shared-users=${devices} session-timeout=0s idle-timeout=none keepalive-timeout=none mac-cookie-timeout=${rosDuration(seconds)} on-logout=hotspotpro-logout`;
-    lines.push(`:do { /ip hotspot user profile set [find where name=${quote(name)}] ${limit} } on-error={ }`);
-    lines.push(`:do { :if ([:len [/ip hotspot user profile find where name=${quote(name)}]] = 0) do={ /ip hotspot user profile add name=${quote(name)} ${limit} comment="HotspotPro" } } on-error={ }`);
+    emitProfile(user.pkg, user.name, lines);
   }
   for (const user of users) {
     const seconds = user.pkg ? packageSeconds(user.pkg) : 86400;
@@ -181,11 +199,16 @@ export function localUserLines(token: string, routerIp: string, now = Date.now()
   }
 
   if (fullySynced) {
-    return ["# HotspotPro local vouchers already in sync", macBindLine()];
+    // Still refresh package profiles so WinBox User Profiles stay in step after package edits.
+    const refresh: string[] = ["# HotspotPro local vouchers already in sync"];
+    emitPackageProfiles(routerIp, refresh);
+    refresh.push(macBindLine());
+    return refresh;
   }
 
   const pin = voucherOnlyLogin(token);
   const lines: string[] = ["# HotspotPro local vouchers (kept on this router; each one has a time limit)"];
+  emitPackageProfiles(routerIp, lines);
   emitUsers(batch, pin, lines);
   for (const code of remove) {
     // Only clear idle expired vouchers. Skip anyone still online.

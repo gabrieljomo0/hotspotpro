@@ -25,6 +25,7 @@ import { primaryWanInterface } from "./primaryWan";
 import { type IspLink, multiWanLines } from "./multiWan";
 import { bridgeWifiLines, ensureHotspotServerLines, sealCaptivePortalLeakLines, ssidForRouter, wifiApplyLines } from "./wifiApply";
 import { portalOrigin } from "./provision";
+import { radiusCloudEnabled } from "./radius";
 
 export const SWITCH_COMMENT = "HotspotPro internet off";
 const ACCESS_LOCK = "HotspotPro access lock";
@@ -137,12 +138,25 @@ export function controlScript(token: string, origin?: string): string | null {
   const off = !!router.disconnected;
   const paused = !!router.paused && !off;
   const access = accessDecision();
-  // With no RADIUS server, vouchers have to live on the router or a paid login can never get online.
-  const local = router.loginMode !== "cloud" || process.env.HOTSPOTPRO_RADIUS === "off";
+  // Cloud RADIUS only when HOTSPOTPRO_RADIUS=on. Otherwise vouchers + profiles live on the MikroTik.
+  // Routers left on "cloud" from the old default were wiping HotspotPro users every check-in.
+  let local = router.loginMode !== "cloud" || !radiusCloudEnabled();
+  if (router.loginMode === "cloud" && !radiusCloudEnabled()) {
+    const value = getState("routers")?.value;
+    if (Array.isArray(value)) {
+      const row = (value as Row[]).find((r) => r.provisioningToken === token);
+      if (row && row.loginMode !== "local") {
+        row.loginMode = "local";
+        setState("routers", value, "router");
+        forgetLocalUsers(token);
+      }
+    }
+    local = true;
+  }
   const lines = [
     `# HotspotPro: ${oneLine(router.name)} is ${off ? "DISCONNECTED (internet cut)" : "CONNECTED"}`,
     `# HotspotPro access: ${access.locked ? "locked" : "open"}`,
-    `# HotspotPro login: ${router.loginMode === "cloud" ? "cloud" : "local"}`,
+    `# HotspotPro login: ${local ? "local" : "cloud"}`,
     `:do { /ip firewall raw ${off ? "enable" : "disable"} [find where comment="${SWITCH_COMMENT}"] } on-error={ }`,
     `:do { :if ([:len [/ip firewall raw find where comment="HotspotPro paused"]] = 0) do={ /ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=accept dst-address-type=local comment="HotspotPro paused" disabled=yes; /ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=accept dst-address-type=broadcast comment="HotspotPro paused" disabled=yes; /ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=drop comment="HotspotPro paused" disabled=yes } } on-error={ }`,
     `:do { /ip firewall raw ${paused ? "enable" : "disable"} [find where comment="HotspotPro paused"] } on-error={ }`,

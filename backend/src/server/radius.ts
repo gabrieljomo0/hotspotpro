@@ -39,6 +39,15 @@ export function radiusSecret() {
   return process.env.HOTSPOTPRO_RADIUS_SECRET || secretFor("radius", () => crypto.randomBytes(12).toString("hex"));
 }
 
+/**
+ * Cloud / RADIUS login only when explicitly enabled.
+ * Hosted APIs (e.g. Render) usually cannot receive UDP 1812/1813, so the default
+ * must keep vouchers and user profiles on the MikroTik itself.
+ */
+export function radiusCloudEnabled() {
+  return process.env.HOTSPOTPRO_RADIUS === "on";
+}
+
 // ---- packet encoding -------------------------------------------------------------
 
 export type Attr = { type: number; value: Buffer };

@@ -122,7 +122,7 @@ export function scriptFor(token: string, options: { origin: string; wireless?: b
     ssid: wifi.ssid,
     existing: router.routerType === "Existing Router",
     radius:
-      router.loginMode === "cloud" && process.env.HOTSPOTPRO_RADIUS !== "off"
+      router.loginMode === "cloud" && process.env.HOTSPOTPRO_RADIUS === "on"
         ? {
             host: process.env.HOTSPOTPRO_RADIUS_HOST || new URL(options.origin).hostname,
             secret: radiusSecret(),
@@ -195,7 +195,8 @@ export function completeProvision(token: string, details: { failed: number; sour
   if (!found && pending) {
     const config = (pending.config ?? {}) as Record<string, unknown>;
     const text = (value: unknown, fallback = "") => (typeof value === "string" && value.trim() ? value.trim() : fallback);
-    const onRouter = config.loginMode === "local";
+    // Default on-router: hosted sites usually cannot receive RADIUS UDP.
+    const onRouter = config.loginMode !== "cloud" || process.env.HOTSPOTPRO_RADIUS !== "on";
     const ip = `linked-${token.slice(0, 12)}`;
     const created = {
       name: text(config.name, "Router"),

@@ -1363,8 +1363,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const {
     findPackage,
     derivePackageDisplayFields,
-    addPackage,
-    updatePackage,
+    addPackage: addPackageBase,
+    updatePackage: updatePackageBase,
     setPackageStatus,
     deletePackage,
     duplicatePackage,
@@ -1372,6 +1372,31 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     pushPackageToAgents,
     removePackagePush,
   } = usePackageState(showToast, logActivity, currentAgentId, packages, setPackages, setVouchers, setVoucherBatches, actingAgentLabel, canActOnPackage);
+
+  function syncPackageProfilesToRouters(pkg: { routerIps?: string[]; applyToAllSites?: boolean } | null | undefined) {
+    const linked = routers
+      .filter((r) => typeof r.provisioningToken === "string" && r.provisioningToken.length > 0)
+      .map((r) => r.ip);
+    if (linked.length === 0) return;
+    if (pkg?.applyToAllSites || !pkg?.routerIps?.length) {
+      queueRouterActionMany(linked, "sync-vouchers");
+      return;
+    }
+    const targets = pkg.routerIps.filter((ip) => linked.includes(ip));
+    if (targets.length > 0) queueRouterActionMany(targets, "sync-vouchers");
+    else queueRouterActionMany(linked, "sync-vouchers");
+  }
+
+  function addPackage(input: PackageInput) {
+    const created = addPackageBase(input);
+    if (created) syncPackageProfilesToRouters(created);
+    return created;
+  }
+
+  function updatePackage(id: string, input: PackageInput) {
+    updatePackageBase(id, input);
+    syncPackageProfilesToRouters({ ...input, routerIps: input.routerIps, applyToAllSites: input.applyToAllSites });
+  }
 
   const {
     alertRules,
