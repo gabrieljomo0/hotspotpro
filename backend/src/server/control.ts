@@ -24,6 +24,7 @@ import { SETUP_VERSION, accessGuardCommand, accessLockEnsureCommand, checkInBody
 import { primaryWanInterface } from "./primaryWan";
 import { type IspLink, multiWanLines } from "./multiWan";
 import { bridgeWifiLines, ensureHotspotServerLines, sealCaptivePortalLeakLines, ssidForRouter, wifiApplyLines } from "./wifiApply";
+import { portalOrigin } from "./provision";
 
 export const SWITCH_COMMENT = "HotspotPro internet off";
 const ACCESS_LOCK = "HotspotPro access lock";
@@ -201,17 +202,21 @@ export function controlScript(token: string, origin?: string): string | null {
       ...multiWanLines(router.multiWanMode, router.ispLinks, router.managementPort || ""),
       ...wifiApplyLines(ssidForRouter(router)),
     );
-    // Keep the buy/portal host reachable before login so phones can open the voucher page.
+    // Keep API + HotspotPro portal hosts reachable before login (phones open /portal directly).
     if (origin) {
-      try {
-        const host = new URL(origin).hostname;
-        if (host && host !== "localhost" && !/^\d+\.\d+\.\d+\.\d+$/.test(host)) {
-          lines.push(
-            `:do { :if ([:len [/ip hotspot walled-garden find where dst-host="${host}" comment="HotspotPro"]] = 0) do={ /ip hotspot walled-garden add dst-host="${host}" comment="HotspotPro" } } on-error={ }`,
-          );
+      const hosts = new Set<string>();
+      for (const value of [origin, portalOrigin(origin), process.env.HOTSPOTPRO_PUBLIC_URL || ""]) {
+        try {
+          const host = new URL(value).hostname;
+          if (host && host !== "localhost" && !/^\d+\.\d+\.\d+\.\d+$/.test(host)) hosts.add(host);
+        } catch {
+          /* ignore */
         }
-      } catch {
-        /* ignore bad origin */
+      }
+      for (const host of hosts) {
+        lines.push(
+          `:do { :if ([:len [/ip hotspot walled-garden find where dst-host="${host}" comment="HotspotPro"]] = 0) do={ /ip hotspot walled-garden add dst-host="${host}" comment="HotspotPro" } } on-error={ }`,
+        );
       }
     }
     if (local) lines.push(...localUserLines(token, router.ip));
