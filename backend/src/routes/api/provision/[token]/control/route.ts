@@ -25,14 +25,26 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
   };
   const uptime = text("up", /^[0-9wdhms]{1,32}$/);
   const version = text("ver", /^[0-9.]{1,16}$/);
-  const architecture = text("arch", /^[A-Za-z0-9]{1,24}$/);
+  // ROS reports arch like arm, arm64, x86_64 — allow underscore.
+  const architecture = text("arch", /^[A-Za-z0-9_-]{1,24}$/);
   const cpuCount = text("cpus", /^[0-9]{1,3}$/);
   const clients = number("active");
   const users = query.has("users")
     ? (query.get("users") ?? "").split(",").map((part) => part.trim()).filter((part) => /^[A-Za-z0-9_-]{1,32}$/.test(part)).slice(0, 12)
     : null;
-  const board = (text("board", /^[A-Za-z0-9+._-]{1,40}$/) ?? "").replace(/\+/g, " ") || null;
-  const identity = (text("id", /^[A-Za-z0-9+._-]{1,40}$/) ?? "").replace(/\+/g, " ") || null;
+  // Board names can include symbols (e.g. hAP ac²). Accept, then keep readable ASCII.
+  const board = (() => {
+    const raw = (query.get("board") ?? "").replace(/\+/g, " ").trim();
+    if (!raw) return null;
+    const clean = raw.replace(/[^A-Za-z0-9 ._+-]/g, " ").replace(/\s+/g, " ").trim().slice(0, 48);
+    return clean || null;
+  })();
+  const identity = (() => {
+    const raw = (query.get("id") ?? "").replace(/\+/g, " ").trim();
+    if (!raw) return null;
+    const clean = raw.replace(/[^A-Za-z0-9 ._+-]/g, " ").replace(/\s+/g, " ").trim().slice(0, 48);
+    return clean || null;
+  })();
   const channel = text("ch", /^(long-term|stable|testing|development)$/);
   const dns = text("dns", /^[A-Za-z0-9.-]{1,80}$/);
   const pub = text("pub", /^(?:25[0-5]|2[0-4]\d|1?\d?\d)(?:\.(?:25[0-5]|2[0-4]\d|1?\d?\d)){3}$/);

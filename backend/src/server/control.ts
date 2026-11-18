@@ -302,7 +302,16 @@ export function recordRouterStats(token: string, stats: { cpu: number | null; me
     changed = true;
     const nowMs = Date.now();
     const checked = new Date(nowMs).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" });
-    const updated: Record<string, unknown> = { ...row, lastSeen: "Just now", lastConnectedAt: checked, status: "Online", health: "ok" };
+    // A live check-in means the router is online — clear stale provision errors so the UI shows Online, not "error".
+    const updated: Record<string, unknown> = {
+      ...row,
+      lastSeen: "Just now",
+      lastConnectedAt: checked,
+      status: "Online",
+      health: "ok",
+      lastError: null,
+      provisioningStatus: row.provisioningStatus === "Pending" || row.provisioningStatus === "Not Started" ? "Provisioned" : row.provisioningStatus,
+    };
     if (stats.cpu !== null) updated.cpu = stats.cpu;
     if (stats.memory !== null) updated.memory = stats.memory;
     if (stats.uptime) updated.uptime = stats.uptime;

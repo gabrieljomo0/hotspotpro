@@ -162,15 +162,22 @@ export function SystemInformationTab({
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <p className="text-xs text-[#737373]">Status</p>
-            <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${router.lastError ? "bg-red-100 text-red-700" : "bg-[#f4f4f4] text-[#111111]"}`}>
-              {router.lastError ? "error" : "active"}
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${
+                live === "Online"
+                  ? "bg-emerald-100 text-emerald-800"
+                  : live === "Disabled"
+                    ? "bg-slate-200 text-slate-700"
+                    : "bg-red-100 text-red-700"
+              }`}
+            >
+              <span className={`h-1.5 w-1.5 rounded-full ${live === "Online" ? "bg-emerald-600" : live === "Disabled" ? "bg-slate-500" : "bg-red-500"}`} />
+              {live}
             </span>
           </div>
           <div>
             <p className="text-xs text-[#737373]">Provisioning</p>
-            <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${
-              router.provisioningStatus === "Provisioned" ? "bg-[#f4f4f4] text-[#111111]" : "bg-[#f4f4f4] text-[#111111]"
-            }`}>
+            <span className="inline-flex rounded-full px-2.5 py-1 text-xs font-bold bg-[#f4f4f4] text-[#111111]">
               {router.provisioningStatus}
             </span>
           </div>
@@ -182,8 +189,8 @@ export function SystemInformationTab({
             <p className="text-xs text-[#737373]">Added At</p>
             <p className="text-sm font-semibold text-[#1a1a1a]">{router.provisionedAt ?? "Not yet"}</p>
           </div>
-          {router.lastError && (
-            <div>
+          {router.lastError && live !== "Online" && (
+            <div className="sm:col-span-2">
               <p className="text-xs text-[#737373]">Last Error</p>
               <p className="text-sm font-semibold text-red-600">{router.lastError}</p>
             </div>
@@ -548,11 +555,15 @@ export function SystemInformationTab({
           </div>
           <div>
             <p className="text-xs text-[#737373]">Hardware Model</p>
-            <span className="inline-flex rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-bold text-[#111111]">{router.hardwareModel || "Waiting"}</span>
+            <span className="inline-flex rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-bold text-[#111111]">
+              {router.hardwareModel || (live === "Online" ? "Reporting…" : "Waiting for check-in")}
+            </span>
           </div>
           <div>
             <p className="text-xs text-[#737373]">Architecture</p>
-            <span className="inline-flex rounded-full bg-slate-200 px-2.5 py-1 text-xs font-bold text-slate-700">{router.architecture}</span>
+            <span className="inline-flex rounded-full bg-slate-200 px-2.5 py-1 text-xs font-bold text-slate-700">
+              {router.architecture || (live === "Online" ? "Reporting…" : "Waiting")}
+            </span>
           </div>
           <div>
             <p className="text-xs text-[#737373]">CPU Count</p>
