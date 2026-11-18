@@ -4,6 +4,7 @@ import "./globals.css";
 import { DashboardProvider } from "@/components/dashboard/context/DashboardContext";
 import { CurrencyBoundary } from "@/components/dashboard/shared/CurrencyBoundary";
 import { PwaRegister } from "@/components/PwaRegister";
+import { InstallAppBanner } from "@/components/InstallAppButton";
 
 export const metadata: Metadata = {
   title: {
@@ -50,6 +51,7 @@ export default function RootLayout({
           <DashboardProvider>{children}</DashboardProvider>
         </CurrencyBoundary>
         <PwaRegister />
+        <InstallAppBanner />
       </body>
     </html>
   );
