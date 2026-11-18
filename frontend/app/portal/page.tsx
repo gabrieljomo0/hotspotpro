@@ -1661,7 +1661,7 @@ function CaptivePortalPageInner() {
       (hotspotLoginFromQuery && /^https?:\/\//.test(hotspotLoginFromQuery) ? hotspotLoginFromQuery : null) ||
       (hotspotLoginFallback && /^https?:\/\//.test(hotspotLoginFallback) ? hotspotLoginFallback : null);
     if (!action) {
-      setVoucherError("Could not reach the WiFi login on this router. Forget the WiFi, join again from the captive portal, then enter the voucher.");
+      setVoucherError("Could not reach the WiFi login on this router. Stay on this WiFi, open any website (or tap the network again), then enter the voucher.");
       setConnectedFromVoucher(false);
       setConnectingWifi(false);
       return;

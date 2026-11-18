@@ -7,7 +7,7 @@
 import dns from "node:dns";
 
 /** Bump this when the setup script changes. Connected routers download the new setup on the next check-in. */
-export const SETUP_VERSION = "v28";
+export const SETUP_VERSION = "v29";
 
 /** Default check-in spacing. Sub-second polls flood weak African links when an account has many routers. */
 export const CHECKIN_INTERVAL = "15s";
@@ -141,9 +141,12 @@ function logoutSource() {
   return ':local mac $"mac-address"; :local user $"user"; :if ([:len $mac] > 0) do={ :do { /ip hotspot cookie remove [find where mac-address=$mac] } on-error={ } }; :if ([:len $user] > 0) do={ :do { /ip hotspot cookie remove [find where user=$user] } on-error={ } }';
 }
 
-/** Backup cleaner: drop cookies whose hotspot user no longer exists so a new voucher can log in on the same WiFi. */
+/**
+ * Drop hotspot cookies for anyone who is not currently online.
+ * Stale cookies after a failed/expired login make phones skip the captive portal until "Forget WiFi".
+ */
 function reauthCleanSource() {
-  return ':foreach c in=[/ip hotspot cookie find] do={ :local u [/ip hotspot cookie get $c user]; :if ([:len $u] = 0 || [:len [/ip hotspot user find where name=$u]] = 0) do={ :do { /ip hotspot cookie remove $c } on-error={ } } }';
+  return ':foreach c in=[/ip hotspot cookie find] do={ :local mac [/ip hotspot cookie get $c mac-address]; :local u [/ip hotspot cookie get $c user]; :local keep false; :if ([:len $mac] > 0 && [:len [/ip hotspot active find where mac-address=$mac]] > 0) do={ :set keep true }; :if ([:len $u] > 0 && [:len [/ip hotspot active find where user=$u]] > 0) do={ :set keep true }; :if (!$keep) do={ :do { /ip hotspot cookie remove $c } on-error={ } } }';
 }
 
 function rosQuoted(source: string) {

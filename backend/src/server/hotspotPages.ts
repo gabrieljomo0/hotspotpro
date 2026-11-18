@@ -1,7 +1,7 @@
 // The HTML files a MikroTik hotspot serves from its own login folder.
-// login.html immediately opens the HotspotPro website captive portal (designed UI).
-// A small on-router form remains as offline fallback. MikroTik replaces $(...) before
-// the phone sees the page.
+// login.html is an on-router HTTP form so the phone captive sheet stays open after a
+// failed try (no Forget WiFi). Buy a package opens the website portal. MikroTik
+// replaces $(...) before the phone sees the page.
 
 import { findRouterByToken, portalOrigin, publicOrigin, routerForToken } from "./provision";
 import { getState } from "./store";
@@ -70,7 +70,7 @@ export function loginPageStamp(token: string): string {
   let hash = 0;
   for (let i = 0; i < raw.length; i += 1) hash = (hash * 33 + raw.charCodeAt(i)) >>> 0;
   // Bump prefix whenever the install/detect marker changes so routers re-download pages.
-  return `v18-${hash.toString(16)}`;
+  return `v19-${hash.toString(16)}`;
 }
 
 /** Files that make the hotspot folder a skin WinBox can open: the stylesheet and the CHAP helper. */
@@ -92,37 +92,36 @@ const MD5_JS = `function hexMD5(s){function add(x,y){return(x+y)|0}function rol(
 const SUCCESS_URL = "https://www.google.com/";
 
 function pageBody(page: HotspotPage, portal: string, look: PortalLook): string {
-  const title = look.title;
+  const title = look.title || "HotspotPro";
   const mark = `<!-- ${PORTAL_MARKER} -->`;
-  // Open the designed HotspotPro website portal (walled-garden). Keep an on-router form if the site is unreachable.
+  // On-router HTTP form keeps the phone's captive sheet open. Auto-redirecting to HTTPS
+  // makes iOS/Android think the network is done, so a failed try requires Forget WiFi.
   const portalUrl = `${portal}&login=$(link-login-only)&dst=${encodeURIComponent(SUCCESS_URL)}`;
   const fields = look.pin
     ? `<input name="username" required autocomplete="username" inputmode="text" placeholder="Voucher code"><input type="hidden" name="password" id="hpPass">`
     : `<input name="username" required autocomplete="username" placeholder="Username"><input name="password" required type="password" autocomplete="current-password" placeholder="Password">`;
   const note = look.pin
-    ? "Enter your voucher code. When it finishes, stay on this WiFi — the login page opens again for a new code."
-    : "Enter your username and password. When access finishes, stay on this WiFi — the login page opens again.";
+    ? "Enter your voucher code. Stay on this WiFi — if it fails, tap Connect again. You do not need to forget the network."
+    : "Enter your username and password. Stay on this WiFi — if it fails, try again. You do not need to forget the network.";
   const pinPrep = look.pin ? `document.getElementById("hpPass").value=document.login.username.value;` : "";
   const loginScript = `<script>
 function doLogin(){${pinPrep}return true;}
 </script>`;
   // After a successful login MikroTik opens dst — always send customers to Google.
   const loginForm = `<form name="login" method="post" action="$(link-login-only)" onsubmit="return doLogin()">${fields}<input type="hidden" name="dst" value="${SUCCESS_URL}"><input type="hidden" name="popup" value="true"><button type="submit">Connect</button></form>`;
-  const errHint = `<p style="color:#b42318">$(error)</p><p>If this voucher is expired, already used, or made for another WiFi/router, it will not connect here.</p>`;
-  // MikroTik substitutes $(link-login-only) in the HTML before the phone sees it — keep it unescaped in the URL.
-  const portalJs = JSON.stringify(portalUrl);
-  const openSitePortal = (extra = "") =>
-    `<!DOCTYPE html><html>${mark}<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=${portalUrl}"><meta http-equiv="pragma" content="no-cache"><title>HotspotPro</title><style>body{margin:0;background:${look.page};color:#1a1a1a;font-family:system-ui,sans-serif}main{max-width:420px;margin:0 auto;padding:28px 18px}h1{font-size:28px;line-height:1.1;margin:0}p{color:#525252;line-height:1.45;font-size:14px}a.btn{display:block;text-align:center;margin-top:18px;border-radius:12px;background:${look.button};color:#fff;padding:14px;font-size:16px;font-weight:700;text-decoration:none}form{margin-top:24px;background:#fff;border:1px solid #e6e6e6;border-radius:16px;padding:16px}input{width:100%;box-sizing:border-box;margin-top:10px;border:1px solid #d4d4d4;border-radius:12px;padding:14px;font-size:16px}button{width:100%;margin-top:14px;border:0;border-radius:12px;background:${look.button};color:#fff;padding:14px;font-size:16px;font-weight:700}.err{background:#fef3f2;border:1px solid #fecdca;color:#b42318;border-radius:12px;padding:12px 14px;margin:14px 0}details{margin-top:22px;color:#737373;font-size:13px}</style>${loginScript}<script>location.replace(${portalJs});</script></head><body><main><h1>HotspotPro</h1><p>Opening your WiFi login…</p><a class="btn" href="${portalUrl}">Continue to HotspotPro</a>${extra}<details><summary>Router login (if the site does not open)</summary>${loginForm}</details></main></body></html>\n`;
+  const errHint = `<p style="color:#b42318">$(error)</p><p>Wrong or used voucher? Stay on this WiFi and try another code — no need to forget the network.</p>`;
+  const shell = (body: string) =>
+    `<!DOCTYPE html><html>${mark}<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="pragma" content="no-cache"><title>${title}</title><style>body{margin:0;background:${look.page};color:#1a1a1a;font-family:system-ui,sans-serif}main{max-width:420px;margin:0 auto;padding:28px 18px}h1{font-size:28px;line-height:1.1;margin:0}p{color:#525252;line-height:1.45;font-size:14px}.ok{background:#ecfdf3;border:1px solid #abefc6;color:#067647;border-radius:12px;padding:12px 14px;margin:14px 0;font-weight:700}.err{background:#fef3f2;border:1px solid #fecdca;color:#b42318;border-radius:12px;padding:12px 14px;margin:14px 0}form{margin-top:18px;background:#fff;border:1px solid #e6e6e6;border-radius:16px;padding:16px}input{width:100%;box-sizing:border-box;margin-top:10px;border:1px solid #d4d4d4;border-radius:12px;padding:14px;font-size:16px}button{width:100%;margin-top:14px;border:0;border-radius:12px;background:${look.button};color:#fff;padding:14px;font-size:16px;font-weight:700}a{color:#1a1a1a;font-weight:700}</style>${loginScript}</head><body><main>${body}</main></body></html>\n`;
   switch (page) {
     case "login.html":
     case "rlogin.html":
-      return openSitePortal();
+      return shell(`<h1>${title}</h1><p>${note}</p>${loginForm}<p style="margin-top:16px"><a href="${portalUrl}">Buy a package</a></p>`);
     case "alogin.html":
       return `<!DOCTYPE html><html>${mark}<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="1;url=${SUCCESS_URL}"><meta http-equiv="pragma" content="no-cache"><title>Login successful</title><style>body{margin:0;background:${look.page};color:#1a1a1a;font-family:system-ui,sans-serif}main{max-width:420px;margin:40px auto;padding:28px 18px;text-align:center}.ok{background:#ecfdf3;border:1px solid #abefc6;color:#067647;border-radius:12px;padding:16px;font-weight:700}a{color:#1a1a1a;font-weight:700}</style></head><body><main><div class="ok">Login successful! You are connected to the internet.</div><p>Opening Google…</p><p><a href="${SUCCESS_URL}">Continue to Google</a></p></main></body></html>\n`;
     case "error.html":
-      return openSitePortal(`<div class="err">${errHint}</div>`);
+      return shell(`<h1>Could not connect</h1><div class="err">${errHint}</div>${loginForm}<p style="margin-top:16px"><a href="$(link-login-only)">Try again</a> · <a href="${portalUrl}">Buy a package</a></p>`);
     case "logout.html":
-      return openSitePortal(`<p>${note}</p>`);
+      return shell(`<h1>Signed out</h1><p>${note}</p>${loginForm}<p style="margin-top:16px"><a href="${portalUrl}">Buy a package</a></p>`);
     case "redirect.html":
       return `<html>${mark}<head><meta http-equiv="refresh" content="0; url=${SUCCESS_URL}"><meta http-equiv="pragma" content="no-cache"></head><body><a href="${SUCCESS_URL}">Continue</a></body></html>\n`;
     case "status.html":
