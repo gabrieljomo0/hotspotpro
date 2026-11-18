@@ -14,7 +14,9 @@
 
 export type ServerDoc = { value: unknown; rev: number; seq: number; updatedAt: string };
 
-const POLL_MS = 5000;
+/** While the dashboard tab is open, pull router/check-in changes quickly. */
+const POLL_VISIBLE_MS = 2000;
+const POLL_HIDDEN_MS = 12000;
 const SAVE_DELAY_MS = 300;
 
 import { checkCacheScope } from "./localCache";
@@ -133,10 +135,18 @@ async function poll() {
   }
 }
 
+function restartPollTimer() {
+  if (typeof window === "undefined") return;
+  if (pollTimer) clearInterval(pollTimer);
+  const ms = document.visibilityState === "hidden" ? POLL_HIDDEN_MS : POLL_VISIBLE_MS;
+  pollTimer = setInterval(() => void poll(), ms);
+}
+
 function startPolling() {
   if (pollTimer || typeof window === "undefined") return;
-  pollTimer = setInterval(poll, POLL_MS);
+  restartPollTimer();
   document.addEventListener("visibilitychange", () => {
+    restartPollTimer();
     if (document.visibilityState === "visible") void poll();
   });
   window.addEventListener("pagehide", flushSaves);

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import type { ControlInfo } from "./routerConnection";
 
 /** Polls /api/routers/control for every router (or one router, with `ip`). */
-export function useRouterControl(ip?: string, intervalMs = 8000) {
+export function useRouterControl(ip?: string, intervalMs = 4000) {
   const [all, setAll] = useState<Record<string, ControlInfo>>({});
   const [loaded, setLoaded] = useState(false);
 

@@ -3,10 +3,9 @@ import { publicOrigin } from "@/server/provision";
 
 const TOKEN = /^[A-Za-z0-9_-]{8,128}$/;
 
-// The router calls this every 30 seconds (from the scheduler the setup script
-// installs). It answers with a few RouterOS commands that switch the router's
-// internet off or on to match what is set in the app, and counts as the
-// router's "I'm alive" signal. The token in the address is the router's secret.
+// The router calls this about every 10 seconds (from the scheduler the setup
+// script installs). It answers with RouterOS commands that match the app
+// (internet on/off, portal, jobs) and counts as the router's "I'm alive" signal.
 export async function GET(request: Request, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   if (!TOKEN.test(token)) return new Response("unknown\n", { status: 404 });
@@ -30,7 +29,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
   const cpuCount = text("cpus", /^[0-9]{1,3}$/);
   const clients = number("active");
   const users = query.has("users")
-    ? (query.get("users") ?? "").split(",").map((part) => part.trim()).filter((part) => /^[A-Za-z0-9_-]{1,32}$/.test(part)).slice(0, 12)
+    ? (query.get("users") ?? "").split(",").map((part) => part.trim()).filter((part) => /^[A-Za-z0-9_-]{1,32}$/.test(part)).slice(0, 40)
     : null;
   // Board names can include symbols (e.g. hAP ac²). Accept, then keep readable ASCII.
   const board = (() => {

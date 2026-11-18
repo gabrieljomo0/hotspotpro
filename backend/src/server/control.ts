@@ -5,7 +5,7 @@
 // It is enforced in two places:
 //   1. On the router: the setup script puts three firewall rules named
 //      "HotspotPro internet off" in the RAW table (disabled), and a scheduler
-//      that every 30 seconds downloads /api/provision/<token>/control — a tiny
+//      that every ~10 seconds downloads /api/provision/<token>/control — a tiny
 //      script that ENABLES those rules when the router is disconnected (and signs
 //      everyone out), or DISABLES them when it is connected. That download is also
 //      the router's "I'm alive" signal: if it stops, the router has lost its
@@ -18,7 +18,7 @@ import { SILENT_MS, beatOf, getState, setState, takeQueuedJobs, nasKeyOf, outage
 import { routerForNas } from "./routerUsage";
 import { accessDecision } from "./accessGate";
 import { forgetLocalUsers, localUserLines } from "./localUsers";
-import { noteLiveVouchers } from "./packages";
+import { findPackageByName, findVoucher, list, noteLiveVouchers, packageSeconds } from "./packages";
 import { applyHtmlDirectoryRos, loginPageStamp, PORTAL_MARKER } from "./hotspotPages";
 import { CHECKIN_INTERVAL, SETUP_VERSION, accessGuardCommand, accessLockEnsureCommand, checkInBody, hotspotReauthEnsureLines, loginDnsFromName, remoteWinboxLines } from "./routeros";
 import { primaryWanInterface } from "./primaryWan";
@@ -292,14 +292,60 @@ function uptimePercent(hours: string[], days: number, nowMs: number) {
   return Math.max(0, Math.min(100, Math.round((100 * new Set(seen).size) / possible)));
 }
 
+type ActiveDashRow = Record<string, unknown> & { voucherUsername?: string; routerIp?: string; status?: string; lastSeenMs?: number };
+
+/** Keep Active Users in step with hotspot users reported on each router check-in (local + cloud). */
+function syncActiveUsersFromRouter(routerIp: string, users: string[] | null | undefined) {
+  if (users === null || users === undefined) return;
+  const now = Date.now();
+  const live = new Set(users.map((name) => name.toLowerCase()));
+  const rows = list<ActiveDashRow>("activeUsers");
+  const kept = rows.filter((row) => {
+    if (row.routerIp !== routerIp) return true;
+    const name = String(row.voucherUsername || "").toLowerCase();
+    return name && live.has(name);
+  });
+  const next: ActiveDashRow[] = [...kept];
+  for (const username of users) {
+    const existing = next.findIndex(
+      (row) => row.routerIp === routerIp && String(row.voucherUsername || "").toLowerCase() === username.toLowerCase(),
+    );
+    const voucher = findVoucher(username);
+    const pkg = voucher ? findPackageByName(voucher.packageName) : null;
+    const base: ActiveDashRow = {
+      phone: voucher?.redeemerPhone ?? "—",
+      package: voucher?.packageName ?? "Unknown",
+      accessType: "Hotspot",
+      voucherUsername: username,
+      voucherPassword: voucher?.password ?? "",
+      duration: pkg ? `${Math.round(packageSeconds(pkg) / 60)}m` : "—",
+      timeSpent: "—",
+      timeLeft: voucher?.expiresAtMs ? `${Math.max(0, Math.floor((voucher.expiresAtMs - now) / 60000))}m` : "—",
+      dataUsed: "—",
+      dataLeft: "—",
+      expiresAt: voucher?.expiresAtMs ? new Date(voucher.expiresAtMs).toISOString().slice(0, 16).replace("T", " ") : "—",
+      status: "Active",
+      macAddress: voucher?.boundMac ?? "",
+      routerIp,
+      lastSeenMs: now,
+      source: "check-in",
+    };
+    if (existing >= 0) next[existing] = { ...next[existing], ...base, status: "Active", lastSeenMs: now };
+    else next.unshift(base);
+  }
+  setState("activeUsers", next, "server");
+}
+
 export function recordRouterStats(token: string, stats: { cpu: number | null; memory: number | null; uptime?: string | null; version?: string | null; architecture?: string | null; cpuCount?: string | null; board?: string | null; identity?: string | null; channel?: string | null; clients?: number | null; users?: string[] | null; dns?: string | null; pub?: string | null; wan?: string | null }) {
   if (stats.users?.length) noteLiveVouchers(stats.users);
   const value = getState("routers")?.value;
   if (!Array.isArray(value)) return;
   let changed = false;
+  let routerIp = "";
   const next = (value as Record<string, unknown>[]).map((row) => {
     if (!row || row.provisioningToken !== token) return row;
     changed = true;
+    routerIp = typeof row.ip === "string" ? row.ip : "";
     const nowMs = Date.now();
     const checked = new Date(nowMs).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" });
     // A live check-in means the router is online — clear stale provision errors so the UI shows Online, not "error".
@@ -360,6 +406,7 @@ export function recordRouterStats(token: string, stats: { cpu: number | null; me
     return updated;
   });
   if (changed) setState("routers", next, "router");
+  if (changed && routerIp) syncActiveUsersFromRouter(routerIp, stats.users ?? []);
 }
 
 /** Pull a WireGuard client conf out of raw / multipart /tool fetch upload bodies. */

@@ -641,7 +641,8 @@ export function addUsage(key: string, atMs: number, down: number, up: number, st
   scheduleSave();
 }
 
-export const SILENT_MS = 2 * 60 * 1000; // the router asks every 30 s; 2 minutes of silence = it has lost contact
+/** Router check-in is ~10–15s; three missed beats ≈ lost contact. */
+export const SILENT_MS = 45_000;
 
 export function recordBeat(token: string) {
   const db = T();
