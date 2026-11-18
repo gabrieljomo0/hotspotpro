@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { clientIp, limited } from "@/server/limit";
-import { forgetLocalUsers, localUserLines } from "@/server/localUsers";
+import { ensureOneLocalUser } from "@/server/localUsers";
 import {
   findPackageByName,
   findVoucher,
@@ -119,8 +119,8 @@ export async function POST(request: Request) {
     const gateway = (router as { hotspotGatewayIp?: string } | null)?.hotspotGatewayIp?.trim();
     if (gateway && /^(?:\d{1,3}\.){3}\d{1,3}$/.test(gateway)) hotspotLogin = `http://${gateway}/login`;
     try {
-      forgetLocalUsers(token);
-      const script = localUserLines(token, router?.ip || "");
+      // Push only this voucher — do not wipe sync state (that churns every login at scale).
+      const script = ensureOneLocalUser(token, router?.ip || "", v.code);
       if (script.length > 1) {
         queueJob(token, script.join("\n") + "\n", "portal");
         syncQueued = true;

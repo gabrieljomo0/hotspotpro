@@ -116,10 +116,11 @@ export function wifiApplyLines(ssidRaw: string | undefined): string[] {
     `:do { /interface wireless set [find where name=wlan1] disabled=no ssid=${ssid24} mode=ap-bridge security-profile=default } on-error={ }`,
     `:do { /interface wireless set [find where name=wlan2] disabled=no ssid=${ssid5} mode=ap-bridge security-profile=default } on-error={ }`,
   ];
+  // Bridge radios only when the SSID stamp changes — not on every check-in.
+  const bridge = bridgeWifiLines().join("; ");
   return [
     `# HotspotPro WiFi SSID + captive portal bridge`,
     `:global hpWifiSsid`,
-    `:if ($hpWifiSsid != "${stamp}") do={ ${ssidBody.join("; ")}; :set hpWifiSsid "${stamp}" }`,
-    ...bridgeWifiLines(),
+    `:if ($hpWifiSsid != "${stamp}") do={ ${ssidBody.join("; ")}; ${bridge}; :set hpWifiSsid "${stamp}" }`,
   ];
 }

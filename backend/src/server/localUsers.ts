@@ -36,7 +36,18 @@ function rate(pkg: Pkg | null) {
   return `${kbps(pkg?.uploadMbps)}/${kbps(pkg?.downloadMbps)}`;
 }
 
-type SyncFile = Record<string, { codes: string[]; at: number }>;
+type SyncRow = { codes: string[]; at: number; offset?: number };
+type SyncFile = Record<string, SyncRow>;
+
+type WantedUser = {
+  name: string;
+  password: string;
+  pkg: Pkg | null;
+  limitBy: "days" | "data" | "both";
+  countFrom: "signin" | "usage";
+  mac: string;
+  rank: number;
+};
 
 function syncFile(): SyncFile {
   const value = getState("routerUserSync")?.value;
@@ -52,9 +63,16 @@ function packageMap() {
   return map;
 }
 
+function codesOf(users: WantedUser[]) {
+  return [
+    ...users.map((u) => u.name),
+    ...users.filter((u) => u.mac).map((u) => u.mac),
+  ];
+}
+
 function wanted(routerIp: string, now: number) {
   const packages = packageMap();
-  const out: { name: string; password: string; pkg: Pkg | null; limitBy: "days" | "data" | "both"; countFrom: "signin" | "usage"; mac: string; rank: number }[] = [];
+  const out: WantedUser[] = [];
   const seen = new Set<string>();
   for (const voucher of list<Vch>("vouchers")) {
     if (!voucher || voucher.status === "Expired") continue;
@@ -80,45 +98,23 @@ function wanted(routerIp: string, now: number) {
   return out;
 }
 
-/** Cloud mode deletes the on-router copies, so the next local check-in sends them again. */
-export function forgetLocalUsers(token: string) {
-  const file = syncFile();
-  if (!file[token]) return;
-  delete file[token];
-  setState("routerUserSync", file, "server");
+function roundRobin<T>(items: T[], offset: number, size: number): { slice: T[]; nextOffset: number } {
+  if (items.length === 0) return { slice: [], nextOffset: 0 };
+  const start = ((offset % items.length) + items.length) % items.length;
+  const slice: T[] = [];
+  for (let i = 0; i < Math.min(size, items.length); i += 1) {
+    slice.push(items[(start + i) % items.length]);
+  }
+  return { slice, nextOffset: (start + slice.length) % items.length };
 }
 
-/** RouterOS lines that add the current vouchers and drop ones that no longer exist. */
-export function localUserLines(token: string, routerIp: string, now = Date.now()): string[] {
-  const file = syncFile();
-  const previous = file[token]?.codes ?? [];
-  const users = wanted(routerIp, now).slice(0, BATCH);
-  const nextCodes = [
-    ...users.map((u) => u.name),
-    ...users.filter((u) => u.mac).map((u) => u.mac),
-  ];
-  const desired = new Set(nextCodes);
-  const remove = previous.filter((code) => !desired.has(code)).slice(0, BATCH);
-  const add = users;
-  const same = nextCodes.length === previous.length && nextCodes.every((code, index) => code === previous[index]);
-  if (!same) {
-    file[token] = { codes: nextCodes, at: now };
-    setState("routerUserSync", file, "server");
-  }
+function macBindLine() {
+  return `:do { :foreach i in=[/ip hotspot active find] do={ :local u [/ip hotspot active get $i user]; :local m [/ip hotspot active get $i mac-address]; :if ([:len $u] > 0 && [:len $m] > 0 && [:len [/ip hotspot user find where name=$u comment="HotspotPro"]] > 0) do={ :local cur ""; :do { :set cur [/ip hotspot user get [find where name=$u comment="HotspotPro"] mac-address] } on-error={ }; :if ([:len $cur] = 0) do={ /ip hotspot user set [find where name=$u comment="HotspotPro"] mac-address=$m } } } } on-error={ }`;
+}
 
-  // Nothing changed — keep the check-in tiny (critical when many routers poll).
-  // Still bind MAC from active sessions so the first phone keeps the voucher.
-  if (same && remove.length === 0) {
-    return [
-      "# HotspotPro local vouchers already in sync",
-      `:do { :foreach i in=[/ip hotspot active find] do={ :local u [/ip hotspot active get $i user]; :local m [/ip hotspot active get $i mac-address]; :if ([:len $u] > 0 && [:len $m] > 0 && [:len [/ip hotspot user find where name=$u comment="HotspotPro"]] > 0) do={ :local cur ""; :do { :set cur [/ip hotspot user get [find where name=$u comment="HotspotPro"] mac-address] } on-error={ }; :if ([:len $cur] = 0) do={ /ip hotspot user set [find where name=$u comment="HotspotPro"] mac-address=$m } } } } on-error={ }`,
-    ];
-  }
-
-  const pin = voucherOnlyLogin(token);
-  const lines: string[] = ["# HotspotPro local vouchers (kept on this router; each one has a time limit)"];
+function emitUsers(users: WantedUser[], pin: boolean, lines: string[]) {
   const profiles = new Set<string>();
-  for (const user of add) {
+  for (const user of users) {
     const name = profileName(user.pkg, user.name);
     if (profiles.has(name)) continue;
     profiles.add(name);
@@ -128,7 +124,7 @@ export function localUserLines(token: string, routerIp: string, now = Date.now()
     lines.push(`:do { /ip hotspot user profile set [find where name=${quote(name)}] ${limit} } on-error={ }`);
     lines.push(`:do { :if ([:len [/ip hotspot user profile find where name=${quote(name)}]] = 0) do={ /ip hotspot user profile add name=${quote(name)} ${limit} comment="HotspotPro" } } on-error={ }`);
   }
-  for (const user of add) {
+  for (const user of users) {
     const seconds = user.pkg ? packageSeconds(user.pkg) : 86400;
     const cap = (user.pkg ? packageBytes(user.pkg) : 0) ?? 0;
     const uptime = user.limitBy === "data" ? "0s" : rosDuration(seconds);
@@ -147,15 +143,77 @@ export function localUserLines(token: string, routerIp: string, now = Date.now()
       );
     }
   }
+}
+
+/** Cloud mode clears sync tracking so the next local check-in sends copies again. */
+export function forgetLocalUsers(token: string) {
+  const file = syncFile();
+  if (!file[token]) return;
+  delete file[token];
+  setState("routerUserSync", file, "server");
+}
+
+/**
+ * RouterOS lines that upsert a rotating batch of vouchers and drop only codes that
+ * are truly gone (not merely outside this batch). Safe for large voucher inventories.
+ */
+export function localUserLines(token: string, routerIp: string, now = Date.now()): string[] {
+  const file = syncFile();
+  const row = file[token];
+  const previous = row?.codes ?? [];
+  const all = wanted(routerIp, now);
+  const allCodes = codesOf(all);
+  const allDesired = new Set(allCodes);
+  // Only remove vouchers that no longer exist in HotspotPro — never remove valid codes
+  // just because they are outside the current batch window.
+  const remove = previous.filter((code) => !allDesired.has(code)).slice(0, BATCH);
+  const missing = all.filter((u) => !previous.includes(u.name));
+  const source = missing.length > 0 ? missing : all;
+  const { slice: batch, nextOffset } = roundRobin(source, row?.offset ?? 0, BATCH);
+  const batchCodes = codesOf(batch);
+  const kept = previous.filter((code) => allDesired.has(code));
+  const nextCodes = [...new Set([...kept, ...batchCodes])];
+  const fullySynced = missing.length === 0 && remove.length === 0 && allCodes.every((code) => previous.includes(code));
+
+  if (!fullySynced || nextCodes.length !== previous.length || nextCodes.some((c, i) => c !== previous[i])) {
+    file[token] = { codes: nextCodes, at: now, offset: nextOffset };
+    setState("routerUserSync", file, "server");
+  }
+
+  if (fullySynced) {
+    return ["# HotspotPro local vouchers already in sync", macBindLine()];
+  }
+
+  const pin = voucherOnlyLogin(token);
+  const lines: string[] = ["# HotspotPro local vouchers (kept on this router; each one has a time limit)"];
+  emitUsers(batch, pin, lines);
   for (const code of remove) {
-    // Only clear idle expired vouchers. Skip anyone still online so reprovision/sync never kicks them.
+    // Only clear idle expired vouchers. Skip anyone still online.
     lines.push(
       `:do { :if ([:len [/ip hotspot active find where user=${quote(code)}]] = 0) do={ :do { /ip hotspot cookie remove [find where user=${quote(code)}] } on-error={ }; :do { /ip hotspot user remove [find where name=${quote(code)} comment="HotspotPro"] } on-error={ } } } on-error={ }`,
     );
   }
-  // First phone to log in owns the voucher. Skip users that already have a MAC from a TV purchase.
-  lines.push(
-    `:do { :foreach i in=[/ip hotspot active find] do={ :local u [/ip hotspot active get $i user]; :local m [/ip hotspot active get $i mac-address]; :if ([:len $u] > 0 && [:len $m] > 0 && [:len [/ip hotspot user find where name=$u comment="HotspotPro"]] > 0) do={ :local cur ""; :do { :set cur [/ip hotspot user get [find where name=$u comment="HotspotPro"] mac-address] } on-error={ }; :if ([:len $cur] = 0) do={ /ip hotspot user set [find where name=$u comment="HotspotPro"] mac-address=$m } } } } on-error={ }`,
-  );
+  lines.push(macBindLine());
+  return lines;
+}
+
+/** Tiny script that ensures one voucher is on the router (portal login) without wiping sync state. */
+export function ensureOneLocalUser(token: string, routerIp: string, code: string, now = Date.now()): string[] {
+  const name = userName(code);
+  if (!name) return [];
+  const user = wanted(routerIp, now).find((u) => u.name === name);
+  if (!user) return [];
+  const file = syncFile();
+  const previous = file[token]?.codes ?? [];
+  if (!previous.includes(name)) {
+    file[token] = {
+      codes: [...previous, name, ...(user.mac && !previous.includes(user.mac) ? [user.mac] : [])],
+      at: now,
+      offset: file[token]?.offset ?? 0,
+    };
+    setState("routerUserSync", file, "server");
+  }
+  const lines: string[] = ["# HotspotPro ensure one voucher"];
+  emitUsers([user], voucherOnlyLogin(token), lines);
   return lines;
 }

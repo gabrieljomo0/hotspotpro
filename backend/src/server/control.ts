@@ -90,8 +90,9 @@ function hotspotLines(router: Row): string[] {
     `:do { :local a ""; :do { :set a [/ip address get [find where interface=hotspotpro-bridge comment="HotspotPro"] address] } on-error={ }; :if ([:len $a] > 0) do={ :local g [:pick $a 0 [:find $a "/"]]; /ip dhcp-server network set [find where comment="HotspotPro"] dns-server=$g gateway=$g } } on-error={ }`,
     // Close factory NAT / DHCP / IPv6 leaks and keep DNS hijack + hotspot on our bridge.
     ...sealCaptivePortalLeakLines(),
-    // Radios must sit on hotspotpro-bridge every check-in (wifi / wifiwave2 / wireless).
-    ...bridgeWifiLines(),
+    // Radios on the hotspot bridge — once per setup version, not every poll (Africa-scale).
+    `:global hpBridged`,
+    `:if ($hpBridged != "${SETUP_VERSION}") do={ ${bridgeWifiLines().join("; ")}; :set hpBridged "${SETUP_VERSION}" }`,
   ];
   if (/^[a-z0-9][a-z0-9.-]{0,48}$/.test(name)) {
     lines.push(`:do { /ip hotspot profile set [find where name=hotspotpro] dns-name="${name}" } on-error={ }`);

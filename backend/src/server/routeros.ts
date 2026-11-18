@@ -7,10 +7,10 @@
 import dns from "node:dns";
 
 /** Bump this when the setup script changes. Connected routers download the new setup on the next check-in. */
-export const SETUP_VERSION = "v24";
+export const SETUP_VERSION = "v25";
 
-/** Default check-in spacing. 1s floods weak African links when an account has many routers. */
-export const CHECKIN_INTERVAL = "10s";
+/** Default check-in spacing. Sub-second polls flood weak African links when an account has many routers. */
+export const CHECKIN_INTERVAL = "15s";
 
 /** Hotspot login DNS name (MikroTik profile dns-name). Prefer a manually typed value. */
 export function loginDnsFromName(routerName: string, given?: string): string {
