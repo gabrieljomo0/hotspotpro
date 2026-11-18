@@ -26,6 +26,7 @@ import { usePersistedState, useSyncReady } from "./usePersistedState";
 import { queueRouterAction, queueRouterActionMany } from "./queueRouterAction";
 import type { RouterTaskKind } from "../routers/routerTasks";
 import { reconcileBatchesFromVouchers } from "../vouchers/reconcileBatches";
+import { loginMethodForRouterIps } from "../vouchers/voucherLoginFromPortal";
 import {
   createContext,
   useContext,
@@ -2073,8 +2074,19 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     const codes = wantsCustomCredentials
       ? [customCode || makeCode()]
       : Array.from({ length: quantity }, makeCode);
-    // Setting a password means the voucher logs in with username + password.
-    const loginMethod: VoucherLoginMethod = customPassword ? "credentials" : (input.loginMethod ?? "code");
+    // Voucher shape must match what that router's captive portal asks customers to type.
+    // A custom password always means username + password for that one voucher.
+    let loginMethod: VoucherLoginMethod;
+    if (customPassword) {
+      loginMethod = "credentials";
+    } else {
+      const fromPortal = loginMethodForRouterIps(input.routerIps, getCaptivePortalConfig);
+      if (!fromPortal.ok) {
+        showToast(fromPortal.message);
+        return null;
+      }
+      loginMethod = fromPortal.loginMethod;
+    }
     const limitBy: VoucherLimitBy = input.limitBy ?? "both";
     const countFrom: VoucherCountFrom = input.countFrom ?? "signin";
     // A separate, shorter password for credentials-mode vouchers — always
@@ -2599,6 +2611,13 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         const packageName = selected[0]?.packageName ?? "Mixed";
         const pkg = packages.find((p) => p.name === packageName);
         const routerIps = pkg?.routerIps?.length ? pkg.routerIps : [];
+        const fromPortal = routerIps.length > 0 ? loginMethodForRouterIps(routerIps, getCaptivePortalConfig) : null;
+        const batchLoginMethod =
+          fromPortal?.ok
+            ? fromPortal.loginMethod
+            : selected.some((v) => v.password)
+              ? "credentials"
+              : "code";
         setVoucherBatches((current) => [
           {
             id: targetBatchId as string,
@@ -2609,7 +2628,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             isGiveaway: false,
             note: "Created via Bulk Assign",
             printDesign: "micro-strip",
-            loginMethod: "code",
+            loginMethod: batchLoginMethod,
             createdAt: new Date().toLocaleString("en-GB", {
               day: "2-digit",
               month: "short",

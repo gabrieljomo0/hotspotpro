@@ -19,6 +19,7 @@ import { REQUIRE_COMPLETE_PROFILE_FOR_VOUCHERS, getSellablePackages, isAgentProf
 import { settingsOf, validateCustomCredentials } from "@/components/dashboard/agents/agentSettings";
 import type { AgentProfile, VoucherCountFrom, VoucherLimitBy } from "@/components/dashboard/shared/types";
 import { VoucherAllowanceFields } from "@/components/dashboard/vouchers/VoucherAllowanceFields";
+import { loginMethodForRouterIps, loginMethodLabel } from "@/components/dashboard/vouchers/voucherLoginFromPortal";
 
 const MAX_PER_BATCH = 500;
 
@@ -33,7 +34,7 @@ export function AgentGenerateVouchersModal({
   onClose: () => void;
   onGenerated: (batchId: string) => void;
 }) {
-  const { packages, routers, vouchers, generateVoucherBatch, getMaxAffordableVouchers } = useDashboard();
+  const { packages, routers, vouchers, generateVoucherBatch, getMaxAffordableVouchers, getCaptivePortalConfig } = useDashboard();
 
   const [chosenPackage, setChosenPackage] = useState("");
   const [limitBy, setLimitBy] = useState<VoucherLimitBy>("both");
@@ -122,11 +123,16 @@ export function AgentGenerateVouchersModal({
     ? validateCustomCredentials(customCode, customPassword, vouchers.map((voucher) => voucher.code))
     : ({ ok: true } as const);
 
-  const canSubmit = !!packageName && quantityValid && agent.routerIp !== null && !overWallet && customCheck.ok;
+  const portalLogin = agent.routerIp
+    ? loginMethodForRouterIps([agent.routerIp], getCaptivePortalConfig)
+    : ({ ok: false, message: "No router assigned." } as const);
+  const loginMethod = portalLogin.ok ? portalLogin.loginMethod : "code";
+  const canSubmit =
+    !!packageName && quantityValid && agent.routerIp !== null && !overWallet && customCheck.ok && portalLogin.ok;
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!canSubmit || agent.routerIp === null) return;
+    if (!canSubmit || agent.routerIp === null || !portalLogin.ok) return;
 
     const batch = generateVoucherBatch({
       packageName,
@@ -139,7 +145,7 @@ export function AgentGenerateVouchersModal({
       isGiveaway: false,
       routerIps: [agent.routerIp],
       assignedAgentIds: [],
-      loginMethod: "code",
+      loginMethod,
       limitBy,
       countFrom,
       actingAgentId: agent.id,
@@ -174,6 +180,11 @@ export function AgentGenerateVouchersModal({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5 px-6 py-6">
+          {portalLogin.ok && (
+            <p className="rounded-xl border border-[#e6e6e6] bg-[#fafafa] px-3 py-2 text-xs text-[#525252]">
+              Login format: <span className="font-bold text-[#1a1a1a]">{loginMethodLabel(loginMethod)}</span> (from this router’s captive portal)
+            </p>
+          )}
           <div className="block">
             <div className="mb-2 flex items-center justify-between gap-2">
               <span className="text-sm font-semibold text-[#525252]">

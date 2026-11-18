@@ -19,6 +19,7 @@ import { X, Sparkles, Wallet, Building2, Plus } from "lucide-react";
 import { useDashboard } from "../context/DashboardContext";
 import type { VoucherCodeFormat, VoucherCountFrom, VoucherLimitBy } from "../shared/types";
 import { VoucherAllowanceFields } from "./VoucherAllowanceFields";
+import { loginMethodForRouterIps, loginMethodLabel } from "./voucherLoginFromPortal";
 
 export function GenerateVouchersModal({
   open,
@@ -55,6 +56,7 @@ export function GenerateVouchersModal({
     agents,
     voucherPresets,
     saveVoucherPreset,
+    getCaptivePortalConfig,
   } = useDashboard();
 
   const currentAgent =
@@ -80,7 +82,6 @@ export function GenerateVouchersModal({
       (isLockedToDefaultPackage ? currentAgent.defaultPackageName! : packages[0]?.name ?? ""),
   );
   const [reference, setReference] = useState("");
-  const [loginMethod, setLoginMethod] = useState<"code" | "credentials">("code");
   const [limitBy, setLimitBy] = useState<VoucherLimitBy>("both");
   const [countFrom, setCountFrom] = useState<VoucherCountFrom>("signin");
   const [codeFormat, setCodeFormat] = useState<VoucherCodeFormat>("uppercase");
@@ -113,7 +114,6 @@ export function GenerateVouchersModal({
     setCodeFormat(preset.codeFormat);
     setCodeLength(preset.codeLength);
     setPrefix(preset.prefix);
-    setLoginMethod(preset.loginMethod);
     setLimitBy(preset.limitBy ?? "both");
     setCountFrom(preset.countFrom ?? "signin");
     setIsGiveaway(preset.isGiveaway);
@@ -188,9 +188,15 @@ export function GenerateVouchersModal({
     ? routers.find((r) => r.ip === currentAgent.routerIp)?.name.split(" (")[0] ?? null
     : null;
 
+  const portalLogin = loginMethodForRouterIps(effectiveRouterIps, getCaptivePortalConfig);
+  const loginMethod = portalLogin.ok ? portalLogin.loginMethod : "code";
+
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     if (!packageName || effectiveRouterIps.length === 0) return;
+    if (!portalLogin.ok) {
+      return;
+    }
 
     const batch = generateVoucherBatch({
       packageName,
@@ -344,35 +350,20 @@ export function GenerateVouchersModal({
             )}
           </label>
 
-          {!isAgentMode && (
-          <div className="block">
-            <span className="mb-2 block text-sm font-semibold text-[#525252]">
-              How customers log in <span className="text-red-500">*</span>
-            </span>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <button
-                type="button"
-                onClick={() => setLoginMethod("code")}
-                className={`rounded-xl border-2 p-3 text-left transition ${
-                  loginMethod === "code" ? "border-[#1a1a1a] bg-[#f4f4f4]" : "border-[#e6e6e6] bg-white hover:bg-[#ffffff]"
-                }`}
-              >
-                <p className="text-sm font-bold text-[#1a1a1a]">Single Code</p>
-                <p className="text-xs text-[#737373]">One code to type in and connect.</p>
-              </button>
-              <button
-                type="button"
-                onClick={() => setLoginMethod("credentials")}
-                className={`rounded-xl border-2 p-3 text-left transition ${
-                  loginMethod === "credentials" ? "border-[#1a1a1a] bg-[#f4f4f4]" : "border-[#e6e6e6] bg-white hover:bg-[#ffffff]"
-                }`}
-              >
-                <p className="text-sm font-bold text-[#1a1a1a]">Username &amp; Password</p>
-                <p className="text-xs text-[#737373]">Two fields, like a PPPoE login.</p>
-              </button>
-            </div>
+          <div className="rounded-xl border border-[#e6e6e6] bg-[#fafafa] p-3">
+            <p className="text-sm font-semibold text-[#525252]">How customers log in</p>
+            {portalLogin.ok ? (
+              <p className="mt-1 text-sm text-[#1a1a1a]">
+                <span className="font-bold">{loginMethodLabel(loginMethod)}</span>
+                <span className="text-[#737373]"> — matches this router’s captive portal</span>
+              </p>
+            ) : (
+              <p className="mt-1 text-sm font-semibold text-red-600">{portalLogin.message}</p>
+            )}
+            <p className="mt-1 text-xs text-[#737373]">
+              Change this under Configuration → Routers → Captive Portal → Login.
+            </p>
           </div>
-          )}
 
           <VoucherAllowanceFields
             limitBy={limitBy}
@@ -668,7 +659,7 @@ export function GenerateVouchersModal({
           <div className="flex gap-3">
             <button
               type="submit"
-              disabled={effectiveRouterIps.length === 0 || !packageName || (maxAffordable !== null && maxAffordable <= 0)}
+              disabled={effectiveRouterIps.length === 0 || !packageName || !portalLogin.ok || (maxAffordable !== null && maxAffordable <= 0)}
               className="flex-1 rounded-xl bg-amber-500 px-5 py-3 text-sm font-bold text-white  hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Generate Vouchers

@@ -10,12 +10,21 @@ import { useDashboard } from "@/components/dashboard/context/DashboardContext";
 import { ConnectedAgentBanner } from "@/components/dashboard/agents/ConnectedAgentBanner";
 import type { VoucherCodeFormat, VoucherCountFrom, VoucherLimitBy } from "@/components/dashboard/shared/types";
 import { VoucherAllowanceFields } from "@/components/dashboard/vouchers/VoucherAllowanceFields";
+import { loginMethodForRouterIps, loginMethodLabel } from "@/components/dashboard/vouchers/voucherLoginFromPortal";
 
 export default function CreateVoucherPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { packages, generateVoucherBatch, routers, businessLocations, currentAgent, voucherPresets, saveVoucherPreset } =
-    useDashboard();
+  const {
+    packages,
+    generateVoucherBatch,
+    routers,
+    businessLocations,
+    currentAgent,
+    voucherPresets,
+    saveVoucherPreset,
+    getCaptivePortalConfig,
+  } = useDashboard();
 
   const isLockedToDefaultPackage = currentAgent.dashboardMode === "voucherCreator" && !!currentAgent.defaultPackageName;
   const [packageName, setPackageName] = useState(isLockedToDefaultPackage ? currentAgent.defaultPackageName! : "");
@@ -26,7 +35,6 @@ export default function CreateVoucherPage() {
     "uppercase",
   );
   const [reference, setReference] = useState("");
-  const [loginMethod, setLoginMethod] = useState<"code" | "credentials">("code");
   const [limitBy, setLimitBy] = useState<VoucherLimitBy>("both");
   const [countFrom, setCountFrom] = useState<VoucherCountFrom>("signin");
   const [isGiveaway, setIsGiveaway] = useState(false);
@@ -110,7 +118,6 @@ export default function CreateVoucherPage() {
     setCodeFormat(preset.codeFormat);
     setCodeLength(preset.codeLength);
     setPrefix(preset.prefix);
-    setLoginMethod(preset.loginMethod);
     setLimitBy(preset.limitBy ?? "both");
     setCountFrom(preset.countFrom ?? "signin");
     setIsGiveaway(preset.isGiveaway);
@@ -171,8 +178,11 @@ export default function CreateVoucherPage() {
     );
   }
 
+  const portalLogin = loginMethodForRouterIps(routerIps, getCaptivePortalConfig);
+  const loginMethod = portalLogin.ok ? portalLogin.loginMethod : "code";
+
   function createBatch() {
-    if (!packageName || routerIps.length === 0) return null;
+    if (!packageName || routerIps.length === 0 || !portalLogin.ok) return null;
 
     const batch = generateVoucherBatch({
       packageName,
@@ -243,32 +253,19 @@ export default function CreateVoucherPage() {
       <ConnectedAgentBanner />
 
       <form className="space-y-6 rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
-        <div className="block">
-          <span className="mb-2 block text-sm font-semibold text-[#525252]">
-            How customers log in <span className="text-red-500">*</span>
-          </span>
-          <div className="grid gap-2 sm:grid-cols-2">
-            <button
-              type="button"
-              onClick={() => setLoginMethod("code")}
-              className={`rounded-xl border-2 p-3 text-left transition ${
-                loginMethod === "code" ? "border-[#1a1a1a] bg-[#f4f4f4]" : "border-[#e6e6e6] bg-white hover:bg-[#ffffff]"
-              }`}
-            >
-              <p className="text-sm font-bold text-[#1a1a1a]">Single Code</p>
-              <p className="text-xs text-[#737373]">One code to type in and connect.</p>
-            </button>
-            <button
-              type="button"
-              onClick={() => setLoginMethod("credentials")}
-              className={`rounded-xl border-2 p-3 text-left transition ${
-                loginMethod === "credentials" ? "border-[#1a1a1a] bg-[#f4f4f4]" : "border-[#e6e6e6] bg-white hover:bg-[#ffffff]"
-              }`}
-            >
-              <p className="text-sm font-bold text-[#1a1a1a]">Username &amp; Password</p>
-              <p className="text-xs text-[#737373]">Two fields, like a PPPoE login.</p>
-            </button>
-          </div>
+        <div className="rounded-xl border border-[#e6e6e6] bg-[#fafafa] p-3">
+          <p className="text-sm font-semibold text-[#525252]">How customers log in</p>
+          {portalLogin.ok ? (
+            <p className="mt-1 text-sm text-[#1a1a1a]">
+              <span className="font-bold">{loginMethodLabel(loginMethod)}</span>
+              <span className="text-[#737373]"> — matches this router’s captive portal</span>
+            </p>
+          ) : (
+            <p className="mt-1 text-sm font-semibold text-red-600">{portalLogin.message}</p>
+          )}
+          <p className="mt-1 text-xs text-[#737373]">
+            Change this under Configuration → Routers → Captive Portal → Login.
+          </p>
         </div>
 
         <VoucherAllowanceFields
@@ -618,7 +615,7 @@ export default function CreateVoucherPage() {
           <button
             type="submit"
             onClick={handleCreate}
-            disabled={routerIps.length === 0}
+            disabled={routerIps.length === 0 || !portalLogin.ok}
             className="rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white  hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Create
@@ -626,7 +623,7 @@ export default function CreateVoucherPage() {
           <button
             type="button"
             onClick={handleCreateAndCreateAnother}
-            disabled={routerIps.length === 0}
+            disabled={routerIps.length === 0 || !portalLogin.ok}
             className="rounded-xl border border-[#e6e6e6] bg-white px-6 py-3 text-sm font-bold text-[#525252] hover:bg-[#ffffff] disabled:cursor-not-allowed disabled:opacity-50"
           >
             Create &amp; create another
