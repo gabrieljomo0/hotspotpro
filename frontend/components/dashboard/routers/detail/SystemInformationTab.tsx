@@ -16,6 +16,7 @@ import { useRouterControl } from "@/components/dashboard/routers/useRouterContro
 import { routerLiveStatus } from "@/components/dashboard/routers/routerLiveStatus";
 import { DirtyApplyBar } from "@/components/dashboard/shared/DirtyApplyBar";
 import { OpenBrowserConsoleButton } from "@/components/dashboard/routers/detail/BrowserRouterConsole";
+import { autoPrepareRemoteWinbox, downloadWireguardTunnel } from "@/components/dashboard/routers/autoRemoteWinbox";
 
 const WARN_AT = 75;
 const OVERLOAD_AT = 90;
@@ -63,7 +64,8 @@ export function SystemInformationTab({
   isEnabled: boolean;
   connectedUserCount: number;
 }) {
-  const { showToast, updateRouterDetails, routerEnabled } = useDashboard();
+  const { showToast, updateRouterDetails, applyRouterPatch, routerEnabled, toggleRemoteAccess } = useDashboard();
+  const [preparingRemote, setPreparingRemote] = useState(false);
   const { control } = useRouterControl(router.ip, 5000);
   const live = routerLiveStatus(router, control[router.ip], routerEnabled);
   const [showPassword, setShowPassword] = useState(false);
@@ -253,27 +255,59 @@ export function SystemInformationTab({
 
       <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
         <h3 className="mb-4 text-base font-bold text-[#1a1a1a]">Remote WinBox Access</h3>
-        <div className="mb-4">
+        <div className="mb-4 flex flex-wrap gap-2">
           <OpenBrowserConsoleButton router={router} />
-          <p className="mt-2 text-xs text-[#737373]">Open in browser works from this site — no WinBox install needed. Commands reach the router in about 3 seconds.</p>
+          <button
+            type="button"
+            disabled={preparingRemote}
+            onClick={() => {
+              setPreparingRemote(true);
+              if (!router.remoteAccessEnabled) toggleRemoteAccess(router.ip, true);
+              void autoPrepareRemoteWinbox({
+                ip: router.ip,
+                name: router.name,
+                forceDownload: true,
+                patchRouter: (ip, patch) => applyRouterPatch(ip, patch),
+                showToast,
+              }).finally(() => setPreparingRemote(false));
+            }}
+            className="inline-flex items-center gap-2 rounded-xl border border-[#e6e6e6] bg-white px-4 py-2.5 text-sm font-bold text-[#1a1a1a] hover:bg-[#f7f7f7] disabled:opacity-50"
+          >
+            {preparingRemote ? "Preparing…" : "Prepare remote access"}
+          </button>
         </div>
+        <p className="mb-4 text-xs text-[#737373]">
+          Open in browser sends commands from this site (works even if the router is far away). For full WinBox on your laptop, prepare remote access, then use the address / WireGuard steps below.
+        </p>
         <div className="mb-5 space-y-4">
           <div>
             <p className="text-xs text-[#737373]">Status</p>
             <span className={`mt-1 inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${router.remoteAccessEnabled ? "bg-[#f4f4f4] text-[#111111]" : "bg-slate-200 text-slate-700"}`}>
               {router.remoteAccessEnabled ? "Enabled" : "Disabled"}
             </span>
+            {router.remoteAccessEnabled && router.winboxReach ? (
+              <span className="ml-2 text-xs text-[#737373]">
+                {router.winboxReach === "direct" ? "Public path" : router.winboxReach === "relay" ? "Tunnel (NAT)" : "LAN only"}
+              </span>
+            ) : null}
           </div>
           <div>
-            <p className="text-xs text-[#737373]">Instructions</p>
+            <p className="text-xs text-[#737373]">WinBox address (laptop)</p>
+            <p className="mt-1 font-mono text-sm font-semibold text-[#1a1a1a]">
+              {router.winboxReach === "direct" && router.winboxAddress
+                ? router.winboxAddress
+                : router.remoteAccessEnabled
+                  ? "192.168.216.1"
+                  : "—"}
+            </p>
             <p className="mt-1 text-sm text-[#1a1a1a]">
               {router.remoteAccessEnabled && router.winboxReach === "direct"
-                ? <>Connect the WinBox app to <span className="font-mono">{router.winboxAddress}</span> with the admin password. This port is open on the internet, so keep that password strong.</>
+                ? "Paste that address into WinBox on this laptop with the router admin password."
                 : router.remoteAccessEnabled && router.wireguardConfig
-                  ? <>Tunnel was created in the router setup script and is stored here. Prefer Open in browser. WinBox app address: <span className="font-mono">192.168.216.1</span>.</>
+                  ? "Download WireGuard, activate the tunnel on this laptop, then open WinBox to 192.168.216.1."
                   : router.remoteAccessEnabled
-                    ? "Remote access is on. The setup script creates the tunnel once — use Open in browser for daily work."
-                    : "Remote WinBox and WireGuard are part of the configuration script. Enable remote access, then use Open in browser."}
+                    ? "Waiting for the router to finish creating the tunnel on the next check-in. Tap Prepare remote access."
+                    : "Tap Prepare remote access (or enable remote), then Open in browser / WinBox on your laptop."}
             </p>
           </div>
         </div>
@@ -282,14 +316,8 @@ export function SystemInformationTab({
             type="button"
             className="mb-5 rounded-xl bg-[#1a1a1a] px-4 py-2 text-sm font-bold text-white"
             onClick={() => {
-              const blob = new Blob([router.wireguardConfig ?? ""], { type: "text/plain" });
-              const url = URL.createObjectURL(blob);
-              const link = document.createElement("a");
-              link.href = url;
-              link.download = `${router.name}-winbox.conf`;
-              link.click();
-              URL.revokeObjectURL(url);
-              showToast("Tunnel file downloaded. Import it into WireGuard, then connect the WinBox app to 192.168.216.1. The router already created it.");
+              downloadWireguardTunnel(router.name, router.wireguardConfig || "");
+              showToast("Tunnel file downloaded. Import into WireGuard on this laptop, turn it on, then WinBox → 192.168.216.1");
             }}
           >
             Download WireGuard file

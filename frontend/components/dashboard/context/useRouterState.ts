@@ -309,6 +309,11 @@ export function useRouterState(
     });
   }
 
+  /** Silent UI merge (no toast / activity) — used while preparing remote WinBox. */
+  function applyRouterPatch(ip: string, patch: Partial<RouterInfo>) {
+    setRouters((current) => current.map((r) => (r.ip === ip ? { ...r, ...patch } : r)));
+  }
+
   function patchRouter(ip: string, patch: Partial<RouterInfo>, text: string) {
     setRouters((current) =>
       current.map((r) =>
@@ -963,6 +968,7 @@ export function useRouterState(
     updateRouterNotificationContacts,
     updateMultiWanConfig,
     updateRouterDetails,
+    applyRouterPatch,
     updateConnectionMode,
     toggleRemoteAccess,
     deleteRouter,

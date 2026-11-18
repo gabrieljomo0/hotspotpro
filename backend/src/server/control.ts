@@ -241,8 +241,9 @@ export function controlScript(token: string, origin?: string): string | null {
     );
     for (const job of queued) {
       const base = `${origin}/api/provision/${token}/job/${job.id}`;
+      // Run the site command, capture :put/print output, upload it for Open in browser.
       lines.push(
-        `:do { :local hpOk 1; /tool fetch url="${base}" dst-path=hotspotpro-job.rsc${tls}; :delay 1s; :do { /import hotspotpro-job.rsc } on-error={ :set hpOk 0 }; /tool fetch url=("${base}/result?ok=" . $hpOk) keep-result=no${tls} } on-error={ }`,
+        `:do { :local hpOk 1; :do { /file remove [find where name=hotspotpro-job-body.rsc] } on-error={ }; :do { /file remove [find where name=hotspotpro-job-out.txt] } on-error={ }; /tool fetch url="${base}" dst-path=hotspotpro-job-body.rsc${tls}; :delay 1s; :do { :execute script={/import hotspotpro-job-body.rsc} file=hotspotpro-job-out.txt } on-error={ :set hpOk 0 }; :do { /tool fetch url=("${base}/result?ok=" . $hpOk) src-path=hotspotpro-job-out.txt upload=yes http-method=post keep-result=no${tls} } on-error={ /tool fetch url=("${base}/result?ok=" . $hpOk) keep-result=no${tls} } } on-error={ }`,
       );
     }
   }

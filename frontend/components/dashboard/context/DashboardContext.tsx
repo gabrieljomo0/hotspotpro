@@ -283,6 +283,7 @@ type DashboardContextValue = {
   updateRouterNotificationContacts: (ip: string, phones: string[], emails: string[]) => void;
   updateMultiWanConfig: (ip: string, mode: RouterInfo["multiWanMode"], ispLinks: RouterISPLink[], silent?: boolean) => void;
   updateRouterDetails: (ip: string, updates: Partial<RouterInfo>) => void;
+  applyRouterPatch: (ip: string, patch: Partial<RouterInfo>) => void;
   toggleRemoteAccess: (ip: string, enabled?: boolean) => void;
   updateConnectionMode: (ip: string, mode: RouterInfo["connectionMode"]) => void;
   deleteRouter: (ip: string) => void;
@@ -1019,6 +1020,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     updateRouterNotificationContacts,
     updateMultiWanConfig,
     updateRouterDetails,
+    applyRouterPatch,
     updateConnectionMode,
     toggleRemoteAccess,
     deleteRouter,
@@ -3298,6 +3300,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     updateRouterNotificationContacts,
     updateMultiWanConfig,
     updateRouterDetails,
+    applyRouterPatch,
     toggleRemoteAccess,
     updateConnectionMode,
     deleteRouter,

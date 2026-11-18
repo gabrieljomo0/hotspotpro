@@ -1,13 +1,15 @@
 "use client";
 
 // In-site router console: work on a remote router from the browser without
-// installing WinBox. Commands go through the check-in (~3s). When the router
-// has a public path, also open MikroTik WebFig in a new tab.
+// installing WinBox. Commands go through the check-in. When the router has a
+// public path, also open MikroTik WebFig. For NAT/CGNAT, download WireGuard
+// then use WinBox / WebFig at 192.168.216.1 on this laptop.
 
 import { useCallback, useEffect, useState } from "react";
-import { ExternalLink, Send, Terminal, X } from "lucide-react";
+import { Copy, Download, ExternalLink, Send, Terminal, X } from "lucide-react";
 
 import type { RouterInfo } from "@/components/dashboard/data/dashboard-data";
+import { downloadWireguardTunnel } from "@/components/dashboard/routers/autoRemoteWinbox";
 
 type Job = {
   id: string;
@@ -16,6 +18,7 @@ type Job = {
   by: string;
   status: "queued" | "sent" | "ok" | "failed";
   finishedAt?: string;
+  output?: string;
 };
 
 const QUICK: { label: string; script: string }[] = [
@@ -35,10 +38,22 @@ function webfigUrl(router: RouterInfo): string | null {
     if (!host) return null;
     return `http://${host}/`;
   }
-  if (router.winboxReach === "relay" || router.wireguardConfig) {
-    return "http://192.168.216.1/";
-  }
   return null;
+}
+
+function winboxConnectAddress(router: RouterInfo): string {
+  if (router.winboxReach === "direct" && router.winboxAddress) return router.winboxAddress;
+  if (router.winboxReach === "relay" || router.wireguardConfig) return "192.168.216.1";
+  return router.winboxAddress || "192.168.88.1";
+}
+
+async function copyText(text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function BrowserRouterConsole({
@@ -54,7 +69,11 @@ export function BrowserRouterConsole({
   const [jobs, setJobs] = useState<Job[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [note, setNote] = useState("");
   const fig = webfigUrl(router);
+  const address = winboxConnectAddress(router);
+  const relay = router.winboxReach === "relay" || (!!router.wireguardConfig && router.winboxReach !== "direct");
+  const remoteOn = router.remoteAccessEnabled !== false && router.remoteAccessHold !== true;
 
   const load = useCallback(async () => {
     try {
@@ -68,7 +87,7 @@ export function BrowserRouterConsole({
   useEffect(() => {
     if (!open) return;
     void load();
-    const timer = window.setInterval(() => void load(), 3000);
+    const timer = window.setInterval(() => void load(), 2500);
     return () => window.clearInterval(timer);
   }, [open, load]);
 
@@ -86,6 +105,7 @@ export function BrowserRouterConsole({
     if (!body) return;
     setBusy(true);
     setError("");
+    setNote("");
     try {
       const res = await fetch("/api/routers/jobs", {
         method: "POST",
@@ -96,6 +116,7 @@ export function BrowserRouterConsole({
       if (!res.ok) setError(data.message ?? "Could not send the command.");
       else {
         setScript("");
+        setNote("Sent. Waiting for the router check-in (usually a few seconds)…");
         await load();
       }
     } finally {
@@ -120,7 +141,7 @@ export function BrowserRouterConsole({
               <Terminal size={16} /> Open in browser — {router.name}
             </h2>
             <p className="mt-1 text-sm text-[#737373]">
-              Work on this site from HotspotPro without installing WinBox. Commands reach the router in about 3 seconds.
+              Send commands from this site (works behind any NAT). For full WinBox/WebFig on your laptop, use the address below.
             </p>
           </div>
           <button type="button" onClick={onClose} className="rounded-lg p-2 text-[#737373] hover:bg-[#f4f4f4]" aria-label="Close">
@@ -129,29 +150,56 @@ export function BrowserRouterConsole({
         </header>
 
         <div className="space-y-4 overflow-y-auto px-5 py-4">
-          {fig && (
-            <div className="rounded-xl border border-[#e6e6e6] bg-[#fafafa] p-4">
-              <p className="text-sm font-semibold text-[#1a1a1a]">MikroTik WebFig (full UI in the browser)</p>
-              <p className="mt-1 text-xs text-[#737373]">
-                {router.winboxReach === "direct"
-                  ? "This router has a public path. Opens MikroTik’s built-in web panel — no WinBox app."
-                  : "Uses the WireGuard tunnel address. Turn the tunnel on first, then open WebFig."}
-              </p>
+          <div className="rounded-xl border border-[#e6e6e6] bg-[#fafafa] p-4">
+            <p className="text-sm font-semibold text-[#1a1a1a]">WinBox on this laptop</p>
+            <p className="mt-1 text-xs text-[#737373]">
+              {relay
+                ? "This router is behind NAT. Download WireGuard, turn the tunnel on, then open WinBox to 192.168.216.1."
+                : remoteOn
+                  ? "Paste this address into WinBox on your laptop (port 8291)."
+                  : "Enable Remote WinBox Access first, then refresh this page."}
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <code className="rounded-lg bg-white px-3 py-2 font-mono text-sm text-[#1a1a1a]">{address}</code>
               <button
                 type="button"
-                data-testid="open-webfig"
-                onClick={() => window.open(fig, "_blank", "noopener,noreferrer")}
-                className="mt-3 inline-flex items-center gap-2 rounded-xl bg-[#1a1a1a] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#111111]"
+                onClick={async () => {
+                  const ok = await copyText(address);
+                  setNote(ok ? `Copied ${address}` : "Could not copy — select the address manually.");
+                }}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-[#e6e6e6] bg-white px-3 py-2 text-xs font-bold text-[#1a1a1a] hover:bg-[#f4f4f4]"
               >
-                <ExternalLink size={15} /> Open WebFig in browser
+                <Copy size={14} /> Copy
               </button>
+              {relay && router.wireguardConfig ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    downloadWireguardTunnel(router.name, router.wireguardConfig || "");
+                    setNote("WireGuard file downloaded. Import it, activate the tunnel, then WinBox → 192.168.216.1");
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#1a1a1a] px-3 py-2 text-xs font-bold text-white hover:bg-[#111111]"
+                >
+                  <Download size={14} /> Download WireGuard
+                </button>
+              ) : null}
+              {fig ? (
+                <button
+                  type="button"
+                  data-testid="open-webfig"
+                  onClick={() => window.open(fig, "_blank", "noopener,noreferrer")}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#1a1a1a] px-3 py-2 text-xs font-bold text-white hover:bg-[#111111]"
+                >
+                  <ExternalLink size={14} /> Open WebFig
+                </button>
+              ) : null}
             </div>
-          )}
+          </div>
 
           <div>
-            <p className="text-sm font-semibold text-[#1a1a1a]">Site console (works even without WinBox or WebFig)</p>
+            <p className="text-sm font-semibold text-[#1a1a1a]">Site console</p>
             <p className="mt-1 text-xs text-[#737373]">
-              Send RouterOS commands from this page. They run on the live router at this location.
+              Runs on the live router through HotspotPro check-in. Output appears below when the router replies.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               {QUICK.map((item) => (
@@ -174,7 +222,8 @@ export function BrowserRouterConsole({
               placeholder={"/ip hotspot active print without-paging"}
               className="mt-3 w-full rounded-xl border border-[#e6e6e6] bg-[#1a1a1a] p-3 font-mono text-xs text-white outline-none focus:border-[#1a1a1a]"
             />
-            {error && <p className="mt-2 text-xs font-semibold text-[#1a1a1a]">{error}</p>}
+            {error && <p className="mt-2 text-xs font-semibold text-red-700">{error}</p>}
+            {note && !error && <p className="mt-2 text-xs font-semibold text-[#067647]">{note}</p>}
             <button
               type="button"
               disabled={busy || !script.trim()}
@@ -188,7 +237,7 @@ export function BrowserRouterConsole({
           <div>
             <p className="mb-2 text-xs font-bold uppercase tracking-wide text-[#a3a3a3]">Recent commands</p>
             <ul className="space-y-2">
-              {jobs.length === 0 && <li className="text-sm text-[#a3a3a3]">No commands yet.</li>}
+              {jobs.length === 0 && <li className="text-sm text-[#a3a3a3]">No commands yet. Try “Identity & version”.</li>}
               {jobs.map((job) => (
                 <li key={job.id} className="rounded-xl border border-[#f4f4f4] px-3 py-2">
                   <div className="flex items-center justify-between gap-2">
@@ -196,6 +245,13 @@ export function BrowserRouterConsole({
                     <span className="text-[11px] text-[#a3a3a3]">{new Date(job.at).toLocaleTimeString()}</span>
                   </div>
                   <pre className="mt-1 overflow-x-auto whitespace-pre-wrap font-mono text-[11px] text-[#1a1a1a]">{job.script}</pre>
+                  {job.output ? (
+                    <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap rounded-lg bg-[#1a1a1a] p-2 font-mono text-[11px] text-[#bbf7d0]">
+                      {job.output}
+                    </pre>
+                  ) : job.status === "queued" || job.status === "sent" ? (
+                    <p className="mt-1 text-[11px] text-[#a3a3a3]">Waiting for router…</p>
+                  ) : null}
                 </li>
               ))}
             </ul>

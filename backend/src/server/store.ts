@@ -512,6 +512,8 @@ export type RouterJob = {
   status: "queued" | "sent" | "ok" | "failed";
   sentAt?: string;
   finishedAt?: string;
+  /** Captured RouterOS output from :execute / :put (Open in browser console). */
+  output?: string;
 };
 
 export function queueJob(token: string, script: string, by: string): RouterJob {
@@ -540,11 +542,14 @@ export function jobById(token: string, id: string): RouterJob | null {
   return jobsFor(token).find((j) => j.id === id) ?? null;
 }
 
-export function finishJob(token: string, id: string, ok: boolean): boolean {
+export function finishJob(token: string, id: string, ok: boolean, output?: string): boolean {
   const job = jobById(token, id);
   if (!job) return false;
   job.status = ok ? "ok" : "failed";
   job.finishedAt = new Date().toISOString();
+  if (typeof output === "string" && output.trim()) {
+    job.output = output.replace(/\0/g, "").trim().slice(0, 20_000);
+  }
   scheduleSave();
   return true;
 }
