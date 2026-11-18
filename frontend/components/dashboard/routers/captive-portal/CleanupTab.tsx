@@ -24,7 +24,7 @@ function DaysInput({ id, value, onChange, disabled }: { id: string; value: numbe
         disabled={disabled}
         value={Number.isFinite(value) ? value : ""}
         onChange={(e) => onChange(Math.max(1, Math.min(365, Math.floor(Number(e.target.value) || 1))))}
-        className="h-10 w-20 rounded-lg border border-[#d4d4d4] bg-white px-2 text-center text-sm text-[#1a1a1a] outline-none focus:border-[#1a1a1a] disabled:bg-[#f4f4f4] disabled:text-[#a3a3a3]"
+        className="h-10 w-20 rounded-lg border border-[#d4d4d4] bg-white px-2 text-center text-sm text-[#2563eb] outline-none focus:border-[#2563eb] disabled:bg-[#f4f4f4] disabled:text-[#a3a3a3]"
       />
       <span className="text-sm text-[#525252]">days</span>
     </span>
@@ -55,7 +55,7 @@ function Row({
           <Toggle checked={on} onChange={onToggle} />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold text-[#1a1a1a]">{title}</p>
+          <p className="text-sm font-bold text-[#2563eb]">{title}</p>
           <p className="text-xs text-[#737373]">{blurb}</p>
           {on && (
             <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -104,7 +104,7 @@ export function CleanupTab({ router }: { router: Pick<RouterInfo, "ip" | "name">
 
   return (
     <article data-testid="cleanup-tab" className="rounded-2xl border border-[#e6e6e6] bg-white p-6 md:p-8">
-      <h3 className="text-lg font-bold text-[#1a1a1a]">Clean-up</h3>
+      <h3 className="text-lg font-bold text-[#2563eb]">Clean-up</h3>
       <p className="mb-6 text-sm text-[#737373]">
         Keep {router.name.split(" (")[0]} tidy automatically. Each switch below is off until you turn it on, and the clean-up runs once a day at the time you choose.
       </p>
@@ -148,13 +148,13 @@ export function CleanupTab({ router }: { router: Pick<RouterInfo, "ip" | "name">
 
         <div className="rounded-xl bg-[#f4f4f4] p-4">
           <label className="flex flex-wrap items-center gap-3">
-            <span className="text-sm font-bold text-[#1a1a1a]">Run every day at</span>
+            <span className="text-sm font-bold text-[#2563eb]">Run every day at</span>
             <input
               data-testid="cleanup-time"
               type="time"
               value={draft.runAt}
               onChange={(e) => set({ runAt: e.target.value || "03:00" })}
-              className="h-10 rounded-lg border border-[#d4d4d4] bg-white px-3 text-sm text-[#1a1a1a] outline-none focus:border-[#1a1a1a]"
+              className="h-10 rounded-lg border border-[#d4d4d4] bg-white px-3 text-sm text-[#2563eb] outline-none focus:border-[#2563eb]"
             />
             <span className="text-xs text-[#737373]">A quiet hour is best. Last run: <strong data-testid="cleanup-last">{last}</strong></span>
           </label>
@@ -166,17 +166,17 @@ export function CleanupTab({ router }: { router: Pick<RouterInfo, "ip" | "name">
           type="button"
           data-testid="cleanup-run"
           onClick={runNow}
-          className="inline-flex h-11 items-center gap-2 rounded-xl border border-[#d4d4d4] bg-white px-4 text-sm font-bold text-[#1a1a1a] hover:bg-[#f4f4f4]"
+          className="inline-flex h-11 items-center gap-2 rounded-xl border border-[#d4d4d4] bg-white px-4 text-sm font-bold text-[#2563eb] hover:bg-[#f4f4f4]"
         >
           <Play size={15} /> Run clean-up now
         </button>
         <div className="flex items-center gap-3">
-          {dirty && <span className="text-xs font-semibold text-[#111111]">Unsaved changes</span>}
+          {dirty && <span className="text-xs font-semibold text-[#1d4ed8]">Unsaved changes</span>}
           <button
             type="button"
             data-testid="cleanup-save"
             onClick={() => updateRouterCleanup(router.ip, { ...draft, lastRunMs: saved.lastRunMs })}
-            className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#1a1a1a] px-6 text-sm font-bold text-white hover:bg-[#111111]"
+            className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#2563eb] px-6 text-sm font-bold text-white hover:bg-[#1d4ed8]"
           >
             <Check size={16} /> Save clean-up settings
           </button>

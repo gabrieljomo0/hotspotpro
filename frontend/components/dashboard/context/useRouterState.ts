@@ -51,8 +51,8 @@ export const defaultCaptivePortalConfig: CaptivePortalConfig = {
   defaultThrottleSpeedMbps: 1,
 
   template: "Classic",
-  primaryColorOverride: "",
-  secondaryColorOverride: "",
+  primaryColorOverride: "#2563eb",
+  secondaryColorOverride: "#eff6ff",
   logoSizePx: null,
   portalFont: "Work Sans",
   portalLanguage: "English",

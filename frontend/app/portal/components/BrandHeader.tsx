@@ -9,13 +9,13 @@ export function BrandHeader() {
         <Wifi
           size={35}
           strokeWidth={3}
-          className="text-[#1a1a1a]"
+          className="text-[#2563eb]"
         />
       </div>
 
-      <h1 className="mt-3 text-3xl font-black tracking-tight text-[#1a1a1a]">
+      <h1 className="mt-3 text-3xl font-black tracking-tight text-[#2563eb]">
         Hotspot
-        <span className="text-[#1a1a1a]">
+        <span className="text-[#2563eb]">
           Pro
         </span>
       </h1>

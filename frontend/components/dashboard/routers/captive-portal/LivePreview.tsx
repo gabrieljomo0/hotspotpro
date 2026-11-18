@@ -365,13 +365,13 @@ export function LivePreview({
   // ---- Pieces -----------------------------------------------------------
   const buttonColor = `${template.color} hover:opacity-90`;
   const fieldClass = "flex items-center gap-2 rounded-xl border border-[#e6e6e6] bg-white px-3 py-2.5";
-  const inputClass = "w-full min-w-0 bg-transparent text-sm text-[#1a1a1a] outline-none placeholder:text-[#a3a3a3]";
+  const inputClass = "w-full min-w-0 bg-transparent text-sm text-[#2563eb] outline-none placeholder:text-[#a3a3a3]";
   const trialButton = config.freeTrialEnabled && (
     <button
       type="button"
       data-testid="preview-free-trial"
       onClick={startTrial}
-      className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#f4f4f4] py-2.5 text-sm font-bold text-[#1a1a1a] hover:bg-[#e6e6e6]"
+      className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#f4f4f4] py-2.5 text-sm font-bold text-[#2563eb] hover:bg-[#e6e6e6]"
     >
       <Gift size={14} />
       {config.freeTrialButtonText.trim() || "Free trial"}
@@ -382,14 +382,14 @@ export function LivePreview({
     <button
       type="button"
       onClick={goLogin}
-      className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-[#737373] hover:text-[#1a1a1a]"
+      className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-[#737373] hover:text-[#2563eb]"
     >
       <ArrowLeft size={12} /> Back
     </button>
   );
 
   const errorBox = error && (
-    <p data-testid="preview-error" className="rounded-lg bg-[#f3f1ec] px-3 py-2 text-xs font-semibold text-[#1a1a1a]">
+    <p data-testid="preview-error" className="rounded-lg bg-[#f3f1ec] px-3 py-2 text-xs font-semibold text-[#2563eb]">
       {error}
     </p>
   );
@@ -398,7 +398,7 @@ export function LivePreview({
     <div>
       <div
         data-testid="live-preview"
-        className="mx-auto w-full max-w-sm overflow-hidden rounded-[2rem] border-4 border-[#1a1a1a] bg-white bg-cover bg-center shadow-xl"
+        className="mx-auto w-full max-w-sm overflow-hidden rounded-[2rem] border-4 border-[#2563eb] bg-white bg-cover bg-center shadow-xl"
         style={config.backgroundImageDataUrl ? { backgroundImage: `url(${config.backgroundImageDataUrl})` } : undefined}
       >
         <div
@@ -520,7 +520,7 @@ export function LivePreview({
               {config.adsEnabled && (
                 <div data-testid="preview-ad" className="rounded-lg bg-[#f4f4f4] px-3 py-3 text-center text-[10px] text-[#737373]">
                   <span className="font-bold uppercase tracking-wide text-[#a3a3a3]">Sponsored</span>
-                  <p className="mt-0.5 text-xs font-semibold text-[#1a1a1a]">Your advert shows here</p>
+                  <p className="mt-0.5 text-xs font-semibold text-[#2563eb]">Your advert shows here</p>
                 </div>
               )}
 
@@ -549,14 +549,14 @@ export function LivePreview({
                         className="block w-full rounded-lg bg-[#f7f7f7] px-3 py-2 text-left text-xs hover:bg-[#f4f4f4]"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-semibold text-[#1a1a1a]">
+                          <span className="font-semibold text-[#2563eb]">
                             {pkg.name}
                             {config.showPackageTime && <span className="ml-1 font-normal text-[#a3a3a3]">· {pkg.validity}</span>}
                           </span>
                           <span className="flex items-center gap-1.5">
-                            <span className="font-bold text-[#1a1a1a]">{localizeAmountString(pkg.price)}</span>
+                            <span className="font-bold text-[#2563eb]">{localizeAmountString(pkg.price)}</span>
                             {config.allowOnlinePurchases && (
-                              <span className="rounded-full bg-[#1a1a1a] px-1.5 py-0.5 text-[9px] font-bold text-white">Buy</span>
+                              <span className="rounded-full bg-[#2563eb] px-1.5 py-0.5 text-[9px] font-bold text-white">Buy</span>
                             )}
                           </span>
                         </div>
@@ -586,7 +586,7 @@ export function LivePreview({
                     type="button"
                     data-testid="preview-buy-online"
                     onClick={() => (shownPackages[0] ? openBuy(shownPackages[0]) : undefined)}
-                    className="inline-flex items-center gap-1 rounded-full bg-[#f4f4f4] px-2.5 py-1 text-[10px] font-bold text-[#1a1a1a] hover:bg-[#e6e6e6]"
+                    className="inline-flex items-center gap-1 rounded-full bg-[#f4f4f4] px-2.5 py-1 text-[10px] font-bold text-[#2563eb] hover:bg-[#e6e6e6]"
                   >
                     <ShoppingCart size={10} /> Buy Voucher Online
                   </button>
@@ -599,7 +599,7 @@ export function LivePreview({
                       setError("");
                       setScreen("reseller");
                     }}
-                    className="inline-flex items-center gap-1 rounded-full bg-[#f4f4f4] px-2.5 py-1 text-[10px] font-bold text-[#1a1a1a] hover:bg-[#e6e6e6]"
+                    className="inline-flex items-center gap-1 rounded-full bg-[#f4f4f4] px-2.5 py-1 text-[10px] font-bold text-[#2563eb] hover:bg-[#e6e6e6]"
                   >
                     <UsersRound size={10} /> Apply as Reseller
                   </button>
@@ -625,7 +625,7 @@ export function LivePreview({
           {screen === "otp" && (
             <div className="space-y-3" data-testid="preview-otp">
               {back}
-              <p className="text-sm font-bold text-[#1a1a1a]">Verify your phone</p>
+              <p className="text-sm font-bold text-[#2563eb]">Verify your phone</p>
               <div className={fieldClass}>
                 <Smartphone size={15} className="text-[#a3a3a3]" />
                 <input
@@ -671,7 +671,7 @@ export function LivePreview({
             <form onSubmit={pay} className="space-y-3" data-testid="preview-buy">
               {back}
               <div className="rounded-lg bg-[#f7f7f7] px-3 py-2 text-xs">
-                <p className="font-bold text-[#1a1a1a]">{buyPackage.name}</p>
+                <p className="font-bold text-[#2563eb]">{buyPackage.name}</p>
                 <p className="text-[#737373]">
                   {buyPackage.validity} · {localizeAmountString(buyPackage.price)}
                 </p>
@@ -721,18 +721,18 @@ export function LivePreview({
 
           {screen === "pay" && (
             <div className="space-y-2 py-4 text-center" data-testid="preview-paying">
-              <span className="mx-auto block h-8 w-8 animate-spin rounded-full border-4 border-[#e6e6e6] border-t-[#1a1a1a]" />
-              <p className="text-sm font-bold text-[#1a1a1a]">Approve the payment on your phone</p>
+              <span className="mx-auto block h-8 w-8 animate-spin rounded-full border-4 border-[#e6e6e6] border-t-[#2563eb]" />
+              <p className="text-sm font-bold text-[#2563eb]">Approve the payment on your phone</p>
               <p className="text-xs text-[#737373]">Waiting for {networkOf(buyPhone) || "mobile money"} to confirm…</p>
             </div>
           )}
 
           {screen === "bought" && paidCode && buyPackage && (
             <div className="space-y-3 text-center" data-testid="preview-bought">
-              <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#1a1a1a] text-white">
+              <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#2563eb] text-white">
                 <Check size={20} />
               </span>
-              <p className="text-sm font-bold text-[#1a1a1a]">Payment received</p>
+              <p className="text-sm font-bold text-[#2563eb]">Payment received</p>
               <div className="rounded-lg bg-[#f7f7f7] px-3 py-2 text-left text-xs">
                 <p>
                   Voucher: <strong data-testid="preview-paid-code" className="font-mono">{paidCode.code}</strong>
@@ -754,7 +754,7 @@ export function LivePreview({
           {screen === "reseller" && (
             <form onSubmit={sendReseller} className="space-y-3" data-testid="preview-reseller-form">
               {back}
-              <p className="text-sm font-bold text-[#1a1a1a]">Apply as a reseller</p>
+              <p className="text-sm font-bold text-[#2563eb]">Apply as a reseller</p>
               <div className={fieldClass}>
                 <UserRound size={15} className="text-[#a3a3a3]" />
                 <input data-testid="preview-reseller-name" value={resellerName} onChange={(e) => setResellerName(e.target.value)} placeholder="Full name" className={inputClass} />
@@ -774,14 +774,14 @@ export function LivePreview({
           {screen === "feedback" && (
             <form onSubmit={sendFeedback} className="space-y-3" data-testid="preview-feedback-form">
               {back}
-              <p className="text-sm font-bold text-[#1a1a1a]">Tell us how we're doing</p>
+              <p className="text-sm font-bold text-[#2563eb]">Tell us how we're doing</p>
               <textarea
                 data-testid="preview-feedback-text"
                 value={feedback}
                 onChange={(e) => setFeedback(e.target.value)}
                 rows={3}
                 placeholder="Your message"
-                className="w-full rounded-xl border border-[#e6e6e6] bg-white px-3 py-2.5 text-sm text-[#1a1a1a] outline-none placeholder:text-[#a3a3a3]"
+                className="w-full rounded-xl border border-[#e6e6e6] bg-white px-3 py-2.5 text-sm text-[#2563eb] outline-none placeholder:text-[#a3a3a3]"
               />
               {errorBox}
               <button type="submit" data-testid="preview-feedback-send" className={`w-full rounded-xl py-2.5 text-sm font-bold text-white ${buttonColor}`}>
@@ -792,11 +792,11 @@ export function LivePreview({
 
           {screen === "sent" && (
             <div className="space-y-3 py-2 text-center" data-testid="preview-sent">
-              <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#1a1a1a] text-white">
+              <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#2563eb] text-white">
                 <Check size={20} />
               </span>
-              <p className="text-sm font-semibold text-[#1a1a1a]">{sentMessage}</p>
-              <button type="button" onClick={goLogin} className="text-xs font-bold text-[#1a1a1a] hover:underline">
+              <p className="text-sm font-semibold text-[#2563eb]">{sentMessage}</p>
+              <button type="button" onClick={goLogin} className="text-xs font-bold text-[#2563eb] hover:underline">
                 Back to login
               </button>
             </div>
@@ -805,13 +805,13 @@ export function LivePreview({
           {/* ---------------- Connected ---------------- */}
           {screen === "connected" && session && (
             <div className="space-y-3 text-center" data-testid="preview-connected">
-              <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#1a1a1a] text-white">
+              <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#2563eb] text-white">
                 <Wifi size={22} />
               </span>
-              <p className="text-base font-black text-[#1a1a1a]">Connected</p>
+              <p className="text-base font-black text-[#2563eb]">Connected</p>
               <div className="rounded-lg bg-[#f7f7f7] px-3 py-2 text-left text-xs text-[#525252]">
                 <p>
-                  Package: <strong data-testid="preview-session-package" className="text-[#1a1a1a]">{session.packageName}</strong>
+                  Package: <strong data-testid="preview-session-package" className="text-[#2563eb]">{session.packageName}</strong>
                 </p>
                 {session.validity && <p>Valid for: {session.validity}</p>}
                 {(session.down || session.up) && (
@@ -822,7 +822,7 @@ export function LivePreview({
                 <p>Devices: up to {session.devices}</p>
                 <p>Via: {session.source}</p>
               </div>
-              <p data-testid="preview-timer" className="font-mono text-lg font-bold text-[#1a1a1a]">{clock(elapsed)}</p>
+              <p data-testid="preview-timer" className="font-mono text-lg font-bold text-[#2563eb]">{clock(elapsed)}</p>
               {config.redirectUrlAfterLogin.trim() && (
                 <p data-testid="preview-redirect" className="rounded-lg bg-[#f4f4f4] px-3 py-2 text-[11px] text-[#525252]">
                   {redirectIn !== null && redirectIn > 0
@@ -833,7 +833,7 @@ export function LivePreview({
               {config.adsEnabled && (
                 <div className="rounded-lg bg-[#f4f4f4] px-3 py-3 text-center text-[10px] text-[#737373]">
                   <span className="font-bold uppercase tracking-wide text-[#a3a3a3]">Sponsored</span>
-                  <p className="mt-0.5 text-xs font-semibold text-[#1a1a1a]">Your advert shows here</p>
+                  <p className="mt-0.5 text-xs font-semibold text-[#2563eb]">Your advert shows here</p>
                 </div>
               )}
               <button
@@ -845,7 +845,7 @@ export function LivePreview({
                   setPassword("");
                   goLogin();
                 }}
-                className="w-full rounded-xl bg-[#f4f4f4] py-2.5 text-sm font-bold text-[#1a1a1a] hover:bg-[#e6e6e6]"
+                className="w-full rounded-xl bg-[#f4f4f4] py-2.5 text-sm font-bold text-[#2563eb] hover:bg-[#e6e6e6]"
               >
                 Disconnect
               </button>
@@ -860,7 +860,7 @@ export function LivePreview({
           type="button"
           data-testid="preview-reset"
           onClick={reset}
-          className="inline-flex items-center gap-1 font-bold text-[#1a1a1a] hover:underline"
+          className="inline-flex items-center gap-1 font-bold text-[#2563eb] hover:underline"
         >
           <RotateCcw size={11} /> Reset
         </button>

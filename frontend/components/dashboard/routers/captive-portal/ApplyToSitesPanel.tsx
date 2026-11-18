@@ -33,7 +33,7 @@ export function ApplyToSitesPanel({
       <button
         type="button"
         onClick={() => setShowPicker((current) => !current)}
-        className="text-sm font-semibold text-[#1a1a1a] hover:underline"
+        className="text-sm font-semibold text-[#2563eb] hover:underline"
       >
         Apply this setup to other sites too ▾
       </button>
@@ -50,7 +50,7 @@ export function ApplyToSitesPanel({
                 key={site.id}
                 className={`inline-flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${
                   targetIds.includes(site.id)
-                    ? "border-[#1a1a1a] bg-[#f4f4f4] text-[#1a1a1a]"
+                    ? "border-[#2563eb] bg-[#f4f4f4] text-[#2563eb]"
                     : "border-[#e6e6e6] bg-white text-[#737373]"
                 }`}
               >
@@ -74,7 +74,7 @@ export function ApplyToSitesPanel({
                 setShowPicker(false);
               }}
               disabled={targetIds.length === 0}
-              className="rounded-lg bg-[#1a1a1a] px-4 py-2 text-xs font-bold text-white hover:bg-[#111111] disabled:cursor-not-allowed disabled:bg-[#e6e6e6] disabled:text-[#a3a3a3]"
+              className="rounded-lg bg-[#2563eb] px-4 py-2 text-xs font-bold text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:bg-[#e6e6e6] disabled:text-[#a3a3a3]"
             >
               Apply to Selected
             </button>

@@ -118,16 +118,16 @@ const paymentNetworks: Record<
     id: "mtn",
     name: "MTN Mobile Money",
     shortName: "MTN",
-    badgeClass: "bg-[#1a1a1a] text-[#1a1a1a]",
+    badgeClass: "bg-[#2563eb] text-[#2563eb]",
     borderClass: "border-[#f3f1ec]",
-    backgroundClass: "bg-[#f4f4f4]",
+    backgroundClass: "bg-[#eff6ff]",
   },
 
   telecel: {
     id: "telecel",
     name: "Telecel Cash",
     shortName: "TC",
-    badgeClass: "bg-red-600 text-[#1a1a1a]",
+    badgeClass: "bg-red-600 text-[#2563eb]",
     borderClass: "border-red-200",
     backgroundClass: "bg-[#f3f1ec]",
   },
@@ -136,7 +136,7 @@ const paymentNetworks: Record<
     id: "at-money",
     name: "AT Money",
     shortName: "AT",
-    badgeClass: "bg-[#f3f1ec]0 text-[#1a1a1a]",
+    badgeClass: "bg-[#f3f1ec]0 text-[#2563eb]",
     borderClass: "border-amber-200",
     backgroundClass: "bg-[#f3f1ec]",
   },
@@ -346,7 +346,7 @@ function HomePortal({
       <BrandHeader />
 
       <div className="mt-6 text-center">
-        <h2 className="text-2xl font-black text-[#1a1a1a]">
+        <h2 className="text-2xl font-black text-[#2563eb]">
           Welcome!
         </h2>
 
@@ -377,12 +377,12 @@ function HomePortal({
         className="mt-6 rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_10px_30px_rgba(26,26,26,0.06)]"
       >
         <div className="mb-5 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#f4f4f4] text-[#1a1a1a]">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#eff6ff] text-[#2563eb]">
             <Ticket size={22} />
           </div>
 
           <div>
-            <h3 className="font-black text-[#1a1a1a]">
+            <h3 className="font-black text-[#2563eb]">
               Use Voucher
             </h3>
 
@@ -418,7 +418,7 @@ function HomePortal({
                 type="button"
                 onClick={onTogglePassword}
                 aria-label="Show or hide password"
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a3a3a3] hover:text-[#1a1a1a]"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a3a3a3] hover:text-[#2563eb]"
               >
                 {showPassword ? (
                   <EyeOff size={19} />
@@ -456,14 +456,14 @@ function HomePortal({
         <button
           type="button"
           onClick={onOpenBuy}
-          className="flex w-full items-center gap-4 rounded-xl border border-[#f3f1ec] bg-[#f4f4f4] p-4 text-left transition hover:border-[#1a1a1a] hover:bg-[#f4f4f4]"
+          className="flex w-full items-center gap-4 rounded-xl border border-[#f3f1ec] bg-[#eff6ff] p-4 text-left transition hover:border-[#2563eb] hover:bg-[#eff6ff]"
         >
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#1a1a1a] text-white">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#2563eb] text-white">
             <ShoppingCart size={23} />
           </div>
 
           <div className="min-w-0 flex-1">
-            <p className="font-black text-[#1a1a1a]">
+            <p className="font-black text-[#2563eb]">
               Buy Online Voucher
             </p>
 
@@ -473,7 +473,7 @@ function HomePortal({
             </p>
           </div>
 
-          <ChevronRight className="text-[#1a1a1a]" />
+          <ChevronRight className="text-[#2563eb]" />
         </button>
 
         <button
@@ -481,12 +481,12 @@ function HomePortal({
           onClick={onOpenReseller}
           className="mt-3 flex w-full items-center gap-4 rounded-xl border border-[#f3f1ec] bg-[#f3f1ec] p-4 text-left transition hover:border-emerald-500 hover:bg-emerald-100"
         >
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-[#1a1a1a]">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-[#2563eb]">
             <UsersRound size={23} />
           </div>
 
           <div className="min-w-0 flex-1">
-            <p className="font-black text-[#1a1a1a]">
+            <p className="font-black text-[#2563eb]">
               Apply for Reseller / Agent
             </p>
 
@@ -495,7 +495,7 @@ function HomePortal({
             </p>
           </div>
 
-          <ChevronRight className="text-[#111111]" />
+          <ChevronRight className="text-[#1d4ed8]" />
         </button>
       </form>
     </div>
@@ -549,7 +549,7 @@ function BuyForm({
   return (
     <div>
       <section>
-        <p className="mb-3 text-sm font-black text-[#1a1a1a]">
+        <p className="mb-3 text-sm font-black text-[#2563eb]">
           1. Choose a package
         </p>
 
@@ -567,24 +567,24 @@ function BuyForm({
                 }
                 className={`flex w-full items-center gap-3 rounded-xl border p-3.5 text-left transition ${
                   selected
-                    ? "border-[#1a1a1a] bg-[#f4f4f4] ring-2 ring-amber-100"
-                    : "border-[#e6e6e6] bg-white hover:border-[#1a1a1a]"
+                    ? "border-[#2563eb] bg-[#eff6ff] ring-2 ring-amber-100"
+                    : "border-[#e6e6e6] bg-white hover:border-[#2563eb]"
                 }`}
               >
                 <span
                   className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
                     selected
-                      ? "border-[#1a1a1a]"
+                      ? "border-[#2563eb]"
                       : "border-[#d4d4d4]"
                   }`}
                 >
                   {selected && (
-                    <span className="h-2.5 w-2.5 rounded-full bg-[#1a1a1a]" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-[#2563eb]" />
                   )}
                 </span>
 
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-black text-[#1a1a1a]">
+                  <p className="text-sm font-black text-[#2563eb]">
                     {plan.name}
                   </p>
 
@@ -593,7 +593,7 @@ function BuyForm({
                   </p>
                 </div>
 
-                <p className="text-sm font-black text-[#111111]">
+                <p className="text-sm font-black text-[#1d4ed8]">
                   {formatMoney(plan.price)}
                 </p>
               </button>
@@ -603,7 +603,7 @@ function BuyForm({
       </section>
 
       <section className="mt-6 border-t border-[#e6e6e6] pt-5">
-        <p className="mb-3 text-sm font-black text-[#1a1a1a]">
+        <p className="mb-3 text-sm font-black text-[#2563eb]">
           2. Who is this package for?
         </p>
 
@@ -615,7 +615,7 @@ function BuyForm({
             }
             className={`rounded-xl border p-3.5 text-left transition ${
               buyerType === "self"
-                ? "border-[#1a1a1a] bg-[#f4f4f4]"
+                ? "border-[#2563eb] bg-[#eff6ff]"
                 : "border-[#e6e6e6]"
             }`}
           >
@@ -623,12 +623,12 @@ function BuyForm({
               size={20}
               className={
                 buyerType === "self"
-                  ? "text-[#1a1a1a]"
+                  ? "text-[#2563eb]"
                   : "text-[#737373]"
               }
             />
 
-            <p className="mt-2 text-sm font-black text-[#1a1a1a]">
+            <p className="mt-2 text-sm font-black text-[#2563eb]">
               Myself
             </p>
 
@@ -644,7 +644,7 @@ function BuyForm({
             }
             className={`rounded-xl border p-3.5 text-left transition ${
               buyerType === "other"
-                ? "border-[#1a1a1a] bg-[#f4f4f4]"
+                ? "border-[#2563eb] bg-[#eff6ff]"
                 : "border-[#e6e6e6]"
             }`}
           >
@@ -652,12 +652,12 @@ function BuyForm({
               size={20}
               className={
                 buyerType === "other"
-                  ? "text-[#1a1a1a]"
+                  ? "text-[#2563eb]"
                   : "text-[#737373]"
               }
             />
 
-            <p className="mt-2 text-sm font-black text-[#1a1a1a]">
+            <p className="mt-2 text-sm font-black text-[#2563eb]">
               Someone Else
             </p>
 
@@ -675,7 +675,7 @@ function BuyForm({
               }
               className={`rounded-xl border p-3.5 text-left transition ${
                 buyerType === "device"
-                  ? "border-[#1a1a1a] bg-[#f4f4f4]"
+                  ? "border-[#2563eb] bg-[#eff6ff]"
                   : "border-[#e6e6e6]"
               }`}
             >
@@ -683,12 +683,12 @@ function BuyForm({
                 size={20}
                 className={
                   buyerType === "device"
-                    ? "text-[#1a1a1a]"
+                    ? "text-[#2563eb]"
                     : "text-[#737373]"
                 }
               />
 
-              <p className="mt-2 text-sm font-black text-[#1a1a1a]">
+              <p className="mt-2 text-sm font-black text-[#2563eb]">
                 TV / Device
               </p>
 
@@ -738,12 +738,12 @@ function BuyForm({
       </section>
 
       <section className="mt-6 border-t border-[#e6e6e6] pt-5">
-        <p className="mb-3 text-sm font-black text-[#1a1a1a]">
+        <p className="mb-3 text-sm font-black text-[#2563eb]">
           3. Enter payment number
         </p>
 
         <label className="block">
-          <span className="mb-2 block text-sm font-bold text-[#1a1a1a]">
+          <span className="mb-2 block text-sm font-bold text-[#2563eb]">
             Mobile Money number
           </span>
 
@@ -768,10 +768,10 @@ function BuyForm({
                   ),
                 )
               }
-              className={`w-full rounded-xl border bg-white py-3.5 pl-12 text-base text-[#1a1a1a] outline-none transition placeholder:text-[#a3a3a3] focus:ring-4 focus:ring-blue-100 ${
+              className={`w-full rounded-xl border bg-white py-3.5 pl-12 text-base text-[#2563eb] outline-none transition placeholder:text-[#a3a3a3] focus:ring-4 focus:ring-blue-100 ${
                 networkDetected
-                  ? "border-[#1a1a1a] pr-36"
-                  : "border-[#d4d4d4] pr-4 focus:border-[#1a1a1a]"
+                  ? "border-[#2563eb] pr-36"
+                  : "border-[#d4d4d4] pr-4 focus:border-[#2563eb]"
               }`}
             />
 
@@ -786,7 +786,7 @@ function BuyForm({
                     {detectedPaymentNetwork.shortName}
                   </span>
 
-                  <span className="max-w-[82px] truncate text-[11px] font-black text-[#1a1a1a]">
+                  <span className="max-w-[82px] truncate text-[11px] font-black text-[#2563eb]">
                     {detectedPaymentNetwork.name}
                   </span>
                 </div>
@@ -802,7 +802,7 @@ function BuyForm({
             Package
           </span>
 
-          <span className="font-black text-[#1a1a1a]">
+          <span className="font-black text-[#2563eb]">
             {selectedPackage?.name}
           </span>
         </div>
@@ -812,7 +812,7 @@ function BuyForm({
             Recipient
           </span>
 
-          <span className="font-black text-[#1a1a1a]">
+          <span className="font-black text-[#2563eb]">
             {buyerType === "self"
               ? "This device"
               : buyerType === "device"
@@ -829,7 +829,7 @@ function BuyForm({
               Payment network
             </span>
 
-            <span className="font-black text-[#1a1a1a]">
+            <span className="font-black text-[#2563eb]">
               {detectedPaymentNetwork.name}
             </span>
           </div>
@@ -840,7 +840,7 @@ function BuyForm({
             Payment number
           </span>
 
-          <span className="font-black text-[#1a1a1a]">
+          <span className="font-black text-[#2563eb]">
             {displayPhoneNumber(
               paymentPhone,
             ) || "Not entered"}
@@ -849,11 +849,11 @@ function BuyForm({
 
         <div className="mt-4 border-t border-[#e6e6e6] pt-4">
           <div className="flex items-center justify-between">
-            <span className="font-black text-[#1a1a1a]">
+            <span className="font-black text-[#2563eb]">
               Total amount
             </span>
 
-            <span className="text-xl font-black text-[#111111]">
+            <span className="text-xl font-black text-[#1d4ed8]">
               {selectedPackage
                 ? formatMoney(
                     selectedPackage.price,
@@ -865,7 +865,7 @@ function BuyForm({
       </section>
 
       {error && (
-        <p className="mt-4 rounded-xl border border-red-200 bg-[#f3f1ec] p-3 text-sm text-[#1a1a1a]">
+        <p className="mt-4 rounded-xl border border-red-200 bg-[#f3f1ec] p-3 text-sm text-[#2563eb]">
           {error}
         </p>
       )}
@@ -938,22 +938,22 @@ function ProcessingContent({
       <div className="relative mx-auto flex h-28 w-28 items-center justify-center">
         <div className="absolute inset-0 rounded-full border-[9px] border-[#f4f4f4]" />
 
-        <div className="absolute inset-0 animate-spin rounded-full border-[9px] border-transparent border-r-[#1a1a1a] border-t-[#1a1a1a]" />
+        <div className="absolute inset-0 animate-spin rounded-full border-[9px] border-transparent border-r-[#2563eb] border-t-[#2563eb]" />
 
         {paymentStage === "waiting" ? (
           <Smartphone
             size={36}
-            className="text-[#1a1a1a]"
+            className="text-[#2563eb]"
           />
         ) : (
           <LoaderCircle
             size={38}
-            className="text-[#1a1a1a]"
+            className="text-[#2563eb]"
           />
         )}
       </div>
 
-      <h3 className="mt-6 text-xl font-black text-[#1a1a1a]">
+      <h3 className="mt-6 text-xl font-black text-[#2563eb]">
         {content.title}
       </h3>
 
@@ -970,7 +970,7 @@ function ProcessingContent({
           {paymentNetwork.shortName}
         </span>
 
-        <span className="text-xs font-bold text-[#1a1a1a]">
+        <span className="text-xs font-bold text-[#2563eb]">
           {paymentNetwork.name}
         </span>
       </div>
@@ -981,7 +981,7 @@ function ProcessingContent({
             Package
           </span>
 
-          <span className="font-black text-[#1a1a1a]">
+          <span className="font-black text-[#2563eb]">
             {selectedPackage?.name}
           </span>
         </div>
@@ -991,7 +991,7 @@ function ProcessingContent({
             Network
           </span>
 
-          <span className="font-black text-[#1a1a1a]">
+          <span className="font-black text-[#2563eb]">
             {paymentNetwork.name}
           </span>
         </div>
@@ -1001,7 +1001,7 @@ function ProcessingContent({
             Number
           </span>
 
-          <span className="font-black text-[#1a1a1a]">
+          <span className="font-black text-[#2563eb]">
             {displayPhoneNumber(
               paymentPhone,
             )}
@@ -1013,7 +1013,7 @@ function ProcessingContent({
             Amount
           </span>
 
-          <span className="font-black text-[#1a1a1a]">
+          <span className="font-black text-[#2563eb]">
             {selectedPackage
               ? formatMoney(
                   selectedPackage.price,
@@ -1027,13 +1027,13 @@ function ProcessingContent({
             Time
           </span>
 
-          <span className="font-black text-[#1a1a1a]">
+          <span className="font-black text-[#2563eb]">
             {elapsedSeconds}s
           </span>
         </div>
       </div>
 
-      <div className="mt-5 rounded-xl border border-[#e6e6e6] bg-[#f4f4f4] p-4 text-sm leading-6 text-[#111111]">
+      <div className="mt-5 rounded-xl border border-[#e6e6e6] bg-[#eff6ff] p-4 text-sm leading-6 text-[#1d4ed8]">
         Do not close this popup. Approve the
         payment request on your phone.
       </div>
@@ -1051,7 +1051,7 @@ function ProcessingContent({
               type="button"
               data-testid="sandbox-approve"
               onClick={() => onSandbox("pay")}
-              className="flex-1 rounded-lg bg-[#1a1a1a] px-3 py-2 text-sm font-bold text-white hover:bg-[#111111]"
+              className="flex-1 rounded-lg bg-[#2563eb] px-3 py-2 text-sm font-bold text-white hover:bg-[#1d4ed8]"
             >
               Approve payment
             </button>
@@ -1059,7 +1059,7 @@ function ProcessingContent({
               type="button"
               data-testid="sandbox-decline"
               onClick={() => onSandbox("fail")}
-              className="flex-1 rounded-lg border border-[#d4d4d4] bg-white px-3 py-2 text-sm font-bold text-[#525252] hover:bg-[#f4f4f4]"
+              className="flex-1 rounded-lg border border-[#d4d4d4] bg-white px-3 py-2 text-sm font-bold text-[#525252] hover:bg-[#eff6ff]"
             >
               Decline
             </button>
@@ -1108,14 +1108,14 @@ function ConnectedContent({
 
   return (
     <div className="text-center">
-      <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-emerald-100 text-[#1a1a1a]">
+      <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-emerald-100 text-[#2563eb]">
         <Wifi
           size={49}
           strokeWidth={3}
         />
       </div>
 
-      <h3 className="mt-5 text-2xl font-black text-[#1a1a1a]">
+      <h3 className="mt-5 text-2xl font-black text-[#2563eb]">
         {deviceMac ? "Device Connected!" : "You\u2019re Connected!"}
       </h3>
 
@@ -1131,7 +1131,7 @@ function ConnectedContent({
             Status
           </span>
 
-          <span className="flex items-center gap-2 font-black text-[#1a1a1a]">
+          <span className="flex items-center gap-2 font-black text-[#2563eb]">
             <span className="h-2 w-2 rounded-full bg-[#f3f1ec]0" />
             Connected
           </span>
@@ -1142,7 +1142,7 @@ function ConnectedContent({
             Package
           </span>
 
-          <span className="font-black text-[#1a1a1a]">
+          <span className="font-black text-[#2563eb]">
             {selectedPackage?.name}
           </span>
         </div>
@@ -1152,7 +1152,7 @@ function ConnectedContent({
             Speed
           </span>
 
-          <span className="font-black text-[#1a1a1a]">
+          <span className="font-black text-[#2563eb]">
             Up to {selectedPackage?.speed}
           </span>
         </div>
@@ -1162,7 +1162,7 @@ function ConnectedContent({
             Valid until
           </span>
 
-          <span className="max-w-[190px] text-right font-black text-[#1a1a1a]">
+          <span className="max-w-[190px] text-right font-black text-[#2563eb]">
             {expiry}
           </span>
         </div>
@@ -1172,7 +1172,7 @@ function ConnectedContent({
             Reference
           </span>
 
-          <span className="font-black text-[#1a1a1a]">
+          <span className="font-black text-[#2563eb]">
             {paymentResult?.reference}
           </span>
         </div>
@@ -1182,13 +1182,13 @@ function ConnectedContent({
             Session ID
           </span>
 
-          <span className="font-black text-[#1a1a1a]">
+          <span className="font-black text-[#2563eb]">
             {paymentResult?.sessionId}
           </span>
         </div>
       </div>
 
-      <div className="mt-5 rounded-xl border border-[#f3f1ec] bg-[#f3f1ec] p-4 text-sm leading-6 text-[#111111]">
+      <div className="mt-5 rounded-xl border border-[#f3f1ec] bg-[#f3f1ec] p-4 text-sm leading-6 text-[#1d4ed8]">
         <CheckCircle2 className="mx-auto mb-2" />
 
         No logout is required. Access ends
@@ -1222,11 +1222,11 @@ function VoucherSentContent({
 }) {
   return (
     <div className="text-center">
-      <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-[#f4f4f4] text-[#1a1a1a]">
+      <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-[#eff6ff] text-[#2563eb]">
         <MessageSquareText size={46} />
       </div>
 
-      <h3 className="mt-5 text-2xl font-black text-[#1a1a1a]">
+      <h3 className="mt-5 text-2xl font-black text-[#2563eb]">
         Voucher Sent!
       </h3>
 
@@ -1234,7 +1234,7 @@ function VoucherSentContent({
         The voucher details were sent by SMS to:
       </p>
 
-      <p className="mt-2 text-xl font-black text-[#111111]">
+      <p className="mt-2 text-xl font-black text-[#1d4ed8]">
         {displayPhoneNumber(
           recipientPhone,
         )}
@@ -1246,7 +1246,7 @@ function VoucherSentContent({
             Package
           </span>
 
-          <span className="font-black text-[#1a1a1a]">
+          <span className="font-black text-[#2563eb]">
             {selectedPackage?.name}
           </span>
         </div>
@@ -1256,7 +1256,7 @@ function VoucherSentContent({
             Username
           </span>
 
-          <span className="font-black text-[#1a1a1a]">
+          <span className="font-black text-[#2563eb]">
             {paymentResult?.voucherUsername}
           </span>
         </div>
@@ -1266,7 +1266,7 @@ function VoucherSentContent({
             Password
           </span>
 
-          <span className="font-black text-[#1a1a1a]">
+          <span className="font-black text-[#2563eb]">
             {paymentResult?.voucherPassword}
           </span>
         </div>
@@ -1276,13 +1276,13 @@ function VoucherSentContent({
             Reference
           </span>
 
-          <span className="font-black text-[#1a1a1a]">
+          <span className="font-black text-[#2563eb]">
             {paymentResult?.reference}
           </span>
         </div>
       </div>
 
-      <div className="mt-5 rounded-xl border border-[#e6e6e6] bg-[#f4f4f4] p-4 text-sm leading-6 text-[#111111]">
+      <div className="mt-5 rounded-xl border border-[#e6e6e6] bg-[#eff6ff] p-4 text-sm leading-6 text-[#1d4ed8]">
         The recipient can enter the username and
         password on the portal to connect.
       </div>
@@ -1326,11 +1326,11 @@ function ResellerApplication({
   if (submitted) {
     return (
       <div className="py-8 text-center">
-        <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-emerald-100 text-[#111111]">
+        <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-emerald-100 text-[#1d4ed8]">
           <Send size={43} />
         </div>
 
-        <h3 className="mt-5 text-2xl font-black text-[#1a1a1a]">
+        <h3 className="mt-5 text-2xl font-black text-[#2563eb]">
           Application Submitted
         </h3>
 
@@ -1423,7 +1423,7 @@ function ResellerApplication({
           onChange={(event) =>
             onChange("whatsapp", event.target.checked ? form.phone : "")
           }
-          className="h-4 w-4 rounded border-[#e6e6e6] accent-[#1a1a1a]"
+          className="h-4 w-4 rounded border-[#e6e6e6] accent-[#2563eb]"
         />
         My WhatsApp number is the same as my phone number
       </label>
@@ -1498,7 +1498,7 @@ function ResellerApplication({
       />
 
       {error && (
-        <p className="rounded-xl border border-red-200 bg-[#f3f1ec] p-3 text-sm text-[#1a1a1a]">
+        <p className="rounded-xl border border-red-200 bg-[#f3f1ec] p-3 text-sm text-[#2563eb]">
           {error}
         </p>
       )}
@@ -2259,7 +2259,7 @@ function CaptivePortalPageInner() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f4f4f4] px-3 py-4 text-[#1a1a1a] sm:py-8">
+    <main className="min-h-screen bg-[#eff6ff] px-3 py-4 text-[#1e3a8a] sm:py-8">
       <div className="mx-auto w-full max-w-md overflow-hidden rounded-[28px] border border-[#e6e6e6] bg-white shadow-[0_20px_60px_rgba(26,26,26,0.12)]">
         <PortalHeader />
 
@@ -2481,8 +2481,8 @@ export default function CaptivePortalPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-[#f4f4f4]">
-          <Loader2 className="h-9 w-9 animate-spin text-[#1a1a1a]" />
+        <div className="flex min-h-screen items-center justify-center bg-[#eff6ff]">
+          <Loader2 className="h-9 w-9 animate-spin text-[#2563eb]" />
         </div>
       }
     >

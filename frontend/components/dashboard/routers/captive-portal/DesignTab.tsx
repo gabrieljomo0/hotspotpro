@@ -24,7 +24,7 @@ export function DesignTab({
 }) {
   return (
     <article className="rounded-2xl border border-[#e6e6e6] bg-white p-6 shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:p-8">
-      <h3 className="text-lg font-bold text-[#1a1a1a]">Portal Design</h3>
+      <h3 className="text-lg font-bold text-[#2563eb]">Portal Design</h3>
       <p className="mb-6 text-sm text-[#737373]">
         Adjust the branding and appearance of {router.name.split(" (")[0]}&apos;s customer login page.
       </p>
@@ -34,12 +34,12 @@ export function DesignTab({
             <input
               value={form.primaryColorOverride}
               onChange={(e) => set("primaryColorOverride", e.target.value)}
-              placeholder="#1a1a1a"
+              placeholder="#2563eb"
               className="h-11 w-full text-sm outline-none"
             />
             <input
               type="color"
-              value={form.primaryColorOverride || "#1a1a1a"}
+              value={form.primaryColorOverride || "#2563eb"}
               onChange={(e) => set("primaryColorOverride", e.target.value)}
               className="h-6 w-6 shrink-0 cursor-pointer rounded border-0 bg-transparent"
             />
@@ -50,19 +50,19 @@ export function DesignTab({
             <input
               value={form.secondaryColorOverride}
               onChange={(e) => set("secondaryColorOverride", e.target.value)}
-              placeholder="#111111"
+              placeholder="#eff6ff"
               className="h-11 w-full text-sm outline-none"
             />
             <input
               type="color"
-              value={form.secondaryColorOverride || "#111111"}
+              value={form.secondaryColorOverride || "#eff6ff"}
               onChange={(e) => set("secondaryColorOverride", e.target.value)}
               className="h-6 w-6 shrink-0 cursor-pointer rounded border-0 bg-transparent"
             />
           </div>
         </Field>
         <Field label="Logo size" hint="Leave empty to use the template default. Range 40–120px.">
-          <div className="flex overflow-hidden rounded-xl border border-[#e6e6e6] focus-within:border-[#1a1a1a]">
+          <div className="flex overflow-hidden rounded-xl border border-[#e6e6e6] focus-within:border-[#2563eb]">
             <input
               type="number"
               min={40}
@@ -134,10 +134,10 @@ export function DesignTab({
               </button>
             </div>
           ) : (
-            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#e6e6e6] bg-[#ffffff] p-6 text-center text-sm text-[#a3a3a3] hover:border-[#1a1a1a] hover:bg-[#f4f4f4]/40">
+            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#e6e6e6] bg-[#ffffff] p-6 text-center text-sm text-[#a3a3a3] hover:border-[#2563eb] hover:bg-[#f4f4f4]/40">
               <Upload size={15} />
               <span>
-                Upload your logo or <span className="font-bold text-[#1a1a1a]">Browse</span>
+                Upload your logo or <span className="font-bold text-[#2563eb]">Browse</span>
               </span>
               <input
                 type="file"
@@ -168,10 +168,10 @@ export function DesignTab({
               </button>
             </div>
           ) : (
-            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#e6e6e6] bg-[#ffffff] p-6 text-center text-sm text-[#a3a3a3] hover:border-[#1a1a1a] hover:bg-[#f4f4f4]/40">
+            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#e6e6e6] bg-[#ffffff] p-6 text-center text-sm text-[#a3a3a3] hover:border-[#2563eb] hover:bg-[#f4f4f4]/40">
               <Upload size={15} />
               <span>
-                Drag &amp; Drop or <span className="font-bold text-[#1a1a1a]">Browse</span>
+                Drag &amp; Drop or <span className="font-bold text-[#2563eb]">Browse</span>
               </span>
               <input
                 type="file"

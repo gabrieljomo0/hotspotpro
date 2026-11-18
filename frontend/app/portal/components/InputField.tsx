@@ -32,7 +32,7 @@ export function InputField({
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-bold text-[#1a1a1a]">
+      <span className="mb-2 block text-sm font-bold text-[#2563eb]">
         {label}
       </span>
 
@@ -51,7 +51,7 @@ export function InputField({
           onChange={(event) =>
             onChange(event.target.value)
           }
-          className="w-full rounded-xl border border-[#d4d4d4] bg-white py-3.5 pl-12 pr-12 text-base text-[#1a1a1a] outline-none transition placeholder:text-[#a3a3a3] focus:border-[#1a1a1a] focus:ring-4 focus:ring-blue-100"
+          className="w-full rounded-xl border border-[#d4d4d4] bg-white py-3.5 pl-12 pr-12 text-base text-[#2563eb] outline-none transition placeholder:text-[#a3a3a3] focus:border-[#2563eb] focus:ring-4 focus:ring-blue-100"
         />
 
         {rightElement}

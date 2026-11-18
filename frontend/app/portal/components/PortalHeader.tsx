@@ -10,13 +10,13 @@ export function PortalHeader() {
           <Wifi
             size={28}
             strokeWidth={3}
-            className="text-[#1a1a1a]"
+            className="text-[#2563eb]"
           />
 
           <div>
-            <p className="text-base font-black text-[#1a1a1a]">
+            <p className="text-base font-black text-[#2563eb]">
               Hotspot
-              <span className="text-[#1a1a1a]">
+              <span className="text-[#2563eb]">
                 Pro
               </span>
             </p>
@@ -29,7 +29,7 @@ export function PortalHeader() {
 
         <a
           href="tel:+233241234567"
-          className="flex items-center gap-2 rounded-lg border border-[#d4d4d4] px-3 py-2 text-xs font-semibold text-[#1a1a1a] transition hover:border-[#1a1a1a] hover:text-[#1a1a1a]"
+          className="flex items-center gap-2 rounded-lg border border-[#d4d4d4] px-3 py-2 text-xs font-semibold text-[#2563eb] transition hover:border-[#2563eb] hover:text-[#2563eb]"
         >
           <Headphones size={15} />
           Support

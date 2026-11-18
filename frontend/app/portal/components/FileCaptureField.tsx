@@ -23,7 +23,7 @@ export function FileCaptureField({
         {label}
       </span>
       <div className="flex items-center gap-3 rounded-xl border border-dashed border-[#d4d4d4] bg-[#ffffff] px-4 py-3">
-        <Icon size={18} className="shrink-0 text-[#1a1a1a]" />
+        <Icon size={18} className="shrink-0 text-[#2563eb]" />
         <span className="truncate text-sm text-[#737373]">
           {fileName || "Tap to upload or take a photo"}
         </span>
