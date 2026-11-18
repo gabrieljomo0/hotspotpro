@@ -65,10 +65,84 @@ export function findPackageByName(name: string) {
   return list<Pkg>("packages").find((p) => p.name === name) ?? null;
 }
 
+type RouterIdRow = {
+  ip?: string;
+  provisioningToken?: string;
+  provisioningStatus?: string;
+  siteId?: string | null;
+};
+
+type BatchRow = { id?: string; routerIps?: string[] };
+
+function routerRows(): RouterIdRow[] {
+  const routers = getState("routers")?.value;
+  return Array.isArray(routers) ? (routers as RouterIdRow[]) : [];
+}
+
+/** Same physical MikroTik when the stored id flipped pending-* ↔ linked-* or duplicate rows share a token. */
+export function sameRouterIdentity(a: string, b: string): boolean {
+  if (!a || !b) return false;
+  if (a === b) return true;
+  const rows = routerRows();
+  const ra = rows.find((r) => r.ip === a);
+  const rb = rows.find((r) => r.ip === b);
+  if (ra?.provisioningToken && rb?.provisioningToken && ra.provisioningToken === rb.provisioningToken) return true;
+  if (rb?.provisioningToken && a === `linked-${rb.provisioningToken.slice(0, 12)}`) return true;
+  if (ra?.provisioningToken && b === `linked-${ra.provisioningToken.slice(0, 12)}`) return true;
+  return false;
+}
+
+/**
+ * Does this live router fall inside an allowed IP list?
+ * Also accepts: same provisioning token, fully orphaned lists (routers removed),
+ * and demo/seed scope (no linked tokens) when the live router is a real linked MikroTik.
+ */
+export function routerIpListAllows(allowed: string[] | null | undefined, liveIp: string | null): boolean {
+  if (!liveIp || !allowed || allowed.length === 0) return true;
+  if (allowed.some((ip) => sameRouterIdentity(ip, liveIp))) return true;
+
+  const rows = routerRows();
+  const live = rows.find((r) => r.ip === liveIp);
+  if (!live) return false;
+
+  const allowedRows = allowed
+    .map((ip) => rows.find((r) => r.ip === ip))
+    .filter((r): r is RouterIdRow => !!r);
+  const anyAllowedLinked = allowedRows.some(
+    (r) => typeof r.provisioningToken === "string" && r.provisioningToken.length > 0,
+  );
+  // Package/batch still points at demo seed routers; this phone is on a real provisioned unit.
+  if (live.provisioningToken && !anyAllowedLinked) return true;
+  // Every target router was deleted/replaced — don't block the live network.
+  if (allowedRows.length === 0) return true;
+  return false;
+}
+
 export function routerAllowsPackage(pkg: Pkg, routerIp: string | null) {
   if (pkg.status && pkg.status !== "Active") return false;
   if (!routerIp || pkg.applyToAllSites || !pkg.routerIps || pkg.routerIps.length === 0) return true;
-  return pkg.routerIps.includes(routerIp);
+  return routerIpListAllows(pkg.routerIps, routerIp);
+}
+
+/** Portal + local-user sync: batch scope wins (what the voucher was issued for). */
+export function voucherAllowedOnRouter(
+  batchId: string | null | undefined,
+  packageName: string,
+  routerIp: string | null,
+): boolean {
+  if (!routerIp) return true;
+  if (batchId) {
+    const batches = getState("voucherBatches")?.value;
+    if (Array.isArray(batches)) {
+      const batch = (batches as BatchRow[]).find((b) => b && b.id === batchId);
+      if (batch && Array.isArray(batch.routerIps) && batch.routerIps.length > 0) {
+        return routerIpListAllows(batch.routerIps, routerIp);
+      }
+    }
+  }
+  const pkg = findPackageByName(packageName);
+  if (pkg && !routerAllowsPackage(pkg, routerIp)) return false;
+  return true;
 }
 
 export function findVoucher(code: string) {

@@ -7,7 +7,7 @@ import {
   normalizeMac,
   packageBytes,
   packageSeconds,
-  routerAllowsPackage,
+  voucherAllowedOnRouter,
   voucherLimitBy,
   voucherUsesCalendar,
 } from "@/server/packages";
@@ -16,19 +16,6 @@ import { findRouterByToken } from "@/server/provision";
 import { getState, queueJob } from "@/server/store";
 
 const GOOGLE = "https://www.google.com/";
-
-type BatchRow = { id?: string; routerIps?: string[] };
-
-function voucherAllowedOnRouter(batchId: string | null | undefined, packageName: string, routerIp: string | null) {
-  const pkg = findPackageByName(packageName);
-  if (pkg && !routerAllowsPackage(pkg, routerIp)) return false;
-  if (!batchId || !routerIp) return true;
-  const batches = getState("voucherBatches")?.value;
-  if (!Array.isArray(batches)) return true;
-  const batch = (batches as BatchRow[]).find((b) => b && b.id === batchId);
-  if (!batch || !Array.isArray(batch.routerIps) || batch.routerIps.length === 0) return true;
-  return batch.routerIps.includes(routerIp);
-}
 
 // Public: is this voucher good to use, and how much is left?
 // Also push the voucher onto the router so MikroTik login can put the phone online.
