@@ -5,7 +5,7 @@
 
 import { voucherOnlyLogin } from "./hotspotPages";
 import { getState, setState } from "./store";
-import { type Pkg, type Vch, findPackageByName, list, normalizeMac, packageBytes, packageSeconds, routerAllowsPackage, voucherAllowedOnRouter, voucherCountFrom, voucherLimitBy } from "./packages";
+import { type Pkg, type Vch, findPackageByName, findVoucher, list, normalizeMac, packageBytes, packageSeconds, routerAllowsPackage, voucherAllowedOnRouter, voucherCountFrom, voucherLimitBy } from "./packages";
 
 /** How many voucher accounts one check-in may add/remove. Kept modest so weak links stay fast. */
 const BATCH = 80;
@@ -220,23 +220,99 @@ export function localUserLines(token: string, routerIp: string, now = Date.now()
   return lines;
 }
 
-/** Tiny script that ensures one voucher is on the router (portal login) without wiping sync state. */
+type PortalPushFile = Record<string, { codes: string[]; at: number; waves?: number }>;
+
+function portalPushFile(): PortalPushFile {
+  const value = getState("portalPush")?.value;
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return value as PortalPushFile;
+}
+
+/** Remember a voucher that must be upserted on the next check-ins (portal Connect). */
+export function queuePortalPush(token: string, code: string, now = Date.now()) {
+  const name = userName(code);
+  if (!token || !name) return;
+  const file = portalPushFile();
+  for (const [key, entry] of Object.entries(file)) {
+    if (now - (entry.at || 0) > 10 * 60_000) delete file[key];
+  }
+  const row = file[token] ?? { codes: [], at: now, waves: 0 };
+  if (!row.codes.includes(name)) row.codes.push(name);
+  row.at = now;
+  row.waves = 0;
+  file[token] = { codes: row.codes.slice(-40), at: row.at, waves: 0 };
+  setState("portalPush", file, "server");
+}
+
+export function portalPushCodes(token: string, now = Date.now()): string[] {
+  const row = portalPushFile()[token];
+  if (!row || now - (row.at || 0) > 10 * 60_000) return [];
+  return row.codes.filter(Boolean);
+}
+
+export function clearPortalPush(token: string, codes: string[]) {
+  if (!codes.length) return;
+  const file = portalPushFile();
+  const row = file[token];
+  if (!row) return;
+  const drop = new Set(codes);
+  row.codes = row.codes.filter((c) => !drop.has(c));
+  if (row.codes.length === 0) delete file[token];
+  else file[token] = row;
+  setState("portalPush", file, "server");
+}
+
+/**
+ * RouterOS lines that upsert one voucher now (portal Connect / check-in inject).
+ * Does not mark the sync file — that used to claim "synced" before the router ran the script.
+ */
 export function ensureOneLocalUser(token: string, routerIp: string, code: string, now = Date.now()): string[] {
   const name = userName(code);
   if (!name) return [];
-  const user = wanted(routerIp, now).find((u) => u.name === name);
-  if (!user) return [];
-  const file = syncFile();
-  const previous = file[token]?.codes ?? [];
-  if (!previous.includes(name)) {
-    file[token] = {
-      codes: [...previous, name, ...(user.mac && !previous.includes(user.mac) ? [user.mac] : [])],
-      at: now,
-      offset: file[token]?.offset ?? 0,
+  let user = wanted(routerIp, now).find((u) => u.name === name);
+  if (!user) {
+    // Portal already validated this voucher — still push even if batch/router scope filtering skipped it in wanted().
+    const voucher = findVoucher(code) || findVoucher(name);
+    if (!voucher || voucher.status === "Expired") return [];
+    if (voucher.expiresAtMs && voucher.expiresAtMs <= now) return [];
+    user = {
+      name,
+      password: voucher.password || voucher.code || name,
+      pkg: findPackageByName(voucher.packageName),
+      limitBy: voucherLimitBy(voucher),
+      countFrom: voucherCountFrom(voucher),
+      mac: normalizeMac(voucher.boundMac),
+      rank: 0,
     };
-    setState("routerUserSync", file, "server");
   }
   const lines: string[] = ["# HotspotPro ensure one voucher"];
   emitUsers([user], voucherOnlyLogin(token), lines);
+  return lines;
+}
+
+/** Inline into the check-in script so Connect does not depend on a separate job download. */
+export function portalPushLines(token: string, routerIp: string, now = Date.now()): string[] {
+  const codes = portalPushCodes(token, now);
+  if (codes.length === 0) return [];
+  const lines: string[] = ["# HotspotPro portal push (Connect)"];
+  const done: string[] = [];
+  for (const code of codes) {
+    const part = ensureOneLocalUser(token, routerIp, code, now);
+    if (part.length > 1) {
+      lines.push(...part);
+      done.push(userName(code));
+    }
+  }
+  // Re-emit on two check-ins so a flaky import still lands the user, then clear.
+  const file = portalPushFile();
+  const row = file[token];
+  if (row) {
+    row.waves = (row.waves || 0) + 1;
+    if (row.waves >= 2 && done.length) clearPortalPush(token, done);
+    else {
+      file[token] = row;
+      setState("portalPush", file, "server");
+    }
+  }
   return lines;
 }

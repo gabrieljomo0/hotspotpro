@@ -1654,7 +1654,8 @@ function CaptivePortalPageInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [portalRouterIp, routerToken]);
 
-  // Hand the customer's login back to the router via POST — GET query logins do not put phones online.
+  // Hand the customer's login back to the router via POST (top-level navigation).
+  // GET query logins do not put phones online on current HotspotPro profiles.
   function routerLogin(username: string, password: string, loginUrl?: string | null) {
     const action =
       (loginUrl && /^https?:\/\//.test(loginUrl) ? loginUrl : null) ||
@@ -1668,17 +1669,19 @@ function CaptivePortalPageInner() {
     }
     setConnectingWifi(true);
     setConnectedFromVoucher(false);
+    // Prefer a real <form> POST so iOS captive / Safari will navigate to the gateway HTTP login.
     const form = document.createElement("form");
     form.method = "POST";
     form.action = action;
     form.acceptCharset = "UTF-8";
+    form.setAttribute("autocomplete", "off");
     form.style.display = "none";
     const fields: Record<string, string> = {
       username,
       password,
       // After MikroTik accepts the login, send the customer to Google.
       dst: "https://www.google.com/",
-      popup: "true",
+      popup: "false",
     };
     for (const [name, value] of Object.entries(fields)) {
       const input = document.createElement("input");
@@ -1688,7 +1691,12 @@ function CaptivePortalPageInner() {
       form.appendChild(input);
     }
     document.body.appendChild(form);
-    form.submit();
+    try {
+      form.submit();
+    } catch {
+      setVoucherError("Could not finish WiFi login. Stay on this WiFi and try Connect again.");
+      setConnectingWifi(false);
+    }
   }
 
   const selectedPackage =

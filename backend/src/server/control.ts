@@ -17,7 +17,7 @@
 import { SILENT_MS, beatOf, getState, setState, takeQueuedJobs, nasKeyOf, outageOf, recordBeat, usageSnapshot } from "./store";
 import { routerForNas } from "./routerUsage";
 import { accessDecision } from "./accessGate";
-import { forgetLocalUsers, localUserLines } from "./localUsers";
+import { forgetLocalUsers, localUserLines, portalPushCodes, portalPushLines } from "./localUsers";
 import { findPackageByName, findVoucher, list, noteLiveVouchers, packageSeconds } from "./packages";
 import { applyHtmlDirectoryRos, loginPageStamp, PORTAL_MARKER } from "./hotspotPages";
 import { CHECKIN_INTERVAL, SETUP_VERSION, accessGuardCommand, accessLockEnsureCommand, checkInBody, hotspotReauthEnsureLines, loginDnsFromName, remoteWinboxLines } from "./routeros";
@@ -235,8 +235,17 @@ export function controlScript(token: string, origin?: string): string | null {
         );
       }
     }
-    if (local) lines.push(...localUserLines(token, router.ip));
-    else {
+    if (local) {
+      // After each setup bump, force a full voucher re-copy (fixes empty User Profiles / stale sync).
+      const resync = (getState("routerResync")?.value as Record<string, string> | undefined) ?? {};
+      if (resync[token] !== SETUP_VERSION) {
+        forgetLocalUsers(token);
+        setState("routerResync", { ...resync, [token]: SETUP_VERSION }, "server");
+      }
+      // Portal Connect: upsert this voucher inside the check-in itself (do not wait on a separate job fetch).
+      lines.push(...portalPushLines(token, router.ip));
+      lines.push(...localUserLines(token, router.ip));
+    } else {
       forgetLocalUsers(token);
       // Cloud mode: drop idle local copies only. Never remove a user who is online right now.
       lines.push(
@@ -246,6 +255,7 @@ export function controlScript(token: string, origin?: string): string | null {
   }
   // Commands the owner queued on the site (Advanced). Each is downloaded and run once, and the router reports whether it worked.
   const queued = origin ? takeQueuedJobs(token) : [];
+  const portalPending = portalPushCodes(token).length > 0;
   if (origin) {
     const tls = origin.startsWith("https://") ? " check-certificate=no" : "";
     // When the setup version changes, every connected router downloads and runs the latest setup by itself.
@@ -261,9 +271,8 @@ export function controlScript(token: string, origin?: string): string | null {
       );
     }
   }
-  // Lightweight check-ins for many routers on African links. Speed up briefly when a job was just delivered.
-  // Portal voucher push needs a fast follow-up poll; 2s while jobs are in flight.
-  const interval = queued.length > 0 ? "2s" : CHECKIN_INTERVAL;
+  // Speed up while a portal Connect push or site job is waiting.
+  const interval = queued.length > 0 || portalPending ? "2s" : CHECKIN_INTERVAL;
   lines.push(`:do { /system scheduler set [find where name=hotspotpro-control] interval=${interval} } on-error={ }`);
   if (origin) {
     const source = checkInBody(origin, token).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\$/g, "\\$");

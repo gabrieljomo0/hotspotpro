@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { clientIp, limited } from "@/server/limit";
-import { ensureOneLocalUser } from "@/server/localUsers";
+import { ensureOneLocalUser, queuePortalPush } from "@/server/localUsers";
 import {
   findPackageByName,
   findVoucher,
@@ -117,12 +117,15 @@ export async function POST(request: Request) {
       try {
         const sync = getState("routerUserSync")?.value as Record<string, { codes?: string[] }> | undefined;
         const already = !!sync?.[token]?.codes?.includes(loginUsername);
+        // Primary path: next check-in upserts this voucher inline (reliable).
+        queuePortalPush(token, v.code);
+        syncQueued = true;
+        syncFresh = !already;
+        // Backup: one-shot job in case the inline script is trimmed on a huge check-in.
         const script = ensureOneLocalUser(token, router?.ip || "", v.code);
         if (script.length > 1) {
           const job = queueJob(token, script.join("\n") + "\n", "portal");
           jobId = job.id;
-          syncQueued = true;
-          syncFresh = !already;
         }
       } catch {
         /* check-in may already have the user */
