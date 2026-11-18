@@ -61,6 +61,8 @@ export async function POST(request: Request) {
     action?: string;
     multiWanMode?: string;
     ispLinks?: IspLink[];
+    username?: string;
+    mac?: string;
   };
   const ip = (body.ip ?? "").slice(0, 200);
   const token = routerToken(ip);
@@ -77,7 +79,14 @@ export async function POST(request: Request) {
       setState("routers", next, "router");
     }
   }
-  const built = body.action ? routerActionScript(body.action, { origin: publicOrigin(request), token }) : null;
+  const built = body.action
+    ? routerActionScript(body.action, {
+        origin: publicOrigin(request),
+        token,
+        username: body.username,
+        mac: body.mac,
+      })
+    : null;
   if (body.action && !built) return NextResponse.json({ message: "Unknown router action." }, { status: 400 });
   const script = (built ?? body.script ?? "").replace(/\r/g, "").trim();
   if (!script) return NextResponse.json({ message: "Type a RouterOS command first." }, { status: 400 });

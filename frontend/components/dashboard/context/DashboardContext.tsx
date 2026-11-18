@@ -1613,35 +1613,60 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   }
 
   function changeUserPackage(userId: string, newPackage: string) {
+    const user = findUser(userId);
     setUsers((current) =>
-      current.map((user) =>
-        (user.phone || user.voucherUsername) === userId
-          ? { ...user, package: newPackage }
-          : user,
+      current.map((row) =>
+        (row.phone || row.voucherUsername) === userId ? { ...row, package: newPackage } : row,
       ),
     );
+    if (user?.voucherUsername) {
+      setVouchers((current) =>
+        current.map((v) =>
+          v.code.toLowerCase() === user.voucherUsername.toLowerCase()
+            ? { ...v, packageName: newPackage }
+            : v,
+        ),
+      );
+      const ip = user.routerIp || routers.find((r) => (r.liveUsers ?? []).includes(user.voucherUsername))?.ip;
+      if (ip) queueRouterAction(ip, "sync-vouchers");
+    }
     showToast(`Package changed to ${newPackage}.`);
     logActivity("User", `Changed ${userId}'s package to ${newPackage}.`);
   }
 
   function resetUserPassword(userId: string) {
     const newPassword = Math.random().toString(36).slice(2, 8).toUpperCase();
+    const user = findUser(userId);
 
     setUsers((current) =>
-      current.map((user) =>
-        (user.phone || user.voucherUsername) === userId
-          ? { ...user, voucherPassword: newPassword }
-          : user,
+      current.map((row) =>
+        (row.phone || row.voucherUsername) === userId
+          ? { ...row, voucherPassword: newPassword }
+          : row,
       ),
     );
+    if (user?.voucherUsername) {
+      setVouchers((current) =>
+        current.map((v) =>
+          v.code.toLowerCase() === user.voucherUsername.toLowerCase()
+            ? { ...v, password: newPassword }
+            : v,
+        ),
+      );
+      const ip = user.routerIp || routers.find((r) => (r.liveUsers ?? []).includes(user.voucherUsername))?.ip;
+      if (ip) {
+        queueRouterAction(ip, "sync-vouchers");
+        queueRouterAction(ip, "kick-user", { username: user.voucherUsername, mac: user.macAddress || undefined });
+      }
+    }
 
-    showToast("Voucher password reset.");
+    showToast("Voucher password reset. User must reconnect with the new password.");
     logActivity("User", `Reset voucher password for ${userId}.`);
     return newPassword;
   }
 
   function deleteUser(userId: string, reason: string = "Deleted") {
-    // Connect this action to your backend delete endpoint.
+    queueUserSessionAction(userId, "block-user");
     setUsers((current) =>
       current.filter(
         (user) => (user.phone || user.voucherUsername) !== userId,
@@ -1704,40 +1729,63 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  function togglePauseUser(userId: string) {
-    setUserConnectionState((current) => {
-      const previous = getConnectionState(userId);
-      return { ...current, [userId]: { ...previous, paused: !previous.paused } };
+  function queueUserSessionAction(userId: string, action: "kick-user" | "block-user" | "unblock-user") {
+    const user = findUser(userId);
+    if (!user) return;
+    const ip = user.routerIp || routers.find((r) => (r.liveUsers ?? []).includes(user.voucherUsername))?.ip || "";
+    if (!ip) {
+      showToast("Could not find which router this user is on.");
+      return;
+    }
+    queueRouterAction(ip, action, {
+      username: user.voucherUsername,
+      mac: user.macAddress || undefined,
     });
-    logActivity("User", `Toggled pause state for ${userId}.`);
+  }
+
+  function togglePauseUser(userId: string) {
+    const previous = getConnectionState(userId);
+    const nextPaused = !previous.paused;
+    setUserConnectionState((current) => ({
+      ...current,
+      [userId]: { ...previous, paused: nextPaused, disconnected: nextPaused ? true : previous.disconnected },
+    }));
+    // Pause = sign them out now; they stay blocked from auto-reconnect until resumed.
+    if (nextPaused) queueUserSessionAction(userId, "kick-user");
+    showToast(nextPaused ? "User paused and signed out on WiFi." : "User pause cleared.");
+    logActivity("User", `${nextPaused ? "Paused" : "Resumed"} ${userId}.`);
   }
 
   function toggleDisconnectUser(userId: string) {
-    setUserConnectionState((current) => {
-      const previous = getConnectionState(userId);
-      return {
-        ...current,
-        [userId]: { ...previous, disconnected: !previous.disconnected },
-      };
-    });
-    logActivity("User", `Toggled connection state for ${userId}.`);
+    const previous = getConnectionState(userId);
+    const nextDisconnected = !previous.disconnected;
+    setUserConnectionState((current) => ({
+      ...current,
+      [userId]: { ...previous, disconnected: nextDisconnected },
+    }));
+    if (nextDisconnected) {
+      queueUserSessionAction(userId, "kick-user");
+      showToast("User disconnected on the router.");
+    } else {
+      showToast("Disconnect cleared — user can log in again.");
+    }
+    logActivity("User", `${nextDisconnected ? "Disconnected" : "Reconnected"} ${userId}.`);
   }
 
   function toggleBlockUser(userId: string) {
-    setUserConnectionState((current) => {
-      const previous = getConnectionState(userId);
-      const nextBlocked = !previous.blocked;
-
-      return {
-        ...current,
-        [userId]: {
-          paused: nextBlocked ? false : previous.paused,
-          disconnected: nextBlocked ? true : previous.disconnected,
-          blocked: nextBlocked,
-        },
-      };
-    });
-    logActivity("User", `Toggled block state for ${userId}.`);
+    const previous = getConnectionState(userId);
+    const nextBlocked = !previous.blocked;
+    setUserConnectionState((current) => ({
+      ...current,
+      [userId]: {
+        paused: nextBlocked ? false : previous.paused,
+        disconnected: nextBlocked ? true : previous.disconnected,
+        blocked: nextBlocked,
+      },
+    }));
+    queueUserSessionAction(userId, nextBlocked ? "block-user" : "unblock-user");
+    showToast(nextBlocked ? "User blocked on WiFi." : "User unblocked on WiFi.");
+    logActivity("User", `${nextBlocked ? "Blocked" : "Unblocked"} ${userId}.`);
   }
 
   function clearDataUsageHistory() {

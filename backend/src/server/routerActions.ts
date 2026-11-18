@@ -25,7 +25,15 @@ export const ROUTER_ACTIONS = [
   "api-credentials",
   "update-script",
   "reboot",
+  "kick-user",
+  "block-user",
+  "unblock-user",
 ] as const;
+
+function safeUser(value: string | undefined) {
+  const name = (value || "").replace(/[^A-Za-z0-9._:@-]/g, "").slice(0, 64);
+  return name ? `"${name}"` : "";
+}
 
 const PAGES = ["login.html", "rlogin.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html", "md5.js"];
 
@@ -128,11 +136,16 @@ function loginLines() {
 }
 
 /** A RouterOS script for one dashboard button, or null when the name is unknown. */
-export function routerActionScript(action: string, input: { origin: string; token: string }): string | null {
+export function routerActionScript(
+  action: string,
+  input: { origin: string; token: string; username?: string; mac?: string },
+): string | null {
   const { origin, token } = input;
   const head = `# hotspotpro-action:${action}`;
   let body: string[] = [];
   const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
+  const userQ = safeUser(input.username);
+  const macQ = safeUser(input.mac);
   const reprovision = [
     step(`/file remove [find where name=hotspotpro-setup.rsc]`),
     step(`/file remove [find where name="flash/hotspotpro-setup.rsc"]`),
@@ -170,7 +183,25 @@ export function routerActionScript(action: string, input: { origin: string; toke
     const secret = password();
     body = [`# hotspotpro-password:${secret}`, step(`/user remove [find where name=hotspotpro]`), `/user add name=hotspotpro group=full password=${secret} comment="HotspotPro"`];
   } else if (action === "reboot") body = [`/system reboot`];
-  else return null;
+  else if (action === "kick-user") {
+    if (!userQ) return null;
+    body = [
+      step(`/ip hotspot active remove [find where user=${userQ}]`),
+      step(`/ip hotspot cookie remove [find where user=${userQ}]`),
+      ...(macQ ? [step(`/ip hotspot cookie remove [find where mac-address=${macQ}]`)] : []),
+    ];
+  } else if (action === "block-user") {
+    if (!userQ) return null;
+    body = [
+      step(`/ip hotspot active remove [find where user=${userQ}]`),
+      step(`/ip hotspot cookie remove [find where user=${userQ}]`),
+      step(`/ip hotspot user disable [find where name=${userQ}]`),
+      ...(macQ ? [step(`/ip hotspot cookie remove [find where mac-address=${macQ}]`)] : []) ,
+    ];
+  } else if (action === "unblock-user") {
+    if (!userQ) return null;
+    body = [step(`/ip hotspot user enable [find where name=${userQ}]`)];
+  } else return null;
   return [head, ...body].join("\n") + "\n";
 }
 
@@ -206,6 +237,9 @@ const ACTION_TEXT: Record<string, string> = {
   "api-credentials": "API user hotspotpro was created on the router.",
   "update-script": "The router downloaded and ran the latest HotspotPro setup.",
   reboot: "Reboot sent.",
+  "kick-user": "Customer was signed out on the router.",
+  "block-user": "Customer was blocked and signed out on the router.",
+  "unblock-user": "Customer was unblocked on the router.",
 };
 
 /** After the router reports a button's script ran, record that on its row. */

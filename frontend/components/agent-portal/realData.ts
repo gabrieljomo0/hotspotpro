@@ -1,12 +1,9 @@
 // Turns the account's real ActiveUser list into the numbers/rows an agent
 // portal widget needs, scoped to one router — no sample data involved.
-// Which users "belong" to a router is simulated the same deterministic way
-// the admin's own router detail page already does it (see hashString),
-// so a user shown here and a user shown there always agree.
 
 import type { ActiveUser, RouterInfo } from "../dashboard/data/dashboard-data";
 import { hashString } from "../dashboard/active-users/advanced-details/helpers";
-import { getUserId } from "../dashboard/active-users/userLinks";
+import { routerForUser } from "../dashboard/active-users/sessionInsights";
 
 export function getScopedUsers(
   users: ActiveUser[],
@@ -14,14 +11,10 @@ export function getScopedUsers(
   routerIp: string | null,
 ): ActiveUser[] {
   if (!routerIp || routers.length === 0) return [];
-  return users.filter((user) => {
-    const seed = hashString(getUserId(user));
-    return routers[seed % routers.length]?.ip === routerIp;
-  });
+  return users.filter((user) => routerForUser(user, routers)?.ip === routerIp);
 }
 
 export function parseDataSize(value: string): number {
-  // Returns a value in GB from strings like "1.2 GB" or "890 MB".
   const match = value.match(/([\d.]+)\s*(GB|MB)/i);
   if (!match) return 0;
   const amount = parseFloat(match[1]);
@@ -41,6 +34,7 @@ export function statusBreakdown(scopedUsers: ActiveUser[]) {
     Disconnected: "#d4d4d4",
     Expired: "#d4d4d4",
     Blocked: "#1a1a1a",
+    Paused: "#a3a3a3",
   };
   const counts = new Map<string, number>();
   scopedUsers.forEach((u) => counts.set(u.status, (counts.get(u.status) ?? 0) + 1));
@@ -61,9 +55,6 @@ export function topUsersByData(scopedUsers: ActiveUser[], limit = 5) {
     .map((u) => ({ phone: u.phone, usage: formatGB(u.usageGb) }));
 }
 
-// A deterministic (not random) hourly series, seeded off the router's own
-// IP plus its current scoped-user count, so the shape is consistent
-// between renders and roughly scales with how busy the router actually is.
 export function buildConnectionSeries(routerIp: string | null, currentOnline: number) {
   const hours = ["12 AM", "2 AM", "4 AM", "6 AM", "8 AM", "10 AM", "12 PM", "2 PM", "4 PM", "6 PM", "8 PM", "10 PM"];
   const seed = routerIp ? hashString(routerIp) : 0;

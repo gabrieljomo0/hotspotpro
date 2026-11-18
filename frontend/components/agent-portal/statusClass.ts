@@ -15,9 +15,17 @@ export function statusClass(status: string) {
   }
 
   if (status === "Blocked") {
-    return "bg-[#f3f1ec] text-[#1a1a1a] ";
+    return "bg-red-100 text-red-700";
   }
 
-  // Covers "Disconnected", "Expired", and anything else not listed above.
+  if (status === "Paused") {
+    return "bg-amber-100 text-amber-800";
+  }
+
+  if (status === "Disconnected") {
+    return "bg-slate-100 text-slate-600";
+  }
+
+  // Covers "Expired" and anything else not listed above.
   return "bg-[#f4f4f4] text-[#1a1a1a] ";
 }

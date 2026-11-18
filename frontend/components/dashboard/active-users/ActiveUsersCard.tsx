@@ -91,8 +91,8 @@ export function ActiveUsersCard({
     openUserActions(userId);
   }
 
-  function routerOf(userId: string) {
-    return routerForUser(userId, routers);
+  function routerOf(user: (typeof users)[number]) {
+    return routerForUser(user, routers);
   }
 
   function statusOf(userId: string) {
@@ -114,7 +114,7 @@ export function ActiveUsersCard({
         const matchesStatus =
           statusFilter === "All" || statusOf(userId) === statusFilter;
         const matchesRouter =
-          routerFilter === "All" || routerOf(userId)?.ip === routerFilter;
+          routerFilter === "All" || routerOf(user)?.ip === routerFilter;
         const matchesPackage =
           packageFilter === "All" || user.package === packageFilter;
         return matchesQuery && matchesStatus && matchesRouter && matchesPackage;
@@ -475,9 +475,9 @@ export function ActiveUsersCard({
                   </td>
 
                   <td className="px-3 py-4">
-                    {routerOf(userId) ? (
+                    {routerOf(user) ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
-                        {routerOf(userId)?.name.split(" (")[0]}
+                        {routerOf(user)?.name.split(" (")[0]}
                       </span>
                     ) : (
                       <span className="text-[#a3a3a3]">—</span>

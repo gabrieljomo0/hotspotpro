@@ -22,8 +22,6 @@ import { useDashboard } from "@/components/dashboard/context/DashboardContext";
 import { NotFoundCard } from "@/components/dashboard/shared/ActionPageLayout";
 import { agentsAssignedToRouter } from "@/components/dashboard/agents/routerAgents";
 import { RouterCaptivePortalPanel } from "@/components/dashboard/routers/RouterCaptivePortalPanel";
-import { hashString } from "@/components/dashboard/active-users/advanced-details/helpers";
-import { getUserId } from "@/components/dashboard/active-users/userLinks";
 
 import { SystemInformationTab } from "@/components/dashboard/routers/detail/SystemInformationTab";
 import { ReportsTab } from "@/components/dashboard/routers/detail/ReportsTab";
@@ -108,13 +106,8 @@ function RouterDetailPageInner({
   const live = routerLiveStatus(router, control[router.ip], routerEnabled);
   const isEnabled = live === "Online";
 
-  // A rough "who's connected to this router" and "which agents work here"
-  // list, based on a consistent hash of each user/agent — see the shared
-  // hashString helper for why this looks random but isn't.
-  const connectedUsers = users.filter((user) => {
-    const seed = hashString(getUserId(user));
-    return routers[seed % routers.length]?.ip === router.ip;
-  });
+  // Prefer RADIUS / check-in routerIp so Active Users and this tab agree.
+  const connectedUsers = users.filter((user) => user.routerIp === router.ip);
   const assignedAgents = agentsAssignedToRouter(agents, router.ip);
 
   function confirmAnd(title: string, message: string, action: () => void) {
@@ -239,7 +232,9 @@ function RouterDetailPageInner({
 
       {tab === "Reports" && <ReportsTab routerIp={router.ip} />}
 
-      {tab === "Internet Users" && <InternetUsersTab names={router.liveUsers ?? []} />}
+      {tab === "Internet Users" && (
+        <InternetUsersTab names={router.liveUsers ?? []} routerIp={router.ip} />
+      )}
 
       {tab === "Assigned Agents" && <AccessPointsTab assignedAgents={assignedAgents} />}
 

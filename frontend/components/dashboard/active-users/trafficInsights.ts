@@ -74,7 +74,7 @@ export function buildTraffic({
   );
 
   const inScope = users.filter((user) => {
-    const router = routerForUser(getUserId(user), routers);
+    const router = routerForUser(user, routers);
     if (!router || !upTracked.has(router.ip)) return false;
     return routerFilter === "All" || router.ip === routerFilter;
   });
@@ -84,7 +84,7 @@ export function buildTraffic({
 
   inScope.forEach((user) => {
     const id = getUserId(user);
-    const router = routerForUser(id, routers);
+    const router = routerForUser(user, routers);
     userRows.push({
       id,
       label: user.phone || user.voucherUsername,

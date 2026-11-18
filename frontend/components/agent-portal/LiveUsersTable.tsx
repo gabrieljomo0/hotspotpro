@@ -1,15 +1,17 @@
 // The "who's connected right now" table — real ActiveUser rows scoped to
-// this agent's router. Block/Disconnect actions only show if the agent's
-// own permissions allow them.
+// this agent's router. Block/Disconnect open the same action pages as Active Users.
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Search } from "lucide-react";
 
 import type { ActiveUser } from "../dashboard/data/dashboard-data";
 import type { AgentProfile } from "../dashboard/shared/types";
 import { statusClass } from "./statusClass";
 import { getUserId } from "../dashboard/active-users/userLinks";
+import { connectionStatus } from "../dashboard/active-users/sessionInsights";
+import { useDashboard } from "../dashboard/context/DashboardContext";
 
 export function LiveUsersTable({
   scopedUsers,
@@ -19,15 +21,34 @@ export function LiveUsersTable({
   agent: AgentProfile;
 }) {
   const [query, setQuery] = useState("");
+  const { getConnectionState } = useDashboard();
   const canBlock = agent.permissions["users.block"] === "Allowed";
-  const canDisconnect = agent.permissions["users.terminateOther"] === "Allowed" || agent.permissions["users.terminateOwn"] === "Allowed";
-  const onlineCount = scopedUsers.filter((u) => u.status === "Online").length;
+  const canDisconnect =
+    agent.permissions["users.terminateOther"] === "Allowed" ||
+    agent.permissions["users.terminateOwn"] === "Allowed";
 
-  const visible = scopedUsers.filter((u) => {
+  const withStatus = scopedUsers.map((user) => {
+    const id = getUserId(user);
+    const status = connectionStatus(getConnectionState(id));
+    return { user, id, status };
+  });
+
+  const onlineCount = withStatus.filter((row) => row.status === "Online").length;
+
+  const visible = withStatus.filter(({ user, id }) => {
     if (!query) return true;
     const q = query.toLowerCase();
-    return u.phone.toLowerCase().includes(q) || (u.macAddress ?? "").toLowerCase().includes(q);
+    return (
+      user.phone.toLowerCase().includes(q) ||
+      id.toLowerCase().includes(q) ||
+      (user.macAddress ?? "").toLowerCase().includes(q) ||
+      user.voucherUsername.toLowerCase().includes(q)
+    );
   });
+
+  function actionHref(userId: string, action: "disconnect" | "block") {
+    return `/agent-portal/${agent.id}/users/${encodeURIComponent(userId)}/${action}`;
+  }
 
   return (
     <article className="overflow-hidden rounded-2xl bg-white shadow-sm">
@@ -69,37 +90,59 @@ export function LiveUsersTable({
           </thead>
 
           <tbody>
-            {visible.map((user) => (
-              <tr key={getUserId(user)} className="border-t border-slate-100 hover:bg-[#f4f4f4]">
+            {visible.map(({ user, id, status }) => (
+              <tr key={id} className="border-t border-slate-100 hover:bg-[#f4f4f4]">
                 <td className="px-4 py-3 font-semibold">
-                  <span
-                    className={`mr-3 inline-block h-2 w-2 rounded-full ${ user.status === "Online" ? "bg-[#1a1a1a]" : user.status === "Idle" ? "bg-[#1a1a1a]" : user.status === "Expiring Soon" ? "bg-[#1a1a1a]" : user.status === "Blocked" ? "bg-red-500" : "bg-slate-400" }`}
-                  />
-                  {user.phone}
+                  <Link
+                    href={`/agent-portal/${agent.id}/users/${encodeURIComponent(id)}`}
+                    className="hover:underline"
+                  >
+                    <span
+                      className={`mr-3 inline-block h-2 w-2 rounded-full ${
+                        status === "Online"
+                          ? "bg-emerald-500"
+                          : status === "Blocked"
+                            ? "bg-red-500"
+                            : "bg-slate-400"
+                      }`}
+                    />
+                    {user.phone || user.voucherUsername}
+                  </Link>
                 </td>
                 <td className="px-4 py-3">{user.deviceType ?? "—"}</td>
-                <td className={`px-4 py-3 ${user.status === "Expiring Soon" ? "font-semibold text-[#1a1a1a]" : ""}`}>
-                  {user.timeLeft}
-                </td>
+                <td className="px-4 py-3">{user.timeLeft}</td>
                 <td className="px-4 py-3">{user.dataUsed}</td>
                 <td className="px-4 py-3">{user.dataLeft}</td>
                 <td className="px-4 py-3">
-                  <span className={`rounded-md px-2 py-1 font-semibold ${statusClass(user.status)}`}>
-                    {user.status}
+                  <span className={`rounded-md px-2 py-1 font-semibold ${statusClass(status)}`}>
+                    {status}
                   </span>
                 </td>
                 <td className="px-4 py-3">{user.package}</td>
                 {(canBlock || canDisconnect) && (
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      {canBlock && user.status === "Blocked" ? (
-                        <button type="button" className="rounded-md bg-[#f4f4f4] px-2 py-1 font-semibold text-[#1a1a1a]">
+                      {canBlock && status === "Blocked" ? (
+                        <Link
+                          href={actionHref(id, "block")}
+                          className="rounded-md bg-[#f4f4f4] px-2 py-1 font-semibold text-[#1a1a1a] hover:bg-[#e8e8e8]"
+                        >
                           Unblock
-                        </button>
-                      ) : canDisconnect && user.status !== "Disconnected" && user.status !== "Expired" ? (
-                        <button type="button" className="rounded-md bg-[#f3f1ec] px-2 py-1 font-semibold text-[#1a1a1a]">
+                        </Link>
+                      ) : canDisconnect && status !== "Disconnected" ? (
+                        <Link
+                          href={actionHref(id, "disconnect")}
+                          className="rounded-md bg-[#f3f1ec] px-2 py-1 font-semibold text-[#1a1a1a] hover:bg-[#ebe6dc]"
+                        >
                           Disconnect
-                        </button>
+                        </Link>
+                      ) : canBlock && status !== "Blocked" ? (
+                        <Link
+                          href={actionHref(id, "block")}
+                          className="rounded-md bg-red-50 px-2 py-1 font-semibold text-red-700 hover:bg-red-100"
+                        >
+                          Block
+                        </Link>
                       ) : (
                         <span>—</span>
                       )}
@@ -120,7 +163,9 @@ export function LiveUsersTable({
       </div>
 
       <div className="flex items-center justify-between border-t px-4 py-3 text-xs">
-        <p className="text-[#737373]">Showing {visible.length} of {scopedUsers.length} users on this router</p>
+        <p className="text-[#737373]">
+          Showing {visible.length} of {scopedUsers.length} users on this router
+        </p>
       </div>
     </article>
   );

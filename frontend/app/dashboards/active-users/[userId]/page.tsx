@@ -99,7 +99,7 @@ export default function ViewSessionPage({
   const state = getConnectionState(decodedUserId);
   const status = connectionStatus(state);
   const online = status === "Online";
-  const router = routerForUser(decodedUserId, routers);
+  const router = routerForUser(user, routers);
   const routerName = router ? router.name.split(" (")[0] : null;
   const device = sessionDevice(user);
   const split = usageSplit(user);

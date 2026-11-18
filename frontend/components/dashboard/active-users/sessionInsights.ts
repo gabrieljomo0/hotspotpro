@@ -2,14 +2,6 @@
 // their connection status, and the usage/device figures shown on the
 // session page. Kept in one place so the router summary cards, the users
 // table and the session details page can never disagree with each other.
-//
-// NOTE — what is real and what is placeholder right now:
-//   * A user's router comes from the same hash-based assignment the table
-//     has always used (there is no router link on a user record yet).
-//   * MAC / IP / device name fall back to values derived from the user's
-//     id when the record doesn't carry them. Download/upload is a split of
-//     the user's real "data used" figure. These are placeholders until the
-//     MikroTik connection supplies real session accounting.
 
 import type { ActiveUser, RouterInfo } from "../data/dashboard-data";
 import { hashString } from "./advanced-details/helpers";
@@ -25,10 +17,21 @@ export function connectionStatus(state: ConnectionState): ConnectionStatus {
   return "Online";
 }
 
-// Same assignment the users table has always used.
-export function routerForUser(userId: string, routers: RouterInfo[]): RouterInfo | null {
+/** Prefer the router IP reported by RADIUS / check-in; hash only as last-resort fallback. */
+export function routerForUser(
+  userOrId: ActiveUser | string,
+  routers: RouterInfo[],
+): RouterInfo | null {
   if (routers.length === 0) return null;
-  return routers[hashString(userId) % routers.length];
+  if (typeof userOrId !== "string") {
+    const ip = (userOrId.routerIp || "").trim();
+    if (ip) {
+      const match = routers.find((r) => r.ip === ip);
+      if (match) return match;
+    }
+  }
+  const id = typeof userOrId === "string" ? userOrId : getUserId(userOrId);
+  return routers[hashString(id) % routers.length] ?? null;
 }
 
 export function routerIsUp(router: RouterInfo) {
@@ -38,8 +41,6 @@ export function routerIsUp(router: RouterInfo) {
 export type RouterSessionSummary = {
   router: RouterInfo;
   up: boolean;
-  // Live sessions on this router. Only meaningful while the router is up —
-  // a router that's down can't be carrying live sessions.
   active: number;
 };
 
@@ -53,7 +54,7 @@ export function summariseRouters(
     const active = up
       ? users.filter((user) => {
           const id = getUserId(user);
-          return routerForUser(id, routers)?.ip === router.ip && connectionStatus(getState(id)) === "Online";
+          return routerForUser(user, routers)?.ip === router.ip && connectionStatus(getState(id)) === "Online";
         }).length
       : 0;
     return { router, up, active };
@@ -66,8 +67,6 @@ export function summariseRouters(
     downCount: perRouter.length - upCount,
   };
 }
-
-// --- usage figures -------------------------------------------------------
 
 export function parseDataToMb(value: string): number {
   const match = value.replace(/,/g, "").match(/([\d.]+)\s*(TB|GB|MB|KB|B)?/i);
@@ -93,8 +92,6 @@ export function formatMb(mb: number): string {
   return `${Math.round(mb * 1024)} KB`;
 }
 
-// Share of the data allowance already used, 0–100. Data left may be
-// "Unlimited" (or anything non-numeric), in which case there's no bar.
 export function dataUsedPercent(user: ActiveUser): number | null {
   const used = parseDataToMb(user.dataUsed);
   if (!/\d/.test(user.dataLeft)) return null;
@@ -104,16 +101,12 @@ export function dataUsedPercent(user: ActiveUser): number | null {
   return Math.min(100, Math.round((used / total) * 100));
 }
 
-// Splits the real "data used" figure into download/upload — web traffic
-// is overwhelmingly download, so ~85–93% down.
 export function usageSplit(user: ActiveUser) {
   const total = parseDataToMb(user.dataUsed);
   const downShare = 0.85 + (hashString(getUserId(user)) % 9) / 100;
   const down = total * downShare;
   return { totalMb: total, downMb: down, upMb: total - down };
 }
-
-// --- device ---------------------------------------------------------------
 
 const DEVICE_NAMES: Record<string, string[]> = {
   "Android Phone": ["TECNO-SPARK-40-Pro", "Galaxy-A14", "Infinix-Hot-30", "Redmi-Note-12"],
@@ -130,19 +123,17 @@ export function sessionDevice(user: ActiveUser) {
   const names = DEVICE_NAMES[type] ?? DEVICE_NAMES["Android Phone"];
   const hex = (n: number) => (n % 256).toString(16).toUpperCase().padStart(2, "0");
   const mac =
-    user.macAddress ??
+    user.macAddress ||
     [seed * 7 + 2, seed * 13 + 59, seed * 3 + 71, seed * 11 + 5, seed * 17 + 9, seed * 19 + 33].map(hex).join(":");
+  const routerHost = (user.routerIp || "").replace(/\.\d+$/, "") || "10.10.0";
   return {
     type,
     name: names[seed % names.length],
     mac,
-    ip: `10.90.0.${10 + (seed % 200)}`,
+    ip: `${routerHost}.${10 + (seed % 200)}`,
   };
 }
 
-// --- sites ----------------------------------------------------------------
-
-// Percentage of a pretend "window" — used by the Today / 7 days toggle.
 export function windowFactor(window: "today" | "7days") {
   return window === "today" ? 1 : 6.4;
 }

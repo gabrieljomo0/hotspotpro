@@ -9,7 +9,7 @@
 // How things belong to a router/site/agent in this app:
 //   * a ROUTER belongs to a site (router.siteId)
 //   * a USER is on a router by the same deterministic assignment every other
-//     screen uses (routerForUser) — there's no stored user→router link yet
+//     screen uses (routerForUser + user.routerIp from RADIUS/check-in)
 //   * a VOUCHER belongs to the router(s) of its BATCH, and to the agent who
 //     generated it (voucher.agentId)
 //   * an AGENT works one router (agent.routerIp)
@@ -231,7 +231,7 @@ export function routersInScope(routers: RouterInfo[], scope: ResolvedScope): Rou
 export function usersInScope(users: ActiveUser[], allRouters: RouterInfo[], scope: ResolvedScope): ActiveUser[] {
   if (!scope.routerIps) return users;
   return users.filter((user) => {
-    const router = routerForUser(getUserId(user), allRouters);
+    const router = routerForUser(user, allRouters);
     return !!router && scope.routerIps!.has(router.ip);
   });
 }

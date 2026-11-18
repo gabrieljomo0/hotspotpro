@@ -9,13 +9,7 @@ import {
   ActionPageLayout,
   NotFoundCard,
 } from "@/components/dashboard/shared/ActionPageLayout";
-
-const PACKAGE_OPTIONS = [
-  "Daily Plan",
-  "Weekly Plan",
-  "Monthly Plan",
-  "Direct Voucher",
-];
+import { localizeAmountString } from "@/components/dashboard/shared/currency";
 
 export default function ChangePackagePage({
   params,
@@ -26,16 +20,18 @@ export default function ChangePackagePage({
   const decodedUserId = decodeURIComponent(userId);
   const router = useRouter();
   const routes = useUserRoutes();
-  const { findUser, changeUserPackage } = useDashboard();
+  const { findUser, changeUserPackage, packages } = useDashboard();
 
   const user = findUser(decodedUserId);
-  const [selected, setSelected] = useState(user?.package ?? PACKAGE_OPTIONS[0]);
+  const packageOptions = packages.filter((p) => p.status === "Active" || p.status === "Hidden");
+  const [selected, setSelected] = useState(user?.package ?? packageOptions[0]?.name ?? "");
 
   if (!user) {
     return <NotFoundCard />;
   }
 
   function handleConfirm() {
+    if (!selected) return;
     changeUserPackage(decodedUserId, selected);
     router.push(routes.listHref);
   }
@@ -47,21 +43,32 @@ export default function ChangePackagePage({
       subtitle={`Current package: ${user.package}`}
     >
       <div className="space-y-2">
-        {PACKAGE_OPTIONS.map((option) => (
-          <button
-            type="button"
-            key={option}
-            onClick={() => setSelected(option)}
-            className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left text-sm font-semibold transition ${
-              selected === option
-                ? "border-[#1a1a1a] bg-[#f4f4f4] text-[#1a1a1a]"
-                : "border-[#e6e6e6] text-[#525252] hover:bg-[#ffffff]"
-            }`}
-          >
-            {option}
-            {selected === option && <span aria-hidden="true">✓</span>}
-          </button>
-        ))}
+        {packageOptions.length === 0 ? (
+          <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            No packages available. Create one under Packages first.
+          </p>
+        ) : (
+          packageOptions.map((pkg) => (
+            <button
+              type="button"
+              key={pkg.id}
+              onClick={() => setSelected(pkg.name)}
+              className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left text-sm font-semibold transition ${
+                selected === pkg.name
+                  ? "border-[#1a1a1a] bg-[#f4f4f4] text-[#1a1a1a]"
+                  : "border-[#e6e6e6] text-[#525252] hover:bg-[#ffffff]"
+              }`}
+            >
+              <span>
+                {pkg.name}
+                <span className="ml-2 text-xs font-medium text-[#737373]">
+                  {localizeAmountString(pkg.price)} · {pkg.validity}
+                </span>
+              </span>
+              {selected === pkg.name && <span aria-hidden="true">✓</span>}
+            </button>
+          ))
+        )}
       </div>
 
       <button
