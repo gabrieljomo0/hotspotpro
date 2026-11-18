@@ -22,6 +22,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { InstallAppButton } from "@/components/InstallAppButton";
 
 const features = [
   {
@@ -188,6 +189,8 @@ export default function LandingPage() {
             >
               {darkMode ? "Dark" : "Light"}
             </button>
+
+            <InstallAppButton className="hidden items-center gap-2 rounded-lg border border-slate-300 px-4 py-3 text-sm font-semibold transition hover:bg-slate-100 sm:inline-flex dark:border-slate-600 dark:hover:bg-slate-900" />
 
             <Link
               href="/login"
