@@ -2,7 +2,6 @@
 
 import { Download, Share, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -117,29 +116,28 @@ export function InstallAppButton({ className = "" }: { className?: string }) {
   );
 }
 
-/** Fixed bottom prompt so Install is always visible on the page. */
+/** Fixed bottom prompt — always visible until installed (dismiss only hides for this browser tab session). */
 export function InstallAppBanner() {
-  const pathname = usePathname() || "";
   const { deferred, installed, iosTip, ready, install } = useInstallPrompt();
-  const [dismissed, setDismissed] = useState(true);
+  const [dismissed, setDismissed] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [onPortal, setOnPortal] = useState(false);
 
   useEffect(() => {
     try {
-      setDismissed(localStorage.getItem(DISMISS_KEY) === "1");
+      setDismissed(sessionStorage.getItem(DISMISS_KEY) === "1");
     } catch {
       setDismissed(false);
     }
+    setOnPortal(window.location.pathname.startsWith("/portal"));
   }, []);
 
-  // Captive portal customers should not see the admin app install bar.
-  if (!ready || installed || dismissed) return null;
-  if (pathname.startsWith("/portal")) return null;
+  if (!ready || installed || dismissed || onPortal) return null;
 
   function dismiss() {
     setDismissed(true);
     try {
-      localStorage.setItem(DISMISS_KEY, "1");
+      sessionStorage.setItem(DISMISS_KEY, "1");
     } catch {
       /* ignore */
     }
@@ -147,7 +145,10 @@ export function InstallAppBanner() {
 
   return (
     <>
-      <div className="fixed inset-x-0 bottom-0 z-[240] border-t border-[#e6e6e6] bg-white p-3 shadow-[0_-8px_30px_rgba(0,0,0,0.12)] sm:p-4">
+      <div
+        data-testid="pwa-install-banner"
+        className="fixed inset-x-0 bottom-0 z-[240] border-t border-[#e6e6e6] bg-white p-3 shadow-[0_-8px_30px_rgba(0,0,0,0.12)] sm:p-4"
+      >
         <div className="mx-auto flex max-w-3xl items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/icons/icon-192.png" alt="" className="h-12 w-12 shrink-0 rounded-xl" width={48} height={48} />
