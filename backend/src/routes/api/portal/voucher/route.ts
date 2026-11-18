@@ -146,6 +146,7 @@ export async function POST(request: Request) {
     hotspotLogin,
     redirect: GOOGLE,
     syncQueued,
-    waitMs: syncQueued ? 900 : 0,
+    // Router picks up ensureOneLocalUser on the next check-in (~5–15s). Wait long enough before MikroTik /login.
+    waitMs: syncQueued ? 5500 : 800,
   });
 }

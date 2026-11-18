@@ -46,31 +46,24 @@ type CardProps = {
   packageName: string;
   price: string;
   businessName?: string;
+  /** Position on the printed sheet (1, 2, 3 …). Always shown on print/PDF cards. */
+  number?: number;
 };
 
-// `number` is the voucher's position on the printed sheet (1, 2, 3 …). When
-// given, it is shown as "No. n" in the top corner of every design so a
-// printed sheet can be checked, counted and handed out in order.
-export function VoucherCardPreview({
-  number,
-  ...card
-}: CardProps & { number?: number }) {
-  if (number === undefined) return <VoucherCardBody {...card} />;
+function NumberBadge({ number }: { number: number }) {
   return (
-    <div className="relative w-56" data-voucher-number={number}>
-      <VoucherCardBody {...card} />
-      <span
-        data-testid="voucher-number"
-        style={{ WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" }}
-        className="pointer-events-none absolute right-2 top-2 rounded border border-[#1a1a1a] bg-white px-1.5 py-0.5 font-mono text-[11px] font-bold leading-none text-[#1a1a1a]"
-      >
-        No. {number}
-      </span>
-    </div>
+    <span
+      data-testid="voucher-number"
+      style={{ WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" }}
+      className="inline-flex shrink-0 items-center rounded border border-[#1a1a1a] bg-white px-1.5 py-0.5 font-mono text-[11px] font-bold leading-none text-[#1a1a1a]"
+    >
+      No. {number}
+    </span>
   );
 }
 
-function VoucherCardBody({
+export function VoucherCardPreview({
+  number,
   design,
   code,
   password = null,
@@ -79,12 +72,14 @@ function VoucherCardBody({
   businessName = "HotspotPro",
 }: CardProps) {
   const accent = PRINT_DESIGNS.find((d) => d.id === design)?.accent ?? "#1a1a1a";
+  const num = number !== undefined ? <NumberBadge number={number} /> : null;
 
   if (design === "classic-card") {
     return (
-      <div className="w-56 overflow-hidden rounded-xl border-2 bg-white shadow-sm" style={{ borderColor: accent }}>
-        <div className="px-3 py-1.5 text-center text-[10px] font-bold uppercase tracking-wide text-white" style={{ background: accent }}>
-          {businessName}
+      <div className="relative w-56 overflow-hidden rounded-xl border-2 bg-white shadow-sm" style={{ borderColor: accent }} data-voucher-number={number}>
+        <div className="flex items-center justify-between gap-2 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white" style={{ background: accent }}>
+          <span className="truncate">{businessName}</span>
+          {num}
         </div>
         <div className="px-4 py-4 text-center">
           {password ? (
@@ -105,7 +100,8 @@ function VoucherCardBody({
 
   if (design === "bold-ribbon") {
     return (
-      <div className="relative w-56 overflow-hidden rounded-xl border border-[#f4f4f4] bg-white p-4 text-center shadow-sm">
+      <div className="relative w-56 overflow-hidden rounded-xl border border-[#f4f4f4] bg-white p-4 text-center shadow-sm" data-voucher-number={number}>
+        <div className="absolute left-2 top-2 z-10">{num}</div>
         <div
           className="absolute -right-10 top-3 w-32 rotate-45 py-1 text-center text-[9px] font-bold uppercase text-white"
           style={{ background: accent }}
@@ -113,12 +109,12 @@ function VoucherCardBody({
           {packageName}
         </div>
         {password ? (
-          <div className="mt-4 space-y-0.5">
+          <div className="mt-6 space-y-0.5">
             <p className="font-mono text-lg font-black text-[#1a1a1a]">U: {code}</p>
             <p className="font-mono text-lg font-black text-[#1a1a1a]">P: {password}</p>
           </div>
         ) : (
-          <p className="mt-4 font-mono text-xl font-black text-[#1a1a1a]">{code}</p>
+          <p className="mt-6 font-mono text-xl font-black text-[#1a1a1a]">{code}</p>
         )}
         <p className="mt-2 text-xs font-semibold" style={{ color: accent }}>
           {price}
@@ -130,16 +126,15 @@ function VoucherCardBody({
 
   if (design === "minimal-frame") {
     return (
-      <div className="w-56 rounded-lg border border-dashed p-4 text-center" style={{ borderColor: accent }}>
+      <div className="w-56 rounded-lg border border-dashed p-4 text-center" style={{ borderColor: accent }} data-voucher-number={number}>
+        <div className="mb-2 flex justify-end">{num}</div>
         {password ? (
           <div className="space-y-0.5">
             <p className="font-mono text-base font-bold tracking-wider text-[#1a1a1a]">{code}</p>
             <p className="font-mono text-base font-bold tracking-wider text-[#1a1a1a]">{password}</p>
           </div>
         ) : (
-          <p className="font-mono text-lg font-bold tracking-wider text-[#1a1a1a]">
-            {code}
-          </p>
+          <p className="font-mono text-lg font-bold tracking-wider text-[#1a1a1a]">{code}</p>
         )}
         <div className="mt-2 flex items-center justify-center gap-2 text-[10px] text-[#737373]">
           <span>{packageName}</span>
@@ -150,16 +145,19 @@ function VoucherCardBody({
     );
   }
 
-  // micro-strip (default) — dense single-line strip
+  // micro-strip (default)
   return (
-    <div className="w-56 overflow-hidden rounded-lg border border-[#f4f4f4] bg-white shadow-sm">
-      <div className="flex items-center justify-between px-3 py-1" style={{ background: `${accent}15` }}>
-        <span className="text-[9px] font-bold uppercase" style={{ color: accent }}>
+    <div className="w-56 overflow-hidden rounded-lg border border-[#f4f4f4] bg-white shadow-sm" data-voucher-number={number}>
+      <div className="flex items-center justify-between gap-2 px-3 py-1" style={{ background: `${accent}15` }}>
+        <span className="truncate text-[9px] font-bold uppercase" style={{ color: accent }}>
           {businessName}
         </span>
-        <span className="text-[9px] font-bold" style={{ color: accent }}>
-          {price}
-        </span>
+        <div className="flex items-center gap-1.5">
+          {num}
+          <span className="text-[9px] font-bold" style={{ color: accent }}>
+            {price}
+          </span>
+        </div>
       </div>
       <div className="px-3 py-2.5">
         {password ? (

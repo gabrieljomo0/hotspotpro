@@ -209,6 +209,17 @@ export function flushSaves() {
   }
 }
 
+/** Persist one slice immediately and wait (so routers can sync vouchers that just got created). */
+export async function persistNow(name: string, value: unknown) {
+  if (!online) return;
+  const old = timers.get(name);
+  if (old) clearTimeout(old);
+  timers.delete(name);
+  pending.delete(name);
+  known.set(name, JSON.stringify(value));
+  await send(name, value);
+}
+
 /** Admin: wipe every slice on the server (Reset demo data). */
 export async function wipeServerData() {
   try {

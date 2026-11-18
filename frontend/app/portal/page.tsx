@@ -1818,35 +1818,43 @@ function CaptivePortalPageInner() {
     }
 
     setConnectingWifi(true);
-    fetch("/api/portal/voucher", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...(routerToken ? { "x-hsp-rt": routerToken } : {}) },
-      body: JSON.stringify({ username, password }),
-    })
-      .then(async (response) => ({ ok: response.ok, body: await response.json().catch(() => ({})) }))
-      .then(async ({ ok, body }) => {
-        if (!ok || !body.valid) {
-          setConnectingWifi(false);
-          setConnectedFromVoucher(false);
-          // used / expired / wrong_router / invalid — show the exact API message
-          setVoucherError(
-            typeof body.message === "string" && body.message
-              ? body.message
-              : "That voucher isn't valid.",
-          );
-          return;
-        }
-        setVoucherError("");
-        setConnectedFromVoucher(true);
-        const waitMs = typeof body.waitMs === "number" ? body.waitMs : 0;
-        if (waitMs > 0) await new Promise((resolve) => window.setTimeout(resolve, waitMs));
-        // POST to MikroTik /login — puts the phone online, then dst opens Google.
-        routerLogin(username, password, typeof body.hotspotLogin === "string" ? body.hotspotLogin : null);
-      })
-      .catch(() => {
-        setConnectingWifi(false);
-        setVoucherError("Could not reach the service. Try again.");
+    const attempt = async (retry: boolean): Promise<void> => {
+      const response = await fetch("/api/portal/voucher", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(routerToken ? { "x-hsp-rt": routerToken } : {}) },
+        body: JSON.stringify({ username, password }),
       });
+      const body = await response.json().catch(() => ({}));
+      if ((!response.ok || !body.valid) && retry && body.code === "invalid") {
+        // New vouchers can take a moment to reach the server — try once more.
+        await new Promise((resolve) => window.setTimeout(resolve, 1200));
+        return attempt(false);
+      }
+      if (!response.ok || !body.valid) {
+        setConnectingWifi(false);
+        setConnectedFromVoucher(false);
+        setVoucherError(
+          typeof body.message === "string" && body.message
+            ? body.message
+            : "That voucher isn't valid.",
+        );
+        return;
+      }
+      setVoucherError("");
+      setConnectedFromVoucher(true);
+      const waitMs = typeof body.waitMs === "number" ? body.waitMs : 0;
+      if (waitMs > 0) {
+        setVoucherError("Preparing this WiFi login…");
+        await new Promise((resolve) => window.setTimeout(resolve, waitMs));
+        setVoucherError("");
+      }
+      // POST to MikroTik /login — puts the phone online, then dst opens Google.
+      routerLogin(username, password, typeof body.hotspotLogin === "string" ? body.hotspotLogin : null);
+    };
+    void attempt(true).catch(() => {
+      setConnectingWifi(false);
+      setVoucherError("Could not reach the service. Try again.");
+    });
   }
 
   // Real payment: ask the server to start it, then watch for the result.

@@ -24,6 +24,7 @@ import { useAlertsState } from "./useAlertsState";
 import { nowTimestamp, DEFAULT_AGENT_ID } from "./utils";
 import { usePersistedState, useSyncReady } from "./usePersistedState";
 import { queueRouterAction, queueRouterActionMany } from "./queueRouterAction";
+import { persistNow } from "./syncClient";
 import type { RouterTaskKind } from "../routers/routerTasks";
 import { reconcileBatchesFromVouchers } from "../vouchers/reconcileBatches";
 import { loginMethodForRouterIps } from "../vouchers/voucherLoginFromPortal";
@@ -2166,12 +2167,12 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           walletCharged,
         };
 
-    setVouchers((current) => [...newVouchers, ...current]);
-    setVoucherBatches((current) =>
-      existingBatch
-        ? current.map((b) => (b.id === batchId ? newBatch : b))
-        : [newBatch, ...current],
-    );
+    const nextVouchers = [...newVouchers, ...vouchers];
+    const nextBatches = existingBatch
+      ? voucherBatches.map((b) => (b.id === batchId ? newBatch : b))
+      : [newBatch, ...voucherBatches];
+    setVouchers(nextVouchers);
+    setVoucherBatches(nextBatches);
 
     if (currentAgent && currentAgent.requiresWalletFunding && !input.isGiveaway && pricePerVoucher > 0) {
       const cost = quantity * pricePerVoucher;
@@ -2296,13 +2297,18 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     }
 
     // Push the new codes onto the routers that should accept them (local login).
+    // Persist vouchers first — jobs/portal read server state; a 300ms debounce would race login.
     const targetIps =
       input.routerIps.length > 0
         ? input.routerIps
         : currentAgent?.routerIp
           ? [currentAgent.routerIp]
           : routers.map((r) => r.ip);
-    queueRouterActionMany(targetIps, "sync-vouchers");
+    void (async () => {
+      await persistNow("vouchers", nextVouchers);
+      await persistNow("voucherBatches", nextBatches);
+      queueRouterActionMany(targetIps, "sync-vouchers");
+    })();
 
     return newBatch;
   }
