@@ -83,9 +83,7 @@ function hotspotLines(router: Row): string[] {
     `:do { /ip hotspot ip-binding remove [find where type=bypassed] } on-error={ }`,
     // html-directory must match where HotspotPro login.html lives, or phones get MikroTik's default page.
     `:do { ${applyHtmlDirectoryRos()} } on-error={ }`,
-    // Only HotspotPro's server should answer — a leftover factory hotspot serves MikroTik HTML.
-    `:do { /ip hotspot disable [find where name!="hotspotpro"] } on-error={ }`,
-    `:do { /ip hotspot enable [find where name=hotspotpro] } on-error={ }`,
+    // applyHtmlDirectoryRos already disables non-hotspotpro servers and enables hotspotpro.
     // A phone that uses 8.8.8.8 never hits the login page. Keep every customer DNS query on this router.
     `:do { :local a ""; :do { :set a [/ip address get [find where interface=hotspotpro-bridge comment="HotspotPro"] address] } on-error={ }; :if ([:len $a] > 0) do={ :local g [:pick $a 0 [:find $a "/"]]; /ip dhcp-server network set [find where comment="HotspotPro"] dns-server=$g gateway=$g } } on-error={ }`,
     // Close factory NAT / DHCP / IPv6 leaks and keep DNS hijack + hotspot on our bridge.

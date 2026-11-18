@@ -7,7 +7,7 @@
 import dns from "node:dns";
 
 /** Bump this when the setup script changes. Connected routers download the new setup on the next check-in. */
-export const SETUP_VERSION = "v26";
+export const SETUP_VERSION = "v27";
 
 /** Default check-in spacing. Sub-second polls flood weak African links when an account has many routers. */
 export const CHECKIN_INTERVAL = "15s";
@@ -533,9 +533,7 @@ export function buildProvisionScript(input: {
     // terminal and stops a pasted setup. We clear old pages and download HotspotPro's captive portal instead.
     const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
     say("Installing the HotspotPro captive portal...");
-    // Point the profile at our pages after they exist (html-directory alone can fail before the folder is there).
-    safe(`/ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir`, true);
-    add(`:do { /ip hotspot profile set [find where name=hotspotpro] html-directory-override=$hpDir } on-error={ }`);
+    // Do not set html-directory yet — pointing at flash/hotspot before HotspotPro pages land serves MikroTik's factory portal.
     // Remove MikroTik defaults (and any previous HotspotPro pages) so fetch can write ours.
     for (const page of ["login.html", "rlogin.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html", "md5.js", "css/hotspotpro.css"]) {
       safe(`/file remove [find where name=($hpDir . "/${page}")]`, true);

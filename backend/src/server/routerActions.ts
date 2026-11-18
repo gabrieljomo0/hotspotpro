@@ -6,7 +6,7 @@ import { getState, setState } from "./store";
 import { type IspLink, multiWanLines } from "./multiWan";
 import { remoteWinboxLines } from "./routeros";
 import { primaryWanInterface } from "./primaryWan";
-import { applyHtmlDirectoryRos, pickHtmlDirectoryRos } from "./hotspotPages";
+import { applyHtmlDirectoryRos, pickHtmlDirectoryRos, PORTAL_MARKER } from "./hotspotPages";
 import { forgetLocalUsers, localUserLines } from "./localUsers";
 import { ssidForRouter, wifiApplyLines } from "./wifiApply";
 
@@ -84,6 +84,15 @@ function fileFetches(origin: string, token: string) {
     lines.push(step(`/file remove [find where name="${dest}"]`));
     lines.push(step(`/tool fetch url="${css}" dst-path="${dest}"${tls}`));
   }
+  // Retry login/rlogin until HotspotPro marker is present, then point the profile at that folder.
+  const loginUrl = `${origin}/api/provision/${token}/login.html`;
+  const rloginUrl = `${origin}/api/provision/${token}/rlogin.html`;
+  lines.push(
+    `:do { :local hpTry 0; :local hpBody ""; :while ($hpTry < 4) do={ :do { :set hpBody [/file get [find where name="hotspot/login.html"] contents] } on-error={ }; :do { :if ([:typeof [:find $hpBody "${PORTAL_MARKER}"]] != "num") do={ :set hpBody [/file get [find where name="flash/hotspot/login.html"] contents] } } on-error={ }; :if ([:typeof [:find $hpBody "${PORTAL_MARKER}"]] = "num") do={ :set hpTry 4 } else={ :do { /file remove [find where name="hotspot/login.html"] } on-error={ }; :do { /file remove [find where name="flash/hotspot/login.html"] } on-error={ }; :do { /tool fetch url="${loginUrl}" dst-path="hotspot/login.html"${tls} } on-error={ }; :do { /tool fetch url="${loginUrl}" dst-path="flash/hotspot/login.html"${tls} } on-error={ }; :set hpTry ($hpTry + 1); :delay 3s } } } on-error={ }`,
+  );
+  lines.push(
+    `:do { :local hpTry 0; :local hpBody ""; :while ($hpTry < 4) do={ :do { :set hpBody [/file get [find where name="hotspot/rlogin.html"] contents] } on-error={ }; :do { :if ([:typeof [:find $hpBody "${PORTAL_MARKER}"]] != "num") do={ :set hpBody [/file get [find where name="flash/hotspot/rlogin.html"] contents] } } on-error={ }; :if ([:typeof [:find $hpBody "${PORTAL_MARKER}"]] = "num") do={ :set hpTry 4 } else={ :do { /file remove [find where name="hotspot/rlogin.html"] } on-error={ }; :do { /file remove [find where name="flash/hotspot/rlogin.html"] } on-error={ }; :do { /tool fetch url="${rloginUrl}" dst-path="hotspot/rlogin.html"${tls} } on-error={ }; :do { /tool fetch url="${rloginUrl}" dst-path="flash/hotspot/rlogin.html"${tls} } on-error={ }; :set hpTry ($hpTry + 1); :delay 3s } } } on-error={ }`,
+  );
   // Re-point after files land so the phone never keeps the default MikroTik skin.
   lines.push(applyHtmlDirectoryRos());
   return lines;
