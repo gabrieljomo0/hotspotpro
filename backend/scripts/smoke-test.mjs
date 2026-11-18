@@ -96,7 +96,7 @@ try {
   check("remote WebFig is open for browser access", cloudCtl.includes('comment="HotspotPro remote WebFig"') && cloudCtl.includes("/ip service set www") && cloudCtl.includes("interval=1s"), cloudCtl.slice(0, 400));
   check("hotspot login requires voucher page then MAC cookie", cloudCtl.includes("login-by=http-pap,mac-cookie") && cloudCtl.includes("addresses-per-mac=1") && cloudCtl.includes("mac-address=$m"), cloudCtl.slice(0, 800));
   check("captive portal serves a fast on-router HotspotPro login", (await (await fetch(base + "/api/provision/tok-ama-12345678/login.html")).text()).includes('action="$(link-login-only)"') && (await (await fetch(base + "/api/provision/tok-ama-12345678/login.html")).text()).includes('name="username"') && (await (await fetch(base + "/api/provision/tok-ama-12345678/login.html")).text()).includes("Buy a package") && (await (await fetch(base + "/api/provision/tok-ama-12345678/md5.js")).text()).includes("function hexMD5"), "login.html on router");
-  check("connected routers download the latest setup by themselves", cloudCtl.includes("applying the latest setup") && cloudCtl.includes('hpSetup != "v22"') && cloudCtl.includes("/api/provision/tok-ama-12345678?wireless=yes"), cloudCtl.slice(cloudCtl.indexOf("hpSetup"), cloudCtl.indexOf("hpSetup") + 400));
+  check("connected routers download the latest setup by themselves", cloudCtl.includes("applying the latest setup") && cloudCtl.includes('hpSetup != "v23"') && cloudCtl.includes("/api/provision/tok-ama-12345678?wireless=yes"), cloudCtl.slice(cloudCtl.indexOf("hpSetup"), cloudCtl.indexOf("hpSetup") + 400));
   const cloudScript = await (await fetch(base + "/api/provision/tok-ama-12345678?wireless=yes&ssid=AmaCafeWiFi")).text();
   check("setup creates hotspot server in safe steps", cloudScript.includes("hotspot server is ready") && cloudScript.includes("/ip hotspot profile add name=hotspotpro hotspot-address="), cloudScript.slice(cloudScript.indexOf("Creating the hotspot"), cloudScript.indexOf("Creating the hotspot") + 400));
   check("setup clears hotspot bypass so the voucher page is required", cloudScript.includes("type=bypassed") && cloudCtl.includes("type=bypassed"), "ip-binding bypass removed");
@@ -232,8 +232,40 @@ try {
   check("check-in replaces MikroTik default HTML using HotspotPro marker", cloudCtl.includes("HotspotPro portal") && cloudCtl.includes('/ip hotspot disable [find where name!="hotspotpro"]'), "marker + disable other hotspots");
   check("login page for an unknown router is refused", (await fetch(base + "/api/provision/not-a-real-token/login.html")).status === 404);
   const alogin = await (await fetch(base + "/api/provision/tok-ama-12345678/alogin.html")).text();
-  check("success page is served for the router", alogin.includes("$(link-redirect)"));
-  check("error page keeps a fast voucher form on the router", (await (await fetch(base + "/api/provision/tok-ama-12345678/error.html")).text()).includes('action="$(link-login-only)"') && (await (await fetch(base + "/api/provision/tok-ama-12345678/error.html")).text()).includes("Buy a package"));
+  check("success page shows login message and opens Google", alogin.includes("Login successful") && alogin.includes("https://www.google.com/"));
+  const loginDst = await (await fetch(base + "/api/provision/tok-ama-12345678/login.html")).text();
+  check("login form redirects to Google after connect", loginDst.includes('name="dst" value="https://www.google.com/"'));
+  check("error page keeps a fast voucher form on the router", (await (await fetch(base + "/api/provision/tok-ama-12345678/error.html")).text()).includes('action="$(link-login-only)"') && (await (await fetch(base + "/api/provision/tok-ama-12345678/error.html")).text()).includes("Buy a package") && (await (await fetch(base + "/api/provision/tok-ama-12345678/error.html")).text()).includes("already used"));
+
+  // ---- voucher status messages (success / used / expired / wrong router) ----
+  await send("PUT", "/api/state/vouchers", {
+    value: [
+      { code: "OKVOUCH1", password: null, packageName: "Ama Daily", status: "Available", batchId: null },
+      { code: "USEDVOU1", password: null, packageName: "Ama Daily", status: "Used", activatedAtMs: Date.now() - 1000, expiresAtMs: Date.now() + 86400000, boundMac: "AA:BB:CC:DD:EE:FF", batchId: null },
+      { code: "EXPIRED1", password: null, packageName: "Ama Daily", status: "Expired", activatedAtMs: Date.now() - 86400000, expiresAtMs: Date.now() - 1000, batchId: null },
+      { code: "OTHERNET", password: null, packageName: "Other Site Only", status: "Available", batchId: null },
+    ],
+  }, amaCookie);
+  await send("PUT", "/api/state/packages", {
+    value: [
+      { id: "p1", name: "Ama Daily", downloadMbps: 5, uploadMbps: 5, durationValue: 1, durationUnit: "Days", price: 3, status: "Active", validity: "1 day" },
+      { id: "p2", name: "Other Site Only", downloadMbps: 5, uploadMbps: 5, durationValue: 1, durationUnit: "Days", price: 3, status: "Active", validity: "1 day", routerIps: ["10.9.9.9"], applyToAllSites: false },
+    ],
+  }, amaCookie);
+  const okV = await json(await send("POST", "/api/portal/voucher", { username: "OKVOUCH1", password: "OKVOUCH1" }, "", { "x-hsp-rt": "tok-ama-12345678" }));
+  check("valid voucher returns success message and Google redirect", okV.valid === true && /Login successful/i.test(okV.message || "") && okV.redirect === "https://www.google.com/", JSON.stringify(okV));
+  const usedV = await send("POST", "/api/portal/voucher", { username: "USEDVOU1", password: "USEDVOU1", mac: "11:22:33:44:55:66" }, "", { "x-hsp-rt": "tok-ama-12345678" });
+  const usedBody = await json(usedV);
+  check("used voucher returns a clear used message", usedV.status === 403 && usedBody.code === "used" && /already been used/i.test(usedBody.message || ""), JSON.stringify(usedBody));
+  const expV = await send("POST", "/api/portal/voucher", { username: "EXPIRED1", password: "EXPIRED1" }, "", { "x-hsp-rt": "tok-ama-12345678" });
+  const expBody = await json(expV);
+  check("expired voucher returns a clear expired message", expV.status === 403 && expBody.code === "expired" && /expired/i.test(expBody.message || ""), JSON.stringify(expBody));
+  const wrongV = await send("POST", "/api/portal/voucher", { username: "OTHERNET", password: "OTHERNET" }, "", { "x-hsp-rt": "tok-ama-12345678" });
+  const wrongBody = await json(wrongV);
+  check("voucher for a different router is refused", wrongV.status === 403 && wrongBody.code === "wrong_router" && /different/i.test(wrongBody.message || ""), JSON.stringify(wrongBody));
+  // Restore Ama Daily package for later checks that expect it.
+  await send("PUT", "/api/state/packages", { value: [{ id: "p1", name: "Ama Daily", downloadMbps: 5, uploadMbps: 5, durationValue: 1, durationUnit: "Days", price: 3, status: "Active", validity: "1 day" }] }, amaCookie);
+  await send("PUT", "/api/state/vouchers", { value: [{ code: "AMATEST1", password: null, packageName: "Ama Daily", status: "Used", activatedAtMs: Date.now() - 1000, expiresAtMs: Date.now() + 86400000 }] }, amaCookie);
   check("DHCP pool is capped so a small router can create it", scriptA.includes("ranges=10.10.0.2-10.10.3.254"));
   check("script checks the ISP port and internet at the end", scriptA.includes('&wan=') && scriptA.includes("/ping 8.8.8.8"));
   await fetch(base + "/api/provision/tok-ama-12345678/done?failed=0&wan=down");

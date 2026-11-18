@@ -357,17 +357,17 @@ function HomePortal({
       </div>
 
       {(connectingWifi || connectedFromVoucher) && (
-        <div className="mt-5 rounded-xl border border-[#f3f1ec] bg-[#f3f1ec] p-4 text-center">
-          <CheckCircle2 className="mx-auto text-[#1a1a1a]" />
+        <div className="mt-5 rounded-xl border border-[#abefc6] bg-[#ecfdf3] p-4 text-center">
+          <CheckCircle2 className="mx-auto text-[#067647]" />
 
-          <p className="mt-2 font-bold text-[#111111]">
-            {connectingWifi ? "Connecting to WiFi…" : "Internet connected"}
+          <p className="mt-2 font-bold text-[#067647]">
+            {connectingWifi ? "Connecting…" : "Login successful! You are connected to the internet."}
           </p>
 
-          <p className="mt-1 text-xs text-[#1a1a1a]">
+          <p className="mt-1 text-xs text-[#067647]">
             {connectingWifi
-              ? "Signing you in on this network. Keep this page open for a moment."
-              : "Your voucher has been accepted."}
+              ? "Signing you in on this network. Opening Google next…"
+              : "Opening Google…"}
           </p>
         </div>
       )}
@@ -431,7 +431,7 @@ function HomePortal({
         </div>
 
         {error && (
-          <p className="mt-4 rounded-lg border border-red-200 bg-[#f3f1ec] p-3 text-sm text-[#1a1a1a]">
+          <p className="mt-4 rounded-lg border border-[#fecdca] bg-[#fef3f2] p-3 text-sm font-medium text-[#b42318]">
             {error}
           </p>
         )}
@@ -1627,7 +1627,6 @@ function CaptivePortalPageInner() {
   const [purchaseRef, setPurchaseRef] = useState<string | null>(null);
   const routerToken = searchParams.get("rt");
   const hotspotLoginFromQuery = searchParams.get("login");
-  const hotspotDst = searchParams.get("dst");
   const [hotspotLoginFallback, setHotspotLoginFallback] = useState("http://10.10.0.1/login");
   const [connectingWifi, setConnectingWifi] = useState(false);
 
@@ -1677,7 +1676,8 @@ function CaptivePortalPageInner() {
     const fields: Record<string, string> = {
       username,
       password,
-      dst: hotspotDst || "http://neverssl.com/",
+      // After MikroTik accepts the login, send the customer to Google.
+      dst: "https://www.google.com/",
       popup: "true",
     };
     for (const [name, value] of Object.entries(fields)) {
@@ -1827,12 +1827,20 @@ function CaptivePortalPageInner() {
       .then(async ({ ok, body }) => {
         if (!ok || !body.valid) {
           setConnectingWifi(false);
-          setVoucherError(body.message ?? "That voucher isn't valid.");
+          setConnectedFromVoucher(false);
+          // used / expired / wrong_router / invalid — show the exact API message
+          setVoucherError(
+            typeof body.message === "string" && body.message
+              ? body.message
+              : "That voucher isn't valid.",
+          );
           return;
         }
+        setVoucherError("");
+        setConnectedFromVoucher(true);
         const waitMs = typeof body.waitMs === "number" ? body.waitMs : 0;
         if (waitMs > 0) await new Promise((resolve) => window.setTimeout(resolve, waitMs));
-        // POST to MikroTik /login — this is what actually puts the phone online.
+        // POST to MikroTik /login — puts the phone online, then dst opens Google.
         routerLogin(username, password, typeof body.hotspotLogin === "string" ? body.hotspotLogin : null);
       })
       .catch(() => {
