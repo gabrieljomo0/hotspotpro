@@ -29,6 +29,7 @@ import type { RouterTaskKind } from "../routers/routerTasks";
 import { reconcileBatchesFromVouchers } from "../vouchers/reconcileBatches";
 import { loginMethodForRouterIps } from "../vouchers/voucherLoginFromPortal";
 import { VOUCHER_BATCH_MAX, resolveVoucherQuantity } from "../vouchers/voucherQuantity";
+import { normalizeVoucherRouterIps } from "../vouchers/voucherRouterScope";
 import {
   createContext,
   useContext,
@@ -1978,6 +1979,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     const pricePerVoucher = pkg
       ? Number(pkg.price.replace(/[^0-9.]/g, "")) || 0
       : 0;
+    // Demo/seed package IPs must not stick on the batch — map them to live linked routers.
+    const scopedRouterIps = normalizeVoucherRouterIps(input.routerIps, routers);
 
     const currentAgent = agents.find((a) => a.id === actingId);
     let quantity = Math.min(VOUCHER_BATCH_MAX, resolveVoucherQuantity(input.quantity));
@@ -2082,7 +2085,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     if (customPassword) {
       loginMethod = "credentials";
     } else {
-      const fromPortal = loginMethodForRouterIps(input.routerIps, getCaptivePortalConfig);
+      const fromPortal = loginMethodForRouterIps(scopedRouterIps, getCaptivePortalConfig);
       if (!fromPortal.ok) {
         showToast(fromPortal.message);
         return null;
@@ -2134,8 +2137,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           codes: [...codes, ...existingBatch.codes],
           note: input.note.trim() ? `${existingBatch.note} ${input.note}`.trim() : existingBatch.note,
           routerIps:
-            input.routerIps.length > 0
-              ? Array.from(new Set([...existingBatch.routerIps, ...input.routerIps]))
+            scopedRouterIps.length > 0
+              ? Array.from(new Set([...existingBatch.routerIps, ...scopedRouterIps]))
               : existingBatch.routerIps,
           assignedAgentIds: Array.from(
             new Set([...existingBatch.assignedAgentIds, ...input.assignedAgentIds]),
@@ -2161,7 +2164,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           createdAtMs: Date.now(),
           codes,
           agentId: actingId,
-          routerIps: input.routerIps,
+          routerIps: scopedRouterIps,
           assignedAgentIds: input.assignedAgentIds,
           hiddenFromAdmin: false,
           walletCharged,
@@ -2190,10 +2193,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     }
 
     const scopeMessage =
-      input.routerIps.length > 1
-        ? ` Available on ${input.routerIps.length} routers.`
-        : input.routerIps.length === 1
-          ? ` Available on ${routers.find((r) => r.ip === input.routerIps[0])?.name.split(" (")[0] ?? "1 router"}.`
+      scopedRouterIps.length > 1
+        ? ` Available on ${scopedRouterIps.length} routers.`
+        : scopedRouterIps.length === 1
+          ? ` Available on ${routers.find((r) => r.ip === scopedRouterIps[0])?.name.split(" (")[0] ?? "1 router"}.`
           : "";
     const pushMessage =
       input.assignedAgentIds.length > 0
@@ -2299,8 +2302,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     // Push the new codes onto the routers that should accept them (local login).
     // Persist vouchers first — jobs/portal read server state; a 300ms debounce would race login.
     const targetIps =
-      input.routerIps.length > 0
-        ? input.routerIps
+      scopedRouterIps.length > 0
+        ? scopedRouterIps
         : currentAgent?.routerIp
           ? [currentAgent.routerIp]
           : routers.map((r) => r.ip);

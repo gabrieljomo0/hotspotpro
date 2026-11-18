@@ -26,6 +26,7 @@ import {
   parseVoucherQuantityInput,
   resolveVoucherQuantity,
 } from "./voucherQuantity";
+import { defaultRouterIpsForPackage, pickableRoutersForPackage } from "./voucherRouterScope";
 
 export function GenerateVouchersModal({
   open,
@@ -99,11 +100,7 @@ export function GenerateVouchersModal({
   const [routerIps, setRouterIps] = useState<string[]>(
     initialRouterIps?.length
       ? initialRouterIps
-      : packages[0]?.routerIps.length
-        ? packages[0].routerIps
-        : routers[0]
-          ? [routers[0].ip]
-          : [],
+      : defaultRouterIpsForPackage(packages[0], routers),
   );
   const [routersTouchedManually, setRoutersTouchedManually] = useState(false);
   const [selectedPresetId, setSelectedPresetId] = useState("");
@@ -143,19 +140,18 @@ export function GenerateVouchersModal({
     ? businessLocations.find((s) => s.id === selectedPackage.applySiteId)
     : null;
 
+  const pickable = pickableRoutersForPackage(selectedPackage, routers);
   const sites = businessLocations.map((site) => ({
     site,
-    siteRouters: routers.filter((r) => r.siteId === site.id),
+    siteRouters: pickable.filter((r) => r.siteId === site.id),
   }));
-  const unassignedRouters = routers.filter((r) => !businessLocations.some((s) => s.id === r.siteId));
+  const unassignedRouters = pickable.filter((r) => !businessLocations.some((s) => s.id === r.siteId));
 
   function handlePackageChange(name: string) {
     setPackageName(name);
     if (routersTouchedManually) return;
     const pkg = packages.find((p) => p.name === name);
-    if (pkg && pkg.routerIps.length > 0) {
-      setRouterIps(pkg.routerIps);
-    }
+    setRouterIps(defaultRouterIpsForPackage(pkg, routers));
   }
 
   function toggleRouter(ip: string) {
@@ -503,7 +499,7 @@ export function GenerateVouchersModal({
               </span>
               {agents.length > 1 && (
                 <div className="flex gap-3 text-xs font-semibold text-[#1a1a1a]">
-                  <button type="button" onClick={() => setRouterIps(routers.map((r) => r.ip))} className="hover:underline">
+                  <button type="button" onClick={() => setRouterIps(pickable.map((r) => r.ip))} className="hover:underline">
                     Select all
                   </button>
                 </div>

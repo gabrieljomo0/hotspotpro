@@ -17,6 +17,10 @@ import {
   parseVoucherQuantityInput,
   resolveVoucherQuantity,
 } from "@/components/dashboard/vouchers/voucherQuantity";
+import {
+  defaultRouterIpsForPackage,
+  pickableRoutersForPackage,
+} from "@/components/dashboard/vouchers/voucherRouterScope";
 
 export default function CreateVoucherPage() {
   const router = useRouter();
@@ -49,7 +53,7 @@ export default function CreateVoucherPage() {
   const [routerIps, setRouterIps] = useState<string[]>(() => {
     if (isLockedToDefaultPackage) {
       const pkg = packages.find((p) => p.name === currentAgent.defaultPackageName);
-      if (pkg && pkg.routerIps.length > 0) return pkg.routerIps;
+      return defaultRouterIpsForPackage(pkg, routers);
     }
     // Only one router on the whole account: use it. Otherwise it is picked below.
     return routers.length === 1 ? [routers[0].ip] : [];
@@ -61,13 +65,9 @@ export default function CreateVoucherPage() {
   const [presetName, setPresetName] = useState("");
 
   const selectedPackage = packages.find((p) => p.name === packageName);
-  // A universal package (no router chosen when it was made) can go on any
-  // router. A package made for specific routers only offers those routers.
+  // Universal / demo-scoped packages expose live linked routers, not seed IPs.
   const isUniversal = !!selectedPackage?.applyToAllSites;
-  const pickable =
-    selectedPackage && !isUniversal && selectedPackage.routerIps.length > 0
-      ? routers.filter((r) => selectedPackage.routerIps.includes(r.ip))
-      : routers;
+  const pickable = pickableRoutersForPackage(selectedPackage, routers);
 
   const selectedPackageSite = selectedPackage?.applySiteId
     ? businessLocations.find((s) => s.id === selectedPackage.applySiteId)
@@ -157,14 +157,13 @@ export default function CreateVoucherPage() {
       return;
     }
     if (routersTouchedManually) {
-      // Keep their pick, but only routers this package is actually on.
-      if (pkg && pkg.routerIps.length > 0) setRouterIps((current) => current.filter((ip) => pkg.routerIps.includes(ip)));
+      // Keep their pick, but only routers this package may sell on.
+      const allowed = new Set(pickableRoutersForPackage(pkg, routers).map((r) => r.ip));
+      if (allowed.size > 0) setRouterIps((current) => current.filter((ip) => allowed.has(ip)));
       return;
     }
-    if (pkg && pkg.routerIps.length > 0) {
-      setSiteKey("");
-      setRouterIps(pkg.routerIps);
-    }
+    setSiteKey("");
+    setRouterIps(defaultRouterIpsForPackage(pkg, routers));
   }
 
   function toggleRouter(ip: string) {
