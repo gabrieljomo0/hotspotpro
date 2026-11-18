@@ -25,6 +25,7 @@ import { nowTimestamp, DEFAULT_AGENT_ID } from "./utils";
 import { usePersistedState, useSyncReady } from "./usePersistedState";
 import { queueRouterActionMany } from "./queueRouterAction";
 import type { RouterTaskKind } from "../routers/routerTasks";
+import { reconcileBatchesFromVouchers } from "../vouchers/reconcileBatches";
 import {
   createContext,
   useContext,
@@ -380,6 +381,8 @@ type DashboardContextValue = {
     // only use these when the organization allows custom credentials.
     customCode?: string;
     customPassword?: string;
+    /** When set, new codes are added to this batch instead of creating a new one. */
+    appendToBatchId?: string;
   }) => VoucherBatch | null;
   isVoucherBatchVisibleToAgent: (batch: VoucherBatch, agentId: string) => boolean;
   getAgentsOnRouters: (routerIps: string[]) => AgentProfile[];
@@ -1362,7 +1365,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     expirePackageVouchers,
     pushPackageToAgents,
     removePackagePush,
-  } = usePackageState(showToast, logActivity, currentAgentId, packages, setPackages, setVouchers, actingAgentLabel, canActOnPackage);
+  } = usePackageState(showToast, logActivity, currentAgentId, packages, setPackages, setVouchers, setVoucherBatches, actingAgentLabel, canActOnPackage);
 
   const {
     alertRules,
@@ -1909,6 +1912,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     actingAgentId?: string;
     customCode?: string;
     customPassword?: string;
+    appendToBatchId?: string;
   }) {
     const actingId = input.actingAgentId ?? currentAgentId;
     const now = new Date().toLocaleString("en-GB", {
@@ -1986,13 +1990,17 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    const batchId = `batch-${Date.now()}`;
-    const reference =
-      input.reference.trim() ||
-      `BATCH-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.random()
-        .toString(36)
-        .slice(2, 6)
-        .toUpperCase()}`;
+    const existingBatch = input.appendToBatchId
+      ? voucherBatches.find((b) => b.id === input.appendToBatchId)
+      : null;
+    const batchId = existingBatch?.id ?? `batch-${Date.now()}`;
+    const reference = existingBatch
+      ? existingBatch.reference
+      : input.reference.trim() ||
+        `BATCH-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.random()
+          .toString(36)
+          .slice(2, 6)
+          .toUpperCase()}`;
 
     function makeCode() {
       const chars =
@@ -2055,30 +2063,54 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         ? Math.round(quantity * pricePerVoucher * 100) / 100
         : 0;
 
-    const newBatch: VoucherBatch = {
-      id: batchId,
-      reference,
-      packageName: input.packageName,
-      price: pkg?.price ?? "—",
-      count: quantity,
-      isGiveaway: input.isGiveaway,
-      note: input.note,
-      printDesign: "micro-strip",
-      loginMethod,
-      limitBy,
-      countFrom,
-      createdAt: now,
-      createdAtMs: Date.now(),
-      codes,
-      agentId: actingId,
-      routerIps: input.routerIps,
-      assignedAgentIds: input.assignedAgentIds,
-      hiddenFromAdmin: false,
-      walletCharged,
-    };
+    const newBatch: VoucherBatch = existingBatch
+      ? {
+          ...existingBatch,
+          packageName: input.packageName || existingBatch.packageName,
+          price: pkg?.price ?? existingBatch.price,
+          count: existingBatch.count + quantity,
+          codes: [...codes, ...existingBatch.codes],
+          note: input.note.trim() ? `${existingBatch.note} ${input.note}`.trim() : existingBatch.note,
+          routerIps:
+            input.routerIps.length > 0
+              ? Array.from(new Set([...existingBatch.routerIps, ...input.routerIps]))
+              : existingBatch.routerIps,
+          assignedAgentIds: Array.from(
+            new Set([...existingBatch.assignedAgentIds, ...input.assignedAgentIds]),
+          ),
+          walletCharged: (existingBatch.walletCharged ?? 0) + walletCharged,
+          loginMethod,
+          limitBy,
+          countFrom,
+        }
+      : {
+          id: batchId,
+          reference,
+          packageName: input.packageName,
+          price: pkg?.price ?? "—",
+          count: quantity,
+          isGiveaway: input.isGiveaway,
+          note: input.note,
+          printDesign: "micro-strip",
+          loginMethod,
+          limitBy,
+          countFrom,
+          createdAt: now,
+          createdAtMs: Date.now(),
+          codes,
+          agentId: actingId,
+          routerIps: input.routerIps,
+          assignedAgentIds: input.assignedAgentIds,
+          hiddenFromAdmin: false,
+          walletCharged,
+        };
 
     setVouchers((current) => [...newVouchers, ...current]);
-    setVoucherBatches((current) => [newBatch, ...current]);
+    setVoucherBatches((current) =>
+      existingBatch
+        ? current.map((b) => (b.id === batchId ? newBatch : b))
+        : [newBatch, ...current],
+    );
 
     if (currentAgent && currentAgent.requiresWalletFunding && !input.isGiveaway && pricePerVoucher > 0) {
       const cost = quantity * pricePerVoucher;
@@ -2105,11 +2137,15 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       input.assignedAgentIds.length > 0
         ? ` Pushed to ${input.assignedAgentIds.length} agent${input.assignedAgentIds.length === 1 ? "" : "s"}.`
         : "";
-    showToast(`${quantity} vouchers generated in batch "${reference}".${scopeMessage}${pushMessage}`);
+    showToast(
+      existingBatch
+        ? `Added ${quantity} voucher(s) to batch "${reference}".${scopeMessage}${pushMessage}`
+        : `${quantity} vouchers generated in batch "${reference}".${scopeMessage}${pushMessage}`,
+    );
     const generatedByLabel = actingId !== DEFAULT_AGENT_ID ? agents.find((a) => a.id === actingId)?.name : null;
     logActivity(
       "Voucher",
-      `Generated batch "${reference}" — ${quantity} voucher(s) for ${input.packageName}.${scopeMessage}${pushMessage}${
+      `${existingBatch ? "Added to" : "Generated"} batch "${reference}" — ${quantity} voucher(s) for ${input.packageName}.${scopeMessage}${pushMessage}${
         generatedByLabel ? ` (by ${generatedByLabel})` : ""
       }`,
     );
@@ -2295,20 +2331,38 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   }
 
   function deleteVoucher(code: string) {
-    setVouchers((current) => current.filter((voucher) => voucher.code !== code));
+    const removed = vouchers.find((v) => v.code === code);
+    setVouchers((current) => {
+      const next = current.filter((voucher) => voucher.code !== code);
+      setVoucherBatches((batches) => reconcileBatchesFromVouchers(batches, next, packages));
+      return next;
+    });
+    if (removed?.batchId) {
+      const batch = voucherBatches.find((b) => b.id === removed.batchId);
+      if (batch?.routerIps?.length) queueRouterActionMany(batch.routerIps, "sync-vouchers");
+    }
     showToast("Voucher deleted.");
     logActivity("Voucher", `Deleted voucher ${code}.`);
   }
 
   function expireVouchers(codes: string[]) {
     if (codes.length === 0) return;
-    setVouchers((current) =>
-      current.map((voucher) =>
+    const affected = vouchers.filter((v) => codes.includes(v.code));
+    setVouchers((current) => {
+      const next = current.map((voucher) =>
         codes.includes(voucher.code) && voucher.status !== "Expired"
           ? { ...voucher, status: "Expired" as const }
           : voucher,
-      ),
-    );
+      );
+      setVoucherBatches((batches) => reconcileBatchesFromVouchers(batches, next, packages));
+      return next;
+    });
+    const ips = new Set<string>();
+    for (const v of affected) {
+      const batch = v.batchId ? voucherBatches.find((b) => b.id === v.batchId) : null;
+      batch?.routerIps.forEach((ip) => ips.add(ip));
+    }
+    if (ips.size > 0) queueRouterActionMany([...ips], "sync-vouchers");
     showToast(`${codes.length} voucher(s) marked as expired.`);
     logActivity("Voucher", `Marked ${codes.length} voucher(s) as expired.`);
   }
@@ -2466,9 +2520,18 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       return;
     }
     const codeSet = new Set(codes);
-    setVouchers((current) =>
-      current.map((v) => (codeSet.has(v.code) ? { ...v, packageName: newPackageName } : v)),
-    );
+    const affected = vouchers.filter((v) => codeSet.has(v.code));
+    setVouchers((current) => {
+      const next = current.map((v) => (codeSet.has(v.code) ? { ...v, packageName: newPackageName } : v));
+      setVoucherBatches((batches) => reconcileBatchesFromVouchers(batches, next, packages));
+      return next;
+    });
+    const ips = new Set<string>(pkg.routerIps);
+    for (const v of affected) {
+      const batch = v.batchId ? voucherBatches.find((b) => b.id === v.batchId) : null;
+      batch?.routerIps.forEach((ip) => ips.add(ip));
+    }
+    if (ips.size > 0) queueRouterActionMany([...ips], "sync-vouchers");
     showToast(`${codes.length} voucher(s) switched to "${newPackageName}".`);
     logActivity("Voucher", `Bulk-switched ${codes.length} voucher(s) to package "${newPackageName}".`);
   }
@@ -2477,6 +2540,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     if (codes.length === 0) return;
 
     let targetBatchId: string | null = null;
+    const selected = vouchers.filter((v) => codes.includes(v.code));
     if (batchRef) {
       const existing = voucherBatches.find(
         (batch) => batch.reference.toLowerCase() === batchRef.toLowerCase(),
@@ -2484,12 +2548,15 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       targetBatchId = existing?.id ?? `batch-${Date.now()}`;
 
       if (!existing) {
+        const packageName = selected[0]?.packageName ?? "Mixed";
+        const pkg = packages.find((p) => p.name === packageName);
+        const routerIps = pkg?.routerIps?.length ? pkg.routerIps : [];
         setVoucherBatches((current) => [
           {
             id: targetBatchId as string,
             reference: batchRef,
-            packageName: "Mixed",
-            price: "—",
+            packageName,
+            price: pkg?.price ?? "—",
             count: codes.length,
             isGiveaway: false,
             note: "Created via Bulk Assign",
@@ -2505,7 +2572,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             createdAtMs: Date.now(),
             codes,
             agentId: currentAgentId,
-            routerIps: [],
+            routerIps,
             assignedAgentIds: [],
             hiddenFromAdmin: false,
           },
@@ -2514,13 +2581,13 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    setVouchers((current) =>
-      current.map((voucher) =>
-        codes.includes(voucher.code)
-          ? { ...voucher, batchId: targetBatchId }
-          : voucher,
-      ),
-    );
+    setVouchers((current) => {
+      const next = current.map((voucher) =>
+        codes.includes(voucher.code) ? { ...voucher, batchId: targetBatchId } : voucher,
+      );
+      setVoucherBatches((batches) => reconcileBatchesFromVouchers(batches, next, packages));
+      return next;
+    });
 
     showToast(
       batchRef

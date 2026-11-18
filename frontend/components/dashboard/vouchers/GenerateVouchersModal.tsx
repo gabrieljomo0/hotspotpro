@@ -26,6 +26,9 @@ export function GenerateVouchersModal({
   onGenerated,
   initialPresetId,
   actingAgentId,
+  appendToBatchId,
+  initialPackageName,
+  initialRouterIps,
 }: {
   open: boolean;
   onClose: () => void;
@@ -37,6 +40,10 @@ export function GenerateVouchersModal({
   // When set, the form pre-fills from this preset the moment the modal
   // opens — used by the Presets page's "Generate" button.
   initialPresetId?: string;
+  /** Add codes into this existing batch (Create More Vouchers). */
+  appendToBatchId?: string;
+  initialPackageName?: string;
+  initialRouterIps?: string[];
 }) {
   const {
     packages: allPackages,
@@ -53,11 +60,10 @@ export function GenerateVouchersModal({
   const currentAgent =
     (actingAgentId ? agents.find((a) => a.id === actingAgentId) : undefined) ?? contextAgent;
 
-  // Admin can generate from any package. An agent only gets what they
-  // may sell: packages on their router, all-site packages, or ones admin
-  // pushed to them — never the rest of the account's catalogue.
+  // Admin generates from Active packages (Disabled stay off the picker). Agents
+  // only get packages on their router, all-site packages, or ones pushed to them.
   const packages = currentAgent.isDefault
-    ? allPackages
+    ? allPackages.filter((p) => p.status === "Active" || p.status === "Hidden")
     : allPackages.filter(
         (p) =>
           p.status === "Active" &&
@@ -66,9 +72,12 @@ export function GenerateVouchersModal({
             p.pushedToAgentIds.includes(currentAgent.id)),
       );
 
-  const isLockedToDefaultPackage = currentAgent.dashboardMode === "voucherCreator" && !!currentAgent.defaultPackageName;
+  const isLockedToDefaultPackage =
+    currentAgent.dashboardMode === "voucherCreator" && !!currentAgent.defaultPackageName;
+  const lockPackageToBatch = !!appendToBatchId && !!initialPackageName;
   const [packageName, setPackageName] = useState(
-    isLockedToDefaultPackage ? currentAgent.defaultPackageName! : packages[0]?.name ?? "",
+    initialPackageName ||
+      (isLockedToDefaultPackage ? currentAgent.defaultPackageName! : packages[0]?.name ?? ""),
   );
   const [reference, setReference] = useState("");
   const [loginMethod, setLoginMethod] = useState<"code" | "credentials">("code");
@@ -81,7 +90,13 @@ export function GenerateVouchersModal({
   const [note, setNote] = useState("");
   const [isGiveaway, setIsGiveaway] = useState(false);
   const [routerIps, setRouterIps] = useState<string[]>(
-    packages[0]?.routerIps.length ? packages[0].routerIps : routers[0] ? [routers[0].ip] : [],
+    initialRouterIps?.length
+      ? initialRouterIps
+      : packages[0]?.routerIps.length
+        ? packages[0].routerIps
+        : routers[0]
+          ? [routers[0].ip]
+          : [],
   );
   const [routersTouchedManually, setRoutersTouchedManually] = useState(false);
   const [selectedPresetId, setSelectedPresetId] = useState("");
@@ -192,6 +207,7 @@ export function GenerateVouchersModal({
       limitBy,
       countFrom,
       actingAgentId: currentAgent.id,
+      appendToBatchId,
     });
 
     if (!batch) return;
@@ -238,12 +254,14 @@ export function GenerateVouchersModal({
             </div>
             <div>
               <h2 className="text-base font-bold text-[#1a1a1a]">
-                Generate Vouchers
+                {appendToBatchId ? "Add More Vouchers" : "Generate Vouchers"}
               </h2>
               <p className="text-xs text-[#737373]">
-                {isAgentMode
-                  ? "Pick a package and how many vouchers you need."
-                  : "Create the batch here. You'll choose a print design next."}
+                {appendToBatchId
+                  ? "New codes are added to this same batch."
+                  : isAgentMode
+                    ? "Pick a package and how many vouchers you need."
+                    : "Create the batch here. You'll choose a print design next."}
               </p>
             </div>
           </div>
@@ -284,11 +302,11 @@ export function GenerateVouchersModal({
                     : "Ask admin to push a package to you — you'll be able to generate from it straight away."}
                 </p>
               </div>
-            ) : isLockedToDefaultPackage ? (
+            ) : isLockedToDefaultPackage || lockPackageToBatch ? (
               <div className="flex items-center justify-between gap-2 rounded-xl border-2 border-emerald-300 bg-white px-4 py-3">
                 <span className="text-sm font-bold text-emerald-800">{packageName}</span>
                 <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white">
-                  Your default package
+                  {lockPackageToBatch ? "This batch's package" : "Your default package"}
                 </span>
               </div>
             ) : (

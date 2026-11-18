@@ -70,6 +70,17 @@ function codesOf(users: WantedUser[]) {
   ];
 }
 
+type BatchRow = { id?: string; routerIps?: string[] };
+
+function batchAllowsRouter(batchId: string | null | undefined, routerIp: string) {
+  if (!batchId) return true;
+  const batches = getState("voucherBatches")?.value;
+  if (!Array.isArray(batches)) return true;
+  const batch = (batches as BatchRow[]).find((b) => b && b.id === batchId);
+  if (!batch || !Array.isArray(batch.routerIps) || batch.routerIps.length === 0) return true;
+  return batch.routerIps.includes(routerIp);
+}
+
 function wanted(routerIp: string, now: number) {
   const packages = packageMap();
   const out: WantedUser[] = [];
@@ -79,6 +90,7 @@ function wanted(routerIp: string, now: number) {
     if (voucher.expiresAtMs && voucher.expiresAtMs <= now) continue;
     const pkg = packages.get(voucher.packageName) ?? findPackageByName(voucher.packageName);
     if (pkg && !routerAllowsPackage(pkg, routerIp)) continue;
+    if (!batchAllowsRouter(voucher.batchId, routerIp)) continue;
     const name = userName(voucher.code || "");
     if (!name || seen.has(name)) continue;
     seen.add(name);

@@ -24,6 +24,7 @@ import {
   PRINT_DESIGNS,
   type PrintDesignId,
 } from "@/components/dashboard/vouchers/VoucherCardPreview";
+import { BatchSalesPanel } from "@/components/dashboard/vouchers/BatchSalesPanel";
 
 const AgentGenerateVouchersModal = dynamic(
   () => import("@/components/agent-portal/AgentGenerateVouchersModal").then((m) => m.AgentGenerateVouchersModal),
@@ -159,13 +160,15 @@ export default function AgentVoucherBatchPage({
                 </div>
               </div>
 
+              <BatchSalesPanel batch={batch} />
+
               <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="rounded-2xl border-2 bg-white p-5">
                   <p className="flex items-center gap-1.5 text-xs font-bold text-[#1a1a1a]">
                     <Ticket size={13} />
                     Total
                   </p>
-                  <p className="mt-1 text-2xl font-black text-[#1a1a1a]">{batch.count}</p>
+                  <p className="mt-1 text-2xl font-black text-[#1a1a1a]">{batchVouchers.length}</p>
                 </div>
                 <div className="rounded-2xl border-2 bg-white p-5">
                   <p className="flex items-center gap-1.5 text-xs font-bold text-[#1a1a1a]">

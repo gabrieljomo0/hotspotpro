@@ -6,6 +6,8 @@ import { Search, Building2, Router as RouterIcon, Clock, CheckCircle2, XCircle, 
 
 import { useDashboard } from "@/components/dashboard/context/DashboardContext";
 import { BackLink } from "@/components/dashboard/shared/BackLink";
+import { computeBatchSales } from "@/components/dashboard/vouchers/batchSales";
+import { money } from "@/components/dashboard/shared/currency";
 
 const PERIODS = [
   { key: "today", label: "Today" },
@@ -61,13 +63,15 @@ export default function VoucherTrackingPage() {
   });
 
   const batchStats = visibleBatches.map((batch) => {
-    const batchVouchers = vouchers.filter((v) => v.batchId === batch.id);
+    const sales = computeBatchSales(batch, vouchers);
     return {
       batch,
-      total: batchVouchers.length,
-      used: batchVouchers.filter((v) => v.status === "Used").length,
-      expired: batchVouchers.filter((v) => v.status === "Expired").length,
-      available: batchVouchers.filter((v) => v.status === "Available").length,
+      total: sales.total,
+      used: sales.sold,
+      expired: sales.expired,
+      available: sales.available,
+      revenue: sales.revenue,
+      sellThrough: sales.sellThrough,
       site: siteLabelFor(batch),
       routerNames: routerNamesFor(batch),
     };
@@ -79,8 +83,9 @@ export default function VoucherTrackingPage() {
       used: acc.used + b.used,
       expired: acc.expired + b.expired,
       available: acc.available + b.available,
+      revenue: acc.revenue + b.revenue,
     }),
-    { total: 0, used: 0, expired: 0, available: 0 },
+    { total: 0, used: 0, expired: 0, available: 0, revenue: 0 },
   );
 
   return (
@@ -124,7 +129,7 @@ export default function VoucherTrackingPage() {
         </div>
       </div>
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-4">
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <div className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
           <p className="flex items-center gap-1.5 text-xs font-semibold text-[#737373]">
             <Ticket size={13} />
@@ -153,6 +158,10 @@ export default function VoucherTrackingPage() {
           </p>
           <p className="mt-1 text-2xl font-black text-red-700">{totals.expired}</p>
         </div>
+        <div className="rounded-2xl border border-[#e6e6e6] bg-white p-5">
+          <p className="text-xs font-semibold text-[#737373]">Batch revenue</p>
+          <p className="mt-1 text-2xl font-black text-[#1a1a1a]">{money(totals.revenue)}</p>
+        </div>
       </div>
 
       <article className="overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
@@ -166,11 +175,13 @@ export default function VoucherTrackingPage() {
                 <th className="px-4 py-4 font-semibold">Active</th>
                 <th className="px-4 py-4 font-semibold">Used</th>
                 <th className="px-4 py-4 font-semibold">Expired</th>
+                <th className="px-4 py-4 font-semibold">Sell-through</th>
+                <th className="px-4 py-4 font-semibold">Revenue</th>
                 <th className="px-4 py-4 font-semibold">Total</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#f4f4f4]">
-              {batchStats.map(({ batch, total, used, expired, available, site, routerNames }) => (
+              {batchStats.map(({ batch, total, used, expired, available, revenue, sellThrough, site, routerNames }) => (
                 <tr key={batch.id} className="hover:bg-[#ffffff]">
                   <td className="px-4 py-4">
                     <Link href={`/dashboards/vouchers/batch/${batch.id}`} className="font-semibold text-[#1a1a1a] hover:underline">
@@ -205,12 +216,14 @@ export default function VoucherTrackingPage() {
                   <td className="px-4 py-4">
                     <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold text-red-700">{expired}</span>
                   </td>
+                  <td className="px-4 py-4 font-semibold text-[#1a1a1a]">{sellThrough}%</td>
+                  <td className="px-4 py-4 font-semibold text-[#1a1a1a]">{money(revenue)}</td>
                   <td className="px-4 py-4 font-semibold text-[#1a1a1a]">{total}</td>
                 </tr>
               ))}
               {batchStats.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-sm text-[#a3a3a3]">
+                  <td colSpan={9} className="px-4 py-10 text-center text-sm text-[#a3a3a3]">
                     No batches match this period/search.
                   </td>
                 </tr>

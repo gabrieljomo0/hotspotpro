@@ -14,10 +14,11 @@
 // state, which still lives in the main DashboardContext for now.
 
 import { speedLabel } from "@/components/dashboard/packages/speedInput";
-import type { Package, PackageInput, PackageStatus, Voucher } from "../shared/types";
+import type { Package, PackageInput, PackageStatus, Voucher, VoucherBatch } from "../shared/types";
 import { DEFAULT_AGENT_ID } from "./utils";
 import type { Dispatch, SetStateAction } from "react";
 import type { PackageAction, PackageGuard } from "../agents/agentPackages";
+import { reconcileBatchesFromVouchers } from "../vouchers/reconcileBatches";
 
 export const initialPackages: Package[] = [
   {
@@ -193,6 +194,7 @@ export function usePackageState(
   packages: Package[],
   setPackages: Dispatch<SetStateAction<Package[]>>,
   setVouchers: Dispatch<SetStateAction<Voucher[]>>,
+  setVoucherBatches: Dispatch<SetStateAction<VoucherBatch[]>>,
   actingAgentLabel: string | null = null,
   canAct: PackageGuard = () => true,
 ) {
@@ -240,10 +242,12 @@ export function usePackageState(
   }
 
   function updatePackage(id: string, input: PackageInput) {
-    if (!canAct("edit", packages.find((pkg) => pkg.id === id))) {
+    const previous = packages.find((pkg) => pkg.id === id);
+    if (!canAct("edit", previous)) {
       refuse("edit");
       return;
     }
+    const oldName = previous?.name;
     setPackages((current) =>
       current.map((pkg) =>
         pkg.id === id
@@ -251,8 +255,28 @@ export function usePackageState(
           : pkg,
       ),
     );
+    // Keep vouchers and batches pointing at the new package name/price so manage + report stay correct.
+    if (oldName && (oldName !== input.name || previous.price !== input.price)) {
+      setVouchers((current) => {
+        const next = current.map((v) =>
+          v.packageName === oldName ? { ...v, packageName: input.name } : v,
+        );
+        setVoucherBatches((batches) =>
+          reconcileBatchesFromVouchers(
+            batches.map((b) =>
+              b.packageName === oldName
+                ? { ...b, packageName: input.name, price: input.price }
+                : b,
+            ),
+            next,
+            [{ name: input.name, price: input.price }],
+          ),
+        );
+        return next;
+      });
+    }
     showToast("Package updated.");
-    logActivity("Package", withAttribution(`Updated package "${packages.find((p) => p.id === id)?.name ?? id}".`));
+    logActivity("Package", withAttribution(`Updated package "${oldName ?? id}".`));
   }
 
   function setPackageStatus(id: string, status: PackageStatus) {

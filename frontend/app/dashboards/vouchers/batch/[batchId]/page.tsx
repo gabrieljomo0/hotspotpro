@@ -219,7 +219,7 @@ export default function VoucherBatchPage({
               </p>
               <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{batch.reference}</h1>
               <p className="mt-1 text-sm text-white/90">
-                {batch.count} vouchers · {batch.packageName} · {batch.createdAt}
+                {batchVouchers.length} vouchers · {batch.packageName} · {batch.createdAt}
               </p>
               <p className="mt-1 text-sm text-white/80">
                 Created by{" "}
@@ -506,9 +506,11 @@ export default function VoucherBatchPage({
       <GenerateVouchersModal
         open={generateOpen}
         onClose={() => setGenerateOpen(false)}
-        onGenerated={(newBatchId) => {
+        appendToBatchId={batch.id}
+        initialPackageName={batch.packageName}
+        initialRouterIps={batch.routerIps}
+        onGenerated={() => {
           setGenerateOpen(false);
-          router.push(`/dashboards/vouchers/batch/${newBatchId}`);
         }}
       />
 

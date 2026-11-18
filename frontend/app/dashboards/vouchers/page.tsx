@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { X } from "lucide-react";
+import Link from "next/link";
+import { BarChart3, X } from "lucide-react";
 
 import { useDashboard } from "@/components/dashboard/context/DashboardContext";
 import { VouchersHeader } from "@/components/dashboard/vouchers/VouchersHeader";
@@ -11,6 +12,8 @@ import { VouchersTable } from "@/components/dashboard/vouchers/VouchersTable";
 import { RecentBatchesList } from "@/components/dashboard/vouchers/RecentBatchesList";
 import { ConnectedAgentBanner } from "@/components/dashboard/agents/ConnectedAgentBanner";
 import { BackLink } from "@/components/dashboard/shared/BackLink";
+import { computeOverallSales } from "@/components/dashboard/vouchers/batchSales";
+import { money } from "@/components/dashboard/shared/currency";
 
 // Only ever needed once the "Generate Vouchers" button is clicked, so it's
 // loaded on demand instead of shipping in this page's initial JS.
@@ -86,16 +89,71 @@ export default function VouchersPage() {
     setToDate("");
   }
 
+  // Status tabs follow the active site/router/package/batch filters so overall
+  // manage matches what the table shows; sales tiles stay account-wide.
+  const scopedForTabs = vouchers.filter((voucher) => {
+    if (packageFilter && voucher.packageName !== packageFilter) return false;
+    if (fromMs !== null && voucher.generatedAtMs < fromMs) return false;
+    if (toMs !== null && voucher.generatedAtMs > toMs) return false;
+    if (batchQuery) {
+      const batch = voucher.batchId ? batchById.get(voucher.batchId) : null;
+      if (!batch) return false;
+      const q = batchQuery.toLowerCase();
+      if (!batch.reference.toLowerCase().includes(q) && !batch.id.toLowerCase().includes(q)) return false;
+    } else if (routerFilter || siteFilter) {
+      const batch = voucher.batchId ? batchById.get(voucher.batchId) : null;
+      if (!batch) return false;
+      if (routerFilter && !batch.routerIps.includes(routerFilter)) return false;
+      if (siteFilter && !routerFilter) {
+        const siteRouterIps = routers.filter((r) => r.siteId === siteFilter).map((r) => r.ip);
+        if (!batch.routerIps.some((ip) => siteRouterIps.includes(ip))) return false;
+      }
+    }
+    return true;
+  });
+
+  const overallSales = useMemo(
+    () => computeOverallSales(vouchers, voucherBatches, packages),
+    [vouchers, voucherBatches, packages],
+  );
+
   return (
     <section className="w-full">
       <BackLink />
       <VouchersHeader
-        vouchers={vouchers}
+        vouchers={scopedForTabs}
         activeFilter={filter}
         onFilterChange={setFilter}
         onGenerateClick={() => setGenerateOpen(true)}
       />
       <ConnectedAgentBanner />
+
+      <div className="mb-5 grid gap-3 sm:grid-cols-3">
+        <div className="rounded-2xl border border-[#e6e6e6] bg-white p-4">
+          <p className="text-xs font-semibold text-[#737373]">Overall voucher sales</p>
+          <p className="mt-1 text-2xl font-black text-[#1a1a1a]">{money(overallSales.revenue)}</p>
+          <p className="mt-0.5 text-xs text-[#737373]">{overallSales.sold} used of {overallSales.total}</p>
+        </div>
+        <div className="rounded-2xl border border-[#e6e6e6] bg-white p-4">
+          <p className="text-xs font-semibold text-[#737373]">Batches on this account</p>
+          <p className="mt-1 text-2xl font-black text-[#1a1a1a]">
+            {voucherBatches.filter((b) => !b.hiddenFromAdmin).length}
+          </p>
+          <p className="mt-0.5 text-xs text-[#737373]">Manage each batch for sales and print</p>
+        </div>
+        <Link
+          href="/dashboards/vouchers/tracking"
+          className="flex items-center gap-3 rounded-2xl border border-[#e6e6e6] bg-white p-4 transition hover:border-[#1a1a1a]"
+        >
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1a1a1a] text-white">
+            <BarChart3 size={18} />
+          </span>
+          <div>
+            <p className="text-sm font-bold text-[#1a1a1a]">Batch tracking report</p>
+            <p className="text-xs text-[#737373]">Used, available, expired and revenue per batch</p>
+          </div>
+        </Link>
+      </div>
 
       <div className="mb-5 flex flex-wrap items-center gap-2 border-b border-[#e6e6e6] pb-4">
         <span className="mr-1 text-xs font-semibold text-[#a3a3a3]">Filter:</span>
