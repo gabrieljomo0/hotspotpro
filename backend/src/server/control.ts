@@ -248,7 +248,8 @@ export function controlScript(token: string, origin?: string): string | null {
     }
   }
   // Lightweight check-ins for many routers on African links. Speed up briefly when a job was just delivered.
-  const interval = queued.length > 0 ? "5s" : CHECKIN_INTERVAL;
+  // Portal voucher push needs a fast follow-up poll; 2s while jobs are in flight.
+  const interval = queued.length > 0 ? "2s" : CHECKIN_INTERVAL;
   lines.push(`:do { /system scheduler set [find where name=hotspotpro-control] interval=${interval} } on-error={ }`);
   if (origin) {
     const source = checkInBody(origin, token).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\$/g, "\\$");

@@ -1,8 +1,8 @@
 // The HTML files a MikroTik hotspot serves from its own login folder.
-// Phones must only see the HotspotPro designed portal (website /portal) — never the
-// mini on-router username/password page and never MikroTik's factory skin.
-// These router files only bounce the captive sheet to that designed portal.
-// MikroTik replaces $(...) before the phone sees the page.
+// login.html is an on-router HTTP form so the phone captive sheet can POST
+// username/password straight to MikroTik (HTTPS bounce breaks that). Buy a
+// package opens the designed website portal. MikroTik replaces $(...) before
+// the phone sees the page.
 
 import { findRouterByToken, portalOrigin, publicOrigin, routerForToken } from "./provision";
 import { getState } from "./store";
@@ -45,7 +45,7 @@ export function voucherOnlyLogin(token: string): boolean {
   return portalLook(token).pin;
 }
 
-/** Unique marker so we never treat MikroTik factory HTML or the old mini login as "ours". */
+/** Unique marker so we never treat MikroTik factory HTML or old bounce-only pages without a form as "ours". */
 export const PORTAL_MARKER = "HotspotPro designed-portal";
 
 /** Delete MikroTik factory portal files that lack our marker so phones cannot open the default skin. */
@@ -67,11 +67,11 @@ export function applyHtmlDirectoryRos(): string {
 
 export function loginPageStamp(token: string): string {
   const look = portalLook(token);
-  const raw = `${look.pin ? "pin" : "user"}|${look.title}|${look.button}|${look.page}|chap`;
+  const raw = `${look.pin ? "pin" : "user"}|${look.title}|${look.button}|${look.page}|form`;
   let hash = 0;
   for (let i = 0; i < raw.length; i += 1) hash = (hash * 33 + raw.charCodeAt(i)) >>> 0;
-  // Bump prefix whenever the install/detect marker changes so routers re-download pages.
-  return `v20-${hash.toString(16)}`;
+  // Bump prefix whenever the install/detect marker or login HTML shape changes so routers re-download pages.
+  return `v21-${hash.toString(16)}`;
 }
 
 /** Files that make the hotspot folder a skin WinBox can open: the stylesheet and the CHAP helper. */
@@ -92,42 +92,37 @@ const MD5_JS = `function hexMD5(s){function add(x,y){return(x+y)|0}function rol(
 
 const SUCCESS_URL = "https://www.google.com/";
 
-/** Router HTML that only opens the designed website portal — no mini login form. */
-function designPortalBounce(portalUrl: string, look: PortalLook, title: string, hint: string): string {
-  const mark = `<!-- ${PORTAL_MARKER} -->`;
-  const safeUrl = portalUrl.replace(/"/g, "");
-  return `<!DOCTYPE html><html>${mark}<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=${safeUrl}"><meta http-equiv="pragma" content="no-cache"><title>${title}</title><style>body{margin:0;background:${look.page};color:#1a1a1a;font-family:system-ui,sans-serif}main{max-width:420px;margin:0 auto;padding:36px 18px;text-align:center}h1{font-size:26px;line-height:1.15;margin:0 0 10px}p{color:#525252;line-height:1.45;font-size:14px;margin:0 0 18px}a.btn{display:block;background:${look.button};color:#fff;text-decoration:none;border-radius:12px;padding:14px;font-size:16px;font-weight:700}</style><script>try{location.replace("${safeUrl}")}catch(e){}</script></head><body><main><h1>${title}</h1><p>${hint}</p><p><a class="btn" href="${safeUrl}">Open WiFi login</a></p></main></body></html>\n`;
-}
-
 function pageBody(page: HotspotPage, portal: string, look: PortalLook): string {
   const title = look.title || "HotspotPro";
   const mark = `<!-- ${PORTAL_MARKER} -->`;
+  // On-router HTTP form keeps the phone's captive sheet open. Auto-redirecting to HTTPS
+  // makes iOS/Android leave the captive flow, so MikroTik never gets the login POST.
   const portalUrl = `${portal}&login=$(link-login-only)&dst=${encodeURIComponent(SUCCESS_URL)}`;
+  const fields = look.pin
+    ? `<input name="username" required autocomplete="username" inputmode="text" placeholder="Voucher code"><input type="hidden" name="password" id="hpPass">`
+    : `<input name="username" required autocomplete="username" placeholder="Username"><input name="password" required type="password" autocomplete="current-password" placeholder="Password">`;
+  const note = look.pin
+    ? "Enter your voucher code. Stay on this WiFi — if it fails, tap Connect again. You do not need to forget the network."
+    : "Enter your username and password. Stay on this WiFi — if it fails, try again. You do not need to forget the network.";
+  const pinPrep = look.pin ? `document.getElementById("hpPass").value=document.login.username.value;` : "";
+  const loginScript = `<script>
+function doLogin(){${pinPrep}return true;}
+</script>`;
+  // After a successful login MikroTik opens dst — always send customers to Google.
+  const loginForm = `<form name="login" method="post" action="$(link-login-only)" onsubmit="return doLogin()">${fields}<input type="hidden" name="dst" value="${SUCCESS_URL}"><input type="hidden" name="popup" value="true"><button type="submit">Connect</button></form>`;
+  const errHint = `<p style="color:#b42318">$(error)</p><p>Wrong or used voucher? Stay on this WiFi and try another code — no need to forget the network.</p>`;
+  const shell = (body: string) =>
+    `<!DOCTYPE html><html>${mark}<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="pragma" content="no-cache"><title>${title}</title><style>body{margin:0;background:${look.page};color:#1a1a1a;font-family:system-ui,sans-serif}main{max-width:420px;margin:0 auto;padding:28px 18px}h1{font-size:28px;line-height:1.1;margin:0}p{color:#525252;line-height:1.45;font-size:14px}.ok{background:#ecfdf3;border:1px solid #abefc6;color:#067647;border-radius:12px;padding:12px 14px;margin:14px 0;font-weight:700}.err{background:#fef3f2;border:1px solid #fecdca;color:#b42318;border-radius:12px;padding:12px 14px;margin:14px 0}form{margin-top:18px;background:#fff;border:1px solid #e6e6e6;border-radius:16px;padding:16px}input{width:100%;box-sizing:border-box;margin-top:10px;border:1px solid #d4d4d4;border-radius:12px;padding:14px;font-size:16px}button{width:100%;margin-top:14px;border:0;border-radius:12px;background:${look.button};color:#fff;padding:14px;font-size:16px;font-weight:700}a{color:#1a1a1a;font-weight:700}</style>${loginScript}</head><body><main>${body}</main></body></html>\n`;
   switch (page) {
     case "login.html":
     case "rlogin.html":
-      return designPortalBounce(
-        portalUrl,
-        look,
-        title,
-        "Opening the HotspotPro login page…",
-      );
+      return shell(`<h1>${title}</h1><p>${note}</p>${loginForm}<p style="margin-top:16px"><a href="${portalUrl}">Buy a package</a></p>`);
     case "alogin.html":
       return `<!DOCTYPE html><html>${mark}<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="1;url=${SUCCESS_URL}"><meta http-equiv="pragma" content="no-cache"><title>Login successful</title><style>body{margin:0;background:${look.page};color:#1a1a1a;font-family:system-ui,sans-serif}main{max-width:420px;margin:40px auto;padding:28px 18px;text-align:center}.ok{background:#ecfdf3;border:1px solid #abefc6;color:#067647;border-radius:12px;padding:16px;font-weight:700}a{color:#1a1a1a;font-weight:700}</style></head><body><main><div class="ok">Login successful! You are connected to the internet.</div><p>Opening Google…</p><p><a href="${SUCCESS_URL}">Continue to Google</a></p></main></body></html>\n`;
     case "error.html":
-      return designPortalBounce(
-        portalUrl,
-        look,
-        title,
-        "That login did not work. Opening the HotspotPro login page so you can try again.",
-      );
+      return shell(`<h1>Could not connect</h1><div class="err">${errHint}</div>${loginForm}<p style="margin-top:16px"><a href="$(link-login-only)">Try again</a> · <a href="${portalUrl}">Buy a package</a></p>`);
     case "logout.html":
-      return designPortalBounce(
-        portalUrl,
-        look,
-        title,
-        "Signed out. Opening the HotspotPro login page…",
-      );
+      return shell(`<h1>Signed out</h1><p>${note}</p>${loginForm}<p style="margin-top:16px"><a href="${portalUrl}">Buy a package</a></p>`);
     case "redirect.html":
       return `<html>${mark}<head><meta http-equiv="refresh" content="0; url=${SUCCESS_URL}"><meta http-equiv="pragma" content="no-cache"></head><body><a href="${SUCCESS_URL}">Continue</a></body></html>\n`;
     case "status.html":

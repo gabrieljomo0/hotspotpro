@@ -1841,15 +1841,36 @@ function CaptivePortalPageInner() {
         return;
       }
       setVoucherError("");
-      setConnectedFromVoucher(true);
+      // Do not mark connected yet — MikroTik must accept the login first.
       const waitMs = typeof body.waitMs === "number" ? body.waitMs : 0;
-      if (waitMs > 0) {
+      const jobId = typeof body.jobId === "string" ? body.jobId : "";
+      if (waitMs > 0 || jobId) {
         setVoucherError("Preparing this WiFi login…");
-        await new Promise((resolve) => window.setTimeout(resolve, waitMs));
+        if (jobId && routerToken) {
+          const deadline = Date.now() + Math.max(waitMs, 16000);
+          while (Date.now() < deadline) {
+            await new Promise((resolve) => window.setTimeout(resolve, 1500));
+            try {
+              const ready = await fetch(`/api/portal/job?id=${encodeURIComponent(jobId)}`, {
+                headers: { "x-hsp-rt": routerToken },
+              });
+              const readyBody = await ready.json().catch(() => ({}));
+              if (readyBody.status === "ok" || readyBody.status === "failed") break;
+            } catch {
+              /* keep waiting */
+            }
+          }
+        } else if (waitMs > 0) {
+          await new Promise((resolve) => window.setTimeout(resolve, waitMs));
+        }
         setVoucherError("");
       }
+      const mikrotikUser =
+        typeof body.loginUsername === "string" && body.loginUsername ? body.loginUsername : username;
+      const mikrotikPass =
+        typeof body.loginPassword === "string" && body.loginPassword ? body.loginPassword : password;
       // POST to MikroTik /login — puts the phone online, then dst opens Google.
-      routerLogin(username, password, typeof body.hotspotLogin === "string" ? body.hotspotLogin : null);
+      routerLogin(mikrotikUser, mikrotikPass, typeof body.hotspotLogin === "string" ? body.hotspotLogin : null);
     };
     void attempt(true).catch(() => {
       setConnectingWifi(false);

@@ -8,7 +8,7 @@ import dns from "node:dns";
 import { PORTAL_MARKER } from "./hotspotPages";
 
 /** Bump this when the setup script changes. Connected routers download the new setup on the next check-in. */
-export const SETUP_VERSION = "v32";
+export const SETUP_VERSION = "v33";
 
 /** Default check-in spacing. Keep modest so weak African links stay healthy with many routers. */
 export const CHECKIN_INTERVAL = "10s";

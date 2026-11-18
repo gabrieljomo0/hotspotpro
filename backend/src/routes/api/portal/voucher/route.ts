@@ -102,15 +102,23 @@ export async function POST(request: Request) {
 
   let hotspotLogin = "http://10.10.0.1/login";
   let syncQueued = false;
+  let syncFresh = false;
+  let jobId: string | null = null;
+  const loginUsername = (v.code || "").trim().replace(/[^A-Za-z0-9_-]/g, "").slice(0, 32) || v.code;
+  const loginPassword = v.password || v.code || loginUsername;
   if (token) {
     const gateway = (router as { hotspotGatewayIp?: string } | null)?.hotspotGatewayIp?.trim();
     if (gateway && /^(?:\d{1,3}\.){3}\d{1,3}$/.test(gateway)) hotspotLogin = `http://${gateway}/login`;
     try {
+      const sync = getState("routerUserSync")?.value as Record<string, { codes?: string[] }> | undefined;
+      const already = !!sync?.[token]?.codes?.includes(loginUsername);
       // Push only this voucher — do not wipe sync state (that churns every login at scale).
       const script = ensureOneLocalUser(token, router?.ip || "", v.code);
       if (script.length > 1) {
-        queueJob(token, script.join("\n") + "\n", "portal");
+        const job = queueJob(token, script.join("\n") + "\n", "portal");
+        jobId = job.id;
         syncQueued = true;
+        syncFresh = !already;
       }
     } catch {
       /* check-in may already have the user */
@@ -131,9 +139,13 @@ export async function POST(request: Request) {
     started: !!v.activatedAtMs,
     bytesLeft: cap === null ? null : cap - used,
     hotspotLogin,
+    loginUsername,
+    loginPassword,
     redirect: GOOGLE,
     syncQueued,
-    // Router picks up ensureOneLocalUser on the next check-in (~5–15s). Wait long enough before MikroTik /login.
-    waitMs: syncQueued ? 5500 : 800,
+    syncFresh,
+    jobId,
+    // Router picks up ensureOneLocalUser on the next check-in (up to ~10s). Wait long enough before MikroTik /login.
+    waitMs: syncQueued ? (syncFresh ? 14000 : 2500) : 800,
   });
 }
