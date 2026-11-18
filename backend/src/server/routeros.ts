@@ -8,7 +8,7 @@ import dns from "node:dns";
 import { PORTAL_MARKER } from "./hotspotPages";
 
 /** Bump this when the setup script changes. Connected routers download the new setup on the next check-in. */
-export const SETUP_VERSION = "v30";
+export const SETUP_VERSION = "v31";
 
 /** Default check-in spacing. Sub-second polls flood weak African links when an account has many routers. */
 export const CHECKIN_INTERVAL = "15s";
@@ -236,9 +236,11 @@ export function remoteWinboxLines(enabled: boolean, origin: string, token: strin
   if (origin) {
     const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
     const post = `${origin}/api/provision/${token}/winbox`;
-    // Back To Home tunnel is part of setup: create it once and keep it on the site so remote
-    // enable does not need a fresh WireGuard download every time.
-    lines.push(`:do { :local hpWg ""; :local hpTry 0; :global hpWgSent; :while ($hpTry < 12) do={ :do { :set hpWg [/ip cloud get vpn-wireguard-client-config] } on-error={ }; :if ([:len $hpWg] > 20) do={ :set hpTry 12 } else={ :delay 2s; :set hpTry ($hpTry + 1) } }; :if ([:len $hpWg] > 20) do={ :if ($hpWgSent != $hpWg) do={ :do { /file remove [find where name=hotspotpro-wg.conf] } on-error={ }; :do { /file add name=hotspotpro-wg.conf contents=$hpWg } on-error={ }; :do { /tool fetch url="${post}" src-path=hotspotpro-wg.conf upload=yes http-method=post keep-result=no${tls}; :set hpWgSent $hpWg } on-error={ } } } } on-error={ }`);
+    // Back To Home: wait longer for MikroTik cloud, then upload the client conf to the site
+    // (file upload + raw http-data fallback) so the laptop can download WireGuard.
+    lines.push(
+      `:do { :local hpWg ""; :local hpTry 0; :global hpWgSent; :while ($hpTry < 24) do={ :do { :set hpWg [/ip cloud get vpn-wireguard-client-config] } on-error={ }; :if ([:len $hpWg] > 20) do={ :set hpTry 24 } else={ :delay 3s; :set hpTry ($hpTry + 1) } }; :if ([:len $hpWg] > 20) do={ :if ($hpWgSent != $hpWg) do={ :local hpUp 0; :do { /file remove [find where name=hotspotpro-wg.conf] } on-error={ }; :do { /file add name=hotspotpro-wg.conf contents=$hpWg } on-error={ }; :do { /tool fetch url="${post}" src-path=hotspotpro-wg.conf upload=yes http-method=post keep-result=no${tls}; :set hpUp 1 } on-error={ }; :if ($hpUp = 0) do={ :do { /tool fetch url="${post}" http-method=post http-data=$hpWg keep-result=no${tls}; :set hpUp 1 } on-error={ } }; :if ($hpUp = 1) do={ :set hpWgSent $hpWg } } } } on-error={ }`,
+    );
   }
   lines.push(`:do { :if ([:len [/ip firewall filter find where comment="HotspotPro block WinBox from customers"]] = 0) do={ /ip firewall filter add chain=input action=drop in-interface=hotspotpro-bridge protocol=tcp dst-port=8291 comment="HotspotPro block WinBox from customers" place-before=0 } } on-error={ }`);
   return lines;

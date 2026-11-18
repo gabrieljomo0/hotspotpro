@@ -74,7 +74,26 @@ export async function POST(request: Request) {
       const next = (value as Record<string, unknown>[]).map((row) => {
         if (!row || row.ip !== ip) return row;
         const on = body.action === "remote-winbox";
-        return { ...row, remoteAccessEnabled: on, remoteAccessHold: !on };
+        if (!on) {
+          return {
+            ...row,
+            remoteAccessEnabled: false,
+            remoteAccessHold: true,
+            winboxReach: "lan",
+            winboxAddress: "192.168.88.1",
+            wireguardTunnelIp: null,
+            wireguardConfig: null,
+          };
+        }
+        // Assign the Back To Home management IP immediately; the .conf file may arrive on the next check-ins.
+        return {
+          ...row,
+          remoteAccessEnabled: true,
+          remoteAccessHold: false,
+          winboxReach: row.winboxReach === "direct" ? "direct" : "relay",
+          winboxAddress: row.winboxReach === "direct" && row.winboxAddress ? row.winboxAddress : "192.168.216.1",
+          wireguardTunnelIp: row.winboxReach === "direct" ? row.wireguardTunnelIp ?? null : "192.168.216.1",
+        };
       });
       setState("routers", next, "router");
     }

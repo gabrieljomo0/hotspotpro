@@ -334,27 +334,59 @@ export function recordRouterStats(token: string, stats: { cpu: number | null; me
       if (wanIp && !isPrivate(wanIp)) {
         updated.winboxReach = "direct";
         updated.winboxAddress = `${name || wanIp}:8291`;
-      } else if (wanIp || name || ipv4(stats.pub)) {
+        // Public path — laptop WinBox does not need the Back To Home tunnel IP.
+        if (!row.wireguardConfig) updated.wireguardTunnelIp = null;
+      } else if (wanIp || name || ipv4(stats.pub) || row.wireguardConfig || row.winboxReach === "relay") {
+        // NAT / CGNAT / Back To Home — MikroTik's management peer is always this address.
         updated.winboxReach = "relay";
         updated.winboxAddress = "192.168.216.1";
-      } else if (!row.winboxAddress) updated.winboxAddress = "192.168.88.1";
+        updated.wireguardTunnelIp = "192.168.216.1";
+      } else {
+        // Remote on but WAN not reported yet — still reserve the tunnel IP so the UI is not blank.
+        updated.winboxReach = "relay";
+        updated.winboxAddress = "192.168.216.1";
+        updated.wireguardTunnelIp = "192.168.216.1";
+      }
     }
     return updated;
   });
   if (changed) setState("routers", next, "router");
 }
 
+/** Pull a WireGuard client conf out of raw / multipart /tool fetch upload bodies. */
+function extractWireguardConf(raw: string) {
+  const text = raw.replace(/\0/g, "").trim();
+  if (!text) return "";
+  const start = text.indexOf("[Interface]");
+  if (start < 0) return "";
+  let conf = text.slice(start);
+  // Multipart uploads sometimes append a boundary after the conf.
+  const boundary = conf.search(/\r?\n------/);
+  if (boundary > 0) conf = conf.slice(0, boundary);
+  conf = conf.trim();
+  if (conf.length < 20 || conf.length > 8000) return "";
+  if (!conf.includes("PrivateKey") || !conf.includes("[Peer]")) return "";
+  return conf;
+}
+
 /** The router posts its Back to Home WireGuard file once remote access is on. */
 export function saveWireguardConfig(token: string, body: string) {
-  const text = body.replace(/\0/g, "").trim();
-  if (text.length < 20 || text.length > 8000 || !text.includes("[Interface]") || !text.includes("PrivateKey")) return false;
+  const conf = extractWireguardConf(body);
+  if (!conf) return false;
   const value = getState("routers")?.value;
   if (!Array.isArray(value)) return false;
   let changed = false;
   const next = (value as Record<string, unknown>[]).map((row) => {
     if (!row || row.provisioningToken !== token || row.remoteAccessHold === true) return row;
     changed = true;
-    return { ...row, wireguardConfig: text, wireguardTunnelIp: "192.168.216.1" };
+    return {
+      ...row,
+      wireguardConfig: conf,
+      wireguardTunnelIp: "192.168.216.1",
+      winboxReach: "relay",
+      winboxAddress: "192.168.216.1",
+      remoteAccessEnabled: true,
+    };
   });
   if (changed) setState("routers", next, "router");
   return changed;

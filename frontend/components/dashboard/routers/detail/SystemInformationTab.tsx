@@ -454,12 +454,32 @@ export function SystemInformationTab({
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
             <p className="text-xs text-[#737373]">Connection Mode</p>
-            <p className="text-sm font-semibold text-[#1a1a1a]">{router.winboxReach === "direct" ? "Public WinBox" : "WireGuard VPN"}</p>
+            <p className="text-sm font-semibold text-[#1a1a1a]">
+              {!router.remoteAccessEnabled
+                ? "Remote off"
+                : router.winboxReach === "direct"
+                  ? "Public WinBox"
+                  : "WireGuard VPN"}
+            </p>
           </div>
           <div>
             <p className="text-xs text-[#737373]">WireGuard Tunnel IP</p>
-            <p className="text-sm font-semibold text-[#1a1a1a]">{router.winboxReach === "direct" ? "Not used" : router.wireguardTunnelIp || "Not assigned"}</p>
-            <p className="text-xs text-[#a3a3a3]">Secure tunnel IP for management access</p>
+            <p className="text-sm font-semibold text-[#1a1a1a]">
+              {!router.remoteAccessEnabled
+                ? "—"
+                : router.winboxReach === "direct"
+                  ? "Not used (public path)"
+                  : router.wireguardTunnelIp || "192.168.216.1"}
+            </p>
+            <p className="text-xs text-[#a3a3a3]">
+              {!router.remoteAccessEnabled
+                ? "Enable remote access to assign the tunnel IP"
+                : router.winboxReach === "direct"
+                  ? "Public WinBox does not need a tunnel IP"
+                  : router.wireguardConfig
+                    ? "Use this address in WinBox after the WireGuard tunnel is on"
+                    : "Assigned — waiting for the router to upload the WireGuard file"}
+            </p>
           </div>
         </div>
         <div className="mt-4">

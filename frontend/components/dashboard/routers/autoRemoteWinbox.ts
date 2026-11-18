@@ -119,6 +119,15 @@ export async function autoPrepareRemoteWinbox(opts: {
         opts.onStatus?.("ready");
         return "direct";
       }
+      // Assign tunnel IP immediately for NAT routers even before the .conf file lands.
+      if (existing.winboxReach !== "direct") {
+        opts.patchRouter(opts.ip, {
+          winboxReach: "relay",
+          winboxAddress: "192.168.216.1",
+          wireguardTunnelIp: "192.168.216.1",
+          remoteAccessEnabled: true,
+        });
+      }
       if (typeof existing.wireguardConfig === "string" && existing.wireguardConfig.includes("[Interface]")) {
         const keep = tunnelAlreadyKept(opts.ip);
         if (!keep || opts.forceDownload) {

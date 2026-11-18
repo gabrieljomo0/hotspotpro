@@ -508,8 +508,15 @@ export function useRouterState(
               ...r,
               remoteAccessEnabled: next,
               remoteAccessHold: !next,
-              winboxAddress: next ? r.winboxAddress || "192.168.88.1" : "192.168.88.1",
-              winboxReach: next ? r.winboxReach : "lan",
+              winboxAddress: next
+                ? r.winboxReach === "direct" && r.winboxAddress
+                  ? r.winboxAddress
+                  : r.winboxAddress && r.winboxAddress !== "192.168.88.1"
+                    ? r.winboxAddress
+                    : "192.168.216.1"
+                : "192.168.88.1",
+              winboxReach: next ? r.winboxReach === "direct" ? "direct" : "relay" : "lan",
+              wireguardTunnelIp: next ? (r.winboxReach === "direct" ? r.wireguardTunnelIp : "192.168.216.1") : null,
               wireguardConfig: next ? r.wireguardConfig : null,
             }
           : r,
