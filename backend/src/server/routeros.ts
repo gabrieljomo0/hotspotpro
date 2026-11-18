@@ -8,7 +8,7 @@
 import dns from "node:dns";
 
 /** Bump this when the setup script changes. Connected routers download the new setup on the next check-in. */
-export const SETUP_VERSION = "v20";
+export const SETUP_VERSION = "v21";
 
 /** Hotspot login DNS name (MikroTik profile dns-name). Prefer a manually typed value. */
 export function loginDnsFromName(routerName: string, given?: string): string {
@@ -134,8 +134,31 @@ function guardSource() {
   return ':global hpMiss; :if ([:typeof $hpMiss] = "nothing") do={ :set hpMiss 0 }; :set hpMiss ($hpMiss + 1); :if ($hpMiss >= 72) do={ :do { /ip firewall raw enable [find where comment="HotspotPro access lock"] } on-error={ }; :do { /ip hotspot active remove [find] } on-error={ } }';
 }
 
+/** When a voucher ends, drop the login cookie and kick WiFi so the phone can open the captive portal again without forgetting the network. */
+function logoutSource() {
+  return ':local mac $"mac-address"; :if ([:len $mac] > 0) do={ :do { /ip hotspot cookie remove [find where mac-address=$mac] } on-error={ }; :do { /interface wifi registration-table remove [find where mac-address=$mac] } on-error={ }; :do { /interface wifiwave2 registration-table remove [find where mac-address=$mac] } on-error={ }; :do { /interface wireless registration-table remove [find where mac-address=$mac] } on-error={ } }';
+}
+
+/** Backup cleaner: cookies whose hotspot user was removed, then kick those MACs. */
+function reauthCleanSource() {
+  return ':foreach c in=[/ip hotspot cookie find] do={ :local u [/ip hotspot cookie get $c user]; :local m [/ip hotspot cookie get $c mac-address]; :if ([:len $u] = 0 || [:len [/ip hotspot user find where name=$u]] = 0) do={ :do { /ip hotspot cookie remove $c } on-error={ }; :if ([:len $m] > 0) do={ :do { /interface wifi registration-table remove [find where mac-address=$m] } on-error={ }; :do { /interface wifiwave2 registration-table remove [find where mac-address=$m] } on-error={ }; :do { /interface wireless registration-table remove [find where mac-address=$m] } on-error={ } } } }';
+}
+
 function rosQuoted(source: string) {
   return `"${source.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\$/g, "\\$")}"`;
+}
+
+/** Install logout + reauth helpers so expired vouchers reopen the captive portal on the saved WiFi. */
+export function hotspotReauthEnsureLines(): string[] {
+  return [
+    `:do { /system script remove [find where name=hotspotpro-logout] } on-error={ }`,
+    `:do { /system script add name=hotspotpro-logout source=${rosQuoted(logoutSource())} policy=read,write,policy,test comment="HotspotPro" } on-error={ }`,
+    `:do { /ip hotspot user profile set [find] on-logout=hotspotpro-logout } on-error={ }`,
+    `:do { /system script remove [find where name=hotspotpro-reauth] } on-error={ }`,
+    `:do { /system script add name=hotspotpro-reauth source=${rosQuoted(reauthCleanSource())} policy=read,write,policy,test comment="HotspotPro" } on-error={ }`,
+    `:do { /system scheduler remove [find where name=hotspotpro-reauth] } on-error={ }`,
+    `:do { /system scheduler add name=hotspotpro-reauth interval=1m start-time=startup on-event=hotspotpro-reauth policy=read,write,policy,test comment="HotspotPro" } on-error={ }`,
+  ];
 }
 
 /** Install the offline lock once. Safe to include on every check-in and in the setup script. */
@@ -493,7 +516,9 @@ export function buildProvisionScript(input: {
     safe(`/ip firewall nat add chain=dstnat in-interface=hotspotpro-bridge protocol=udp dst-port=53 action=redirect to-ports=53 comment="HotspotPro DNS"`, false, "Customer DNS stays on this router");
     safe(`/ip firewall nat add chain=dstnat in-interface=hotspotpro-bridge protocol=tcp dst-port=53 action=redirect to-ports=53 comment="HotspotPro DNS"`, true);
     say("Creating hotspot user profiles...");
-    safe(`/ip hotspot user profile set [find where name=default] shared-users=1 session-timeout=0s idle-timeout=none keepalive-timeout=none mac-cookie-timeout=1d`, false, "Default profile allows one device");
+    // When time/data ends: clear cookie + drop WiFi so tapping the saved network opens the portal again.
+    for (const line of hotspotReauthEnsureLines()) add(line);
+    safe(`/ip hotspot user profile set [find where name=default] shared-users=1 session-timeout=0s idle-timeout=none keepalive-timeout=none mac-cookie-timeout=1d on-logout=hotspotpro-logout`, false, "Default profile allows one device");
     if (radius) {
       say("Configuring RADIUS login...");
       // RouterOS asks this server whether each voucher may get online (time, data and speed limits come back in the answer).

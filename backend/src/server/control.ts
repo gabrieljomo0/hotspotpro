@@ -20,7 +20,7 @@ import { accessDecision } from "./accessGate";
 import { forgetLocalUsers, localUserLines } from "./localUsers";
 import { noteLiveVouchers } from "./packages";
 import { loginPageStamp } from "./hotspotPages";
-import { SETUP_VERSION, accessGuardCommand, accessLockEnsureCommand, checkInBody, loginDnsFromName, remoteWinboxLines } from "./routeros";
+import { SETUP_VERSION, accessGuardCommand, accessLockEnsureCommand, checkInBody, hotspotReauthEnsureLines, loginDnsFromName, remoteWinboxLines } from "./routeros";
 import { primaryWanInterface } from "./primaryWan";
 import { type IspLink, multiWanLines } from "./multiWan";
 import { bridgeWifiLines, ensureHotspotServerLines, sealCaptivePortalLeakLines, ssidForRouter, wifiApplyLines } from "./wifiApply";
@@ -174,7 +174,8 @@ export function controlScript(token: string, origin?: string): string | null {
       // http-pap first so a plain form still works; http-chap works when the login page sends CHAP MD5.
       // http-pap must stay on: the HotspotPro web portal POSTs plaintext username/password to /login.
       `:do { /ip hotspot profile set [find where name=hotspotpro] login-by=http-pap,mac-cookie trial-uptime-limit=0s use-radius=${local ? "no" : "yes"} } on-error={ }`,
-      `:do { /ip hotspot user profile set [find where name=default] shared-users=1 session-timeout=0s idle-timeout=none keepalive-timeout=none mac-cookie-timeout=1d } on-error={ }`,
+      ...hotspotReauthEnsureLines(),
+      `:do { /ip hotspot user profile set [find where name=default] shared-users=1 session-timeout=0s idle-timeout=none keepalive-timeout=none mac-cookie-timeout=1d on-logout=hotspotpro-logout } on-error={ }`,
       `:do { /system clock set time-zone-name=Africa/Accra } on-error={ }`,
       `:do { :if ([:len [/ip firewall mangle find where comment="HotspotPro tethering"]] = 0) do={ /ip firewall mangle add chain=postrouting action=change-ttl new-ttl=set:1 passthrough=yes out-interface=hotspotpro-bridge comment="HotspotPro tethering" } } on-error={ }`,
     );

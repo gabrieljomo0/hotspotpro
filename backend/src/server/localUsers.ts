@@ -106,7 +106,7 @@ export function localUserLines(token: string, routerIp: string, now = Date.now()
     // equal to the bundle was logging phones out, and the 2-minute keepalive
     // then made a fresh voucher look finished. The phone may leave and come
     // back until limit-uptime and the data cap run out.
-    const limit = `rate-limit=${rate(user.pkg)} shared-users=${devices} session-timeout=0s idle-timeout=none keepalive-timeout=none mac-cookie-timeout=${rosDuration(seconds)}`;
+    const limit = `rate-limit=${rate(user.pkg)} shared-users=${devices} session-timeout=0s idle-timeout=none keepalive-timeout=none mac-cookie-timeout=${rosDuration(seconds)} on-logout=hotspotpro-logout`;
     lines.push(`:do { /ip hotspot user profile set [find where name=${quote(name)}] ${limit} } on-error={ }`);
     lines.push(`:do { :if ([:len [/ip hotspot user profile find where name=${quote(name)}]] = 0) do={ /ip hotspot user profile add name=${quote(name)} ${limit} comment="HotspotPro" } } on-error={ }`);
   }
@@ -136,6 +136,9 @@ export function localUserLines(token: string, routerIp: string, now = Date.now()
     }
   }
   for (const code of remove) {
+    // Drop sessions/cookies for removed vouchers and kick WiFi so the captive portal can open again.
+    lines.push(`:do { :foreach a in=[/ip hotspot active find where user=${quote(code)}] do={ :local m [/ip hotspot active get $a mac-address]; /ip hotspot active remove $a; :do { /ip hotspot cookie remove [find where mac-address=$m] } on-error={ }; :do { /interface wifi registration-table remove [find where mac-address=$m] } on-error={ }; :do { /interface wireless registration-table remove [find where mac-address=$m] } on-error={ } } } on-error={ }`);
+    lines.push(`:do { /ip hotspot cookie remove [find where user=${quote(code)}] } on-error={ }`);
     lines.push(`:do { /ip hotspot user remove [find where name=${quote(code)} comment="HotspotPro"] } on-error={ }`);
   }
   // The first phone that logs in owns the voucher. Any other phone typing that code is refused.
