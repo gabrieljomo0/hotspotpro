@@ -316,6 +316,7 @@ function HomePortal({
   showPassword,
   error,
   connectedFromVoucher,
+  connectingWifi = false,
   onUsernameChange,
   onPasswordChange,
   onTogglePassword,
@@ -329,6 +330,7 @@ function HomePortal({
   showPassword: boolean;
   error: string;
   connectedFromVoucher: boolean;
+  connectingWifi?: boolean;
   onUsernameChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
   onTogglePassword: () => void;
@@ -354,16 +356,18 @@ function HomePortal({
         </p>
       </div>
 
-      {connectedFromVoucher && (
+      {(connectingWifi || connectedFromVoucher) && (
         <div className="mt-5 rounded-xl border border-[#f3f1ec] bg-[#f3f1ec] p-4 text-center">
           <CheckCircle2 className="mx-auto text-[#1a1a1a]" />
 
           <p className="mt-2 font-bold text-[#111111]">
-            Internet connected
+            {connectingWifi ? "Connecting to WiFi…" : "Internet connected"}
           </p>
 
           <p className="mt-1 text-xs text-[#1a1a1a]">
-            Your voucher has been accepted.
+            {connectingWifi
+              ? "Signing you in on this network. Keep this page open for a moment."
+              : "Your voucher has been accepted."}
           </p>
         </div>
       )}
@@ -1622,8 +1626,10 @@ function CaptivePortalPageInner() {
   const [oneLogin, setOneLogin] = useState(false);
   const [purchaseRef, setPurchaseRef] = useState<string | null>(null);
   const routerToken = searchParams.get("rt");
-  const hotspotLoginUrl = searchParams.get("login");
+  const hotspotLoginFromQuery = searchParams.get("login");
   const hotspotDst = searchParams.get("dst");
+  const [hotspotLoginFallback, setHotspotLoginFallback] = useState("http://10.10.0.1/login");
+  const [connectingWifi, setConnectingWifi] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -1637,6 +1643,9 @@ function CaptivePortalPageInner() {
         setPlans(config.packages as PackagePlan[]);
         setPayMode(config.payments);
         setOneLogin(config.authMethod === "PIN Only");
+        if (typeof config.hotspotLogin === "string" && /^https?:\/\//.test(config.hotspotLogin)) {
+          setHotspotLoginFallback(config.hotspotLogin);
+        }
         if (config.packages[0]) setSelectedPackageId(config.packages[0].id);
       })
       .catch(() => undefined);
@@ -1646,18 +1655,40 @@ function CaptivePortalPageInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [portalRouterIp, routerToken]);
 
-  // Hand the customer's login back to the router, which is what really lets them online.
-  function routerLogin(username: string, password: string) {
-    if (!hotspotLoginUrl || !/^https?:\/\//.test(hotspotLoginUrl)) {
-      setVoucherError("Open the WiFi login page on this network, then enter the voucher there. It connects immediately.");
+  // Hand the customer's login back to the router via POST — GET query logins do not put phones online.
+  function routerLogin(username: string, password: string, loginUrl?: string | null) {
+    const action =
+      (loginUrl && /^https?:\/\//.test(loginUrl) ? loginUrl : null) ||
+      (hotspotLoginFromQuery && /^https?:\/\//.test(hotspotLoginFromQuery) ? hotspotLoginFromQuery : null) ||
+      (hotspotLoginFallback && /^https?:\/\//.test(hotspotLoginFallback) ? hotspotLoginFallback : null);
+    if (!action) {
+      setVoucherError("Could not reach the WiFi login on this router. Forget the WiFi, join again from the captive portal, then enter the voucher.");
       setConnectedFromVoucher(false);
+      setConnectingWifi(false);
       return;
     }
-    const url = new URL(hotspotLoginUrl);
-    url.searchParams.set("username", username);
-    url.searchParams.set("password", password);
-    if (hotspotDst) url.searchParams.set("dst", hotspotDst);
-    window.location.assign(url.toString());
+    setConnectingWifi(true);
+    setConnectedFromVoucher(false);
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = action;
+    form.acceptCharset = "UTF-8";
+    form.style.display = "none";
+    const fields: Record<string, string> = {
+      username,
+      password,
+      dst: hotspotDst || "http://neverssl.com/",
+      popup: "true",
+    };
+    for (const [name, value] of Object.entries(fields)) {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = name;
+      input.value = value;
+      form.appendChild(input);
+    }
+    document.body.appendChild(form);
+    form.submit();
   }
 
   const selectedPackage =
@@ -1786,21 +1817,28 @@ function CaptivePortalPageInner() {
       return;
     }
 
+    setConnectingWifi(true);
     fetch("/api/portal/voucher", {
       method: "POST",
       headers: { "Content-Type": "application/json", ...(routerToken ? { "x-hsp-rt": routerToken } : {}) },
       body: JSON.stringify({ username, password }),
     })
       .then(async (response) => ({ ok: response.ok, body: await response.json().catch(() => ({})) }))
-      .then(({ ok, body }) => {
+      .then(async ({ ok, body }) => {
         if (!ok || !body.valid) {
+          setConnectingWifi(false);
           setVoucherError(body.message ?? "That voucher isn't valid.");
           return;
         }
-        setConnectedFromVoucher(true);
-        routerLogin(username, password);
+        const waitMs = typeof body.waitMs === "number" ? body.waitMs : 0;
+        if (waitMs > 0) await new Promise((resolve) => window.setTimeout(resolve, waitMs));
+        // POST to MikroTik /login — this is what actually puts the phone online.
+        routerLogin(username, password, typeof body.hotspotLogin === "string" ? body.hotspotLogin : null);
       })
-      .catch(() => setVoucherError("Could not reach the service. Try again."));
+      .catch(() => {
+        setConnectingWifi(false);
+        setVoucherError("Could not reach the service. Try again.");
+      });
   }
 
   // Real payment: ask the server to start it, then watch for the result.
@@ -2172,6 +2210,9 @@ function CaptivePortalPageInner() {
             error={voucherError}
             connectedFromVoucher={
               connectedFromVoucher
+            }
+            connectingWifi={
+              connectingWifi
             }
             onUsernameChange={
               setVoucherUsername

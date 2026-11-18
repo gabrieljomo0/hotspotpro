@@ -53,7 +53,7 @@ export function loginPageStamp(token: string): string {
   let hash = 0;
   for (let i = 0; i < raw.length; i += 1) hash = (hash * 33 + raw.charCodeAt(i)) >>> 0;
   // Bump prefix whenever the install/detect marker changes so routers re-download pages.
-  return `v12-${hash.toString(16)}`;
+  return `v13-${hash.toString(16)}`;
 }
 
 /** Files that make the hotspot folder a skin WinBox can open: the stylesheet and the CHAP helper. */
@@ -76,8 +76,8 @@ function pageBody(page: HotspotPage, portal: string, look: PortalLook): string {
   const title = look.title;
   const mark = `<!-- ${PORTAL_MARKER} -->`;
   // Open the HotspotPro system portal immediately (packages / buy / voucher UI).
-  // Pass MikroTik login + dst so the portal can put the phone online after a voucher.
-  const portalUrl = `${portal}&login=$(link-login-only)&dst=$(link-orig)`;
+  // Pass MikroTik login + escaped dst so the portal can POST the voucher back to the router.
+  const portalUrl = `${portal}&login=$(link-login-only)&dst=$(link-orig-esc)`;
   // MikroTik substitutes $(link-*) before the phone sees the page. Keep those tokens literal.
   const openPortal = (label: string) =>
     `<!DOCTYPE html><html>${mark}<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="pragma" content="no-cache"><meta http-equiv="refresh" content="0;url=${portalUrl}"><title>${title}</title><style>body{margin:0;background:${look.page};color:#1a1a1a;font-family:system-ui,sans-serif}main{max-width:420px;margin:0 auto;padding:36px 20px}a{display:inline-block;margin-top:18px;padding:14px 18px;border-radius:12px;background:${look.button};color:#fff;font-weight:700;text-decoration:none}</style><script>location.replace("${portalUrl}");</script></head><body><main><h1>${title}</h1><p>${label}</p><p><a href="${portalUrl}">Open WiFi login</a></p></main></body></html>\n`;

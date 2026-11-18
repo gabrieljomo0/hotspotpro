@@ -8,7 +8,7 @@
 import dns from "node:dns";
 
 /** Bump this when the setup script changes. Connected routers download the new setup on the next check-in. */
-export const SETUP_VERSION = "v19";
+export const SETUP_VERSION = "v20";
 
 /** Hotspot login DNS name (MikroTik profile dns-name). Prefer a manually typed value. */
 export function loginDnsFromName(routerName: string, given?: string): string {
@@ -473,7 +473,7 @@ export function buildProvisionScript(input: {
     add(
       `:do { /ip hotspot profile add name=hotspotpro hotspot-address=${plan.gateway} trial-uptime-limit=0s ${useCloud ? "use-radius=yes radius-accounting=yes radius-interim-update=1m" : "use-radius=no"}; :put "Hotspot profile created" } on-error={ :do { /ip hotspot profile set [find where name=hotspotpro] hotspot-address=${plan.gateway} trial-uptime-limit=0s ${useCloud ? "use-radius=yes" : "use-radius=no"} } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: hotspot profile"; :put "HotspotPro: could not create the hotspot profile" } }`,
     );
-    safe(`/ip hotspot profile set [find where name=hotspotpro] dns-name=${q(loginName)} login-by=http-pap,http-chap,mac-cookie`, true);
+    safe(`/ip hotspot profile set [find where name=hotspotpro] dns-name=${q(loginName)} login-by=http-pap,mac-cookie`, true);
     safe(`/ip hotspot remove [find where name=hotspotpro]`, true);
     add(
       `:do { /ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no; :put "Hotspot server created" } on-error={ :do { /ip hotspot set [find where name=hotspotpro] interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no; :put "Hotspot server updated" } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: hotspot server"; :put "HotspotPro: CRITICAL — hotspot server was not created. Captive portal will not open until IP → Hotspot → Servers shows hotspotpro." } }`,

@@ -28,10 +28,21 @@ export async function GET(request: Request) {
       validityHours: p.durationUnit === "Hours" ? p.durationValue : p.durationUnit === "Minutes" ? Math.max(1, Math.round(p.durationValue / 60)) : undefined,
       price: priceOf(p),
     }));
+  let hotspotLogin = "http://10.10.0.1/login";
+  if (token) {
+    const routers = getState("routers")?.value;
+    const match = Array.isArray(routers)
+      ? (routers as { ip: string; provisioningToken?: string; hotspotGatewayIp?: string }[]).find((r) => r.provisioningToken === token)
+      : undefined;
+    const gateway = match?.hotspotGatewayIp?.trim();
+    if (gateway && /^(?:\d{1,3}\.){3}\d{1,3}$/.test(gateway)) hotspotLogin = `http://${gateway}/login`;
+  }
   return NextResponse.json({
     routerIp,
     packages,
     payments: paymentMode(),
     authMethod: token && voucherOnlyLogin(token) ? "PIN Only" : "Username & Password",
+    // Fallback when the phone opened /portal without MikroTik login= query params.
+    hotspotLogin,
   }, { headers: { "Cache-Control": "no-store" } });
 }
