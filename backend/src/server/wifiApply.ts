@@ -3,6 +3,7 @@
 // Radios must sit on hotspotpro-bridge (ROS7 datapath.bridge) or phones never
 // hit the captive portal after joining the SSID.
 
+import { applyHtmlDirectoryRos } from "./hotspotPages";
 import { getState } from "./store";
 
 function cleanSsid(value: string | undefined) {
@@ -73,8 +74,7 @@ export function ensureHotspotServerLines(dnsName = "wifi"): string[] {
     `:do { /ip dhcp-server enable [find where name=hotspotpro-dhcp] } on-error={ }`,
     // Profile first without html-directory (folder may not exist yet).
     `:do { :if ([:len [/ip hotspot profile find where name=hotspotpro]] = 0) do={ /ip hotspot profile add name=hotspotpro hotspot-address=10.10.0.1 dns-name="${dns}" login-by=http-pap,mac-cookie trial-uptime-limit=0s use-radius=no } else={ /ip hotspot profile set [find where name=hotspotpro] hotspot-address=10.10.0.1 dns-name="${dns}" login-by=http-pap,mac-cookie trial-uptime-limit=0s use-radius=no } } on-error={ }`,
-    `:do { :local hpDir "hotspot"; :if ([:len [/file find where name="flash/hotspot/login.html"]] > 0) do={ :set hpDir "flash/hotspot" }; /ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir } on-error={ }`,
-    `:do { :local hpDir "hotspot"; :if ([:len [/file find where name="flash/hotspot/login.html"]] > 0) do={ :set hpDir "flash/hotspot" }; /ip hotspot profile set [find where name=hotspotpro] html-directory-override=$hpDir } on-error={ }`,
+    `:do { ${applyHtmlDirectoryRos()} } on-error={ }`,
     `:do { :if ([:len [/ip hotspot find where name=hotspotpro]] = 0) do={ /ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no; :put "HotspotPro: hotspot server created on hotspotpro-bridge" } else={ /ip hotspot set [find where name=hotspotpro] interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no } } on-error={ }`,
     `:do { /ip hotspot disable [find where name!="hotspotpro"] } on-error={ }`,
     `:do { /ip hotspot enable [find where name=hotspotpro] } on-error={ }`,

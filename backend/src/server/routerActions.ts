@@ -6,6 +6,7 @@ import { getState, setState } from "./store";
 import { type IspLink, multiWanLines } from "./multiWan";
 import { remoteWinboxLines } from "./routeros";
 import { primaryWanInterface } from "./primaryWan";
+import { applyHtmlDirectoryRos, pickHtmlDirectoryRos } from "./hotspotPages";
 import { forgetLocalUsers, localUserLines } from "./localUsers";
 import { ssidForRouter, wifiApplyLines } from "./wifiApply";
 
@@ -63,8 +64,8 @@ function fileFetches(origin: string, token: string) {
   // No reset-html — that command asks y/N in the terminal and blocks setup/sync.
   const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
   const lines = [
-    // Match setup: use flash/hotspot when the router stores files on flash.
-    `:local hpDir "hotspot"; :do { :if ([:len [/file find where name="flash"]] > 0) do={ :set hpDir "flash/hotspot" } } on-error={ }`,
+    // Prefer flash only after HotspotPro pages land there (not factory login.html).
+    pickHtmlDirectoryRos(),
     step(`/ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir`),
     step(`/ip hotspot profile set [find where name=hotspotpro] html-directory-override=$hpDir`),
     // Factory / other hotspot servers would still serve MikroTik's default HTML.
@@ -84,9 +85,7 @@ function fileFetches(origin: string, token: string) {
     lines.push(step(`/tool fetch url="${css}" dst-path="${dest}"${tls}`));
   }
   // Re-point after files land so the phone never keeps the default MikroTik skin.
-  lines.push(`:local hpDir "hotspot"; :do { :if ([:len [/file find where name="flash/hotspot/login.html"]] > 0) do={ :set hpDir "flash/hotspot" } } on-error={ }`);
-  lines.push(step(`/ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir`));
-  lines.push(step(`/ip hotspot profile set [find where name=hotspotpro] html-directory-override=$hpDir`));
+  lines.push(applyHtmlDirectoryRos());
   return lines;
 }
 
