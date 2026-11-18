@@ -74,9 +74,10 @@ function hotspotLines(router: Row): string[] {
   if (router.hotspotEnabled === false) {
     return [`:do { /ip hotspot disable [find where name=hotspotpro] } on-error={ }`];
   }
+  const name = loginDnsFromName(router.name, router.dnsName);
   const lines = [
     // If Servers is empty, create hotspotpro here — enable alone does nothing.
-    ...ensureHotspotServerLines(),
+    ...ensureHotspotServerLines(name),
     // Bypass bindings skip the voucher page — keep them cleared.
     `:do { /ip hotspot ip-binding remove [find where type=bypassed] } on-error={ }`,
     // html-directory must match where login.html lives (flash or root), or WiFi never shows the voucher page.
@@ -88,7 +89,6 @@ function hotspotLines(router: Row): string[] {
     // Radios must sit on hotspotpro-bridge every check-in (wifi / wifiwave2 / wireless).
     ...bridgeWifiLines(),
   ];
-  const name = loginDnsFromName(router.name, router.dnsName);
   if (/^[a-z0-9][a-z0-9.-]{0,48}$/.test(name)) {
     lines.push(`:do { /ip hotspot profile set [find where name=hotspotpro] dns-name="${name}" } on-error={ }`);
     lines.push(`:do { :local a ""; :do { :set a [/ip address get [find where interface=hotspotpro-bridge comment="HotspotPro"] address] } on-error={ }; :if ([:len $a] > 0) do={ :local g [:pick $a 0 [:find $a "/"]]; /ip dns static remove [find where comment="HotspotPro login"]; /ip dns static add name="${name}" address=$g comment="HotspotPro login" } } on-error={ }`);

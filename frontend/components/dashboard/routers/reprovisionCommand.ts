@@ -7,7 +7,7 @@ export function cleanReprovisionSsid(value: string) {
   return value.replace(/[\\"$\r\n]/g, "").trim().slice(0, 32);
 }
 
-export function buildReprovisionCommand(input: { origin: string; token: string; ssid: string }) {
+export function buildReprovisionCommand(input: { origin: string; token: string; ssid: string; dnsName?: string }) {
   const origin = input.origin.replace(/\/+$/, "");
   const ssid = cleanReprovisionSsid(input.ssid) || "HotspotPro";
   if (!origin || !input.token) return "";
@@ -15,7 +15,7 @@ export function buildReprovisionCommand(input: { origin: string; token: string; 
   const setupUrl = `${origin}/api/provision/${input.token}?wireless=yes&ssid=${encodeURIComponent(ssid)}`;
   return [
     // First fill IP → Hotspot → Servers if it is empty (create hotspotpro).
-    buildCreateHotspotServerCommand(),
+    buildCreateHotspotServerCommand(input.dnsName),
     `:put "HotspotPro: downloading full setup to finish reconfiguration..."`,
     `:do { /ip hotspot ip-binding remove [find where type=bypassed] } on-error={ }`,
     `:do { /ip hotspot active remove [find] } on-error={ }`,

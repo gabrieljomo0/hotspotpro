@@ -50,8 +50,8 @@ export function ReprovisionPastePanel({ router }: { router: RouterInfo }) {
   }, []);
 
   const command = useMemo(
-    () => (token && origin ? buildReprovisionCommand({ origin, token, ssid }) : ""),
-    [token, origin, ssid],
+    () => (token && origin ? buildReprovisionCommand({ origin, token, ssid, dnsName: router.dnsName }) : ""),
+    [token, origin, ssid, router.dnsName],
   );
 
   async function copy() {

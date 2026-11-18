@@ -21,7 +21,14 @@ const WARN_AT = 75;
 const OVERLOAD_AT = 90;
 
 function loginLabelFrom(dnsName?: string) {
-  return (dnsName || "").toLowerCase().replace(/[^a-z]/g, "").slice(0, 4) || "wifi";
+  return (
+    (dnsName || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9.-]/g, "")
+      .replace(/^\.+|\.+$/g, "")
+      .replace(/\.{2,}/g, ".")
+      .slice(0, 48) || "wifi"
+  );
 }
 
 function uptimeSeries(hours: string[] | undefined, days: number) {
@@ -74,7 +81,7 @@ export function SystemInformationTab({
   });
   const [applyingHotspot, setApplyingHotspot] = useState(false);
   const hotspotDirty = useMemo(() => {
-    const label = loginLabel.toLowerCase().replace(/[^a-z]/g, "").slice(0, 4);
+    const label = loginLabelFrom(loginLabel);
     return (
       hotspotOn !== savedHotspot.hotspotOn ||
       network.trim() !== savedHotspot.network ||
@@ -348,12 +355,27 @@ export function SystemInformationTab({
             <span className="mt-1 block text-xs text-[#a3a3a3]">DNS servers for hotspot clients</span>
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs text-[#737373]">Hotspot Login URL</span>
+            <span className="mb-1 block text-xs text-[#737373]">Hotspot DNS / login name</span>
             <span className="flex h-11 items-center rounded-xl border border-[#e6e6e6] px-3 text-sm">
               <span className="text-[#a3a3a3]">http://</span>
-              <input value={loginLabel} onChange={(event) => setLoginLabel(event.target.value.toLowerCase().replace(/[^a-z]/g, "").slice(0, 4))} className="mx-2 w-full bg-transparent font-mono outline-none" />
+              <input
+                value={loginLabel}
+                onChange={(event) =>
+                  setLoginLabel(
+                    event.target.value
+                      .toLowerCase()
+                      .replace(/[^a-z0-9.-]/g, "")
+                      .replace(/\.{2,}/g, ".")
+                      .slice(0, 48),
+                  )
+                }
+                placeholder="wifi"
+                className="mx-2 w-full bg-transparent font-mono outline-none"
+              />
             </span>
-            <span className="mt-1 block text-xs text-[#a3a3a3]">Taken from the router name. Fewer than 5 letters. Customers open http://{loginLabel || "wifi"} when they connect.</span>
+            <span className="mt-1 block text-xs text-[#a3a3a3]">
+              Type your own name (not the router name). Customers open http://{loginLabelFrom(loginLabel)} when they connect.
+            </span>
           </label>
         </div>
         <div className="mt-4">
@@ -361,7 +383,7 @@ export function SystemInformationTab({
             dirty={hotspotDirty}
             applying={applyingHotspot}
             onApply={async () => {
-              const label = loginLabel.toLowerCase().replace(/[^a-z]/g, "").slice(0, 4) || "wifi";
+              const label = loginLabelFrom(loginLabel) || "wifi";
               setApplyingHotspot(true);
               try {
                 updateRouterDetails(router.ip, {

@@ -96,7 +96,7 @@ try {
   check("remote WebFig is open for browser access", cloudCtl.includes('comment="HotspotPro remote WebFig"') && cloudCtl.includes("/ip service set www") && cloudCtl.includes("interval=3s"), cloudCtl.slice(0, 400));
   check("hotspot login requires voucher page then MAC cookie", cloudCtl.includes("login-by=http-pap,http-chap,mac-cookie") && cloudCtl.includes("addresses-per-mac=1") && cloudCtl.includes("mac-address=$m"), cloudCtl.slice(0, 800));
   check("captive portal login supports CHAP MD5", (await (await fetch(base + "/api/provision/tok-ama-12345678/login.html")).text()).includes("hexMD5") && (await (await fetch(base + "/api/provision/tok-ama-12345678/md5.js")).text()).includes("function hexMD5"), "login.html / md5.js");
-  check("connected routers download the latest setup by themselves", cloudCtl.includes("applying the latest setup") && cloudCtl.includes('hpSetup != "v16"') && cloudCtl.includes("/api/provision/tok-ama-12345678?wireless=yes"), cloudCtl.slice(cloudCtl.indexOf("hpSetup"), cloudCtl.indexOf("hpSetup") + 400));
+  check("connected routers download the latest setup by themselves", cloudCtl.includes("applying the latest setup") && cloudCtl.includes('hpSetup != "v17"') && cloudCtl.includes("/api/provision/tok-ama-12345678?wireless=yes"), cloudCtl.slice(cloudCtl.indexOf("hpSetup"), cloudCtl.indexOf("hpSetup") + 400));
   const cloudScript = await (await fetch(base + "/api/provision/tok-ama-12345678?wireless=yes&ssid=AmaCafeWiFi")).text();
   check("setup creates hotspot server in safe steps", cloudScript.includes("hotspot server is ready") && cloudScript.includes("/ip hotspot profile add name=hotspotpro hotspot-address="), cloudScript.slice(cloudScript.indexOf("Creating the hotspot"), cloudScript.indexOf("Creating the hotspot") + 400));
   check("setup clears hotspot bypass so the voucher page is required", cloudScript.includes("type=bypassed") && cloudCtl.includes("type=bypassed"), "ip-binding bypass removed");
@@ -104,6 +104,13 @@ try {
   check("check-in seals factory NAT and covers wifiwave2", cloudCtl.includes('comment~"defconf"') && cloudCtl.includes("/interface wifiwave2") && cloudCtl.includes("disable-ipv6=yes"), "seal + wifiwave2 + ipv6");
   check("check-in creates the hotspot server when Servers is empty", cloudCtl.includes('/ip hotspot add name=hotspotpro') && cloudCtl.includes("Ensure HotspotPro hotspot server exists"), "ensure hotspot server");
   check("setup seals free-internet paths", cloudScript.includes('comment~"defconf"') && cloudScript.includes("disable-ipv6=yes") && !cloudScript.includes(":execute script="), "no async wifi execute");
+  // Manual hotspot DNS name (not forced from the router name).
+  await send("PUT", "/api/state/routers", { value: [{ ip: "10.0.0.1", name: "Ama Router", status: "Online", provisioningToken: "tok-ama-12345678", dnsName: "login.shop" }] }, amaCookie);
+  const dnsCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
+  const dnsScript = await (await fetch(base + "/api/provision/tok-ama-12345678?wireless=yes")).text();
+  check("manual DNS name is used on check-in", dnsCtl.includes('dns-name="login.shop"') && dnsCtl.includes('name="login.shop"'), dnsCtl.includes("dns-name=") ? "found wrong dns-name" : "missing dns-name");
+  check("manual DNS name is used in full setup", dnsScript.includes("dns-name=\"login.shop\"") || dnsScript.includes('dns-name="login.shop"'), dnsScript.slice(dnsScript.indexOf("dns-name"), dnsScript.indexOf("dns-name") + 80));
+  await send("PUT", "/api/state/routers", { value: [{ ip: "10.0.0.1", name: "Ama Router", status: "Online", provisioningToken: "tok-ama-12345678" }] }, amaCookie);
   await fetch(base + "/api/provision/tok-ama-12345678/control?cpu=1&free=1&total=2&users=AMATEST1");
   const afterUse = await json(await send("GET", "/api/state", undefined, amaCookie));
   const used = (afterUse.docs?.vouchers?.value ?? []).find((v) => v.code === "AMATEST1");

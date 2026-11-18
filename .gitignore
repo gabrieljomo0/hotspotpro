@@ -11,3 +11,6 @@ backend/.tmp-ui/
 *.log
 .DS_Store
 .vercel/
+
+.vercel
+.env*

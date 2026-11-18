@@ -120,9 +120,15 @@ export default function AddRouterPage() {
   const lanParsed = parseLanIp(lanInput);
   const lanError = "error" in lanParsed ? lanParsed.error : "";
   const hotspotNetwork = "error" in lanParsed ? planFor(peak).lanIp : lanParsed.network;
-  const typedDns = dnsName.toLowerCase().replace(/[^a-z]/g, "");
+  const typedDns = dnsName
+    .toLowerCase()
+    .replace(/[^a-z0-9.-]/g, "")
+    .replace(/^\.+|\.+$/g, "")
+    .replace(/\.{2,}/g, ".")
+    .slice(0, 48);
   const nameDns = (name.match(/[a-zA-Z]/g) || []).join("").toLowerCase().slice(0, 4);
-  const loginDns = routerType === "Existing Router" && typedDns.length > 0 && typedDns.length < 5 ? typedDns : nameDns || "wifi";
+  // Manual DNS name wins when typed; otherwise fall back to a short name from the router name.
+  const loginDns = typedDns || nameDns || "wifi";
   const pppoeNetwork = "192.168.91.0/24";
 
   // Always put WiFi on the hotspot bridge when the box has wireless — otherwise
@@ -451,7 +457,8 @@ export default function AddRouterPage() {
                 className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
               <span className="mt-1 block text-xs text-[#a3a3a3]">
-                The WiFi login name is <span className="font-mono text-[#1a1a1a]">{loginDns}</span>. It is taken from this router name and stays under 5 letters.
+                Default login name is <span className="font-mono text-[#1a1a1a]">{loginDns}</span>
+                {typedDns ? " (from the DNS name you typed below)." : " (from the router name). You can override it with DNS name below."}
               </span>
             </label>
 
@@ -554,18 +561,31 @@ export default function AddRouterPage() {
               </label>
             )}
 
-            {routerType === "Existing Router" && (
-              <label className="block">
-                <span className="mb-2 block text-sm font-semibold text-[#525252]">DNS name</span>
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold text-[#525252]">Hotspot DNS / login name</span>
+              <div className="flex h-11 max-w-md items-center rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm">
+                <span className="shrink-0 text-[#a3a3a3]">http://</span>
                 <input
                   value={dnsName}
-                  onChange={(event) => setDnsName(event.target.value.toLowerCase().replace(/[^a-z]/g, "").slice(0, 4))}
-                  placeholder={loginDns}
-                  className="h-11 w-full max-w-[180px] rounded-xl border border-[#e6e6e6] bg-white px-3 font-mono text-sm outline-none focus:border-[#1a1a1a]"
+                  onChange={(event) =>
+                    setDnsName(
+                      event.target.value
+                        .toLowerCase()
+                        .replace(/[^a-z0-9.-]/g, "")
+                        .replace(/\.{2,}/g, ".")
+                        .slice(0, 48),
+                    )
+                  }
+                  placeholder={nameDns || "wifi"}
+                  className="ml-1 w-full bg-transparent font-mono outline-none"
                 />
-                <span className="mt-1 block text-xs text-[#a3a3a3]">Leave this empty to use {loginDns} from the router name. Fewer than 5 letters.</span>
-              </label>
-            )}
+              </div>
+              <span className="mt-1 block text-xs text-[#a3a3a3]">
+                Type your own login name (e.g. <span className="font-mono">wifi</span> or <span className="font-mono">login.shop</span>).
+                Leave empty to use <span className="font-mono">{nameDns || "wifi"}</span> from the router name. Customers open{" "}
+                <span className="font-mono">http://{loginDns}</span> on the captive portal.
+              </span>
+            </label>
 
             {routerType === "New Router" && (
               <div data-testid="wireless-card" className="rounded-xl border border-[#e6e6e6] bg-white p-4">

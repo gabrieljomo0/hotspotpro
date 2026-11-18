@@ -8,14 +8,21 @@
 import dns from "node:dns";
 
 /** Bump this when the setup script changes. Connected routers download the new setup on the next check-in. */
-export const SETUP_VERSION = "v16";
+export const SETUP_VERSION = "v17";
 
-/** The hotspot login name: letters from the router name, fewer than 5. A saved name is kept only when it is already that short. */
+/** Hotspot login DNS name (MikroTik profile dns-name). Prefer a manually typed value. */
 export function loginDnsFromName(routerName: string, given?: string): string {
-  const letters = (value: string) => value.toLowerCase().replace(/[^a-z]/g, "");
-  const typed = letters(given || "");
-  if (typed.length > 0 && typed.length < 5) return typed;
-  return letters(routerName).slice(0, 4) || "wifi";
+  const clean = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9.-]/g, "")
+      .replace(/^\.+|\.+$/g, "")
+      .replace(/\.{2,}/g, ".")
+      .slice(0, 48);
+  const typed = clean(given || "");
+  if (typed.length > 0) return typed;
+  const fromName = routerName.toLowerCase().replace(/[^a-z]/g, "").slice(0, 4);
+  return fromName || "wifi";
 }
 
 export type ProvisionRouter = {

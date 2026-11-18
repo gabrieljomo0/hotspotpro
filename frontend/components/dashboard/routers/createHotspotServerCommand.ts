@@ -1,5 +1,12 @@
 /** One-shot WinBox Terminal paste: create the Hotspot Servers entry if it is empty. */
-export function buildCreateHotspotServerCommand() {
+export function buildCreateHotspotServerCommand(dnsName = "wifi") {
+  const dns =
+    (dnsName || "wifi")
+      .toLowerCase()
+      .replace(/[^a-z0-9.-]/g, "")
+      .replace(/^\.+|\.+$/g, "")
+      .replace(/\.{2,}/g, ".")
+      .slice(0, 48) || "wifi";
   return [
     `:put "HotspotPro: creating hotspot server (IP → Hotspot → Servers)..."`,
     `:do { :if ([:len [/interface bridge find where name=hotspotpro-bridge]] = 0) do={ /interface bridge add name=hotspotpro-bridge comment="HotspotPro" } } on-error={ }`,
@@ -9,7 +16,7 @@ export function buildCreateHotspotServerCommand() {
     `:do { :if ([:len [/ip dhcp-server network find where comment="HotspotPro"]] = 0) do={ /ip dhcp-server network add address=10.10.0.0/16 gateway=10.10.0.1 dns-server=10.10.0.1 comment="HotspotPro" } } on-error={ }`,
     `:do { :if ([:len [/ip dhcp-server find where name=hotspotpro-dhcp]] = 0) do={ /ip dhcp-server add name=hotspotpro-dhcp interface=hotspotpro-bridge address-pool=hotspotpro-pool disabled=no } } on-error={ }`,
     // Profile without html-directory first (ROS 7.2x often rejects html-directory when the folder is missing).
-    `:do { :if ([:len [/ip hotspot profile find where name=hotspotpro]] = 0) do={ /ip hotspot profile add name=hotspotpro hotspot-address=10.10.0.1 dns-name="wifi" login-by=http-pap,http-chap,mac-cookie trial-uptime-limit=0s use-radius=no } else={ /ip hotspot profile set [find where name=hotspotpro] hotspot-address=10.10.0.1 login-by=http-pap,http-chap,mac-cookie } } on-error={ }`,
+    `:do { :if ([:len [/ip hotspot profile find where name=hotspotpro]] = 0) do={ /ip hotspot profile add name=hotspotpro hotspot-address=10.10.0.1 dns-name="${dns}" login-by=http-pap,http-chap,mac-cookie trial-uptime-limit=0s use-radius=no } else={ /ip hotspot profile set [find where name=hotspotpro] hotspot-address=10.10.0.1 dns-name="${dns}" login-by=http-pap,http-chap,mac-cookie } } on-error={ }`,
     `:do { :local hpDir "hotspot"; :if ([:len [/file find where name="flash/hotspot/login.html"]] > 0) do={ :set hpDir "flash/hotspot" }; /ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir } on-error={ }`,
     `:do { :if ([:len [/ip hotspot find where name=hotspotpro]] = 0) do={ /ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no } else={ /ip hotspot set [find where name=hotspotpro] interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no } } on-error={ }`,
     `:do { /ip hotspot enable [find where name=hotspotpro] } on-error={ }`,
