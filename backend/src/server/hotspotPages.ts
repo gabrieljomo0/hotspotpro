@@ -44,12 +44,16 @@ export function voucherOnlyLogin(token: string): boolean {
   return portalLook(token).pin;
 }
 
+/** Unique marker so we never treat MikroTik's default hotspot HTML as "ours". */
+export const PORTAL_MARKER = "HotspotPro portal";
+
 export function loginPageStamp(token: string): string {
   const look = portalLook(token);
   const raw = `${look.pin ? "pin" : "user"}|${look.title}|${look.button}|${look.page}|chap`;
   let hash = 0;
   for (let i = 0; i < raw.length; i += 1) hash = (hash * 33 + raw.charCodeAt(i)) >>> 0;
-  return `v10-${hash.toString(16)}`;
+  // Bump prefix whenever the install/detect marker changes so routers re-download pages.
+  return `v11-${hash.toString(16)}`;
 }
 
 /** Files that make the hotspot folder a skin WinBox can open: the stylesheet and the CHAP helper. */
@@ -95,22 +99,23 @@ $(endif)
 </script>`;
   const sendin = `<form name="sendin" action="$(link-login-only)" method="post" style="display:none"><input type="hidden" name="username"><input type="hidden" name="password"><input type="hidden" name="dst" value="$(link-orig)"><input type="hidden" name="popup" value="true"></form>`;
   const loginForm = `<form name="login" method="post" action="$(link-login-only)" onsubmit="return doLogin()">${fields}<input type="hidden" name="dst" value="$(link-orig)"><input type="hidden" name="popup" value="true"><button type="submit">Connect</button></form>`;
+  const mark = `<!-- ${PORTAL_MARKER} -->`;
   switch (page) {
     case "login.html":
     case "rlogin.html":
-      return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="pragma" content="no-cache"><title>${title}</title><style>body{margin:0;background:${look.page};color:#1a1a1a;font-family:system-ui,sans-serif}main{max-width:420px;margin:0 auto;padding:36px 20px}h1{font-size:32px;line-height:1.1;margin:0}p{color:#525252;line-height:1.5}form{margin-top:24px;background:#fff;border:1px solid #e6e6e6;border-radius:18px;padding:18px}input{width:100%;box-sizing:border-box;margin-top:10px;border:1px solid #d4d4d4;border-radius:12px;padding:14px;font-size:16px}button{width:100%;margin-top:14px;border:0;border-radius:12px;background:${look.button};color:#fff;padding:14px;font-size:16px;font-weight:700}a{color:#1a1a1a;font-weight:700}</style>${loginScript}</head><body><main><h1>${title}</h1><p>${note} Connection starts on this router, so it is immediate.</p>${sendin}${loginForm}<p><a href="${portal}">Buy a package</a></p></main></body></html>\n`;
+      return `<!DOCTYPE html><html>${mark}<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="pragma" content="no-cache"><title>${title}</title><style>body{margin:0;background:${look.page};color:#1a1a1a;font-family:system-ui,sans-serif}main{max-width:420px;margin:0 auto;padding:36px 20px}h1{font-size:32px;line-height:1.1;margin:0}p{color:#525252;line-height:1.5}form{margin-top:24px;background:#fff;border:1px solid #e6e6e6;border-radius:18px;padding:18px}input{width:100%;box-sizing:border-box;margin-top:10px;border:1px solid #d4d4d4;border-radius:12px;padding:14px;font-size:16px}button{width:100%;margin-top:14px;border:0;border-radius:12px;background:${look.button};color:#fff;padding:14px;font-size:16px;font-weight:700}a{color:#1a1a1a;font-weight:700}</style>${loginScript}</head><body><main><h1>${title}</h1><p>${note} Connection starts on this router, so it is immediate.</p>${sendin}${loginForm}<p><a href="${portal}">Buy a package</a></p></main></body></html>\n`;
     case "alogin.html":
-      return `<html><head><meta http-equiv="refresh" content="0; url=$(link-redirect)"><meta http-equiv="pragma" content="no-cache"></head><body>You are online. <a href="$(link-redirect)">Continue</a></body></html>\n`;
+      return `<html>${mark}<head><meta http-equiv="refresh" content="0; url=$(link-redirect)"><meta http-equiv="pragma" content="no-cache"></head><body>You are online. <a href="$(link-redirect)">Continue</a></body></html>\n`;
     case "error.html":
-      return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Could not connect</title><style>body{margin:0;background:#f7f7f7;color:#1a1a1a;font-family:system-ui,sans-serif}main{max-width:420px;margin:0 auto;padding:36px 20px}a{color:#1a1a1a;font-weight:700}</style></head><body><main><h1>Could not connect</h1><p>$(error)</p><p><a href="$(link-login)">Try the voucher again</a></p></main></body></html>\n`;
+      return `<!DOCTYPE html><html>${mark}<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Could not connect</title><style>body{margin:0;background:#f7f7f7;color:#1a1a1a;font-family:system-ui,sans-serif}main{max-width:420px;margin:0 auto;padding:36px 20px}a{color:#1a1a1a;font-weight:700}</style></head><body><main><h1>Could not connect</h1><p>$(error)</p><p><a href="$(link-login)">Try the voucher again</a></p></main></body></html>\n`;
     case "logout.html":
-      return `<html><head><meta http-equiv="refresh" content="1; url=$(link-login)"><meta http-equiv="pragma" content="no-cache"></head><body>You are signed out. <a href="$(link-login)">Log in</a></body></html>\n`;
+      return `<html>${mark}<head><meta http-equiv="refresh" content="1; url=$(link-login)"><meta http-equiv="pragma" content="no-cache"></head><body>You are signed out. <a href="$(link-login)">Log in</a></body></html>\n`;
     case "redirect.html":
-      return `<html><head><meta http-equiv="refresh" content="0; url=$(link-redirect)"><meta http-equiv="pragma" content="no-cache"></head><body></body></html>\n`;
+      return `<html>${mark}<head><meta http-equiv="refresh" content="0; url=$(link-redirect)"><meta http-equiv="pragma" content="no-cache"></head><body></body></html>\n`;
     case "status.html":
-      return `<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="pragma" content="no-cache"><title>You are online</title><style>body{margin:0;background:#f7f7f7;color:#1a1a1a;font-family:system-ui,sans-serif}main{max-width:420px;margin:0 auto;padding:36px 20px}p{color:#525252;line-height:1.5}a{color:#1a1a1a;font-weight:700}</style></head><body><main><h1>You are online</h1><p>$(username)</p><p>Data left: $(remain-bytes-total)</p><p>You can disconnect and reconnect with this same voucher until the time and the data are both finished.</p><p><a href="$(link-logout)">Log out</a></p></main></body></html>\n`;
+      return `<html>${mark}<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="pragma" content="no-cache"><title>You are online</title><style>body{margin:0;background:#f7f7f7;color:#1a1a1a;font-family:system-ui,sans-serif}main{max-width:420px;margin:0 auto;padding:36px 20px}p{color:#525252;line-height:1.5}a{color:#1a1a1a;font-weight:700}</style></head><body><main><h1>You are online</h1><p>$(username)</p><p>Data left: $(remain-bytes-total)</p><p>You can disconnect and reconnect with this same voucher until the time and the data are both finished.</p><p><a href="$(link-logout)">Log out</a></p></main></body></html>\n`;
     case "locked.html":
-      return `<html><head><meta http-equiv="pragma" content="no-cache"></head><body style="font-family:sans-serif;text-align:center;padding:48px"><h2>This network is locked</h2><p>Online access has not been paid. The operator must renew HotspotPro before anyone can get online.</p></body></html>\n`;
+      return `<html>${mark}<head><meta http-equiv="pragma" content="no-cache"></head><body style="font-family:sans-serif;text-align:center;padding:48px"><h2>This network is locked</h2><p>Online access has not been paid. The operator must renew HotspotPro before anyone can get online.</p></body></html>\n`;
   }
 }
 

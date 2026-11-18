@@ -58,6 +58,10 @@ function fileFetches(origin: string, token: string) {
     // Match setup: use flash/hotspot when the router stores files on flash.
     `:local hpDir "hotspot"; :do { :if ([:len [/file find where name="flash"]] > 0) do={ :set hpDir "flash/hotspot" } } on-error={ }`,
     step(`/ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir`),
+    step(`/ip hotspot profile set [find where name=hotspotpro] html-directory-override=$hpDir`),
+    // Factory / other hotspot servers would still serve MikroTik's default HTML.
+    step(`/ip hotspot disable [find where name!="hotspotpro"]`),
+    step(`/ip hotspot enable [find where name=hotspotpro]`),
   ];
   for (const page of PAGES) {
     const url = `${origin}/api/provision/${token}/${page}`;
@@ -71,6 +75,10 @@ function fileFetches(origin: string, token: string) {
     lines.push(step(`/file remove [find where name="${dest}"]`));
     lines.push(step(`/tool fetch url="${css}" dst-path="${dest}"${tls}`));
   }
+  // Re-point after files land so the phone never keeps the default MikroTik skin.
+  lines.push(`:local hpDir "hotspot"; :do { :if ([:len [/file find where name="flash/hotspot/login.html"]] > 0) do={ :set hpDir "flash/hotspot" } } on-error={ }`);
+  lines.push(step(`/ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir`));
+  lines.push(step(`/ip hotspot profile set [find where name=hotspotpro] html-directory-override=$hpDir`));
   return lines;
 }
 

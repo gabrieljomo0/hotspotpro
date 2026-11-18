@@ -8,7 +8,7 @@
 import dns from "node:dns";
 
 /** Bump this when the setup script changes. Connected routers download the new setup on the next check-in. */
-export const SETUP_VERSION = "v17";
+export const SETUP_VERSION = "v18";
 
 /** Hotspot login DNS name (MikroTik profile dns-name). Prefer a manually typed value. */
 export function loginDnsFromName(routerName: string, given?: string): string {
@@ -541,9 +541,15 @@ export function buildProvisionScript(input: {
     pull("hotspotpro.css", `("flash/hotspot/css/hotspotpro.css")`, true);
     const loginUrl = `${origin}/api/provision/${token}/login.html`;
     const rloginUrl = `${origin}/api/provision/${token}/rlogin.html`;
-    add(`:do { :local hpTry 0; :local hpBody ""; :while ($hpTry < 4) do={ :do { :set hpBody [/file get [find where name=($hpDir . "/login.html")] contents] } on-error={ }; :if ([:typeof [:find $hpBody "link-login-only"]] = "num") do={ :set hpTry 4; :put "Your login page is on the router." } else={ :do { /file remove [find where name=($hpDir . "/login.html")] } on-error={ }; :do { /file remove [find where name="hotspot/login.html"] } on-error={ }; :do { /file remove [find where name="flash/hotspot/login.html"] } on-error={ }; :do { /tool fetch url="${loginUrl}" dst-path=($hpDir . "/login.html")${tls} } on-error={ }; :do { /tool fetch url="${loginUrl}" dst-path="hotspot/login.html"${tls} } on-error={ }; :do { /tool fetch url="${loginUrl}" dst-path="flash/hotspot/login.html"${tls} } on-error={ }; :set hpTry ($hpTry + 1); :delay 4s; :put "HotspotPro is downloading your login page again..." } } } on-error={ }`);
-    add(`:do { :local hpTry 0; :local hpBody ""; :while ($hpTry < 4) do={ :do { :set hpBody [/file get [find where name=($hpDir . "/rlogin.html")] contents] } on-error={ }; :if ([:typeof [:find $hpBody "link-login-only"]] = "num") do={ :set hpTry 4; :put "Downloaded rlogin.html" } else={ :do { /file remove [find where name=($hpDir . "/rlogin.html")] } on-error={ }; :do { /file remove [find where name="hotspot/rlogin.html"] } on-error={ }; :do { /file remove [find where name="flash/hotspot/rlogin.html"] } on-error={ }; :do { /tool fetch url="${rloginUrl}" dst-path=($hpDir . "/rlogin.html")${tls} } on-error={ }; :do { /tool fetch url="${rloginUrl}" dst-path="hotspot/rlogin.html"${tls} } on-error={ }; :do { /tool fetch url="${rloginUrl}" dst-path="flash/hotspot/rlogin.html"${tls} } on-error={ }; :set hpTry ($hpTry + 1); :delay 4s; :put "HotspotPro is downloading your login page again..." } } } on-error={ }`);
-    say("The hotspot skin is in the hotspot folder. Open Files in WinBox to see it.");
+    // Require the HotspotPro marker — MikroTik's factory login.html also has link-login-only.
+    add(`:do { :local hpTry 0; :local hpBody ""; :while ($hpTry < 4) do={ :do { :set hpBody [/file get [find where name=($hpDir . "/login.html")] contents] } on-error={ }; :if ([:typeof [:find $hpBody "HotspotPro portal"]] = "num") do={ :set hpTry 4; :put "Your HotspotPro login page is on the router." } else={ :do { /file remove [find where name=($hpDir . "/login.html")] } on-error={ }; :do { /file remove [find where name="hotspot/login.html"] } on-error={ }; :do { /file remove [find where name="flash/hotspot/login.html"] } on-error={ }; :do { /tool fetch url="${loginUrl}" dst-path=($hpDir . "/login.html")${tls} } on-error={ }; :do { /tool fetch url="${loginUrl}" dst-path="hotspot/login.html"${tls} } on-error={ }; :do { /tool fetch url="${loginUrl}" dst-path="flash/hotspot/login.html"${tls} } on-error={ }; :set hpTry ($hpTry + 1); :delay 4s; :put "HotspotPro is downloading your login page again..." } } } on-error={ }`);
+    add(`:do { :local hpTry 0; :local hpBody ""; :while ($hpTry < 4) do={ :do { :set hpBody [/file get [find where name=($hpDir . "/rlogin.html")] contents] } on-error={ }; :if ([:typeof [:find $hpBody "HotspotPro portal"]] = "num") do={ :set hpTry 4; :put "Downloaded HotspotPro rlogin.html" } else={ :do { /file remove [find where name=($hpDir . "/rlogin.html")] } on-error={ }; :do { /file remove [find where name="hotspot/rlogin.html"] } on-error={ }; :do { /file remove [find where name="flash/hotspot/rlogin.html"] } on-error={ }; :do { /tool fetch url="${rloginUrl}" dst-path=($hpDir . "/rlogin.html")${tls} } on-error={ }; :do { /tool fetch url="${rloginUrl}" dst-path="hotspot/rlogin.html"${tls} } on-error={ }; :do { /tool fetch url="${rloginUrl}" dst-path="flash/hotspot/rlogin.html"${tls} } on-error={ }; :set hpTry ($hpTry + 1); :delay 4s; :put "HotspotPro is downloading your login page again..." } } } on-error={ }`);
+    // Point the profile again after pages land, and turn off any other hotspot that would serve MikroTik defaults.
+    add(`:do { /ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir } on-error={ }`);
+    add(`:do { /ip hotspot profile set [find where name=hotspotpro] html-directory-override=$hpDir } on-error={ }`);
+    add(`:do { /ip hotspot disable [find where name!="hotspotpro"] } on-error={ }`);
+    add(`:do { /ip hotspot enable [find where name=hotspotpro] } on-error={ }`);
+    say("The HotspotPro captive portal is in the hotspot folder. Open Files in WinBox to see it.");
     if (input.apiPassword && /^[A-Za-z0-9]{12,32}$/.test(input.apiPassword)) {
       const secret = q(input.apiPassword);
       say("Creating the management login...");

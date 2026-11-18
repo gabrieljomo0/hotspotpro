@@ -76,6 +76,7 @@ export function ensureHotspotServerLines(dnsName = "wifi"): string[] {
     `:do { :local hpDir "hotspot"; :if ([:len [/file find where name="flash/hotspot/login.html"]] > 0) do={ :set hpDir "flash/hotspot" }; /ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir } on-error={ }`,
     `:do { :local hpDir "hotspot"; :if ([:len [/file find where name="flash/hotspot/login.html"]] > 0) do={ :set hpDir "flash/hotspot" }; /ip hotspot profile set [find where name=hotspotpro] html-directory-override=$hpDir } on-error={ }`,
     `:do { :if ([:len [/ip hotspot find where name=hotspotpro]] = 0) do={ /ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no; :put "HotspotPro: hotspot server created on hotspotpro-bridge" } else={ /ip hotspot set [find where name=hotspotpro] interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no } } on-error={ }`,
+    `:do { /ip hotspot disable [find where name!="hotspotpro"] } on-error={ }`,
     `:do { /ip hotspot enable [find where name=hotspotpro] } on-error={ }`,
     `:do { :if ([:len [/ip hotspot find where name=hotspotpro]] = 0) do={ :put "HotspotPro: CRITICAL — Servers is still empty" } } on-error={ }`,
   ];
