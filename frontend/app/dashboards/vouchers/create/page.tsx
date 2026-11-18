@@ -11,6 +11,12 @@ import { ConnectedAgentBanner } from "@/components/dashboard/agents/ConnectedAge
 import type { VoucherCodeFormat, VoucherCountFrom, VoucherLimitBy } from "@/components/dashboard/shared/types";
 import { VoucherAllowanceFields } from "@/components/dashboard/vouchers/VoucherAllowanceFields";
 import { loginMethodForRouterIps, loginMethodLabel } from "@/components/dashboard/vouchers/voucherLoginFromPortal";
+import {
+  VOUCHER_BATCH_DEFAULT,
+  VOUCHER_BATCH_MAX,
+  parseVoucherQuantityInput,
+  resolveVoucherQuantity,
+} from "@/components/dashboard/vouchers/voucherQuantity";
 
 export default function CreateVoucherPage() {
   const router = useRouter();
@@ -28,7 +34,7 @@ export default function CreateVoucherPage() {
 
   const isLockedToDefaultPackage = currentAgent.dashboardMode === "voucherCreator" && !!currentAgent.defaultPackageName;
   const [packageName, setPackageName] = useState(isLockedToDefaultPackage ? currentAgent.defaultPackageName! : "");
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState<number | "">(VOUCHER_BATCH_DEFAULT);
   const [prefix, setPrefix] = useState("");
   const [codeLength, setCodeLength] = useState(4);
   const [codeFormat, setCodeFormat] = useState<VoucherCodeFormat>(
@@ -187,7 +193,7 @@ export default function CreateVoucherPage() {
     const batch = generateVoucherBatch({
       packageName,
       reference,
-      quantity: Math.max(1, quantity),
+      quantity: resolveVoucherQuantity(quantity),
       codeFormat,
       codeLength,
       prefix: prefix.slice(0, 1),
@@ -204,7 +210,7 @@ export default function CreateVoucherPage() {
       saveVoucherPreset({
         name: presetName.trim(),
         packageName,
-        quantity,
+        quantity: resolveVoucherQuantity(quantity),
         codeFormat,
         codeLength,
         prefix,
@@ -345,13 +351,20 @@ export default function CreateVoucherPage() {
             </span>
             <input
               type="number"
-              required
+              inputMode="numeric"
               min={1}
-              max={500}
-              value={quantity}
-              onChange={(event) => setQuantity(Number(event.target.value))}
+              max={VOUCHER_BATCH_MAX}
+              value={quantity === "" ? "" : quantity}
+              onChange={(event) => setQuantity(parseVoucherQuantityInput(event.target.value))}
+              onBlur={() => {
+                if (quantity === "") setQuantity(VOUCHER_BATCH_DEFAULT);
+                else setQuantity(resolveVoucherQuantity(quantity));
+              }}
               className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             />
+            <span className="mt-1 block text-xs text-[#a3a3a3]">
+              Default {VOUCHER_BATCH_DEFAULT} if empty. Up to {VOUCHER_BATCH_MAX} per batch.
+            </span>
           </label>
 
           <label className="block">
@@ -604,7 +617,7 @@ export default function CreateVoucherPage() {
               autoFocus
               value={presetName}
               onChange={(event) => setPresetName(event.target.value)}
-              placeholder={`e.g. "${packageName || "Package"} — ${quantity} codes"`}
+              placeholder={`e.g. "${packageName || "Package"} — ${resolveVoucherQuantity(quantity)} codes"`}
               className="mt-3 h-11 w-full rounded-xl border border-blue-200 bg-white px-3 text-sm outline-none focus:border-blue-500"
             />
           )}

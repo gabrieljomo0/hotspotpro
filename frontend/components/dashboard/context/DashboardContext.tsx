@@ -27,6 +27,7 @@ import { queueRouterAction, queueRouterActionMany } from "./queueRouterAction";
 import type { RouterTaskKind } from "../routers/routerTasks";
 import { reconcileBatchesFromVouchers } from "../vouchers/reconcileBatches";
 import { loginMethodForRouterIps } from "../vouchers/voucherLoginFromPortal";
+import { VOUCHER_BATCH_MAX, resolveVoucherQuantity } from "../vouchers/voucherQuantity";
 import {
   createContext,
   useContext,
@@ -1978,7 +1979,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       : 0;
 
     const currentAgent = agents.find((a) => a.id === actingId);
-    let quantity = input.quantity;
+    let quantity = Math.min(VOUCHER_BATCH_MAX, resolveVoucherQuantity(input.quantity));
 
     // Organization-wide rules for agents. These are enforced here, not just
     // by hiding buttons, so nothing can get around them.

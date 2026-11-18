@@ -20,8 +20,12 @@ import { settingsOf, validateCustomCredentials } from "@/components/dashboard/ag
 import type { AgentProfile, VoucherCountFrom, VoucherLimitBy } from "@/components/dashboard/shared/types";
 import { VoucherAllowanceFields } from "@/components/dashboard/vouchers/VoucherAllowanceFields";
 import { loginMethodForRouterIps, loginMethodLabel } from "@/components/dashboard/vouchers/voucherLoginFromPortal";
-
-const MAX_PER_BATCH = 500;
+import {
+  VOUCHER_BATCH_DEFAULT,
+  VOUCHER_BATCH_MAX,
+  parseVoucherQuantityInput,
+  resolveVoucherQuantity,
+} from "@/components/dashboard/vouchers/voucherQuantity";
 
 export function AgentGenerateVouchersModal({
   open,
@@ -39,7 +43,7 @@ export function AgentGenerateVouchersModal({
   const [chosenPackage, setChosenPackage] = useState("");
   const [limitBy, setLimitBy] = useState<VoucherLimitBy>("both");
   const [countFrom, setCountFrom] = useState<VoucherCountFrom>("signin");
-  const [quantity, setQuantity] = useState(50);
+  const [quantity, setQuantity] = useState<number | "">(VOUCHER_BATCH_DEFAULT);
   // Optional, and only for a single voucher — see "canCustomize" below.
   const [customCode, setCustomCode] = useState("");
   const [customPassword, setCustomPassword] = useState("");
@@ -101,8 +105,9 @@ export function AgentGenerateVouchersModal({
 
   const maxAffordable =
     packageName && agent.requiresWalletFunding ? getMaxAffordableVouchers(agent.id, packageName) : null;
-  const overWallet = maxAffordable !== null && quantity > maxAffordable;
-  const quantityValid = Number.isInteger(quantity) && quantity >= 1 && quantity <= MAX_PER_BATCH;
+  const resolvedQuantity = resolveVoucherQuantity(quantity);
+  const overWallet = maxAffordable !== null && resolvedQuantity > maxAffordable;
+  const quantityValid = resolvedQuantity >= 1 && resolvedQuantity <= VOUCHER_BATCH_MAX;
 
   const blocker =
     agent.routerIp === null
@@ -118,7 +123,7 @@ export function AgentGenerateVouchersModal({
   // Agents may set their own username/password for ONE voucher, but only if
   // the organization has allowed it (on their Settings tab).
   const agentSettings = settingsOf(agent);
-  const canCustomize = agentSettings.allowCustomVoucherCredentials && quantity === 1;
+  const canCustomize = agentSettings.allowCustomVoucherCredentials && resolvedQuantity === 1;
   const customCheck = canCustomize
     ? validateCustomCredentials(customCode, customPassword, vouchers.map((voucher) => voucher.code))
     : ({ ok: true } as const);
@@ -137,7 +142,7 @@ export function AgentGenerateVouchersModal({
     const batch = generateVoucherBatch({
       packageName,
       reference: "",
-      quantity,
+      quantity: resolvedQuantity,
       codeFormat: "uppercase",
       codeLength: 6,
       prefix: "",
@@ -246,14 +251,20 @@ export function AgentGenerateVouchersModal({
             </span>
             <input
               type="number"
-              required
+              inputMode="numeric"
               min={1}
-              max={MAX_PER_BATCH}
-              value={Number.isNaN(quantity) ? "" : quantity}
-              onChange={(event) => setQuantity(event.target.value === "" ? NaN : Number(event.target.value))}
+              max={VOUCHER_BATCH_MAX}
+              value={quantity === "" ? "" : quantity}
+              onChange={(event) => setQuantity(parseVoucherQuantityInput(event.target.value))}
+              onBlur={() => {
+                if (quantity === "") setQuantity(VOUCHER_BATCH_DEFAULT);
+                else setQuantity(resolveVoucherQuantity(quantity));
+              }}
               className="h-11 w-full rounded-xl border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
             />
-            <span className="mt-1 block text-xs text-[#a3a3a3]">Up to {MAX_PER_BATCH} per batch.</span>
+            <span className="mt-1 block text-xs text-[#a3a3a3]">
+              Default {VOUCHER_BATCH_DEFAULT} if empty. Up to {VOUCHER_BATCH_MAX} per batch.
+            </span>
           </label>
 
           {agent.requiresWalletFunding && selected && (

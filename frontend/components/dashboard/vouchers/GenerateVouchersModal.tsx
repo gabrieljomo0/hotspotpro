@@ -20,6 +20,12 @@ import { useDashboard } from "../context/DashboardContext";
 import type { VoucherCodeFormat, VoucherCountFrom, VoucherLimitBy } from "../shared/types";
 import { VoucherAllowanceFields } from "./VoucherAllowanceFields";
 import { loginMethodForRouterIps, loginMethodLabel } from "./voucherLoginFromPortal";
+import {
+  VOUCHER_BATCH_DEFAULT,
+  VOUCHER_BATCH_MAX,
+  parseVoucherQuantityInput,
+  resolveVoucherQuantity,
+} from "./voucherQuantity";
 
 export function GenerateVouchersModal({
   open,
@@ -86,7 +92,7 @@ export function GenerateVouchersModal({
   const [countFrom, setCountFrom] = useState<VoucherCountFrom>("signin");
   const [codeFormat, setCodeFormat] = useState<VoucherCodeFormat>("uppercase");
   const [codeLength, setCodeLength] = useState(6);
-  const [quantity, setQuantity] = useState(60);
+  const [quantity, setQuantity] = useState<number | "">(VOUCHER_BATCH_DEFAULT);
   const [prefix, setPrefix] = useState("");
   const [note, setNote] = useState("");
   const [isGiveaway, setIsGiveaway] = useState(false);
@@ -201,7 +207,7 @@ export function GenerateVouchersModal({
     const batch = generateVoucherBatch({
       packageName,
       reference,
-      quantity: Math.max(1, Math.min(500, quantity)),
+      quantity: resolveVoucherQuantity(quantity),
       codeFormat,
       codeLength,
       prefix: prefix.slice(0, 1),
@@ -222,7 +228,7 @@ export function GenerateVouchersModal({
       saveVoucherPreset({
         name: presetName.trim(),
         packageName,
-        quantity,
+        quantity: resolveVoucherQuantity(quantity),
         codeFormat,
         codeLength,
         prefix,
@@ -454,19 +460,21 @@ export function GenerateVouchersModal({
               </span>
               <input
                 type="number"
-                required
+                inputMode="numeric"
                 min={1}
-                max={500}
-                value={quantity}
-                onChange={(event) => setQuantity(Number(event.target.value))}
+                max={VOUCHER_BATCH_MAX}
+                value={quantity === "" ? "" : quantity}
+                onChange={(event) => setQuantity(parseVoucherQuantityInput(event.target.value))}
+                onBlur={() => {
+                  if (quantity === "") setQuantity(VOUCHER_BATCH_DEFAULT);
+                  else setQuantity(resolveVoucherQuantity(quantity));
+                }}
                 className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
               />
               <span className="mt-1 block text-xs text-[#a3a3a3]">
-                {isAgentMode
-                  ? agentRouterName
-                    ? `Created for your router: ${agentRouterName}.`
-                    : "Up to 500 per batch."
-                  : "Up to 500 per batch."}
+                {isAgentMode && agentRouterName
+                  ? `Created for your router: ${agentRouterName}. Default ${VOUCHER_BATCH_DEFAULT}, up to ${VOUCHER_BATCH_MAX}.`
+                  : `Default ${VOUCHER_BATCH_DEFAULT} if empty. Up to ${VOUCHER_BATCH_MAX} per batch.`}
               </span>
             </label>
           </div>
@@ -642,7 +650,7 @@ export function GenerateVouchersModal({
                 autoFocus
                 value={presetName}
                 onChange={(event) => setPresetName(event.target.value)}
-                placeholder={`e.g. "${packageName || "Package"} — ${quantity} codes"`}
+                placeholder={`e.g. "${packageName || "Package"} — ${resolveVoucherQuantity(quantity)} codes"`}
                 className="mt-3 h-11 w-full rounded-xl border border-blue-200 bg-white px-3 text-sm outline-none focus:border-blue-500"
               />
             )}
