@@ -20,6 +20,7 @@ import { accessDecision } from "./accessGate";
 import { forgetLocalUsers, localUserLines, portalPushCodes, portalPushLines } from "./localUsers";
 import { findPackageByName, findVoucher, list, noteLiveVouchers, packageSeconds } from "./packages";
 import { applyHtmlDirectoryRos, loginPageStamp, PORTAL_MARKER } from "./hotspotPages";
+import { autoLoginFetchLines, latestTicketForToken } from "./portalLogin";
 import { CHECKIN_INTERVAL, SETUP_VERSION, accessGuardCommand, accessLockEnsureCommand, checkInBody, hotspotReauthEnsureLines, loginDnsFromName, remoteWinboxLines } from "./routeros";
 import { primaryWanInterface } from "./primaryWan";
 import { type IspLink, multiWanLines } from "./multiWan";
@@ -242,8 +243,8 @@ export function controlScript(token: string, origin?: string): string | null {
         forgetLocalUsers(token);
         setState("routerResync", { ...resync, [token]: SETUP_VERSION }, "server");
       }
-      // Portal Connect: upsert this voucher inside the check-in itself (do not wait on a separate job fetch).
-      lines.push(...portalPushLines(token, router.ip));
+      // Portal Connect: upsert this voucher + fetch HTTP auto-login page inside the check-in itself.
+      lines.push(...portalPushLines(token, router.ip, origin));
       lines.push(...localUserLines(token, router.ip));
     } else {
       forgetLocalUsers(token);
@@ -251,11 +252,14 @@ export function controlScript(token: string, origin?: string): string | null {
       lines.push(
         `:do { :foreach u in=[/ip hotspot user find where comment="HotspotPro"] do={ :local n [/ip hotspot user get $u name]; :if ([:len [/ip hotspot active find where user=$n]] = 0) do={ :do { /ip hotspot user remove $u } on-error={ } } } } on-error={ }`,
       );
+      // Site portal Connect still needs the HTTP auto-login page on the gateway.
+      const ticket = latestTicketForToken(token);
+      if (origin && ticket) lines.push(...autoLoginFetchLines(origin, token, ticket.id));
     }
   }
   // Commands the owner queued on the site (Advanced). Each is downloaded and run once, and the router reports whether it worked.
   const queued = origin ? takeQueuedJobs(token) : [];
-  const portalPending = portalPushCodes(token).length > 0;
+  const portalPending = portalPushCodes(token).length > 0 || !!latestTicketForToken(token);
   if (origin) {
     const tls = origin.startsWith("https://") ? " check-certificate=no" : "";
     // When the setup version changes, every connected router downloads and runs the latest setup by itself.

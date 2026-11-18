@@ -11,6 +11,7 @@ import {
   voucherLimitBy,
   voucherUsesCalendar,
 } from "@/server/packages";
+import { createLoginTicket } from "@/server/portalLogin";
 import { radiusCloudEnabled, usedBytes } from "@/server/radius";
 import { findRouterByToken } from "@/server/provision";
 import { getState, queueJob } from "@/server/store";
@@ -100,10 +101,11 @@ export async function POST(request: Request) {
     );
   }
 
-  let hotspotLogin = "http://10.10.0.1/login";
+  let gatewayIp = "10.10.0.1";
   let syncQueued = false;
   let syncFresh = false;
   let jobId: string | null = null;
+  let ticketId: string | null = null;
   const loginUsername = (v.code || "").trim().replace(/[^A-Za-z0-9_-]/g, "").slice(0, 32) || v.code;
   const loginPassword = v.password || v.code || loginUsername;
   // Real UDP RADIUS when HOTSPOTPRO_RADIUS=on. On Render that stays off — vouchers are
@@ -112,16 +114,17 @@ export async function POST(request: Request) {
   const authMode = useRadius ? "radius" : "push";
   if (token) {
     const gateway = (router as { hotspotGatewayIp?: string } | null)?.hotspotGatewayIp?.trim();
-    if (gateway && /^(?:\d{1,3}\.){3}\d{1,3}$/.test(gateway)) hotspotLogin = `http://${gateway}/login`;
+    if (gateway && /^(?:\d{1,3}\.){3}\d{1,3}$/.test(gateway)) gatewayIp = gateway;
+    // One-time HTTP page on the gateway — phones leave HTTPS and auto-submit to MikroTik.
+    const ticket = createLoginTicket(token, loginUsername, loginPassword);
+    ticketId = ticket.id;
     if (!useRadius) {
       try {
         const sync = getState("routerUserSync")?.value as Record<string, { codes?: string[] }> | undefined;
         const already = !!sync?.[token]?.codes?.includes(loginUsername);
-        // Primary path: next check-in upserts this voucher inline (reliable).
         queuePortalPush(token, v.code);
         syncQueued = true;
         syncFresh = !already;
-        // Backup: one-shot job in case the inline script is trimmed on a huge check-in.
         const script = ensureOneLocalUser(token, router?.ip || "", v.code);
         if (script.length > 1) {
           const job = queueJob(token, script.join("\n") + "\n", "portal");
@@ -135,8 +138,12 @@ export async function POST(request: Request) {
     const routers = getState("routers")?.value;
     const first = Array.isArray(routers) ? (routers as { hotspotGatewayIp?: string }[])[0] : null;
     const gateway = first?.hotspotGatewayIp?.trim();
-    if (gateway && /^(?:\d{1,3}\.){3}\d{1,3}$/.test(gateway)) hotspotLogin = `http://${gateway}/login`;
+    if (gateway && /^(?:\d{1,3}\.){3}\d{1,3}$/.test(gateway)) gatewayIp = gateway;
   }
+
+  const hotspotLogin = `http://${gatewayIp}/login`;
+  // Served from the router's hotspot HTML folder after check-in downloads it.
+  const continueUrl = ticketId ? `http://${gatewayIp}/hp-go.html` : hotspotLogin;
 
   return NextResponse.json({
     valid: true,
@@ -147,6 +154,8 @@ export async function POST(request: Request) {
     started: !!v.activatedAtMs,
     bytesLeft: cap === null ? null : cap - used,
     hotspotLogin,
+    continueUrl,
+    ticketId,
     loginUsername,
     loginPassword,
     redirect: GOOGLE,
@@ -154,7 +163,7 @@ export async function POST(request: Request) {
     syncQueued,
     syncFresh,
     jobId,
-    // RADIUS: MikroTik asks the server immediately. Push: wait for the voucher job on the router.
-    waitMs: useRadius ? 500 : syncQueued ? (syncFresh ? 14000 : 2500) : 800,
+    // Wait for check-in to push the user + download hp-go.html, then open that HTTP page.
+    waitMs: useRadius ? 800 : syncQueued ? (syncFresh ? 14000 : 4000) : 2000,
   });
 }

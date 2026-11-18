@@ -4,6 +4,7 @@
 // login cannot stay online forever. Local mode does not ask the cloud.
 
 import { voucherOnlyLogin } from "./hotspotPages";
+import { autoLoginFetchLines, latestTicketForToken } from "./portalLogin";
 import { getState, setState } from "./store";
 import { type Pkg, type Vch, findPackageByName, findVoucher, list, normalizeMac, packageBytes, packageSeconds, routerAllowsPackage, voucherAllowedOnRouter, voucherCountFrom, voucherLimitBy } from "./packages";
 
@@ -291,9 +292,10 @@ export function ensureOneLocalUser(token: string, routerIp: string, code: string
 }
 
 /** Inline into the check-in script so Connect does not depend on a separate job download. */
-export function portalPushLines(token: string, routerIp: string, now = Date.now()): string[] {
+export function portalPushLines(token: string, routerIp: string, origin?: string, now = Date.now()): string[] {
   const codes = portalPushCodes(token, now);
-  if (codes.length === 0) return [];
+  const ticket = latestTicketForToken(token);
+  if (codes.length === 0 && !ticket) return [];
   const lines: string[] = ["# HotspotPro portal push (Connect)"];
   const done: string[] = [];
   for (const code of codes) {
@@ -303,6 +305,8 @@ export function portalPushLines(token: string, routerIp: string, now = Date.now(
       done.push(userName(code));
     }
   }
+  // Download HTTP auto-login page so the phone can leave HTTPS and POST on the gateway.
+  if (origin && ticket) lines.push(...autoLoginFetchLines(origin, token, ticket.id));
   // Re-emit on two check-ins so a flaky import still lands the user, then clear.
   const file = portalPushFile();
   const row = file[token];

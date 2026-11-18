@@ -1852,32 +1852,54 @@ function CaptivePortalPageInner() {
       // Do not mark connected yet — MikroTik must accept the login first.
       const waitMs = typeof body.waitMs === "number" ? body.waitMs : 0;
       const jobId = typeof body.jobId === "string" ? body.jobId : "";
-      if (waitMs > 0 || jobId) {
-        setVoucherError("Preparing this WiFi login…");
-        if (jobId && routerToken) {
-          const deadline = Date.now() + Math.max(waitMs, 16000);
-          while (Date.now() < deadline) {
-            await new Promise((resolve) => window.setTimeout(resolve, 1500));
-            try {
-              const ready = await fetch(`/api/portal/job?id=${encodeURIComponent(jobId)}`, {
-                headers: { "x-hsp-rt": routerToken },
-              });
-              const readyBody = await ready.json().catch(() => ({}));
-              if (readyBody.status === "ok" || readyBody.status === "failed") break;
-            } catch {
-              /* keep waiting */
+      const ticketId = typeof body.ticketId === "string" ? body.ticketId : "";
+      const continueUrl =
+        typeof body.continueUrl === "string" && /^https?:\/\//.test(body.continueUrl)
+          ? body.continueUrl
+          : "";
+      setVoucherError("Preparing this WiFi login…");
+      const deadline = Date.now() + Math.max(waitMs, ticketId ? 18000 : 800);
+      let pageReady = !ticketId;
+      while (Date.now() < deadline) {
+        await new Promise((resolve) => window.setTimeout(resolve, 1500));
+        if (ticketId && routerToken && !pageReady) {
+          try {
+            const ready = await fetch(`/api/portal/login-ready?t=${encodeURIComponent(ticketId)}`, {
+              headers: { "x-hsp-rt": routerToken },
+            });
+            const readyBody = await ready.json().catch(() => ({}));
+            if (readyBody.ready) {
+              pageReady = true;
+              break;
             }
+          } catch {
+            /* keep waiting */
           }
-        } else if (waitMs > 0) {
-          await new Promise((resolve) => window.setTimeout(resolve, waitMs));
+        } else if (jobId && routerToken) {
+          try {
+            const ready = await fetch(`/api/portal/job?id=${encodeURIComponent(jobId)}`, {
+              headers: { "x-hsp-rt": routerToken },
+            });
+            const readyBody = await ready.json().catch(() => ({}));
+            if (readyBody.status === "ok" || readyBody.status === "failed") break;
+          } catch {
+            /* keep waiting */
+          }
+        } else {
+          break;
         }
-        setVoucherError("");
+      }
+      setVoucherError("");
+      // Prefer HTTP auto-login on the gateway (works in iOS captive). Fallback: POST /login.
+      if (continueUrl) {
+        setConnectingWifi(true);
+        window.location.replace(continueUrl);
+        return;
       }
       const mikrotikUser =
         typeof body.loginUsername === "string" && body.loginUsername ? body.loginUsername : username;
       const mikrotikPass =
         typeof body.loginPassword === "string" && body.loginPassword ? body.loginPassword : password;
-      // POST to MikroTik /login — puts the phone online, then dst opens Google.
       routerLogin(mikrotikUser, mikrotikPass, typeof body.hotspotLogin === "string" ? body.hotspotLogin : null);
     };
     void attempt(true).catch(() => {
