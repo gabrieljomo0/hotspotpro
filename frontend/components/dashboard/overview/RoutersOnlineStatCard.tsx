@@ -4,14 +4,17 @@ import Link from "next/link";
 import { Router } from "lucide-react";
 
 import { useDashboard } from "../context/DashboardContext";
+import { isRouterLiveOnline } from "../routers/routerLiveStatus";
+import { useRouterControl } from "../routers/useRouterControl";
 import { useDashboardScope } from "./useDashboardScope";
 
 export function RoutersOnlineStatCard() {
   const { routerEnabled } = useDashboard();
+  const { control } = useRouterControl();
   // Only the routers inside the dashboard filter (all of them, by default).
   const { routers } = useDashboardScope();
 
-  const onlineCount = routers.filter((router) => routerEnabled[router.ip]).length;
+  const onlineCount = routers.filter((router) => isRouterLiveOnline(router, control[router.ip], routerEnabled)).length;
   const offlineCount = routers.length - onlineCount;
   const pct = routers.length
     ? Math.round((onlineCount / routers.length) * 100)

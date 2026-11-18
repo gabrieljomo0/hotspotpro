@@ -17,9 +17,11 @@ export function routerLiveStatus(
   if (router.disconnected) return "Offline";
   if (control?.lostSignal) return "Offline";
   if (control?.hasToken && !control.lastCheckInAt && router.provisioningStatus === "Provisioned") return "Offline";
-  if (router.status === "Offline") return "Offline";
+  // Fresh check-in beats a stale Offline status on the router row.
+  if (control?.lastCheckInAt && !control.lostSignal) return "Online";
   if (router.status === "Online") return "Online";
   if (routerEnabled?.[router.ip]) return "Online";
+  if (router.status === "Offline") return "Offline";
   return "Offline";
 }
 

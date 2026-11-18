@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Download, Upload, Cpu, MemoryStick, Router as RouterIcon } from "lucide-react";
 
 import type { RouterInfo } from "@/components/dashboard/data/dashboard-data";
+import { isRouterLiveOnline } from "@/components/dashboard/routers/routerLiveStatus";
+import { useRouterControl } from "@/components/dashboard/routers/useRouterControl";
 
 type LiveRow = {
   ip: string;
@@ -12,6 +14,7 @@ type LiveRow = {
   uploadMbps: number;
   cpuPct: number;
   memoryPct: number;
+  online: boolean;
 };
 
 export function PerRouterLivePanel({
@@ -21,6 +24,7 @@ export function PerRouterLivePanel({
   routers: RouterInfo[];
   routerEnabled: Record<string, boolean>;
 }) {
+  const { control } = useRouterControl();
   const [rows, setRows] = useState<LiveRow[]>(() =>
     routers.map((router) => ({
       ip: router.ip,
@@ -29,6 +33,7 @@ export function PerRouterLivePanel({
       uploadMbps: 0,
       cpuPct: router.cpu,
       memoryPct: router.memory,
+      online: isRouterLiveOnline(router, undefined, routerEnabled),
     })),
   );
 
@@ -36,7 +41,7 @@ export function PerRouterLivePanel({
     const interval = window.setInterval(() => {
       setRows(
         routers.map((router) => {
-          const online = routerEnabled[router.ip];
+          const online = isRouterLiveOnline(router, control[router.ip], routerEnabled);
           const baseDown = 20 + router.clients * 3;
           const baseUp = 6 + router.clients * 1.1;
 
@@ -59,13 +64,14 @@ export function PerRouterLivePanel({
             memoryPct: online
               ? Math.min(99, Math.max(5, Math.round(router.memory + (Math.random() - 0.5) * 10)))
               : 0,
+            online,
           };
         }),
       );
     }, 2000);
 
     return () => window.clearInterval(interval);
-  }, [routers, routerEnabled]);
+  }, [routers, routerEnabled, control]);
 
   return (
     <div className="rounded-xl border border-red-200 bg-red-50 p-5">
@@ -84,7 +90,7 @@ export function PerRouterLivePanel({
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {rows.map((row) => {
-          const online = routerEnabled[row.ip];
+          const online = row.online;
 
           return (
             <div key={row.ip} className="rounded-lg bg-white p-4">

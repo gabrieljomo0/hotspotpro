@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Radio, Cpu, MemoryStick } from "lucide-react";
 
 import type { RouterInfo } from "@/components/dashboard/data/dashboard-data";
+import { isRouterLiveOnline } from "@/components/dashboard/routers/routerLiveStatus";
+import { useRouterControl } from "@/components/dashboard/routers/useRouterControl";
 
 export function LiveRoutersStatusTable({
   routers,
@@ -12,6 +14,7 @@ export function LiveRoutersStatusTable({
   routers: RouterInfo[];
   routerEnabled: Record<string, boolean>;
 }) {
+  const { control } = useRouterControl();
   const [tick, setTick] = useState(0);
 
   useEffect(() => {
@@ -49,7 +52,7 @@ export function LiveRoutersStatusTable({
           </thead>
           <tbody>
             {routers.map((router, index) => {
-              const online = routerEnabled[router.ip];
+              const online = isRouterLiveOnline(router, control[router.ip], routerEnabled);
               const seed = index * 97 + tick * 13;
               const clients = online
                 ? Math.max(0, router.clients + ((seed % 7) - 3))
