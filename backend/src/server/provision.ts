@@ -20,12 +20,25 @@ export function routerForToken(token: string): ProvisionRouter | null {
 export const WEB_PORT = String(process.env.HOTSPOTPRO_WEB_PORT || 3000);
 
 /**
- * The address customers' phones open for the portal page. With HOTSPOTPRO_PUBLIC_URL (hosting: one https address
- * for everything) that is the same address; locally it is this computer on the website's port (3000), not the backend's (4000).
+ * The address customers' phones open for the portal page. Prefer HOTSPOTPRO_PORTAL_URL when the website
+ * and API are hosted separately (e.g. Vercel + Render). HOTSPOTPRO_PUBLIC_URL alone is fine when one
+ * https address serves everything; locally this is the website port (3000), not the backend's (4000).
  */
 export function portalOrigin(origin: string) {
-  const configured = process.env.HOTSPOTPRO_PUBLIC_URL;
-  if (configured) return configured.replace(/\/+$/, "");
+  const dedicated = (process.env.HOTSPOTPRO_PORTAL_URL || process.env.HOTSPOTPRO_SITE_URL || "").replace(/\/+$/, "");
+  if (dedicated) return dedicated;
+  const configured = (process.env.HOTSPOTPRO_PUBLIC_URL || "").replace(/\/+$/, "");
+  if (configured) {
+    try {
+      // API-only hosts must not be used as the customer portal — phones need the website UI.
+      if (/\.onrender\.com$/i.test(new URL(configured).hostname)) {
+        return "https://hotspotpro-mu.vercel.app";
+      }
+    } catch {
+      /* keep configured */
+    }
+    return configured;
+  }
   try {
     const url = new URL(origin);
     url.port = WEB_PORT;

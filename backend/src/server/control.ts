@@ -207,7 +207,7 @@ export function controlScript(token: string, origin?: string): string | null {
     // Keep API + HotspotPro portal hosts reachable before login (phones open /portal directly).
     if (origin) {
       const hosts = new Set<string>();
-      for (const value of [origin, portalOrigin(origin), process.env.HOTSPOTPRO_PUBLIC_URL || ""]) {
+      for (const value of [origin, portalOrigin(origin), process.env.HOTSPOTPRO_PUBLIC_URL || "", process.env.HOTSPOTPRO_PORTAL_URL || "", process.env.HOTSPOTPRO_SITE_URL || "", "https://hotspotpro-mu.vercel.app"]) {
         try {
           const host = new URL(value).hostname;
           if (host && host !== "localhost" && !/^\d+\.\d+\.\d+\.\d+$/.test(host)) hosts.add(host);

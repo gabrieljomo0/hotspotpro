@@ -1,7 +1,7 @@
 // The HTML files a MikroTik hotspot serves from its own login folder.
-// login.html is the captive portal: the phone posts the voucher straight to the
-// router, so connecting does not wait on the website. MikroTik replaces $(...)
-// before the phone sees the page.
+// login.html immediately opens the HotspotPro website captive portal (designed UI).
+// A small on-router form remains as offline fallback. MikroTik replaces $(...) before
+// the phone sees the page.
 
 import { findRouterByToken, portalOrigin, publicOrigin, routerForToken } from "./provision";
 import { getState } from "./store";
@@ -70,7 +70,7 @@ export function loginPageStamp(token: string): string {
   let hash = 0;
   for (let i = 0; i < raw.length; i += 1) hash = (hash * 33 + raw.charCodeAt(i)) >>> 0;
   // Bump prefix whenever the install/detect marker changes so routers re-download pages.
-  return `v17-${hash.toString(16)}`;
+  return `v18-${hash.toString(16)}`;
 }
 
 /** Files that make the hotspot folder a skin WinBox can open: the stylesheet and the CHAP helper. */
@@ -94,7 +94,7 @@ const SUCCESS_URL = "https://www.google.com/";
 function pageBody(page: HotspotPage, portal: string, look: PortalLook): string {
   const title = look.title;
   const mark = `<!-- ${PORTAL_MARKER} -->`;
-  // Served from the router itself so the captive sheet paints in under 2s (no slow HTTPS redirect).
+  // Open the designed HotspotPro website portal (walled-garden). Keep an on-router form if the site is unreachable.
   const portalUrl = `${portal}&login=$(link-login-only)&dst=${encodeURIComponent(SUCCESS_URL)}`;
   const fields = look.pin
     ? `<input name="username" required autocomplete="username" inputmode="text" placeholder="Voucher code"><input type="hidden" name="password" id="hpPass">`
@@ -109,18 +109,20 @@ function doLogin(){${pinPrep}return true;}
   // After a successful login MikroTik opens dst — always send customers to Google.
   const loginForm = `<form name="login" method="post" action="$(link-login-only)" onsubmit="return doLogin()">${fields}<input type="hidden" name="dst" value="${SUCCESS_URL}"><input type="hidden" name="popup" value="true"><button type="submit">Connect</button></form>`;
   const errHint = `<p style="color:#b42318">$(error)</p><p>If this voucher is expired, already used, or made for another WiFi/router, it will not connect here.</p>`;
-  const shell = (body: string) =>
-    `<!DOCTYPE html><html>${mark}<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="pragma" content="no-cache"><title>${title}</title><style>body{margin:0;background:${look.page};color:#1a1a1a;font-family:system-ui,sans-serif}main{max-width:420px;margin:0 auto;padding:28px 18px}h1{font-size:28px;line-height:1.1;margin:0}p{color:#525252;line-height:1.45;font-size:14px}.ok{background:#ecfdf3;border:1px solid #abefc6;color:#067647;border-radius:12px;padding:12px 14px;margin:14px 0;font-weight:700}.err{background:#fef3f2;border:1px solid #fecdca;color:#b42318;border-radius:12px;padding:12px 14px;margin:14px 0}form{margin-top:18px;background:#fff;border:1px solid #e6e6e6;border-radius:16px;padding:16px}input{width:100%;box-sizing:border-box;margin-top:10px;border:1px solid #d4d4d4;border-radius:12px;padding:14px;font-size:16px}button{width:100%;margin-top:14px;border:0;border-radius:12px;background:${look.button};color:#fff;padding:14px;font-size:16px;font-weight:700}a{color:#1a1a1a;font-weight:700}</style>${loginScript}</head><body><main>${body}</main></body></html>\n`;
+  // MikroTik substitutes $(link-login-only) in the HTML before the phone sees it — keep it unescaped in the URL.
+  const portalJs = JSON.stringify(portalUrl);
+  const openSitePortal = (extra = "") =>
+    `<!DOCTYPE html><html>${mark}<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=${portalUrl}"><meta http-equiv="pragma" content="no-cache"><title>HotspotPro</title><style>body{margin:0;background:${look.page};color:#1a1a1a;font-family:system-ui,sans-serif}main{max-width:420px;margin:0 auto;padding:28px 18px}h1{font-size:28px;line-height:1.1;margin:0}p{color:#525252;line-height:1.45;font-size:14px}a.btn{display:block;text-align:center;margin-top:18px;border-radius:12px;background:${look.button};color:#fff;padding:14px;font-size:16px;font-weight:700;text-decoration:none}form{margin-top:24px;background:#fff;border:1px solid #e6e6e6;border-radius:16px;padding:16px}input{width:100%;box-sizing:border-box;margin-top:10px;border:1px solid #d4d4d4;border-radius:12px;padding:14px;font-size:16px}button{width:100%;margin-top:14px;border:0;border-radius:12px;background:${look.button};color:#fff;padding:14px;font-size:16px;font-weight:700}.err{background:#fef3f2;border:1px solid #fecdca;color:#b42318;border-radius:12px;padding:12px 14px;margin:14px 0}details{margin-top:22px;color:#737373;font-size:13px}</style>${loginScript}<script>location.replace(${portalJs});</script></head><body><main><h1>HotspotPro</h1><p>Opening your WiFi login…</p><a class="btn" href="${portalUrl}">Continue to HotspotPro</a>${extra}<details><summary>Router login (if the site does not open)</summary>${loginForm}</details></main></body></html>\n`;
   switch (page) {
     case "login.html":
     case "rlogin.html":
-      return shell(`<h1>${title}</h1><p>${note}</p>${loginForm}<p style="margin-top:16px"><a href="${portalUrl}">Buy a package</a></p>`);
+      return openSitePortal();
     case "alogin.html":
       return `<!DOCTYPE html><html>${mark}<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="1;url=${SUCCESS_URL}"><meta http-equiv="pragma" content="no-cache"><title>Login successful</title><style>body{margin:0;background:${look.page};color:#1a1a1a;font-family:system-ui,sans-serif}main{max-width:420px;margin:40px auto;padding:28px 18px;text-align:center}.ok{background:#ecfdf3;border:1px solid #abefc6;color:#067647;border-radius:12px;padding:16px;font-weight:700}a{color:#1a1a1a;font-weight:700}</style></head><body><main><div class="ok">Login successful! You are connected to the internet.</div><p>Opening Google…</p><p><a href="${SUCCESS_URL}">Continue to Google</a></p></main></body></html>\n`;
     case "error.html":
-      return shell(`<h1>Could not connect</h1><div class="err">${errHint}</div>${loginForm}<p style="margin-top:16px"><a href="${portalUrl}">Buy a package</a></p>`);
+      return openSitePortal(`<div class="err">${errHint}</div>`);
     case "logout.html":
-      return shell(`<h1>Signed out</h1><p>Enter a voucher to get back online.</p>${loginForm}<p style="margin-top:16px"><a href="${portalUrl}">Buy a package</a></p>`);
+      return openSitePortal(`<p>${note}</p>`);
     case "redirect.html":
       return `<html>${mark}<head><meta http-equiv="refresh" content="0; url=${SUCCESS_URL}"><meta http-equiv="pragma" content="no-cache"></head><body><a href="${SUCCESS_URL}">Continue</a></body></html>\n`;
     case "status.html":

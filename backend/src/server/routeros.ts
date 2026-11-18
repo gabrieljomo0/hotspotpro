@@ -7,7 +7,7 @@
 import dns from "node:dns";
 
 /** Bump this when the setup script changes. Connected routers download the new setup on the next check-in. */
-export const SETUP_VERSION = "v27";
+export const SETUP_VERSION = "v28";
 
 /** Default check-in spacing. Sub-second polls flood weak African links when an account has many routers. */
 export const CHECKIN_INTERVAL = "15s";
