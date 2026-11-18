@@ -30,18 +30,19 @@ export function ssidForRouter(router: { ip?: string; siteId?: string | null; nam
 
 /**
  * Put every radio on the hotspot bridge so clients hit the captive portal.
- * Covers ROS7 `/interface wifi`, older `/interface wifiwave2`, and legacy `/interface wireless`.
- * Always safe to re-run on check-in.
+ * ROS7 wifi / wifiwave2: use datapath.bridge only (do not also add as a bridge port).
+ * Legacy wireless: use bridge ports.
  */
 export function bridgeWifiLines(): string[] {
   return [
-    // RouterOS 7.13+ wifi package
+    // Pull radios off the factory LAN bridge first — that is what gives free internet.
+    `:do { :foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :do { /interface bridge port remove [find where interface=$n] } on-error={ } } } on-error={ }`,
+    `:do { :foreach p in=[/interface wifiwave2 find] do={ :local n [/interface wifiwave2 get $p name]; :do { /interface bridge port remove [find where interface=$n] } on-error={ } } } on-error={ }`,
+    // RouterOS 7 wifi package (hAP ax / ax S): datapath.bridge is what feeds Hotspot.
     `:do { :foreach p in=[/interface wifi find] do={ :do { /interface wifi set $p disabled=no configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ } } } on-error={ }`,
-    `:do { :foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } on-error={ }`,
-    // Older ROS7 wifiwave2 (before the rename to /interface wifi)
+    // Older ROS7 wifiwave2 name
     `:do { :foreach p in=[/interface wifiwave2 find] do={ :do { /interface wifiwave2 set $p disabled=no configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ } } } on-error={ }`,
-    `:do { :foreach p in=[/interface wifiwave2 find] do={ :local n [/interface wifiwave2 get $p name]; :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } on-error={ }`,
-    // Legacy wireless package
+    // Legacy wireless package still needs a bridge port
     `:do { :foreach p in=[/interface wireless find] do={ :local n [/interface wireless get $p name]; :do { /interface wireless set $p disabled=no mode=ap-bridge } on-error={ }; :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } on-error={ }`,
     `:do { /interface wifi enable [find] } on-error={ }`,
     `:do { /interface wifiwave2 enable [find] } on-error={ }`,
@@ -50,9 +51,8 @@ export function bridgeWifiLines(): string[] {
 }
 
 /**
- * Create the HotspotPro server + profile + bridge pieces if the owner never ran
- * a full setup (WinBox → IP → Hotspot → Servers is empty).
- * Safe to re-run: only adds what is missing.
+ * Create the HotspotPro server + profile + bridge pieces if Servers is empty.
+ * Stepwise profile/server create (ROS 7.2x rejects some one-line adds).
  */
 export function ensureHotspotServerLines(): string[] {
   return [
@@ -65,9 +65,13 @@ export function ensureHotspotServerLines(): string[] {
     `:do { /ip dhcp-server network set [find where comment="HotspotPro"] dns-server=10.10.0.1 gateway=10.10.0.1 } on-error={ }`,
     `:do { :if ([:len [/ip dhcp-server find where name=hotspotpro-dhcp]] = 0) do={ /ip dhcp-server add name=hotspotpro-dhcp interface=hotspotpro-bridge address-pool=hotspotpro-pool disabled=no } } on-error={ }`,
     `:do { /ip dhcp-server enable [find where name=hotspotpro-dhcp] } on-error={ }`,
-    `:do { :local hpDir "hotspot"; :if ([:len [/file find where name="flash/hotspot/login.html"]] > 0) do={ :set hpDir "flash/hotspot" }; :if ([:len [/ip hotspot profile find where name=hotspotpro]] = 0) do={ /ip hotspot profile add name=hotspotpro hotspot-address=10.10.0.1 dns-name="wifi" login-by=http-pap,http-chap,mac,mac-cookie trial-uptime-limit=0s use-radius=no html-directory=$hpDir } else={ /ip hotspot profile set [find where name=hotspotpro] hotspot-address=10.10.0.1 login-by=http-pap,http-chap,mac,mac-cookie trial-uptime-limit=0s html-directory=$hpDir } } on-error={ }`,
+    // Profile first without html-directory (folder may not exist yet).
+    `:do { :if ([:len [/ip hotspot profile find where name=hotspotpro]] = 0) do={ /ip hotspot profile add name=hotspotpro hotspot-address=10.10.0.1 dns-name="wifi" login-by=http-pap,http-chap,mac-cookie trial-uptime-limit=0s use-radius=no } else={ /ip hotspot profile set [find where name=hotspotpro] hotspot-address=10.10.0.1 dns-name="wifi" login-by=http-pap,http-chap,mac-cookie trial-uptime-limit=0s use-radius=no } } on-error={ }`,
+    `:do { :local hpDir "hotspot"; :if ([:len [/file find where name="flash/hotspot/login.html"]] > 0) do={ :set hpDir "flash/hotspot" }; /ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir } on-error={ }`,
+    `:do { :local hpDir "hotspot"; :if ([:len [/file find where name="flash/hotspot/login.html"]] > 0) do={ :set hpDir "flash/hotspot" }; /ip hotspot profile set [find where name=hotspotpro] html-directory-override=$hpDir } on-error={ }`,
     `:do { :if ([:len [/ip hotspot find where name=hotspotpro]] = 0) do={ /ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no; :put "HotspotPro: hotspot server created on hotspotpro-bridge" } else={ /ip hotspot set [find where name=hotspotpro] interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no } } on-error={ }`,
     `:do { /ip hotspot enable [find where name=hotspotpro] } on-error={ }`,
+    `:do { :if ([:len [/ip hotspot find where name=hotspotpro]] = 0) do={ :put "HotspotPro: CRITICAL — Servers is still empty" } } on-error={ }`,
   ];
 }
 
@@ -77,20 +81,14 @@ export function ensureHotspotServerLines(): string[] {
  */
 export function sealCaptivePortalLeakLines(): string[] {
   return [
-    // Hotspot must sit on our bridge, not a leftover factory interface.
     `:do { /ip hotspot set [find where name=hotspotpro] interface=hotspotpro-bridge disabled=no addresses-per-mac=1 } on-error={ }`,
-    // Factory/defconf masquerade lets traffic from the old bridge skip the hotspot.
-    // Keep any HotspotPro* NAT (including Multi-WAN) enabled.
     `:do { /ip firewall nat disable [find where chain=srcnat action=masquerade comment=""] } on-error={ }`,
     `:do { /ip firewall nat disable [find where chain=srcnat action=masquerade comment~"defconf"] } on-error={ }`,
     `:do { /ip firewall nat enable [find where comment~"HotspotPro"] } on-error={ }`,
-    // Factory DHCP on bridge would hand out addresses that never hit hotspot.
     `:do { /ip dhcp-server disable [find where name!="hotspotpro-dhcp" && name!="hotspotpro-admin-dhcp"] } on-error={ }`,
     `:do { /ip dhcp-server enable [find where name="hotspotpro-dhcp"] } on-error={ }`,
-    // IPv6 can look like "free internet" while IPv4 hotspot still blocks.
     `:do { /ipv6 settings set disable-ipv6=yes } on-error={ }`,
     `:do { :if ([:len [/ipv6 firewall filter find where comment="HotspotPro no IPv6"]] = 0) do={ /ipv6 firewall filter add chain=forward action=drop in-interface=hotspotpro-bridge comment="HotspotPro no IPv6" } } on-error={ }`,
-    // Repair DNS hijack every check-in (disabled/wrong rules otherwise skip the portal).
     `:do { /ip firewall nat remove [find where comment="HotspotPro DNS"] } on-error={ }`,
     `:do { /ip firewall nat add chain=dstnat in-interface=hotspotpro-bridge protocol=udp dst-port=53 action=redirect to-ports=53 comment="HotspotPro DNS" } on-error={ }`,
     `:do { /ip firewall nat add chain=dstnat in-interface=hotspotpro-bridge protocol=tcp dst-port=53 action=redirect to-ports=53 comment="HotspotPro DNS" } on-error={ }`,
@@ -103,7 +101,7 @@ export function wifiApplyLines(ssidRaw: string | undefined): string[] {
   const band = ssid.replace(/\s+5G$/i, "").slice(0, 29);
   const ssid24 = quote(band.slice(0, 32));
   const ssid5 = quote(`${band} 5G`.slice(0, 32));
-  const stamp = `v3-${ssid.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 36)}`;
+  const stamp = `v4-${ssid.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 36)}`;
   const ssidBody = [
     `:do { :local hpWifi 0; :do { :set hpWifi [:len [/interface wifi find]] } on-error={ }; :if ($hpWifi > 0) do={ /interface wifi configuration set [find] ssid=${ssid24} mode=ap; /interface wifi set [find where name=wifi1] disabled=no configuration.ssid=${ssid24} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge; /interface wifi set [find where name=wifi2] disabled=no configuration.ssid=${ssid5} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge; :foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :if ($n != "wifi1" && $n != "wifi2") do={ /interface wifi set $p disabled=no configuration.ssid=${ssid24} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } } } } on-error={ }`,
     `:do { :local hpWw 0; :do { :set hpWw [:len [/interface wifiwave2 find]] } on-error={ }; :if ($hpWw > 0) do={ :foreach p in=[/interface wifiwave2 find] do={ :do { /interface wifiwave2 set $p disabled=no configuration.ssid=${ssid24} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ } } } } on-error={ }`,
@@ -114,7 +112,6 @@ export function wifiApplyLines(ssidRaw: string | undefined): string[] {
   return [
     `# HotspotPro WiFi SSID + captive portal bridge`,
     `:global hpWifiSsid`,
-    // SSID body only when the name changes; bridge/datapath always re-applied so free-internet leaks close.
     `:if ($hpWifiSsid != "${stamp}") do={ ${ssidBody.join("; ")}; :set hpWifiSsid "${stamp}" }`,
     ...bridgeWifiLines(),
   ];

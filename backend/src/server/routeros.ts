@@ -8,7 +8,7 @@
 import dns from "node:dns";
 
 /** Bump this when the setup script changes. Connected routers download the new setup on the next check-in. */
-export const SETUP_VERSION = "v15";
+export const SETUP_VERSION = "v16";
 
 /** The hotspot login name: letters from the router name, fewer than 5. A saved name is kept only when it is already that short. */
 export function loginDnsFromName(routerName: string, given?: string): string {
@@ -460,8 +460,20 @@ export function buildProvisionScript(input: {
     const useCloud = router.loginMode === "cloud" && !!radius;
     say("Creating the hotspot server...");
     const loginName = loginDnsFromName(router.name, router.dnsName);
-    safe(`/ip hotspot profile add name=hotspotpro hotspot-address=${plan.gateway} dns-name=${q(loginName)} login-by=http-pap,http-chap,mac,mac-cookie trial-uptime-limit=0s${useCloud ? " use-radius=yes radius-accounting=yes radius-interim-update=1m" : " use-radius=no"} html-directory=$hpDir`, false, "Hotspot profile created");
-    safe(`/ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no`, false, "Hotspot server created");
+    // Create profile in small steps. A single long "add" with html-directory=$hpDir often fails on
+    // ROS 7.2x when the folder is not there yet — then Servers stays empty and WiFi is free.
+    safe(`/ip hotspot profile remove [find where name=hotspotpro]`, true);
+    add(
+      `:do { /ip hotspot profile add name=hotspotpro hotspot-address=${plan.gateway} trial-uptime-limit=0s ${useCloud ? "use-radius=yes radius-accounting=yes radius-interim-update=1m" : "use-radius=no"}; :put "Hotspot profile created" } on-error={ :do { /ip hotspot profile set [find where name=hotspotpro] hotspot-address=${plan.gateway} trial-uptime-limit=0s ${useCloud ? "use-radius=yes" : "use-radius=no"} } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: hotspot profile"; :put "HotspotPro: could not create the hotspot profile" } }`,
+    );
+    safe(`/ip hotspot profile set [find where name=hotspotpro] dns-name=${q(loginName)} login-by=http-pap,http-chap,mac-cookie`, true);
+    safe(`/ip hotspot remove [find where name=hotspotpro]`, true);
+    add(
+      `:do { /ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no; :put "Hotspot server created" } on-error={ :do { /ip hotspot set [find where name=hotspotpro] interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no; :put "Hotspot server updated" } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: hotspot server"; :put "HotspotPro: CRITICAL — hotspot server was not created. Captive portal will not open until IP → Hotspot → Servers shows hotspotpro." } }`,
+    );
+    add(
+      `:do { :if ([:len [/ip hotspot find where name=hotspotpro]] = 0) do={ :set hpFails ($hpFails + 1); :put "HotspotPro: CRITICAL — IP → Hotspot → Servers is still empty" } else={ :put "HotspotPro: hotspot server is ready (Servers shows hotspotpro)" } } on-error={ }`,
+    );
     // One phone per MAC. Shared users stay at 1 unless a package on the site says more.
     safe(`/ip hotspot set [find where name=hotspotpro] disabled=no addresses-per-mac=1`, true);
     // Bypass bindings let phones skip the voucher page — clear them on every setup / reprovision.
@@ -498,7 +510,9 @@ export function buildProvisionScript(input: {
     // terminal and stops a pasted setup. We clear old pages and download HotspotPro's captive portal instead.
     const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
     say("Installing the HotspotPro captive portal...");
+    // Point the profile at our pages after they exist (html-directory alone can fail before the folder is there).
     safe(`/ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir`, true);
+    add(`:do { /ip hotspot profile set [find where name=hotspotpro] html-directory-override=$hpDir } on-error={ }`);
     // Remove MikroTik defaults (and any previous HotspotPro pages) so fetch can write ours.
     for (const page of ["login.html", "rlogin.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html", "md5.js", "css/hotspotpro.css"]) {
       safe(`/file remove [find where name=($hpDir . "/${page}")]`, true);
@@ -585,8 +599,9 @@ export function buildProvisionScript(input: {
     add(`:do { /interface wireless security-profiles set [find default=yes] mode=none } on-error={ }`);
     add(`:do { /interface wireless set [find where name=wlan1] disabled=no ssid=${ssid24} mode=ap-bridge security-profile=default } on-error={ }`);
     add(`:do { /interface wireless set [find where name=wlan2] disabled=no ssid=${ssid5} mode=ap-bridge security-profile=default } on-error={ }`);
-    add(`:do { :foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :if ($n != $hpKeep) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`);
-    add(`:do { :foreach p in=[/interface wifiwave2 find] do={ :local n [/interface wifiwave2 get $p name]; :if ($n != $hpKeep) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`);
+    // ROS7 wifi: datapath.bridge only. Also remove factory bridge ports so WiFi is not free internet.
+    add(`:do { :foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :if ($n != $hpKeep) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ } } } } on-error={ }`);
+    add(`:do { :foreach p in=[/interface wifiwave2 find] do={ :local n [/interface wifiwave2 get $p name]; :if ($n != $hpKeep) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ } } } } on-error={ }`);
     add(`:do { :foreach p in=[/interface wireless find] do={ :local n [/interface wireless get $p name]; :if ($n != $hpKeep) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`);
     add(`:do { /interface wifi enable [find] } on-error={ }`);
     add(`:do { /interface wifiwave2 enable [find] } on-error={ }`);
