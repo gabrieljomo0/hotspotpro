@@ -7,7 +7,8 @@ import { voucherOnlyLogin } from "./hotspotPages";
 import { getState, setState } from "./store";
 import { type Pkg, type Vch, findPackageByName, list, normalizeMac, packageBytes, packageSeconds, routerAllowsPackage, voucherCountFrom, voucherLimitBy } from "./packages";
 
-const BATCH = 40;
+/** How many voucher accounts one check-in may add/remove. Kept modest so weak links stay fast. */
+const BATCH = 80;
 
 function quote(value: string) {
   return `"${value.replace(/[\\"$\r\n]/g, "")}"`;
@@ -43,17 +44,28 @@ function syncFile(): SyncFile {
   return value as SyncFile;
 }
 
+function packageMap() {
+  const map = new Map<string, Pkg>();
+  for (const pkg of list<Pkg>("packages")) {
+    if (pkg?.name) map.set(pkg.name, pkg);
+  }
+  return map;
+}
+
 function wanted(routerIp: string, now: number) {
-  const out: { name: string; password: string; pkg: Pkg | null; limitBy: "days" | "data" | "both"; countFrom: "signin" | "usage"; mac: string }[] = [];
+  const packages = packageMap();
+  const out: { name: string; password: string; pkg: Pkg | null; limitBy: "days" | "data" | "both"; countFrom: "signin" | "usage"; mac: string; rank: number }[] = [];
   const seen = new Set<string>();
   for (const voucher of list<Vch>("vouchers")) {
     if (!voucher || voucher.status === "Expired") continue;
     if (voucher.expiresAtMs && voucher.expiresAtMs <= now) continue;
-    const pkg = findPackageByName(voucher.packageName);
+    const pkg = packages.get(voucher.packageName) ?? findPackageByName(voucher.packageName);
     if (pkg && !routerAllowsPackage(pkg, routerIp)) continue;
     const name = userName(voucher.code || "");
     if (!name || seen.has(name)) continue;
     seen.add(name);
+    // Prefer already-used / bound vouchers so busy routers keep current customers first.
+    const rank = voucher.status === "Used" || voucher.boundMac || voucher.activatedAtMs ? 0 : 1;
     out.push({
       name,
       password: voucher.password || voucher.code || name,
@@ -61,8 +73,10 @@ function wanted(routerIp: string, now: number) {
       limitBy: voucherLimitBy(voucher),
       countFrom: voucherCountFrom(voucher),
       mac: normalizeMac(voucher.boundMac),
+      rank,
     });
   }
+  out.sort((a, b) => a.rank - b.rank || a.name.localeCompare(b.name));
   return out;
 }
 
@@ -74,7 +88,7 @@ export function forgetLocalUsers(token: string) {
   setState("routerUserSync", file, "server");
 }
 
-/** RouterOS lines that add the current vouchers and drop ones that no longer exist. Sent on every check-in, so a missed copy is tried again. */
+/** RouterOS lines that add the current vouchers and drop ones that no longer exist. */
 export function localUserLines(token: string, routerIp: string, now = Date.now()): string[] {
   const file = syncFile();
   const previous = file[token]?.codes ?? [];
@@ -92,6 +106,15 @@ export function localUserLines(token: string, routerIp: string, now = Date.now()
     setState("routerUserSync", file, "server");
   }
 
+  // Nothing changed — keep the check-in tiny (critical when many routers poll).
+  // Still bind MAC from active sessions so the first phone keeps the voucher.
+  if (same && remove.length === 0) {
+    return [
+      "# HotspotPro local vouchers already in sync",
+      `:do { :foreach i in=[/ip hotspot active find] do={ :local u [/ip hotspot active get $i user]; :local m [/ip hotspot active get $i mac-address]; :if ([:len $u] > 0 && [:len $m] > 0 && [:len [/ip hotspot user find where name=$u comment="HotspotPro"]] > 0) do={ :local cur ""; :do { :set cur [/ip hotspot user get [find where name=$u comment="HotspotPro"] mac-address] } on-error={ }; :if ([:len $cur] = 0) do={ /ip hotspot user set [find where name=$u comment="HotspotPro"] mac-address=$m } } } } on-error={ }`,
+    ];
+  }
+
   const pin = voucherOnlyLogin(token);
   const lines: string[] = ["# HotspotPro local vouchers (kept on this router; each one has a time limit)"];
   const profiles = new Set<string>();
@@ -100,12 +123,7 @@ export function localUserLines(token: string, routerIp: string, now = Date.now()
     if (profiles.has(name)) continue;
     profiles.add(name);
     const seconds = user.pkg ? packageSeconds(user.pkg) : 86400;
-    // One device unless the package on the site says a higher shared-users count.
     const devices = user.pkg?.devices && user.pkg.devices > 1 ? Math.floor(user.pkg.devices) : 1;
-    // session-timeout=0s is the RouterOS default: no extra session cap. A cap
-    // equal to the bundle was logging phones out, and the 2-minute keepalive
-    // then made a fresh voucher look finished. The phone may leave and come
-    // back until limit-uptime and the data cap run out.
     const limit = `rate-limit=${rate(user.pkg)} shared-users=${devices} session-timeout=0s idle-timeout=none keepalive-timeout=none mac-cookie-timeout=${rosDuration(seconds)} on-logout=hotspotpro-logout`;
     lines.push(`:do { /ip hotspot user profile set [find where name=${quote(name)}] ${limit} } on-error={ }`);
     lines.push(`:do { :if ([:len [/ip hotspot user profile find where name=${quote(name)}]] = 0) do={ /ip hotspot user profile add name=${quote(name)} ${limit} comment="HotspotPro" } } on-error={ }`);
@@ -113,21 +131,15 @@ export function localUserLines(token: string, routerIp: string, now = Date.now()
   for (const user of add) {
     const seconds = user.pkg ? packageSeconds(user.pkg) : 86400;
     const cap = (user.pkg ? packageBytes(user.pkg) : 0) ?? 0;
-    // Days: the router counts connected time, and pauses it when they disconnect.
-    // A sign-in voucher also gets a calendar day from the server, so the day
-    // keeps running after they sign off. Data-only vouchers have no time cap.
-    // 0 means unlimited on the router.
     const uptime = user.limitBy === "data" ? "0s" : rosDuration(seconds);
     const bytes = user.limitBy === "days" ? 0 : cap;
     const limits = `limit-uptime=${uptime} limit-bytes-total=${bytes}`;
     const profile = quote(profileName(user.pkg, user.name));
-    // One box sends the code as both names. Two boxes send the voucher password.
     const secret = quote(pin ? user.name : user.password || user.name);
     const macSet = user.mac ? ` mac-address=${user.mac}` : "";
     lines.push(
       `:do { :if ([:len [/ip hotspot user find where name=${quote(user.name)}]] = 0) do={ /ip hotspot user add name=${quote(user.name)} password=${secret} profile=${profile} ${limits}${macSet} comment="HotspotPro" } else={ /ip hotspot user set [find where name=${quote(user.name)}] password=${secret} profile=${profile} ${limits}${macSet} disabled=no } } on-error={ }`,
     );
-    // Buy-for-TV: also create a MAC-named user so login-by=mac brings that device online without typing the code on the TV.
     if (user.mac) {
       const macName = quote(user.mac);
       lines.push(
@@ -136,13 +148,12 @@ export function localUserLines(token: string, routerIp: string, now = Date.now()
     }
   }
   for (const code of remove) {
-    // Drop sessions/cookies for removed vouchers so a new voucher can log in on the same WiFi (no forget needed).
-    lines.push(`:do { :foreach a in=[/ip hotspot active find where user=${quote(code)}] do={ :local m [/ip hotspot active get $a mac-address]; /ip hotspot active remove $a; :do { /ip hotspot cookie remove [find where mac-address=$m] } on-error={ } } } on-error={ }`);
-    lines.push(`:do { /ip hotspot cookie remove [find where user=${quote(code)}] } on-error={ }`);
-    lines.push(`:do { /ip hotspot user remove [find where name=${quote(code)} comment="HotspotPro"] } on-error={ }`);
+    // Only clear idle expired vouchers. Skip anyone still online so reprovision/sync never kicks them.
+    lines.push(
+      `:do { :if ([:len [/ip hotspot active find where user=${quote(code)}]] = 0) do={ :do { /ip hotspot cookie remove [find where user=${quote(code)}] } on-error={ }; :do { /ip hotspot user remove [find where name=${quote(code)} comment="HotspotPro"] } on-error={ } } } on-error={ }`,
+    );
   }
-  // The first phone that logs in owns the voucher. Any other phone typing that code is refused.
-  // Skip users that already have a MAC from a TV / other-device purchase.
+  // First phone to log in owns the voucher. Skip users that already have a MAC from a TV purchase.
   lines.push(
     `:do { :foreach i in=[/ip hotspot active find] do={ :local u [/ip hotspot active get $i user]; :local m [/ip hotspot active get $i mac-address]; :if ([:len $u] > 0 && [:len $m] > 0 && [:len [/ip hotspot user find where name=$u comment="HotspotPro"]] > 0) do={ :local cur ""; :do { :set cur [/ip hotspot user get [find where name=$u comment="HotspotPro"] mac-address] } on-error={ }; :if ([:len $cur] = 0) do={ /ip hotspot user set [find where name=$u comment="HotspotPro"] mac-address=$m } } } } on-error={ }`,
   );

@@ -20,7 +20,7 @@ import { accessDecision } from "./accessGate";
 import { forgetLocalUsers, localUserLines } from "./localUsers";
 import { noteLiveVouchers } from "./packages";
 import { loginPageStamp } from "./hotspotPages";
-import { SETUP_VERSION, accessGuardCommand, accessLockEnsureCommand, checkInBody, hotspotReauthEnsureLines, loginDnsFromName, remoteWinboxLines } from "./routeros";
+import { CHECKIN_INTERVAL, SETUP_VERSION, accessGuardCommand, accessLockEnsureCommand, checkInBody, hotspotReauthEnsureLines, loginDnsFromName, remoteWinboxLines } from "./routeros";
 import { primaryWanInterface } from "./primaryWan";
 import { type IspLink, multiWanLines } from "./multiWan";
 import { bridgeWifiLines, ensureHotspotServerLines, sealCaptivePortalLeakLines, ssidForRouter, wifiApplyLines } from "./wifiApply";
@@ -224,30 +224,38 @@ export function controlScript(token: string, origin?: string): string | null {
     if (local) lines.push(...localUserLines(token, router.ip));
     else {
       forgetLocalUsers(token);
-      lines.push(`:do { /ip hotspot user remove [find where comment="HotspotPro"] } on-error={ }`);
+      // Cloud mode: drop idle local copies only. Never remove a user who is online right now.
+      lines.push(
+        `:do { :foreach u in=[/ip hotspot user find where comment="HotspotPro"] do={ :local n [/ip hotspot user get $u name]; :if ([:len [/ip hotspot active find where user=$n]] = 0) do={ :do { /ip hotspot user remove $u } on-error={ } } } } on-error={ }`,
+      );
     }
   }
   // Commands the owner queued on the site (Advanced). Each is downloaded and run once, and the router reports whether it worked.
+  const queued = origin ? takeQueuedJobs(token) : [];
   if (origin) {
     const tls = origin.startsWith("https://") ? " check-certificate=no" : "";
     // When the setup version changes, every connected router downloads and runs the latest setup by itself.
     lines.push(
       `:global hpSetup; :global hpSetupBusy`,
-      `:if ($hpSetup != "${SETUP_VERSION}" && $hpSetupBusy != "1") do={ :set hpSetupBusy "1"; :do { :put "HotspotPro: applying the latest setup..."; :do { /file remove [find where name=hotspotpro-setup.rsc] } on-error={ }; :do { /file remove [find where name="flash/hotspotpro-setup.rsc"] } on-error={ }; /tool fetch url="${origin}/api/provision/${token}?wireless=yes" dst-path=hotspotpro-setup.rsc${tls}; :do { :delay 2s } on-error={ }; :local hpFile "hotspotpro-setup.rsc"; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; /import file-name=$hpFile; :set hpSetup "${SETUP_VERSION}"; :global hpWifiSsid; :set hpWifiSsid ""; :put "HotspotPro: router is updated." } on-error={ :put "HotspotPro: setup update will try again on the next check-in." }; :set hpSetupBusy "0" }`,
+      `:if ($hpSetup != "${SETUP_VERSION}" && $hpSetupBusy != "1") do={ :set hpSetupBusy "1"; :do { :put "HotspotPro: applying the latest setup (people online stay connected)..."; :do { /file remove [find where name=hotspotpro-setup.rsc] } on-error={ }; :do { /file remove [find where name="flash/hotspotpro-setup.rsc"] } on-error={ }; /tool fetch url="${origin}/api/provision/${token}?wireless=yes" dst-path=hotspotpro-setup.rsc${tls}; :do { :delay 2s } on-error={ }; :local hpFile "hotspotpro-setup.rsc"; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; /import file-name=$hpFile; :set hpSetup "${SETUP_VERSION}"; :global hpWifiSsid; :set hpWifiSsid ""; :put "HotspotPro: router is updated." } on-error={ :put "HotspotPro: setup update will try again on the next check-in." }; :set hpSetupBusy "0" }`,
     );
-    for (const job of takeQueuedJobs(token)) {
+    for (const job of queued) {
       const base = `${origin}/api/provision/${token}/job/${job.id}`;
       lines.push(
         `:do { :local hpOk 1; /tool fetch url="${base}" dst-path=hotspotpro-job.rsc${tls}; :delay 1s; :do { /import hotspotpro-job.rsc } on-error={ :set hpOk 0 }; /tool fetch url=("${base}/result?ok=" . $hpOk) keep-result=no${tls} } on-error={ }`,
       );
     }
   }
-  // Keep check-ins fast so site actions and remote console land in about 3 seconds.
-  lines.push(`:do { /system scheduler set [find where name=hotspotpro-control] interval=1s } on-error={ }`);
+  // Lightweight check-ins for many routers on African links. Speed up briefly when a job was just delivered.
+  const interval = queued.length > 0 ? "5s" : CHECKIN_INTERVAL;
+  lines.push(`:do { /system scheduler set [find where name=hotspotpro-control] interval=${interval} } on-error={ }`);
   if (origin) {
     const source = checkInBody(origin, token).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\$/g, "\\$");
-    // The copy already on the router may not send CPU and memory. Replace it so the next check-in does.
-    lines.push(`:do { /system script set [find where name=hotspotpro-control] source="${source}" } on-error={ }`);
+    // Rewrite the on-router check-in script only when the setup version changes (not every poll).
+    lines.push(
+      `:global hpCtlVer`,
+      `:if ($hpCtlVer != "${SETUP_VERSION}") do={ :do { /system script set [find where name=hotspotpro-control] source="${source}" } on-error={ }; :set hpCtlVer "${SETUP_VERSION}" }`,
+    );
   }
   return lines.join("\n") + "\n";
 }

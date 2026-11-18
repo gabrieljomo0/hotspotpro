@@ -1,14 +1,16 @@
 // Builds the RouterOS (MikroTik) script a router downloads from
 //   /api/provision/<token>
 // WAN DHCP, hotspot LAN, DHCP server, hotspot service, walled garden, the
-// captive-portal pages, and optional WiFi. Safe to run again: pieces this
-// script owns are removed and recreated, so a second run does not stack
-// duplicate NAT / RADIUS / hotspot entries.
+// captive-portal pages, and optional WiFi. Safe to run again: existing HotspotPro
+// pieces are updated in place so people already online are not kicked offline.
 
 import dns from "node:dns";
 
 /** Bump this when the setup script changes. Connected routers download the new setup on the next check-in. */
-export const SETUP_VERSION = "v23";
+export const SETUP_VERSION = "v24";
+
+/** Default check-in spacing. 1s floods weak African links when an account has many routers. */
+export const CHECKIN_INTERVAL = "10s";
 
 /** Hotspot login DNS name (MikroTik profile dns-name). Prefer a manually typed value. */
 export function loginDnsFromName(routerName: string, given?: string): string {
@@ -250,7 +252,7 @@ export function internetSwitchCommands(origin: string, token: string): string[] 
     // Without policy the scheduler is not allowed to download, so the router would never check in.
     `/system script add name=hotspotpro-control source="${source}" policy=ftp,reboot,read,write,policy,test comment="HotspotPro"`,
     `/system scheduler remove [find where name=hotspotpro-control]`,
-    `/system scheduler add name=hotspotpro-control interval=1s start-time=startup on-event=hotspotpro-control policy=ftp,reboot,read,write,policy,test comment="HotspotPro"`,
+    `/system scheduler add name=hotspotpro-control interval=${CHECKIN_INTERVAL} start-time=startup on-event=hotspotpro-control policy=ftp,reboot,read,write,policy,test comment="HotspotPro"`,
     `/ip firewall raw remove [find where comment="${ACCESS_LOCK}"]`,
     `/ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=accept dst-address-type=local comment="${ACCESS_LOCK}" disabled=yes`,
     `/ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=accept dst-address-type=broadcast comment="${ACCESS_LOCK}" disabled=yes`,
@@ -440,20 +442,13 @@ export function buildProvisionScript(input: {
       say(`Keeping ${mgmt} as the admin port for your computer...`);
       add(`:do { :if ([:len [/ip address find where address="192.168.88.1/24"]] = 0 && $hpKeep != "${mgmt}") do={ /interface bridge add name=hotspotpro-admin comment="HotspotPro admin"; /interface bridge port remove [find where interface=${mgmt}]; /interface bridge port add bridge=hotspotpro-admin interface=${mgmt} comment="HotspotPro admin"; /ip address add address=192.168.88.1/24 interface=hotspotpro-admin comment="HotspotPro admin"; /ip pool add name=hotspotpro-admin-pool ranges=192.168.88.10-192.168.88.60; /ip dhcp-server network add address=192.168.88.0/24 gateway=192.168.88.1 dns-server=192.168.88.1 comment="HotspotPro admin"; /ip dhcp-server add name=hotspotpro-admin-dhcp interface=hotspotpro-admin address-pool=hotspotpro-admin-pool disabled=no; /interface list member add list=LAN interface=hotspotpro-admin comment="HotspotPro admin"; :put "Admin port ${mgmt} is ready." } else={ :put "Admin port ${mgmt} stays connected." } } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: admin port setup"; :put "HotspotPro: the admin port step had a problem and was skipped. Setup continues." }`);
     }
-    add(`# --- Hotspot network ${plan.network} (these pieces are replaced if the script is run again)`);
+    add(`# --- Hotspot network ${plan.network}`);
     say(`Preparing the hotspot network ${plan.network}...`);
-    for (const command of [
-      `/ip hotspot remove [find where name=hotspotpro]`,
-      `/ip hotspot profile remove [find where name=hotspotpro]`,
-      `/ip dhcp-server remove [find where name=hotspotpro-dhcp]`,
-      `/ip dhcp-server network remove [find where comment="HotspotPro"]`,
-      `/ip pool remove [find where name=hotspotpro-pool]`,
-      `/ip address remove [find where comment="HotspotPro" interface=hotspotpro-bridge]`,
-      `/ip firewall nat remove [find where comment="HotspotPro NAT"]`,
-      `/radius remove [find where comment="HotspotPro"]`,
-      `/ip hotspot walled-garden ip remove [find where comment="HotspotPro"]`,
-      `/ip hotspot walled-garden remove [find where comment="HotspotPro"]`,
-    ]) safe(command, true);
+    // Soft update when HotspotPro is already live: never tear down the bridge, DHCP, hotspot
+    // server, or gateway — that would drop people already online. Only create missing pieces.
+    add(`:global hpLive 0`);
+    add(`:do { :if ([:len [/ip hotspot find where name=hotspotpro]] > 0) do={ :set hpLive 1; :put "HotspotPro: updating in place — people already on WiFi stay connected." } } on-error={ }`);
+    add(`:do { :if ($hpLive = 0) do={ :do { /ip dhcp-server remove [find where name=hotspotpro-dhcp] } on-error={ }; :do { /ip dhcp-server network remove [find where comment="HotspotPro"] } on-error={ }; :do { /ip pool remove [find where name=hotspotpro-pool] } on-error={ }; :do { /ip address remove [find where comment="HotspotPro" interface=hotspotpro-bridge] } on-error={ }; :do { /ip firewall nat remove [find where comment="HotspotPro NAT"] } on-error={ }; :do { /radius remove [find where comment="HotspotPro"] } on-error={ }; :do { /ip hotspot walled-garden ip remove [find where comment="HotspotPro"] } on-error={ }; :do { /ip hotspot walled-garden remove [find where comment="HotspotPro"] } on-error={ } } } on-error={ }`);
     add(`:do { :if ([:len [/interface bridge find where name=hotspotpro-bridge]] > 0) do={ :put "Bridge may already exist, continuing..." } } on-error={ }`);
     safe(`/interface bridge add name=hotspotpro-bridge comment="HotspotPro"`, true);
     if (router.adminFromWan !== false) {
@@ -478,28 +473,24 @@ export function buildProvisionScript(input: {
     safe(`/ip address add address=${plan.gateway}/${plan.prefix} interface=hotspotpro-bridge comment="HotspotPro"`, true);
     safe(`/ip address set [find where comment="HotspotPro" interface=hotspotpro-bridge] address=${plan.gateway}/${plan.prefix}`, false, "Gateway IP assigned");
     say("Creating the address pool...");
-    safe(`/ip pool add name=hotspotpro-pool ranges=${plan.poolFrom}-${plan.poolTo}`, false, "Address pool created");
+    add(`:do { :if ([:len [/ip pool find where name=hotspotpro-pool]] = 0) do={ /ip pool add name=hotspotpro-pool ranges=${plan.poolFrom}-${plan.poolTo}; :put "Address pool created" } else={ /ip pool set [find where name=hotspotpro-pool] ranges=${plan.poolFrom}-${plan.poolTo}; :put "Address pool kept" } } on-error={ :set hpFails ($hpFails + 1); :put "HotspotPro: address pool step skipped" }`);
     say("Creating the DHCP server...");
     // Phones must use this router for DNS. A public DNS address lets them reach the internet check and the login page never opens.
-    safe(`/ip dhcp-server network add address=${plan.network} gateway=${plan.gateway} dns-server=${plan.gateway} comment="HotspotPro"`, false, "DHCP network created");
-    safe(`/ip dhcp-server network set [find where comment="HotspotPro"] dns-server=${plan.gateway} gateway=${plan.gateway}`, true);
-    safe(`/ip dhcp-server add name=hotspotpro-dhcp interface=hotspotpro-bridge address-pool=hotspotpro-pool disabled=no`, false, "DHCP server created");
+    add(`:do { :if ([:len [/ip dhcp-server network find where comment="HotspotPro"]] = 0) do={ /ip dhcp-server network add address=${plan.network} gateway=${plan.gateway} dns-server=${plan.gateway} comment="HotspotPro"; :put "DHCP network created" } else={ /ip dhcp-server network set [find where comment="HotspotPro"] address=${plan.network} gateway=${plan.gateway} dns-server=${plan.gateway}; :put "DHCP network kept" } } on-error={ :set hpFails ($hpFails + 1); :put "HotspotPro: DHCP network step skipped" }`);
+    add(`:do { :if ([:len [/ip dhcp-server find where name=hotspotpro-dhcp]] = 0) do={ /ip dhcp-server add name=hotspotpro-dhcp interface=hotspotpro-bridge address-pool=hotspotpro-pool disabled=no; :put "DHCP server created" } else={ /ip dhcp-server set [find where name=hotspotpro-dhcp] interface=hotspotpro-bridge address-pool=hotspotpro-pool disabled=no; :put "DHCP server kept" } } on-error={ :set hpFails ($hpFails + 1); :put "HotspotPro: DHCP server step skipped" }`);
     say("Adding the internet sharing rule...");
-    safe(`/ip firewall nat add chain=srcnat out-interface=${wan} action=masquerade comment="HotspotPro NAT"`, false, "Internet sharing rule added");
+    add(`:do { :if ([:len [/ip firewall nat find where comment="HotspotPro NAT"]] = 0) do={ /ip firewall nat add chain=srcnat out-interface=${wan} action=masquerade comment="HotspotPro NAT"; :put "Internet sharing rule added" } else={ /ip firewall nat set [find where comment="HotspotPro NAT"] out-interface=${wan} action=masquerade; :put "Internet sharing rule kept" } } on-error={ :set hpFails ($hpFails + 1); :put "HotspotPro: NAT step skipped" }`);
     // One mode at a time. Cloud asks RADIUS. Local does not, and the check-in copies vouchers onto the router instead.
     const useCloud = router.loginMode === "cloud" && !!radius;
     say("Creating the hotspot server...");
     const loginName = loginDnsFromName(router.name, router.dnsName);
-    // Create profile in small steps. A single long "add" with html-directory=$hpDir often fails on
-    // ROS 7.2x when the folder is not there yet — then Servers stays empty and WiFi is free.
-    safe(`/ip hotspot profile remove [find where name=hotspotpro]`, true);
+    // Upsert profile + server. Never remove a live hotspot — that signs everyone out.
     add(
-      `:do { /ip hotspot profile add name=hotspotpro hotspot-address=${plan.gateway} trial-uptime-limit=0s ${useCloud ? "use-radius=yes radius-accounting=yes radius-interim-update=1m" : "use-radius=no"}; :put "Hotspot profile created" } on-error={ :do { /ip hotspot profile set [find where name=hotspotpro] hotspot-address=${plan.gateway} trial-uptime-limit=0s ${useCloud ? "use-radius=yes" : "use-radius=no"} } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: hotspot profile"; :put "HotspotPro: could not create the hotspot profile" } }`,
+      `:do { :if ([:len [/ip hotspot profile find where name=hotspotpro]] = 0) do={ /ip hotspot profile add name=hotspotpro hotspot-address=${plan.gateway} trial-uptime-limit=0s ${useCloud ? "use-radius=yes radius-accounting=yes radius-interim-update=1m" : "use-radius=no"}; :put "Hotspot profile created" } else={ /ip hotspot profile set [find where name=hotspotpro] hotspot-address=${plan.gateway} trial-uptime-limit=0s ${useCloud ? "use-radius=yes radius-accounting=yes radius-interim-update=1m" : "use-radius=no"}; :put "Hotspot profile updated" } } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: hotspot profile"; :put "HotspotPro: could not create the hotspot profile" }`,
     );
     safe(`/ip hotspot profile set [find where name=hotspotpro] dns-name=${q(loginName)} login-by=http-pap,mac-cookie`, true);
-    safe(`/ip hotspot remove [find where name=hotspotpro]`, true);
     add(
-      `:do { /ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no; :put "Hotspot server created" } on-error={ :do { /ip hotspot set [find where name=hotspotpro] interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no; :put "Hotspot server updated" } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: hotspot server"; :put "HotspotPro: CRITICAL — hotspot server was not created. Captive portal will not open until IP → Hotspot → Servers shows hotspotpro." } }`,
+      `:do { :if ([:len [/ip hotspot find where name=hotspotpro]] = 0) do={ /ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no; :put "Hotspot server created" } else={ /ip hotspot set [find where name=hotspotpro] interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no; :put "Hotspot server kept online" } } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: hotspot server"; :put "HotspotPro: CRITICAL — hotspot server was not created. Captive portal will not open until IP → Hotspot → Servers shows hotspotpro." }`,
     );
     add(
       `:do { :if ([:len [/ip hotspot find where name=hotspotpro]] = 0) do={ :set hpFails ($hpFails + 1); :put "HotspotPro: CRITICAL — IP → Hotspot → Servers is still empty" } else={ :put "HotspotPro: hotspot server is ready (Servers shows hotspotpro)" } } on-error={ }`,
@@ -508,8 +499,8 @@ export function buildProvisionScript(input: {
     safe(`/ip hotspot set [find where name=hotspotpro] disabled=no addresses-per-mac=1`, true);
     // Bypass bindings let phones skip the voucher page — clear them on every setup / reprovision.
     safe(`/ip hotspot ip-binding remove [find where type=bypassed]`, true, "Removed hotspot bypass bindings");
-    safe(`/ip hotspot active remove [find]`, true, "Signed out active hotspot users for a clean captive portal");
-    safe(`/ip hotspot cookie remove [find]`, true);
+    // Never kick people already online: no active/cookie wipe on reprovision.
+    say("Keeping customers who are already online...");
     safe(`/ip dns static remove [find where comment="HotspotPro login"]`, true);
     safe(`/ip dns static add name=${q(loginName)} address=${plan.gateway} comment="HotspotPro login"`, true, "Login name points at this router");
     safe(`/ip firewall nat remove [find where comment="HotspotPro DNS"]`, true);
