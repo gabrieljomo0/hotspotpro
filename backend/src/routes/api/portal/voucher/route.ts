@@ -71,6 +71,7 @@ export async function POST(request: Request) {
     hotspotLogin,
     syncQueued,
     // Portal should wait briefly when we just queued the voucher onto the router.
-    waitMs: syncQueued ? 3500 : 0,
+    // Keep under 2s total: check-in is 1s, so a short wait is enough for the voucher to land on the router.
+    waitMs: syncQueued ? 900 : 0,
   });
 }

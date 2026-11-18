@@ -53,7 +53,7 @@ export function loginPageStamp(token: string): string {
   let hash = 0;
   for (let i = 0; i < raw.length; i += 1) hash = (hash * 33 + raw.charCodeAt(i)) >>> 0;
   // Bump prefix whenever the install/detect marker changes so routers re-download pages.
-  return `v13-${hash.toString(16)}`;
+  return `v14-${hash.toString(16)}`;
 }
 
 /** Files that make the hotspot folder a skin WinBox can open: the stylesheet and the CHAP helper. */
@@ -75,22 +75,31 @@ const MD5_JS = `function hexMD5(s){function add(x,y){return(x+y)|0}function rol(
 function pageBody(page: HotspotPage, portal: string, look: PortalLook): string {
   const title = look.title;
   const mark = `<!-- ${PORTAL_MARKER} -->`;
-  // Open the HotspotPro system portal immediately (packages / buy / voucher UI).
-  // Pass MikroTik login + escaped dst so the portal can POST the voucher back to the router.
+  // Served from the router itself so the captive sheet paints in under 2s (no slow HTTPS redirect).
   const portalUrl = `${portal}&login=$(link-login-only)&dst=$(link-orig-esc)`;
-  // MikroTik substitutes $(link-*) before the phone sees the page. Keep those tokens literal.
-  const openPortal = (label: string) =>
-    `<!DOCTYPE html><html>${mark}<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="pragma" content="no-cache"><meta http-equiv="refresh" content="0;url=${portalUrl}"><title>${title}</title><style>body{margin:0;background:${look.page};color:#1a1a1a;font-family:system-ui,sans-serif}main{max-width:420px;margin:0 auto;padding:36px 20px}a{display:inline-block;margin-top:18px;padding:14px 18px;border-radius:12px;background:${look.button};color:#fff;font-weight:700;text-decoration:none}</style><script>location.replace("${portalUrl}");</script></head><body><main><h1>${title}</h1><p>${label}</p><p><a href="${portalUrl}">Open WiFi login</a></p></main></body></html>\n`;
+  const fields = look.pin
+    ? `<input name="username" required autocomplete="username" inputmode="text" placeholder="Voucher code"><input type="hidden" name="password" id="hpPass">`
+    : `<input name="username" required autocomplete="username" placeholder="Username"><input name="password" required type="password" autocomplete="current-password" placeholder="Password">`;
+  const note = look.pin
+    ? "Enter your voucher code. When it finishes, stay on this WiFi — the login page opens again for a new code."
+    : "Enter your username and password. When access finishes, stay on this WiFi — the login page opens again.";
+  const pinPrep = look.pin ? `document.getElementById("hpPass").value=document.login.username.value;` : "";
+  const loginScript = `<script>
+function doLogin(){${pinPrep}return true;}
+</script>`;
+  const loginForm = `<form name="login" method="post" action="$(link-login-only)" onsubmit="return doLogin()">${fields}<input type="hidden" name="dst" value="$(link-orig)"><input type="hidden" name="popup" value="true"><button type="submit">Connect</button></form>`;
+  const shell = (body: string) =>
+    `<!DOCTYPE html><html>${mark}<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="pragma" content="no-cache"><title>${title}</title><style>body{margin:0;background:${look.page};color:#1a1a1a;font-family:system-ui,sans-serif}main{max-width:420px;margin:0 auto;padding:28px 18px}h1{font-size:28px;line-height:1.1;margin:0}p{color:#525252;line-height:1.45;font-size:14px}form{margin-top:18px;background:#fff;border:1px solid #e6e6e6;border-radius:16px;padding:16px}input{width:100%;box-sizing:border-box;margin-top:10px;border:1px solid #d4d4d4;border-radius:12px;padding:14px;font-size:16px}button{width:100%;margin-top:14px;border:0;border-radius:12px;background:${look.button};color:#fff;padding:14px;font-size:16px;font-weight:700}a{color:#1a1a1a;font-weight:700}</style>${loginScript}</head><body><main>${body}</main></body></html>\n`;
   switch (page) {
     case "login.html":
     case "rlogin.html":
-      return openPortal("Opening your HotspotPro login…");
+      return shell(`<h1>${title}</h1><p>${note}</p>${loginForm}<p style="margin-top:16px"><a href="${portalUrl}">Buy a package</a></p>`);
     case "alogin.html":
       return `<html>${mark}<head><meta http-equiv="refresh" content="0; url=$(link-redirect)"><meta http-equiv="pragma" content="no-cache"></head><body>You are online. <a href="$(link-redirect)">Continue</a></body></html>\n`;
     case "error.html":
-      return openPortal("Could not connect. Opening HotspotPro so you can try again…");
+      return shell(`<h1>Could not connect</h1><p>$(error)</p>${loginForm}<p style="margin-top:16px"><a href="${portalUrl}">Buy a package</a></p>`);
     case "logout.html":
-      return openPortal("You are signed out. Opening HotspotPro…");
+      return shell(`<h1>Signed out</h1><p>Enter a voucher to get back online.</p>${loginForm}<p style="margin-top:16px"><a href="${portalUrl}">Buy a package</a></p>`);
     case "redirect.html":
       return `<html>${mark}<head><meta http-equiv="refresh" content="0; url=$(link-redirect)"><meta http-equiv="pragma" content="no-cache"></head><body></body></html>\n`;
     case "status.html":

@@ -243,7 +243,7 @@ export function controlScript(token: string, origin?: string): string | null {
     }
   }
   // Keep check-ins fast so site actions and remote console land in about 3 seconds.
-  lines.push(`:do { /system scheduler set [find where name=hotspotpro-control] interval=3s } on-error={ }`);
+  lines.push(`:do { /system scheduler set [find where name=hotspotpro-control] interval=1s } on-error={ }`);
   if (origin) {
     const source = checkInBody(origin, token).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\$/g, "\\$");
     // The copy already on the router may not send CPU and memory. Replace it so the next check-in does.

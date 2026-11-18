@@ -8,7 +8,7 @@
 import dns from "node:dns";
 
 /** Bump this when the setup script changes. Connected routers download the new setup on the next check-in. */
-export const SETUP_VERSION = "v21";
+export const SETUP_VERSION = "v22";
 
 /** Hotspot login DNS name (MikroTik profile dns-name). Prefer a manually typed value. */
 export function loginDnsFromName(routerName: string, given?: string): string {
@@ -134,14 +134,14 @@ function guardSource() {
   return ':global hpMiss; :if ([:typeof $hpMiss] = "nothing") do={ :set hpMiss 0 }; :set hpMiss ($hpMiss + 1); :if ($hpMiss >= 72) do={ :do { /ip firewall raw enable [find where comment="HotspotPro access lock"] } on-error={ }; :do { /ip hotspot active remove [find] } on-error={ } }';
 }
 
-/** When a voucher ends, drop the login cookie and kick WiFi so the phone can open the captive portal again without forgetting the network. */
+/** When a voucher ends: clear cookies only. Do NOT kick WiFi (that removes signal bars). Phone stays on the saved network and the local login page opens again fast. */
 function logoutSource() {
-  return ':local mac $"mac-address"; :if ([:len $mac] > 0) do={ :do { /ip hotspot cookie remove [find where mac-address=$mac] } on-error={ }; :do { /interface wifi registration-table remove [find where mac-address=$mac] } on-error={ }; :do { /interface wifiwave2 registration-table remove [find where mac-address=$mac] } on-error={ }; :do { /interface wireless registration-table remove [find where mac-address=$mac] } on-error={ } }';
+  return ':local mac $"mac-address"; :local user $"user"; :if ([:len $mac] > 0) do={ :do { /ip hotspot cookie remove [find where mac-address=$mac] } on-error={ } }; :if ([:len $user] > 0) do={ :do { /ip hotspot cookie remove [find where user=$user] } on-error={ } }';
 }
 
-/** Backup cleaner: cookies whose hotspot user was removed, then kick those MACs. */
+/** Backup cleaner: drop cookies whose hotspot user no longer exists so a new voucher can log in on the same WiFi. */
 function reauthCleanSource() {
-  return ':foreach c in=[/ip hotspot cookie find] do={ :local u [/ip hotspot cookie get $c user]; :local m [/ip hotspot cookie get $c mac-address]; :if ([:len $u] = 0 || [:len [/ip hotspot user find where name=$u]] = 0) do={ :do { /ip hotspot cookie remove $c } on-error={ }; :if ([:len $m] > 0) do={ :do { /interface wifi registration-table remove [find where mac-address=$m] } on-error={ }; :do { /interface wifiwave2 registration-table remove [find where mac-address=$m] } on-error={ }; :do { /interface wireless registration-table remove [find where mac-address=$m] } on-error={ } } } }';
+  return ':foreach c in=[/ip hotspot cookie find] do={ :local u [/ip hotspot cookie get $c user]; :if ([:len $u] = 0 || [:len [/ip hotspot user find where name=$u]] = 0) do={ :do { /ip hotspot cookie remove $c } on-error={ } } }';
 }
 
 function rosQuoted(source: string) {
@@ -157,7 +157,7 @@ export function hotspotReauthEnsureLines(): string[] {
     `:do { /system script remove [find where name=hotspotpro-reauth] } on-error={ }`,
     `:do { /system script add name=hotspotpro-reauth source=${rosQuoted(reauthCleanSource())} policy=read,write,policy,test comment="HotspotPro" } on-error={ }`,
     `:do { /system scheduler remove [find where name=hotspotpro-reauth] } on-error={ }`,
-    `:do { /system scheduler add name=hotspotpro-reauth interval=1m start-time=startup on-event=hotspotpro-reauth policy=read,write,policy,test comment="HotspotPro" } on-error={ }`,
+    `:do { /system scheduler add name=hotspotpro-reauth interval=5s start-time=startup on-event=hotspotpro-reauth policy=read,write,policy,test comment="HotspotPro" } on-error={ }`,
   ];
 }
 
@@ -250,7 +250,7 @@ export function internetSwitchCommands(origin: string, token: string): string[] 
     // Without policy the scheduler is not allowed to download, so the router would never check in.
     `/system script add name=hotspotpro-control source="${source}" policy=ftp,reboot,read,write,policy,test comment="HotspotPro"`,
     `/system scheduler remove [find where name=hotspotpro-control]`,
-    `/system scheduler add name=hotspotpro-control interval=3s start-time=startup on-event=hotspotpro-control policy=ftp,reboot,read,write,policy,test comment="HotspotPro"`,
+    `/system scheduler add name=hotspotpro-control interval=1s start-time=startup on-event=hotspotpro-control policy=ftp,reboot,read,write,policy,test comment="HotspotPro"`,
     `/ip firewall raw remove [find where comment="${ACCESS_LOCK}"]`,
     `/ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=accept dst-address-type=local comment="${ACCESS_LOCK}" disabled=yes`,
     `/ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=accept dst-address-type=broadcast comment="${ACCESS_LOCK}" disabled=yes`,

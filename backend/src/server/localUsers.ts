@@ -136,8 +136,8 @@ export function localUserLines(token: string, routerIp: string, now = Date.now()
     }
   }
   for (const code of remove) {
-    // Drop sessions/cookies for removed vouchers and kick WiFi so the captive portal can open again.
-    lines.push(`:do { :foreach a in=[/ip hotspot active find where user=${quote(code)}] do={ :local m [/ip hotspot active get $a mac-address]; /ip hotspot active remove $a; :do { /ip hotspot cookie remove [find where mac-address=$m] } on-error={ }; :do { /interface wifi registration-table remove [find where mac-address=$m] } on-error={ }; :do { /interface wireless registration-table remove [find where mac-address=$m] } on-error={ } } } on-error={ }`);
+    // Drop sessions/cookies for removed vouchers so a new voucher can log in on the same WiFi (no forget needed).
+    lines.push(`:do { :foreach a in=[/ip hotspot active find where user=${quote(code)}] do={ :local m [/ip hotspot active get $a mac-address]; /ip hotspot active remove $a; :do { /ip hotspot cookie remove [find where mac-address=$m] } on-error={ } } } on-error={ }`);
     lines.push(`:do { /ip hotspot cookie remove [find where user=${quote(code)}] } on-error={ }`);
     lines.push(`:do { /ip hotspot user remove [find where name=${quote(code)} comment="HotspotPro"] } on-error={ }`);
   }
