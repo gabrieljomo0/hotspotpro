@@ -619,11 +619,13 @@ export function SystemInformationTab({
       {router.hotspotEnabled && (
         <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
           <h3 className="text-base font-bold text-[#1a1a1a]">Customer login</h3>
-          <p className="mt-1 text-sm text-[#737373]">Only one method runs at a time. The router follows this on its next check-in, about 3 seconds.</p>
+          <p className="mt-1 text-sm text-[#737373]">
+            WiFi always opens your HotspotPro site portal. Choose how vouchers are authenticated when the customer taps Connect.
+          </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {([
-              ["cloud", "Cloud", "Unavailable here. This site has no RADIUS port."],
-              ["local", "On the router", "Paid vouchers are copied onto the MikroTik."],
+              ["cloud", "Cloud RADIUS", "Needs a public UDP RADIUS host. This API host cannot receive RADIUS, so use HotspotPro vouchers below."],
+              ["local", "HotspotPro vouchers", "The site checks the voucher, then applies it on the MikroTik so Connect works."],
             ] as const).map(([id, label, detail]) => {
               const selected = (router.loginMode === "cloud" ? "cloud" : "local") === id;
               return (
@@ -632,8 +634,8 @@ export function SystemInformationTab({
                   type="button"
                   onClick={() => {
                     if (id === "cloud") {
-                      showToast("This site has no RADIUS port, so paid vouchers stay on the router.");
-                      if ((router.loginMode ?? "cloud") !== "local") updateRouterDetails(router.ip, { loginMode: "local" });
+                      showToast("This API host has no public RADIUS port. Vouchers stay authenticated by HotspotPro and applied on the router.");
+                      if ((router.loginMode ?? "local") !== "local") updateRouterDetails(router.ip, { loginMode: "local" });
                       return;
                     }
                     if (!selected) updateRouterDetails(router.ip, { loginMode: id });

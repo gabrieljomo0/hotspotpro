@@ -676,15 +676,15 @@ export default function AddRouterPage() {
                     <p className="mt-1 text-xs text-[#737373]">Pick one. The router uses only that method, and you can change it later.</p>
                     <div className="mt-3 grid gap-3 sm:grid-cols-2">
                       {([
-                        ["cloud", "Cloud", "Unavailable here. This site has no RADIUS port — vouchers stay on the router."],
-                        ["local", "On the router", "Vouchers and package profiles are copied onto the MikroTik so Connect works."],
+                        ["cloud", "Cloud RADIUS", "Needs a public RADIUS host. Not available on this API — use HotspotPro vouchers."],
+                        ["local", "HotspotPro vouchers", "WiFi opens your site portal. Vouchers are checked by HotspotPro and applied on the MikroTik."],
                       ] as const).map(([id, label, detail]) => (
                         <button
                           key={id}
                           type="button"
                           onClick={() => {
                             if (id === "cloud") {
-                              showToast("This site has no RADIUS port, so paid vouchers stay on the router.");
+                              showToast("This API host has no public RADIUS port. Vouchers stay authenticated by HotspotPro.");
                               setLoginMode("local");
                               return;
                             }

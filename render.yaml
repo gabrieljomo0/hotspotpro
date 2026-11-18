@@ -1,6 +1,8 @@
-# The API, router setup, and 30-second check-in.
-# MikroTik RADIUS (UDP 1812/1813) is not reachable from the public internet on
-# Render, so it stays off here. Routers added to this site use "On the router".
+# The API, router setup, and check-in.
+# WiFi opens the designed HotspotPro site portal (Vercel).
+# Render cannot receive public UDP, so MikroTik RADIUS (1812/1813) stays off.
+# Vouchers are authenticated by this API, then pushed onto the MikroTik at Connect.
+# Set HOTSPOTPRO_RADIUS=on only on a host that exposes UDP 1812/1813 to the internet.
 services:
   - type: web
     name: hotspotpro-api

@@ -11,7 +11,7 @@ import {
   voucherLimitBy,
   voucherUsesCalendar,
 } from "@/server/packages";
-import { usedBytes } from "@/server/radius";
+import { radiusCloudEnabled, usedBytes } from "@/server/radius";
 import { findRouterByToken } from "@/server/provision";
 import { getState, queueJob } from "@/server/store";
 
@@ -106,22 +106,27 @@ export async function POST(request: Request) {
   let jobId: string | null = null;
   const loginUsername = (v.code || "").trim().replace(/[^A-Za-z0-9_-]/g, "").slice(0, 32) || v.code;
   const loginPassword = v.password || v.code || loginUsername;
+  // Real UDP RADIUS when HOTSPOTPRO_RADIUS=on. On Render that stays off — vouchers are
+  // checked here, then pushed onto the MikroTik so /login can put the phone online.
+  const useRadius = radiusCloudEnabled() && (router as { loginMode?: string } | null)?.loginMode === "cloud";
+  const authMode = useRadius ? "radius" : "push";
   if (token) {
     const gateway = (router as { hotspotGatewayIp?: string } | null)?.hotspotGatewayIp?.trim();
     if (gateway && /^(?:\d{1,3}\.){3}\d{1,3}$/.test(gateway)) hotspotLogin = `http://${gateway}/login`;
-    try {
-      const sync = getState("routerUserSync")?.value as Record<string, { codes?: string[] }> | undefined;
-      const already = !!sync?.[token]?.codes?.includes(loginUsername);
-      // Push only this voucher — do not wipe sync state (that churns every login at scale).
-      const script = ensureOneLocalUser(token, router?.ip || "", v.code);
-      if (script.length > 1) {
-        const job = queueJob(token, script.join("\n") + "\n", "portal");
-        jobId = job.id;
-        syncQueued = true;
-        syncFresh = !already;
+    if (!useRadius) {
+      try {
+        const sync = getState("routerUserSync")?.value as Record<string, { codes?: string[] }> | undefined;
+        const already = !!sync?.[token]?.codes?.includes(loginUsername);
+        const script = ensureOneLocalUser(token, router?.ip || "", v.code);
+        if (script.length > 1) {
+          const job = queueJob(token, script.join("\n") + "\n", "portal");
+          jobId = job.id;
+          syncQueued = true;
+          syncFresh = !already;
+        }
+      } catch {
+        /* check-in may already have the user */
       }
-    } catch {
-      /* check-in may already have the user */
     }
   } else {
     const routers = getState("routers")?.value;
@@ -142,10 +147,11 @@ export async function POST(request: Request) {
     loginUsername,
     loginPassword,
     redirect: GOOGLE,
+    authMode,
     syncQueued,
     syncFresh,
     jobId,
-    // Router picks up ensureOneLocalUser on the next check-in (up to ~10s). Wait long enough before MikroTik /login.
-    waitMs: syncQueued ? (syncFresh ? 14000 : 2500) : 800,
+    // RADIUS: MikroTik asks the server immediately. Push: wait for the voucher job on the router.
+    waitMs: useRadius ? 500 : syncQueued ? (syncFresh ? 14000 : 2500) : 800,
   });
 }
