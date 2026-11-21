@@ -1853,54 +1853,67 @@ function CaptivePortalPageInner() {
       const waitMs = typeof body.waitMs === "number" ? body.waitMs : 0;
       const jobId = typeof body.jobId === "string" ? body.jobId : "";
       const ticketId = typeof body.ticketId === "string" ? body.ticketId : "";
+      const authMode = typeof body.authMode === "string" ? body.authMode : "";
       const continueUrl =
         typeof body.continueUrl === "string" && /^https?:\/\//.test(body.continueUrl)
           ? body.continueUrl
           : "";
+      const mikrotikUser =
+        typeof body.loginUsername === "string" && body.loginUsername ? body.loginUsername : username;
+      const mikrotikPass =
+        typeof body.loginPassword === "string" && body.loginPassword ? body.loginPassword : password;
+      const hotspotLogin =
+        typeof body.hotspotLogin === "string" && /^https?:\/\//.test(body.hotspotLogin)
+          ? body.hotspotLogin
+          : null;
       setVoucherError("Preparing this WiFi login…");
-      const deadline = Date.now() + Math.max(waitMs, ticketId ? 18000 : 800);
-      let pageReady = !ticketId;
-      while (Date.now() < deadline) {
-        await new Promise((resolve) => window.setTimeout(resolve, 1500));
+      // Push path: wait until the router has the voucher user AND (when possible) hp-go.html.
+      // Never open hp-go.html early — that is the main reason Connect fails.
+      const deadline = Date.now() + Math.max(waitMs, ticketId || jobId ? 22000 : 800);
+      let pageReady = !ticketId || authMode === "radius";
+      let jobDone = !jobId || authMode === "radius";
+      while (Date.now() < deadline && (!pageReady || !jobDone)) {
+        await new Promise((resolve) => window.setTimeout(resolve, 1000));
         if (ticketId && routerToken && !pageReady) {
           try {
             const ready = await fetch(`/api/portal/login-ready?t=${encodeURIComponent(ticketId)}`, {
               headers: { "x-hsp-rt": routerToken },
             });
             const readyBody = await ready.json().catch(() => ({}));
-            if (readyBody.ready) {
-              pageReady = true;
-              break;
-            }
+            if (readyBody.ready) pageReady = true;
           } catch {
             /* keep waiting */
           }
-        } else if (jobId && routerToken) {
+        }
+        if (jobId && routerToken && !jobDone) {
           try {
             const ready = await fetch(`/api/portal/job?id=${encodeURIComponent(jobId)}`, {
               headers: { "x-hsp-rt": routerToken },
             });
             const readyBody = await ready.json().catch(() => ({}));
-            if (readyBody.status === "ok" || readyBody.status === "failed") break;
+            if (readyBody.status === "ok" || readyBody.status === "failed") jobDone = true;
           } catch {
             /* keep waiting */
           }
-        } else {
-          break;
         }
+        if (!ticketId && !jobId) break;
       }
       setVoucherError("");
-      // Prefer HTTP auto-login on the gateway (works in iOS captive). Fallback: POST /login.
-      if (continueUrl) {
+      // Prefer HTTP auto-login on the gateway only after the router downloaded it.
+      if (continueUrl && pageReady) {
         setConnectingWifi(true);
         window.location.replace(continueUrl);
         return;
       }
-      const mikrotikUser =
-        typeof body.loginUsername === "string" && body.loginUsername ? body.loginUsername : username;
-      const mikrotikPass =
-        typeof body.loginPassword === "string" && body.loginPassword ? body.loginPassword : password;
-      routerLogin(mikrotikUser, mikrotikPass, typeof body.hotspotLogin === "string" ? body.hotspotLogin : null);
+      // Fallback: POST to MikroTik /login (works when the portal was opened from captive with ?login=).
+      if (hotspotLogin || hotspotLoginFromQuery || hotspotLoginFallback) {
+        routerLogin(mikrotikUser, mikrotikPass, hotspotLogin);
+        return;
+      }
+      setConnectingWifi(false);
+      setVoucherError(
+        "The router did not pick up this voucher in time. Stay on this WiFi, wait a few seconds, and tap Connect again. If it keeps failing, check that the router is Online in HotspotPro.",
+      );
     };
     void attempt(true).catch(() => {
       setConnectingWifi(false);

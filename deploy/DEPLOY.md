@@ -1,7 +1,41 @@
 # Hosting HotspotPro on a server
 
+Cloud voucher login (captive portal → HotspotPro RADIUS) needs **UDP 1812 and 1813**
+reachable from every MikroTik. Render cannot do that — use a VPS, Docker Compose, or Fly.io.
+
 You need a Linux server (a small VPS is fine) with a public IP address, a domain name pointing at it,
 and Node.js 20+. These steps use Ubuntu.
+
+## Fast path: Docker Compose (RADIUS on)
+
+```bash
+cp backend/.env.example backend/.env
+# set HOTSPOTPRO_PUBLIC_URL=https://billing.example.com
+# set HOTSPOTPRO_RADIUS_HOST=<this machine's public IPv4>
+# set HOTSPOTPRO_RADIUS=on
+docker compose up -d --build
+sudo ufw allow 1812,1813/udp && sudo ufw allow 80,443/tcp
+```
+
+Then put Caddy/nginx in front of port 4000 for HTTPS. In the dashboard, add a router with
+**Cloud RADIUS** (default when RADIUS is on). WiFi opens the site portal; Connect authenticates
+vouchers via RADIUS.
+
+## Fast path: Fly.io (UDP + HTTPS)
+
+```bash
+fly auth login
+fly launch --no-deploy   # uses fly.toml in the repo root
+fly ips allocate-v4      # required for UDP — note the dedicated IPv4
+fly secrets set HOTSPOTPRO_PUBLIC_URL=https://your-app.fly.dev \
+  HOTSPOTPRO_RADIUS_HOST=<that dedicated IPv4> \
+  HOTSPOTPRO_RADIUS=on \
+  HOTSPOTPRO_SESSION_SECRET=<long-random> \
+  SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=...   # if you already use Supabase
+fly deploy
+```
+
+Point the Vercel site’s API rewrite at `https://your-app.fly.dev`. Set each router to **Cloud RADIUS**.
 
 ## 1. Put the project on the server
 

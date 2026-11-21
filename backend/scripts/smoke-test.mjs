@@ -94,7 +94,7 @@ try {
   check("with no RADIUS server a paid voucher is copied onto the router", cloudCtl.includes("use-radius=no") && cloudCtl.includes('name="AMATEST1"') && cloudCtl.includes("limit-uptime=1d") && cloudCtl.includes("session-timeout=0s") && cloudCtl.includes("keepalive-timeout=none") && cloudCtl.includes("mac-cookie-timeout=1d") && cloudCtl.includes("shared-users=1"), cloudCtl.slice(0, 500));
   check("remote WinBox is ready on check-in", cloudCtl.includes('comment="HotspotPro remote WinBox"') && cloudCtl.includes("back-to-home-vpn=enabled") && cloudCtl.includes("ddns-enabled=yes") && cloudCtl.includes("update-time=yes"));
   check("remote WebFig is open for browser access", cloudCtl.includes('comment="HotspotPro remote WebFig"') && cloudCtl.includes("/ip service set www") && cloudCtl.includes("interval=15s"), cloudCtl.slice(0, 400));
-  check("hotspot login requires voucher page then MAC cookie", cloudCtl.includes("login-by=http-pap,mac-cookie") && cloudCtl.includes("addresses-per-mac=1") && cloudCtl.includes("mac-address=$m"), cloudCtl.slice(0, 800));
+  check("hotspot login requires voucher page then MAC cookie", cloudCtl.includes("login-by=http-pap,http-chap,mac-cookie") && cloudCtl.includes("addresses-per-mac=1") && cloudCtl.includes("mac-address=$m"), cloudCtl.slice(0, 800));
   check("captive portal serves HotspotPro login on the router", (await (await fetch(base + "/api/provision/tok-ama-12345678/login.html")).text()).includes('action="$(link-login-only)"') && (await (await fetch(base + "/api/provision/tok-ama-12345678/login.html")).text()).includes("Buy a package") && !(await (await fetch(base + "/api/provision/tok-ama-12345678/login.html")).text()).includes("location.replace") && (await (await fetch(base + "/api/provision/tok-ama-12345678/md5.js")).text()).includes("function hexMD5"), "login.html on-router form");
   check("connected routers download the latest setup by themselves", cloudCtl.includes("applying the latest setup") && cloudCtl.includes('hpSetup != "v29"') && cloudCtl.includes("/api/provision/tok-ama-12345678?wireless=yes"), cloudCtl.slice(cloudCtl.indexOf("hpSetup"), cloudCtl.indexOf("hpSetup") + 400));
   const cloudScript = await (await fetch(base + "/api/provision/tok-ama-12345678?wireless=yes&ssid=AmaCafeWiFi")).text();
@@ -166,7 +166,8 @@ try {
     && (await fetch(base + "/api/provision/tok-done-12345678/done?failed=0")).status === 200);
   const linked = await json(await send("GET", "/api/state", undefined, amaCookie));
   const finished = (linked.docs?.routers?.value ?? []).find((r) => r.provisioningToken === "tok-done-12345678");
-  check("the site shows that router connected", finished?.status === "Online" && finished?.provisioningStatus === "Provisioned" && finished?.name === "Finished Router" && finished?.loginMode === "cloud", JSON.stringify(finished));
+  // Without HOTSPOTPRO_RADIUS=on, cloud is stored as local (vouchers pushed onto the MikroTik).
+  check("the site shows that router connected", finished?.status === "Online" && finished?.provisioningStatus === "Provisioned" && finished?.name === "Finished Router" && finished?.loginMode === "local", JSON.stringify(finished));
   await send("PUT", "/api/state/routers", { value: routerA }, amaCookie);
 
   // ---- setup script: ISP port, device-mode check ----

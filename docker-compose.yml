@@ -1,0 +1,25 @@
+# Cloud RADIUS captive portal: API + UDP 1812/1813 on a public IP.
+# Usage:
+#   1. Copy backend/.env.example → backend/.env and set HOTSPOTPRO_PUBLIC_URL + HOTSPOTPRO_RADIUS_HOST=<this server's public IP>
+#   2. docker compose up -d --build
+#   3. Open UDP 1812/1813 and TCP 80/443 (put Caddy/nginx in front for HTTPS)
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+      - "1812:1812/udp"
+      - "1813:1813/udp"
+    env_file:
+      - ./backend/.env
+    environment:
+      HOTSPOTPRO_RADIUS: "on"
+      PORT: "4000"
+    volumes:
+      - hotspotpro-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  hotspotpro-data:

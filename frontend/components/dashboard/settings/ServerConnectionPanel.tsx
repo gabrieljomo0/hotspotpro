@@ -10,7 +10,7 @@ import { Check, Copy, RefreshCw } from "lucide-react";
 type Info = {
   paymentMode: "hubtel" | "sandbox" | "off";
   hubtelCallbackUrl: string;
-  radius: { host: string; authPort: number; acctPort: number; secret: string };
+  radius: { enabled?: boolean; host: string; authPort: number; acctPort: number; secret: string };
 };
 type Payment = {
   id: string; status: "pending" | "paid" | "failed" | "expired"; amount: number; packageName: string;
@@ -92,7 +92,10 @@ export function ServerConnectionPanel() {
 
       <div className="mt-4">
         <CopyRow label="Hubtel callback address (sent with every payment automatically)" value={info.hubtelCallbackUrl} />
-        <CopyRow label="RADIUS server for routers" value={`${info.radius.host}  ·  auth UDP ${info.radius.authPort}  ·  accounting UDP ${info.radius.acctPort}`} />
+        <CopyRow
+          label={info.radius.enabled ? "RADIUS server for routers (cloud vouchers)" : "RADIUS server (off — set HOTSPOTPRO_RADIUS=on on a UDP host)"}
+          value={`${info.radius.host}  ·  auth UDP ${info.radius.authPort}  ·  accounting UDP ${info.radius.acctPort}`}
+        />
         <CopyRow label="RADIUS shared secret (already in each router's setup script)" value={info.radius.secret} />
       </div>
 

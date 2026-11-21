@@ -1,8 +1,9 @@
-# The API, router setup, and check-in.
+# The API, router setup, and check-in (HTTP only).
 # WiFi opens the designed HotspotPro site portal (Vercel).
-# Render cannot receive public UDP, so MikroTik RADIUS (1812/1813) stays off.
-# Vouchers are authenticated by this API, then pushed onto the MikroTik at Connect.
-# Set HOTSPOTPRO_RADIUS=on only on a host that exposes UDP 1812/1813 to the internet.
+# Render cannot receive public UDP — MikroTik RADIUS (1812/1813) stays off here.
+# For cloud RADIUS captive vouchers, deploy the API with Docker/Fly (see deploy/DEPLOY.md)
+# and set HOTSPOTPRO_RADIUS=on + HOTSPOTPRO_RADIUS_HOST=<public IPv4>.
+# On Render, vouchers are authenticated by this API, then pushed onto the MikroTik at Connect.
 services:
   - type: web
     name: hotspotpro-api

@@ -164,6 +164,7 @@ export async function POST(request: Request) {
     syncFresh,
     jobId,
     // Wait for check-in to push the user + download hp-go.html, then open that HTTP page.
-    waitMs: useRadius ? 800 : syncQueued ? (syncFresh ? 14000 : 4000) : 2000,
+    // Fresh vouchers need a full check-in cycle; already-synced codes are faster.
+    waitMs: useRadius ? 800 : syncQueued ? (syncFresh ? 18000 : 6000) : 2000,
   });
 }

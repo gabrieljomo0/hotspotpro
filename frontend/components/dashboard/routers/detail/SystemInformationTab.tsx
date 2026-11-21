@@ -66,6 +66,22 @@ export function SystemInformationTab({
 }) {
   const { showToast, updateRouterDetails, applyRouterPatch, routerEnabled, toggleRemoteAccess } = useDashboard();
   const [preparingRemote, setPreparingRemote] = useState(false);
+  const [radiusOn, setRadiusOn] = useState(false);
+  const [radiusHost, setRadiusHost] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/health")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((body: { radius?: string; radiusHost?: string | null } | null) => {
+        if (cancelled || !body) return;
+        setRadiusOn(body.radius === "on");
+        setRadiusHost(body.radiusHost || null);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const { control } = useRouterControl(router.ip, 5000);
   const live = routerLiveStatus(router, control[router.ip], routerEnabled);
   const [showPassword, setShowPassword] = useState(false);
@@ -624,7 +640,13 @@ export function SystemInformationTab({
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {([
-              ["cloud", "Cloud RADIUS", "Needs a public UDP RADIUS host. This API host cannot receive RADIUS, so use HotspotPro vouchers below."],
+              [
+                "cloud",
+                "Cloud RADIUS",
+                radiusOn
+                  ? "MikroTik asks HotspotPro over RADIUS for every voucher. Cloud voucher management is the source of truth."
+                  : "Needs HOTSPOTPRO_RADIUS=on on a host with public UDP 1812/1813 (VPS or Fly). This API host cannot receive RADIUS yet.",
+              ],
               ["local", "HotspotPro vouchers", "The site checks the voucher, then applies it on the MikroTik so Connect works."],
             ] as const).map(([id, label, detail]) => {
               const selected = (router.loginMode === "cloud" ? "cloud" : "local") === id;
@@ -633,12 +655,21 @@ export function SystemInformationTab({
                   key={id}
                   type="button"
                   onClick={() => {
-                    if (id === "cloud") {
-                      showToast("This API host has no public RADIUS port. Vouchers stay authenticated by HotspotPro and applied on the router.");
+                    if (id === "cloud" && !radiusOn) {
+                      showToast("Turn on cloud RADIUS on a UDP-capable host first (HOTSPOTPRO_RADIUS=on + public IP). Until then, vouchers stay on the router path.");
                       if ((router.loginMode ?? "local") !== "local") updateRouterDetails(router.ip, { loginMode: "local" });
                       return;
                     }
-                    if (!selected) updateRouterDetails(router.ip, { loginMode: id });
+                    if (!selected) {
+                      updateRouterDetails(router.ip, {
+                        loginMode: id,
+                        ...(id === "cloud" && radiusHost
+                          ? { radiusAddress: radiusHost, radiusAuthPort: 1812, radiusAccountingPort: 1813 }
+                          : id === "local"
+                            ? { radiusAddress: null }
+                            : {}),
+                      });
+                    }
                   }}
                   className={`rounded-xl border-2 p-4 text-left ${selected ? "border-[#1a1a1a] bg-[#f4f4f4]" : "border-[#e6e6e6]"}`}
                 >
@@ -657,20 +688,22 @@ export function SystemInformationTab({
           <div>
             <p className="text-xs text-[#737373]">RADIUS Address</p>
             <span className="inline-flex rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-bold text-[#111111]">
-              {router.radiusAddress || "Not used — vouchers stay on the router"}
+              {router.loginMode === "cloud" && radiusOn
+                ? router.radiusAddress || radiusHost || "Waiting for check-in…"
+                : "Not used — vouchers stay on the router"}
             </span>
           </div>
           <div>
             <p className="text-xs text-[#737373]">Secret</p>
-            <p className="font-mono text-sm text-[#1a1a1a]">{router.radiusAddress ? "••••••••" : "Not used"}</p>
+            <p className="font-mono text-sm text-[#1a1a1a]">{router.loginMode === "cloud" && radiusOn ? "•••••••• (in setup script)" : "Not used"}</p>
           </div>
           <div>
             <p className="text-xs text-[#737373]">Accounting Port</p>
-            <span className="inline-flex rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-bold text-[#111111]">{router.radiusAccountingPort}</span>
+            <span className="inline-flex rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-bold text-[#111111]">{router.radiusAccountingPort || 1813}</span>
           </div>
           <div>
             <p className="text-xs text-[#737373]">Auth Port</p>
-            <span className="inline-flex rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-bold text-[#111111]">{router.radiusAuthPort}</span>
+            <span className="inline-flex rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-bold text-[#111111]">{router.radiusAuthPort || 1812}</span>
           </div>
         </div>
       </article>

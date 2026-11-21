@@ -18,7 +18,18 @@ const J = { "content-type": "application/json" };
 function start(data, port, authPort, acctPort) {
   const child = spawn(process.execPath, ["dist/server.mjs"], {
     cwd: dir,
-    env: { ...process.env, PORT: String(port), HOTSPOTPRO_DATA_DIR: data, HOTSPOTPRO_LOG: "off", HOTSPOTPRO_RADIUS_SECRET: SECRET, HOTSPOTPRO_RADIUS_PORT: String(authPort), HOTSPOTPRO_RADIUS_ACCT_PORT: String(acctPort), NODE_ENV: "development" },
+    env: {
+      ...process.env,
+      PORT: String(port),
+      HOTSPOTPRO_DATA_DIR: data,
+      HOTSPOTPRO_LOG: "off",
+      HOTSPOTPRO_RADIUS: "on",
+      HOTSPOTPRO_RADIUS_HOST: "127.0.0.1",
+      HOTSPOTPRO_RADIUS_SECRET: SECRET,
+      HOTSPOTPRO_RADIUS_PORT: String(authPort),
+      HOTSPOTPRO_RADIUS_ACCT_PORT: String(acctPort),
+      NODE_ENV: "development",
+    },
     stdio: ["ignore", "pipe", "pipe"],
   });
   let out = "";
@@ -100,6 +111,26 @@ const hashPw = (pw) => { const salt = crypto.randomBytes(16); return `scrypt$${s
     await put(ama, "vouchers", [{ code: "AMA-1111", password: null, packageName: "Ama Daily", status: "Unused" }]);
     await put(kofi, "vouchers", [{ code: "KOF-2222", password: null, packageName: "Kofi Daily", status: "Unused" }]);
     await sleep(300);
+
+    const health = await (await fetch(base + "/api/health")).json();
+    check("health reports cloud RADIUS on", health.radius === "on" && health.radiusHost === "127.0.0.1", JSON.stringify(health));
+
+    await put(ama, "routers", [{
+      name: "Ama Router", ip: "r-ama", status: "Online", provisioningStatus: "Provisioned",
+      provisioningToken: "tok-ama-radius", loginMode: "cloud", hotspotEnabled: true,
+      hotspotGatewayIp: "10.10.0.1", wanInterface: "ether1",
+    }]);
+    const script = await (await fetch(base + "/api/provision/tok-ama-radius")).text();
+    check("cloud setup adds MikroTik /radius and use-radius=yes", script.includes("/radius add service=hotspot address=127.0.0.1") && script.includes("use-radius=yes") && script.includes("radius-accounting=yes"), script.slice(0, 400));
+    const ctl = await (await fetch(base + "/api/provision/tok-ama-radius/control")).text();
+    check("check-in keeps cloud RADIUS on the router", ctl.includes("HotspotPro login: cloud") && ctl.includes("use-radius=yes") && ctl.includes("/radius add") && !ctl.includes('name="AMA-1111"'), ctl.slice(0, 500));
+    const portal = await fetch(base + "/api/portal/voucher", {
+      method: "POST",
+      headers: { ...J, "x-hsp-rt": "tok-ama-radius" },
+      body: JSON.stringify({ username: "AMA-1111", password: "AMA-1111" }),
+    });
+    const portalBody = await portal.json();
+    check("site portal Connect uses RADIUS auth (no local push)", portal.ok && portalBody.authMode === "radius" && portalBody.syncQueued === false && portalBody.waitMs <= 1000, JSON.stringify(portalBody));
 
     check("RADIUS accepts Ama's voucher", (await login(authPort, "AMA-1111", "AMA-1111")) === 2);
     check("RADIUS accepts Kofi's voucher", (await login(authPort, "KOF-2222", "KOF-2222")) === 2);

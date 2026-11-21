@@ -43,9 +43,32 @@ export function radiusSecret() {
  * Cloud / RADIUS login only when explicitly enabled.
  * Hosted APIs (e.g. Render) usually cannot receive UDP 1812/1813, so the default
  * must keep vouchers and user profiles on the MikroTik itself.
+ * Set HOTSPOTPRO_RADIUS=on on a VPS / Fly.io (or any host that exposes UDP 1812/1813).
  */
 export function radiusCloudEnabled() {
   return process.env.HOTSPOTPRO_RADIUS === "on";
+}
+
+/** Public IP (preferred) or hostname MikroTik /radius should use. */
+export function radiusPublicHost(fallbackHostname?: string) {
+  const fromEnv = (process.env.HOTSPOTPRO_RADIUS_HOST || "").trim();
+  if (fromEnv) return fromEnv;
+  return (fallbackHostname || "").trim();
+}
+
+export function radiusPorts() {
+  return {
+    authPort: Number(process.env.HOTSPOTPRO_RADIUS_PORT || 1812),
+    acctPort: Number(process.env.HOTSPOTPRO_RADIUS_ACCT_PORT || 1813),
+  };
+}
+
+/** Where the UDP sockets bind. Fly.io requires fly-global-services for public UDP. */
+export function radiusBindHost() {
+  const forced = (process.env.HOTSPOTPRO_RADIUS_BIND || "").trim();
+  if (forced) return forced;
+  if (process.env.FLY_APP_NAME) return "fly-global-services";
+  return "0.0.0.0";
 }
 
 // ---- packet encoding -------------------------------------------------------------
@@ -415,16 +438,17 @@ type Holder = { auth?: dgram.Socket; acct?: dgram.Socket };
 const g = globalThis as unknown as { __hotspotproRadius?: Holder };
 
 export function startRadius() {
+  // Cloud voucher AAA: listen unless explicitly off. Scripts only USE it when HOTSPOTPRO_RADIUS=on.
   if (g.__hotspotproRadius || process.env.HOTSPOTPRO_RADIUS === "off") return;
   const holder: Holder = (g.__hotspotproRadius = {});
-  const authPort = Number(process.env.HOTSPOTPRO_RADIUS_PORT || 1812);
-  const acctPort = Number(process.env.HOTSPOTPRO_RADIUS_ACCT_PORT || 1813);
+  const { authPort, acctPort } = radiusPorts();
   const secret = radiusSecret();
+  const bindHost = radiusBindHost();
 
   function open(kind: "auth" | "acct", port: number) {
     const socket = dgram.createSocket("udp4");
     socket.on("error", (error) => {
-      console.error(`[hotspotpro] RADIUS ${kind} could not start on UDP ${port}: ${(error as Error).message}`);
+      console.error(`[hotspotpro] RADIUS ${kind} could not start on UDP ${port} (${bindHost}): ${(error as Error).message}`);
       socket.close();
     });
     socket.on("message", (msg, rinfo) => {
@@ -451,8 +475,8 @@ export function startRadius() {
         console.error("[hotspotpro] RADIUS error:", error);
       }
     });
-    socket.on("listening", () => console.log(`[hotspotpro] RADIUS ${kind} listening on UDP ${port}`));
-    socket.bind(port);
+    socket.on("listening", () => console.log(`[hotspotpro] RADIUS ${kind} listening on ${bindHost}:${port}/udp`));
+    socket.bind(port, bindHost);
     holder[kind] = socket;
   }
   open("auth", authPort);

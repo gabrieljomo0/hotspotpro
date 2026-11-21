@@ -26,7 +26,7 @@ import { primaryWanInterface } from "./primaryWan";
 import { type IspLink, multiWanLines } from "./multiWan";
 import { bridgeWifiLines, ensureHotspotServerLines, sealCaptivePortalLeakLines, ssidForRouter, wifiApplyLines } from "./wifiApply";
 import { portalOrigin } from "./provision";
-import { radiusCloudEnabled } from "./radius";
+import { radiusCloudEnabled, radiusPorts, radiusPublicHost, radiusSecret } from "./radius";
 
 export const SWITCH_COMMENT = "HotspotPro internet off";
 const ACCESS_LOCK = "HotspotPro access lock";
@@ -187,7 +187,10 @@ export function controlScript(token: string, origin?: string): string | null {
       // No open free session. The chosen mode is the only way a voucher gets online.
       // http-pap first so a plain form still works; http-chap works when the login page sends CHAP MD5.
       // http-pap must stay on: the HotspotPro web portal POSTs plaintext username/password to /login.
-      `:do { /ip hotspot profile set [find where name=hotspotpro] login-by=http-pap,mac-cookie trial-uptime-limit=0s use-radius=${local ? "no" : "yes"} } on-error={ }`,
+      // http-pap is required for site-portal Connect (plain password). Keep http-chap too so
+      // hp-go.html can CHAP-hash when the profile still advertises a challenge.
+      `:do { /ip hotspot profile set [find where name=hotspotpro] login-by=http-pap,http-chap,mac-cookie trial-uptime-limit=0s use-radius=${local ? "no" : "yes"}${local ? "" : " radius-accounting=yes radius-interim-update=1m"} } on-error={ }`,
+      ...(!local ? cloudRadiusEnsureLines(origin) : []),
       ...hotspotReauthEnsureLines(),
       `:do { /ip hotspot user profile set [find where name=default] shared-users=1 session-timeout=0s idle-timeout=none keepalive-timeout=none mac-cookie-timeout=1d on-logout=hotspotpro-logout } on-error={ }`,
       `:do { /system clock set time-zone-name=Africa/Accra } on-error={ }`,
@@ -248,13 +251,15 @@ export function controlScript(token: string, origin?: string): string | null {
       lines.push(...localUserLines(token, router.ip));
     } else {
       forgetLocalUsers(token);
-      // Cloud mode: drop idle local copies only. Never remove a user who is online right now.
+      // Cloud RADIUS: vouchers live in HotspotPro. Drop idle local copies so RADIUS is not shadowed.
+      // Never remove a user who is online right now.
       lines.push(
         `:do { :foreach u in=[/ip hotspot user find where comment="HotspotPro"] do={ :local n [/ip hotspot user get $u name]; :if ([:len [/ip hotspot active find where user=$n]] = 0) do={ :do { /ip hotspot user remove $u } on-error={ } } } } on-error={ }`,
       );
-      // Site portal Connect still needs the HTTP auto-login page on the gateway.
+      // Site portal Connect still needs the HTTP auto-login page on the gateway (hp-go.html).
       const ticket = latestTicketForToken(token);
       if (origin && ticket) lines.push(...autoLoginFetchLines(origin, token, ticket.id));
+      noteCloudRadiusOnRouter(token, origin);
     }
   }
   // Commands the owner queued on the site (Advanced). Each is downloaded and run once, and the router reports whether it worked.
@@ -276,7 +281,8 @@ export function controlScript(token: string, origin?: string): string | null {
     }
   }
   // Speed up while a portal Connect push or site job is waiting.
-  const interval = queued.length > 0 || portalPending ? "2s" : CHECKIN_INTERVAL;
+  // Portal Connect needs the next check-in immediately so the voucher + hp-go.html land.
+  const interval = queued.length > 0 || portalPending ? "1s" : CHECKIN_INTERVAL;
   lines.push(`:do { /system scheduler set [find where name=hotspotpro-control] interval=${interval} } on-error={ }`);
   if (origin) {
     const source = checkInBody(origin, token).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\$/g, "\\$");
@@ -287,6 +293,59 @@ export function controlScript(token: string, origin?: string): string | null {
     );
   }
   return lines.join("\n") + "\n";
+}
+
+const IPV4_ADDR = /^(?:\d{1,3}\.){3}\d{1,3}$/;
+
+/** Keep MikroTik /radius pointed at HotspotPro so cloud vouchers authenticate on Connect. */
+function cloudRadiusEnsureLines(origin?: string): string[] {
+  if (!radiusCloudEnabled()) return [];
+  let fallback = "";
+  try {
+    if (origin) fallback = new URL(origin).hostname;
+  } catch {
+    /* ignore */
+  }
+  const host = radiusPublicHost(fallback).replace(/[^0-9A-Za-z.:-]/g, "");
+  if (!host) return [];
+  const secret = radiusSecret().replace(/"/g, "");
+  const { authPort, acctPort } = radiusPorts();
+  const ports = `authentication-port=${authPort} accounting-port=${acctPort}`;
+  const lines = [
+    `:do { /radius remove [find where comment="HotspotPro"] } on-error={ }`,
+  ];
+  if (IPV4_ADDR.test(host)) {
+    lines.push(`:do { /radius add service=hotspot address=${host} secret="${secret}" ${ports} timeout=3s comment="HotspotPro" } on-error={ }`);
+  } else {
+    lines.push(`:local hpRad ""`);
+    lines.push(`:do { :set hpRad [/resolve "${host}"] } on-error={ }`);
+    lines.push(`:if ([:len $hpRad] > 0) do={ :do { /radius add service=hotspot address=$hpRad secret="${secret}" ${ports} timeout=3s comment="HotspotPro" } on-error={ } }`);
+  }
+  return lines;
+}
+
+/** Mirror RADIUS details onto the saved router so the dashboard shows the live cloud target. */
+function noteCloudRadiusOnRouter(token: string, origin?: string) {
+  const value = getState("routers")?.value;
+  if (!Array.isArray(value)) return;
+  let fallback = "";
+  try {
+    if (origin) fallback = new URL(origin).hostname;
+  } catch {
+    /* ignore */
+  }
+  const host = radiusPublicHost(fallback);
+  if (!host) return;
+  const { authPort, acctPort } = radiusPorts();
+  let changed = false;
+  const next = (value as Row[]).map((row) => {
+    if (row.provisioningToken !== token) return row;
+    const cur = row as Row & { radiusAddress?: string | null; radiusAuthPort?: number; radiusAccountingPort?: number };
+    if (cur.radiusAddress === host && cur.radiusAuthPort === authPort && cur.radiusAccountingPort === acctPort) return row;
+    changed = true;
+    return { ...row, radiusAddress: host, radiusAuthPort: authPort, radiusAccountingPort: acctPort };
+  });
+  if (changed) setState("routers", next, "router");
 }
 
 function ipv4(value: string | null | undefined) {

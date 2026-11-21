@@ -1,14 +1,19 @@
 import { NextResponse } from "next/server";
-import { radiusCloudEnabled } from "@/server/radius";
+import { radiusCloudEnabled, radiusPorts, radiusPublicHost } from "@/server/radius";
 import { SETUP_VERSION } from "@/server/routeros";
 import { listTenants } from "@/server/store";
 
 export async function GET() {
+  const on = radiusCloudEnabled();
+  const ports = radiusPorts();
   return NextResponse.json({
     ok: true,
     businesses: listTenants().length,
     setupVersion: SETUP_VERSION,
-    radius: radiusCloudEnabled() ? "on" : "off",
+    radius: on ? "on" : "off",
+    radiusHost: on ? radiusPublicHost() || null : null,
+    radiusAuthPort: ports.authPort,
+    radiusAcctPort: ports.acctPort,
     time: new Date().toISOString(),
   });
 }

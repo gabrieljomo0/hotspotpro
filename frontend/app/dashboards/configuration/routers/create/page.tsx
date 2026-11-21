@@ -70,6 +70,7 @@ export default function AddRouterPage() {
 
   const [hotspotEnabled, setHotspotEnabled] = useState(true);
   const [loginMode, setLoginMode] = useState<"cloud" | "local">("local");
+  const [radiusOn, setRadiusOn] = useState(false);
   const [pppoeEnabled, setPppoeEnabled] = useState(true);
 
   // Does the router have WiFi? If so, the name people will see when connecting.
@@ -173,6 +174,15 @@ export default function AddRouterPage() {
             if (pick) setOrigin(pick.origin);
           }
         }
+      })
+      .catch(() => undefined);
+    fetch("/api/health")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((body: { radius?: string } | null) => {
+        if (cancelled || !body) return;
+        const on = body.radius === "on";
+        setRadiusOn(on);
+        if (on) setLoginMode("cloud");
       })
       .catch(() => undefined);
     return () => {
@@ -676,15 +686,21 @@ export default function AddRouterPage() {
                     <p className="mt-1 text-xs text-[#737373]">Pick one. The router uses only that method, and you can change it later.</p>
                     <div className="mt-3 grid gap-3 sm:grid-cols-2">
                       {([
-                        ["cloud", "Cloud RADIUS", "Needs a public RADIUS host. Not available on this API — use HotspotPro vouchers."],
+                        [
+                          "cloud",
+                          "Cloud RADIUS",
+                          radiusOn
+                            ? "Captive portal vouchers are checked by HotspotPro over RADIUS (cloud voucher management)."
+                            : "Needs HOTSPOTPRO_RADIUS=on on a UDP host. Not available on this API yet — use HotspotPro vouchers.",
+                        ],
                         ["local", "HotspotPro vouchers", "WiFi opens your site portal. Vouchers are checked by HotspotPro and applied on the MikroTik."],
                       ] as const).map(([id, label, detail]) => (
                         <button
                           key={id}
                           type="button"
                           onClick={() => {
-                            if (id === "cloud") {
-                              showToast("This API host has no public RADIUS port. Vouchers stay authenticated by HotspotPro.");
+                            if (id === "cloud" && !radiusOn) {
+                              showToast("Cloud RADIUS needs a host with public UDP 1812/1813. Deploy with HOTSPOTPRO_RADIUS=on, then pick Cloud again.");
                               setLoginMode("local");
                               return;
                             }

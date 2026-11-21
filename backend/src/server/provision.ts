@@ -1,6 +1,6 @@
 import os from "node:os";
 import { type ProvisionRouter, buildProvisionScript } from "./routeros";
-import { radiusSecret } from "./radius";
+import { radiusCloudEnabled, radiusPorts, radiusPublicHost, radiusSecret } from "./radius";
 import { getProvision, getState, setState, touchProvision } from "./store";
 
 export type StoredRouter = ProvisionRouter & { ip: string; provisioningToken?: string };
@@ -122,12 +122,11 @@ export function scriptFor(token: string, options: { origin: string; wireless?: b
     ssid: wifi.ssid,
     existing: router.routerType === "Existing Router",
     radius:
-      router.loginMode === "cloud" && process.env.HOTSPOTPRO_RADIUS === "on"
+      router.loginMode === "cloud" && radiusCloudEnabled()
         ? {
-            host: process.env.HOTSPOTPRO_RADIUS_HOST || new URL(options.origin).hostname,
+            host: radiusPublicHost(new URL(options.origin).hostname),
             secret: radiusSecret(),
-            authPort: Number(process.env.HOTSPOTPRO_RADIUS_PORT || 1812),
-            acctPort: Number(process.env.HOTSPOTPRO_RADIUS_ACCT_PORT || 1813),
+            ...radiusPorts(),
           }
         : undefined,
   });
@@ -195,8 +194,8 @@ export function completeProvision(token: string, details: { failed: number; sour
   if (!found && pending) {
     const config = (pending.config ?? {}) as Record<string, unknown>;
     const text = (value: unknown, fallback = "") => (typeof value === "string" && value.trim() ? value.trim() : fallback);
-    // Default on-router: hosted sites usually cannot receive RADIUS UDP.
-    const onRouter = config.loginMode !== "cloud" || process.env.HOTSPOTPRO_RADIUS !== "on";
+    // Default on-router when this host cannot receive RADIUS UDP.
+    const onRouter = config.loginMode !== "cloud" || !radiusCloudEnabled();
     const ip = `linked-${token.slice(0, 12)}`;
     const created = {
       name: text(config.name, "Router"),
