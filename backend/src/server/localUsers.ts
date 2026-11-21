@@ -27,9 +27,13 @@ function userName(code: string) {
   return code.trim().replace(/[^A-Za-z0-9_-]/g, "").slice(0, 32);
 }
 
+/** WinBox → User Profiles name: prefer the package title (Daily, Weekly…), not a cryptic id. */
 function profileName(pkg: Pkg | null, fallback: string) {
-  const raw = (pkg?.id || fallback).replace(/[^A-Za-z0-9]/g, "");
-  return ("h" + (raw || "default")).slice(0, 16);
+  const raw = (pkg?.name || fallback)
+    .replace(/[^A-Za-z0-9]/g, "")
+    .slice(0, 15);
+  if (!raw) return "HotspotPro";
+  return /^[A-Za-z]/.test(raw) ? raw.slice(0, 16) : (`P${raw}`).slice(0, 16);
 }
 
 function rate(pkg: Pkg | null) {
@@ -117,17 +121,25 @@ function emitProfile(pkg: Pkg | null, fallbackName: string, lines: string[]) {
   const name = profileName(pkg, fallbackName);
   const seconds = pkg ? packageSeconds(pkg) : 86400;
   const devices = pkg?.devices && pkg.devices > 1 ? Math.floor(pkg.devices) : 1;
-  const limit = `rate-limit=${rate(pkg)} shared-users=${devices} session-timeout=0s idle-timeout=none keepalive-timeout=none mac-cookie-timeout=${rosDuration(seconds)} on-logout=hotspotpro-logout`;
-  lines.push(`:do { /ip hotspot user profile set [find where name=${quote(name)}] ${limit} } on-error={ }`);
-  lines.push(`:do { :if ([:len [/ip hotspot user profile find where name=${quote(name)}]] = 0) do={ /ip hotspot user profile add name=${quote(name)} ${limit} comment="HotspotPro" } } on-error={ }`);
+  // Create without on-logout first — if the logout script is missing, the whole add used to fail
+  // and User Profiles stayed empty (only "default").
+  const limit = `rate-limit=${rate(pkg)} shared-users=${devices} session-timeout=0s idle-timeout=none keepalive-timeout=none mac-cookie-timeout=${rosDuration(seconds)}`;
+  const label = (pkg?.name || fallbackName || name).replace(/[\\"$\r\n]/g, "").slice(0, 48);
+  lines.push(
+    `:do { :if ([:len [/ip hotspot user profile find where name=${quote(name)}]] = 0) do={ /ip hotspot user profile add name=${quote(name)} ${limit} comment="HotspotPro:${label}" } else={ /ip hotspot user profile set [find where name=${quote(name)}] ${limit} comment="HotspotPro:${label}" } } on-error={ }`,
+  );
+  lines.push(`:do { /ip hotspot user profile set [find where name=${quote(name)}] on-logout=hotspotpro-logout } on-error={ }`);
   return name;
 }
 
 /** Push Hotspot user profiles for every active package on this router (WinBox → User Profiles). */
 function emitPackageProfiles(routerIp: string, lines: string[]) {
+  const active = list<Pkg>("packages").filter((pkg) => pkg && (!pkg.status || pkg.status === "Active"));
+  let pkgs = active.filter((pkg) => routerAllowsPackage(pkg, routerIp));
+  // After pending-* → linked-*, scoped packages can miss the new id — still show packages in WinBox.
+  if (pkgs.length === 0 && active.length > 0) pkgs = active;
   const seen = new Set<string>();
-  for (const pkg of list<Pkg>("packages")) {
-    if (!pkg || !routerAllowsPackage(pkg, routerIp)) continue;
+  for (const pkg of pkgs) {
     const name = profileName(pkg, pkg.name || pkg.id || "default");
     if (seen.has(name)) continue;
     seen.add(name);

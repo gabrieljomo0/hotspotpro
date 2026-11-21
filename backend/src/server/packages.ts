@@ -111,10 +111,15 @@ export function routerIpListAllows(allowed: string[] | null | undefined, liveIp:
   const anyAllowedLinked = allowedRows.some(
     (r) => typeof r.provisioningToken === "string" && r.provisioningToken.length > 0,
   );
+  // Same site after pending-* → linked-* (or duplicate rows for one location).
+  if (live.siteId && allowedRows.some((r) => r.siteId && r.siteId === live.siteId)) return true;
   // Package/batch still points at demo seed routers; this phone is on a real provisioned unit.
   if (live.provisioningToken && !anyAllowedLinked) return true;
   // Every target router was deleted/replaced — don't block the live network.
   if (allowedRows.length === 0) return true;
+  // Only one live MikroTik on this business — site-scoped packages belong there.
+  const provisioned = rows.filter((r) => typeof r.provisioningToken === "string" && r.provisioningToken.length > 0);
+  if (live.provisioningToken && provisioned.length === 1) return true;
   return false;
 }
 
