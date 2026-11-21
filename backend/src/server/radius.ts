@@ -49,6 +49,18 @@ export function radiusCloudEnabled() {
   return process.env.HOTSPOTPRO_RADIUS === "on";
 }
 
+/**
+ * Bind UDP 1812/1813 on this process.
+ * Set HOTSPOTPRO_RADIUS_LISTEN=off on hosts that cannot receive public UDP (e.g. Render)
+ * while HOTSPOTPRO_RADIUS=on so portal/scripts still use Cloud RADIUS. Pair with
+ * `scripts/radius-edge.mjs` (or Fly/Docker) that listens on HOTSPOTPRO_RADIUS_HOST.
+ */
+export function radiusListenEnabled() {
+  if (process.env.HOTSPOTPRO_RADIUS === "off") return false;
+  if (process.env.HOTSPOTPRO_RADIUS_LISTEN === "off") return false;
+  return true;
+}
+
 /** Public IP (preferred) or hostname MikroTik /radius should use. */
 export function radiusPublicHost(fallbackHostname?: string) {
   const fromEnv = (process.env.HOTSPOTPRO_RADIUS_HOST || "").trim();
@@ -438,8 +450,8 @@ type Holder = { auth?: dgram.Socket; acct?: dgram.Socket };
 const g = globalThis as unknown as { __hotspotproRadius?: Holder };
 
 export function startRadius() {
-  // Cloud voucher AAA: listen unless explicitly off. Scripts only USE it when HOTSPOTPRO_RADIUS=on.
-  if (g.__hotspotproRadius || process.env.HOTSPOTPRO_RADIUS === "off") return;
+  // Listen for UDP unless listen is off. Scripts/portal use cloud mode when HOTSPOTPRO_RADIUS=on.
+  if (g.__hotspotproRadius || !radiusListenEnabled()) return;
   const holder: Holder = (g.__hotspotproRadius = {});
   const { authPort, acctPort } = radiusPorts();
   const secret = radiusSecret();

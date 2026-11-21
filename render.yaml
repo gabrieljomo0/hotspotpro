@@ -1,9 +1,9 @@
-# The API, router setup, and check-in (HTTP only).
-# WiFi opens the designed HotspotPro site portal (Vercel).
-# Render cannot receive public UDP — MikroTik RADIUS (1812/1813) stays off here.
-# For cloud RADIUS captive vouchers, deploy the API with Docker/Fly (see deploy/DEPLOY.md)
-# and set HOTSPOTPRO_RADIUS=on + HOTSPOTPRO_RADIUS_HOST=<public IPv4>.
-# On Render, vouchers are authenticated by this API, then pushed onto the MikroTik at Connect.
+# The API, router setup, and check-in (HTTPS).
+# WiFi opens the HotspotPro site portal (Vercel).
+# Render cannot receive public UDP 1812/1813. Cloud RADIUS works by:
+#   HOTSPOTPRO_RADIUS=on + HOTSPOTPRO_RADIUS_LISTEN=off + HOTSPOTPRO_RADIUS_HOST=<public IPv4>
+# and running `node scripts/radius-edge.mjs` on that public IP (forwards UDP → /api/radius/edge).
+# Or deploy the full API on Fly/Docker with UDP (see deploy/DEPLOY.md).
 services:
   - type: web
     name: hotspotpro-api
@@ -18,7 +18,13 @@ services:
       - key: NODE_ENV
         value: production
       - key: HOTSPOTPRO_RADIUS
+        value: on
+      - key: HOTSPOTPRO_RADIUS_LISTEN
         value: off
+      - key: HOTSPOTPRO_RADIUS_HOST
+        sync: false
+      - key: HOTSPOTPRO_RADIUS_SECRET
+        sync: false
       - key: HOTSPOTPRO_SESSION_SECRET
         generateValue: true
       - key: HOTSPOTPRO_PUBLIC_URL
