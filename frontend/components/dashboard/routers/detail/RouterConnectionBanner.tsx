@@ -56,7 +56,7 @@ export function RouterConnectionBanner({ router, onReconnect }: { router: Router
   const since = indicator.since ? ago(tick - Date.parse(indicator.since)) : null;
   const command =
     info?.setupPath && origin
-      ? `/tool fetch url="${origin}${info.setupPath}" dst-path=hotspotpro-internet-switch.rsc; :delay 2s; /import file-name=hotspotpro-internet-switch.rsc`
+      ? `/tool fetch url="${origin}${info.setupPath}" dst-path=hotspotpro-internet-switch.rsc; :delay 2s; :do { :execute script={/import file-name=hotspotpro-internet-switch.rsc} file=hotspotpro-import-out.txt } on-error={ /import file-name=hotspotpro-internet-switch.rsc }; :do { /file remove [find where name=hotspotpro-import-out.txt] } on-error={ }`
       : "";
 
   async function copy() {

@@ -246,8 +246,9 @@ export default function AddRouterPage() {
 
   const setupUrl = `${origin}/api/provision/${provisioningToken.current}${wifiQuery}`;
   const tlsFlag = fetchMode === "https" ? " check-certificate=no" : "";
-  const modeCommand = "/system device-mode update mode=advanced";
-  const provisioningCommand = `:global hpFile "hotspotpro.rsc"; :do { /interface bridge port remove [find where interface=${wanClean}] } on-error={ }; :do { /ip dhcp-client add interface=${wanClean} disabled=no add-default-route=yes use-peer-dns=yes comment="HotspotPro WAN DHCP Client" } on-error={ }; :delay 8s; :do { /tool fetch mode=${fetchMode} url="${setupUrl}" dst-path=$hpFile${tlsFlag} } on-error={ :delay 8s; /tool fetch mode=${fetchMode} url="${setupUrl}" dst-path=$hpFile${tlsFlag} }; :delay 2s; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; /import file-name=$hpFile; /file remove $hpFile`;
+  // :execute runs without y/N prompts — paste must never wait for the keyboard.
+  const modeCommand = `:execute script={/system device-mode update mode=advanced}`;
+  const provisioningCommand = `:global hpFile "hotspotpro.rsc"; :do { /interface bridge port remove [find where interface=${wanClean}] } on-error={ }; :do { /ip dhcp-client add interface=${wanClean} disabled=no add-default-route=yes use-peer-dns=yes comment="HotspotPro WAN DHCP Client" } on-error={ }; :delay 8s; :do { /tool fetch mode=${fetchMode} url="${setupUrl}" dst-path=$hpFile${tlsFlag} } on-error={ :delay 8s; /tool fetch mode=${fetchMode} url="${setupUrl}" dst-path=$hpFile${tlsFlag} }; :delay 2s; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; :if ([:len [/file find where name=$hpFile]] > 0) do={ :do { :execute script={/import file-name=$hpFile} file=hotspotpro-import-out.txt } on-error={ /import file-name=$hpFile }; :do { /file remove [find where name=hotspotpro-import-out.txt] } on-error={ }; :do { /file remove [find where name=$hpFile] } on-error={ }; :do { /file remove [find where name=("flash/" . $hpFile)] } on-error={ }; :put "HotspotPro: setup finished — no keyboard input needed." } else={ :put "HotspotPro: download failed. Check the URL and internet on this router." }`;
 
   const provisionSteps = buildProvisionSteps(routerType, hotspotEnabled, pppoeEnabled);
   const connected = started && doneCount >= provisionSteps.length;
@@ -803,7 +804,7 @@ export default function AddRouterPage() {
               <div className="mb-2 flex items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-bold text-[#1a1a1a]">Configuration command</p>
-                  <p className="text-xs text-[#a3a3a3]">Paste this once. It downloads the setup, waits, imports it, and deletes the file. Leave the internet cable in {wanClean} and keep WinBox open until the setup finishes.</p>
+                  <p className="text-xs text-[#a3a3a3]">Paste this once. It downloads and imports the setup by itself — do not type anything (no y/N). Leave the internet cable in {wanClean} and keep WinBox open until it prints that setup finished.</p>
                 </div>
                 <button
                   type="button"

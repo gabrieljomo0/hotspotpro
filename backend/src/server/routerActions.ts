@@ -159,7 +159,7 @@ export function routerActionScript(
     step(`/file remove [find where name="flash/hotspotpro-setup.rsc"]`),
     step(`/tool fetch url="${origin}/api/provision/${token}?wireless=yes" dst-path=hotspotpro-setup.rsc${tls}`),
     `:do { :delay 2s } on-error={ }`,
-    `:local hpFile "hotspotpro-setup.rsc"; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; :if ([:len [/file find where name=$hpFile]] > 0) do={ /import file-name=$hpFile }; :global hpWifiSsid; :set hpWifiSsid ""`,
+    `:local hpFile "hotspotpro-setup.rsc"; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; :if ([:len [/file find where name=$hpFile]] > 0) do={ :do { :execute script={/import file-name=$hpFile} file=hotspotpro-import-out.txt } on-error={ /import file-name=$hpFile }; :do { /file remove [find where name=hotspotpro-import-out.txt] } on-error={ } }; :global hpWifiSsid; :set hpWifiSsid ""`,
   ];
   if (action === "full-provision" || action === "update-script") body = reprovision;
   else if (action === "snmp") body = snmpLines();

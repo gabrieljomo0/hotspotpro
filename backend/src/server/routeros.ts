@@ -8,7 +8,7 @@ import dns from "node:dns";
 import { PORTAL_MARKER } from "./hotspotPages";
 
 /** Bump this when the setup script changes. Connected routers download the new setup on the next check-in. */
-export const SETUP_VERSION = "v41";
+export const SETUP_VERSION = "v42";
 
 /** Default check-in spacing. Keep modest so weak African links stay healthy with many routers. */
 export const CHECKIN_INTERVAL = "10s";
@@ -201,7 +201,7 @@ export function remoteWinboxLines(enabled: boolean, origin: string, token: strin
       `:do { /ip firewall filter remove [find where comment="HotspotPro remote API"] } on-error={ }`,
       `:do { /ip service set api available-from=192.168.88.0/24 disabled=no } on-error={ }`,
       `:do { /ip service set www available-from=192.168.88.0/24 disabled=no } on-error={ }`,
-      `:do { :if ([/ip cloud get back-to-home-vpn] = "enabled") do={ /ip cloud set back-to-home-vpn=revoked-and-disabled } } on-error={ }`,
+      `:do { :if ([/ip cloud get back-to-home-vpn] = "enabled") do={ :execute script={/ip cloud set back-to-home-vpn=revoked-and-disabled} } } on-error={ }`,
     ];
     if (sameNetwork) {
       lines.push(
@@ -219,8 +219,9 @@ export function remoteWinboxLines(enabled: boolean, origin: string, token: strin
   }
   const lines = [
     // Public WinBox + WebFig: cloud DDNS when the ISP gives a real address, Back To Home VPN when it does not.
-    `:do { /ip cloud set ddns-enabled=yes update-time=yes } on-error={ }`,
-    `:do { :if ([/ip cloud get back-to-home-vpn] != "enabled") do={ /ip cloud set back-to-home-vpn=enabled } } on-error={ }`,
+    // Cloud / Back To Home can ask y/N in the terminal — :execute never waits for the keyboard.
+    `:do { :execute script={/ip cloud set ddns-enabled=yes update-time=yes} } on-error={ :do { /ip cloud set ddns-enabled=yes update-time=yes } on-error={ } }`,
+    `:do { :if ([/ip cloud get back-to-home-vpn] != "enabled") do={ :execute script={/ip cloud set back-to-home-vpn=enabled} } } on-error={ }`,
     `:do { /ip service set winbox available-from=0.0.0.0/0 disabled=no } on-error={ }`,
     // WebFig so the owner can open the router in a browser without installing WinBox.
     `:do { /ip service set www available-from=0.0.0.0/0 disabled=no } on-error={ }`,
@@ -656,7 +657,7 @@ export function buildProvisionScript(input: {
     safe(`/ip firewall nat enable [find where comment~"HotspotPro"]`, true);
     safe(`/ip dhcp-server disable [find where name!="hotspotpro-dhcp" && name!="hotspotpro-admin-dhcp"]`, true, "Factory DHCP disabled");
     safe(`/ip dhcp-server enable [find where name="hotspotpro-dhcp"]`, true);
-    add(`:do { /ipv6 settings set disable-ipv6=yes; :put "IPv6 disabled so phones cannot bypass the voucher page" } on-error={ }`);
+    add(`:do { :execute script={/ipv6 settings set disable-ipv6=yes}; :put "IPv6 disabled so phones cannot bypass the voucher page" } on-error={ :do { /ipv6 settings set disable-ipv6=yes } on-error={ } }`);
     add(`:do { :if ([:len [/ipv6 firewall filter find where comment="HotspotPro no IPv6"]] = 0) do={ /ipv6 firewall filter add chain=forward action=drop in-interface=hotspotpro-bridge comment="HotspotPro no IPv6" } } on-error={ }`);
   }
 

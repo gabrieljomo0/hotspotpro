@@ -28,6 +28,7 @@ export function buildReprovisionCommand(input: { origin: string; token: string; 
     `:do { /tool fetch url="${setupUrl}" dst-path=$hpFile${tls} } on-error={ :do { :delay 5s } on-error={ }; /tool fetch url="${setupUrl}" dst-path=$hpFile${tls} }`,
     `:do { :delay 2s } on-error={ }`,
     `:if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }`,
-    `:if ([:len [/file find where name=$hpFile]] > 0) do={ /import file-name=$hpFile; :put "HotspotPro: reconfiguration finished. Forget WiFi on the phone and join again — the voucher page must open." } else={ :put "HotspotPro: download failed. Check the URL and internet on this router." }`,
+    // :execute + file= waits for import without y/N prompts (paste must not stop for keyboard).
+    `:if ([:len [/file find where name=$hpFile]] > 0) do={ :do { :execute script={/import file-name=$hpFile} file=hotspotpro-import-out.txt } on-error={ /import file-name=$hpFile }; :do { /file remove [find where name=hotspotpro-import-out.txt] } on-error={ }; :put "HotspotPro: reconfiguration finished. Forget WiFi on the phone and join again — the voucher page must open." } else={ :put "HotspotPro: download failed. Check the URL and internet on this router." }`,
   ].join("; ");
 }
