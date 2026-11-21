@@ -13,7 +13,7 @@ import {
 } from "@/server/packages";
 import { createLoginTicket } from "@/server/portalLogin";
 import { radiusCloudEnabled, usedBytes } from "@/server/radius";
-import { findRouterByToken } from "@/server/provision";
+import { findRouterByToken, publicOrigin } from "@/server/provision";
 import { getState, queueJob } from "@/server/store";
 
 const GOOGLE = "https://www.google.com/";
@@ -125,7 +125,12 @@ export async function POST(request: Request) {
         queuePortalPush(token, v.code);
         syncQueued = true;
         syncFresh = !already;
-        const script = ensureOneLocalUser(token, router?.ip || "", v.code);
+        // One job: create the hotspot user (password matches this ticket) + download hp-go.html.
+        const script = ensureOneLocalUser(token, router?.ip || "", v.code, Date.now(), {
+          password: loginPassword,
+          origin: publicOrigin(request),
+          ticketId: ticket.id,
+        });
         if (script.length > 1) {
           const job = queueJob(token, script.join("\n") + "\n", "portal");
           jobId = job.id;

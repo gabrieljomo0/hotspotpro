@@ -277,9 +277,16 @@ export function clearPortalPush(token: string, codes: string[]) {
 
 /**
  * RouterOS lines that upsert one voucher now (portal Connect / check-in inject).
- * Does not mark the sync file — that used to claim "synced" before the router ran the script.
+ * Uses profile=default so Connect does not depend on a package User Profile existing yet.
+ * Optional password override must match the portal ticket / hp-go.html credentials.
  */
-export function ensureOneLocalUser(token: string, routerIp: string, code: string, now = Date.now()): string[] {
+export function ensureOneLocalUser(
+  token: string,
+  routerIp: string,
+  code: string,
+  now = Date.now(),
+  opts?: { password?: string; origin?: string; ticketId?: string },
+): string[] {
   const name = userName(code);
   if (!name) return [];
   let user = wanted(routerIp, now).find((u) => u.name === name);
@@ -298,8 +305,29 @@ export function ensureOneLocalUser(token: string, routerIp: string, code: string
       rank: 0,
     };
   }
-  const lines: string[] = ["# HotspotPro ensure one voucher"];
-  emitUsers([user], voucherOnlyLogin(token), lines);
+  const pin = voucherOnlyLogin(token);
+  const secret = quote(opts?.password || (pin ? user.name : user.password || user.name));
+  const seconds = user.pkg ? packageSeconds(user.pkg) : 86400;
+  const cap = (user.pkg ? packageBytes(user.pkg) : 0) ?? 0;
+  const uptime = user.limitBy === "data" ? "0s" : rosDuration(seconds);
+  const bytes = user.limitBy === "days" ? 0 : cap;
+  const limits = `limit-uptime=${uptime} limit-bytes-total=${bytes}`;
+  const macSet = user.mac ? ` mac-address=${user.mac}` : "";
+  const lines: string[] = ["# HotspotPro ensure one voucher (Connect)"];
+  // Package profile when possible (speed limits); login still works on default if it is missing.
+  if (user.pkg) emitProfile(user.pkg, user.name, lines);
+  const profile = user.pkg ? quote(profileName(user.pkg, user.name)) : `"default"`;
+  lines.push(
+    `:do { :if ([:len [/ip hotspot user find where name=${quote(user.name)}]] = 0) do={ /ip hotspot user add name=${quote(user.name)} password=${secret} profile=${profile} ${limits}${macSet} comment="HotspotPro" } else={ /ip hotspot user set [find where name=${quote(user.name)}] password=${secret} profile=${profile} ${limits}${macSet} disabled=no } } on-error={ }`,
+  );
+  // If the package profile is missing, fall back so /login still accepts the voucher.
+  lines.push(
+    `:do { :if ([:len [/ip hotspot user profile find where name=${profile}]] = 0) do={ /ip hotspot user set [find where name=${quote(user.name)}] profile=default } } on-error={ }`,
+  );
+  lines.push(`:do { /ip hotspot cookie remove [find where user=${quote(user.name)}] } on-error={ }`);
+  if (opts?.origin && opts?.ticketId) {
+    lines.push(...autoLoginFetchLines(opts.origin, token, opts.ticketId));
+  }
   return lines;
 }
 

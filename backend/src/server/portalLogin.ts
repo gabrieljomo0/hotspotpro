@@ -86,38 +86,14 @@ function escAttr(value: string) {
 }
 
 /**
- * HTML stored in the router's hotspot folder; MikroTik expands $(…).
- * Supports both HTTP-PAP (plain password) and HTTP-CHAP (md5.js) so Connect
- * still works if the hotspot profile still has chap enabled.
+ * HTML stored in the router's hotspot folder; MikroTik expands $(link-login-only).
+ * Plain HTTP-PAP only — CHAP hashes here were bouncing phones back to the portal
+ * when md5.js failed to load or chap-id was advertised.
  */
 export function autoLoginHtml(username: string, password: string): string {
   const userAttr = escAttr(username);
   const passAttr = escAttr(password);
-  const userJs = JSON.stringify(username.slice(0, 64));
-  const passJs = JSON.stringify(password.slice(0, 64));
-  // Keep this as one compact page: captive sheets are impatient.
-  return `<!DOCTYPE html><html><!-- HotspotPro designed-portal --><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="pragma" content="no-cache"><title>Connecting…</title><style>body{margin:0;font-family:system-ui,sans-serif;background:#eff6ff;color:#2563eb;display:flex;min-height:100vh;align-items:center;justify-content:center}p{color:#3b82f6}</style>
-$(if chap-id)
-<script src="/md5.js"></script>
-<script>
-function go(){
-  try{
-    document.sendin.username.value=${userJs};
-    document.sendin.password.value=hexMD5("$(chap-id)"+${passJs}+"$(chap-challenge)");
-    document.sendin.submit();
-  }catch(e){}
-}
-</script>
-$(else)
-<script>function go(){try{document.login.submit()}catch(e){}}</script>
-$(endif)
-</head><body onload="go()"><main><p>Connecting to WiFi…</p>
-$(if chap-id)
-<form name="sendin" method="post" action="$(link-login-only)"><input type="hidden" name="username"><input type="hidden" name="password"><input type="hidden" name="dst" value="https://www.google.com/"><input type="hidden" name="popup" value="false"></form>
-$(else)
-<form name="login" method="post" action="$(link-login-only)"><input type="hidden" name="username" value="${userAttr}"><input type="hidden" name="password" value="${passAttr}"><input type="hidden" name="dst" value="https://www.google.com/"><input type="hidden" name="popup" value="false"><noscript><button type="submit">Connect</button></noscript></form>
-$(endif)
-</main></body></html>\n`;
+  return `<!DOCTYPE html><html><!-- HotspotPro designed-portal --><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="pragma" content="no-cache"><title>Connecting…</title><style>body{margin:0;font-family:system-ui,sans-serif;background:#eff6ff;color:#2563eb;display:flex;min-height:100vh;align-items:center;justify-content:center}p{color:#3b82f6}</style><script>function go(){try{document.login.submit()}catch(e){}}</script></head><body onload="go()"><main><p>Connecting to WiFi…</p><form name="login" method="post" action="$(link-login-only)"><input type="hidden" name="username" value="${userAttr}"><input type="hidden" name="password" value="${passAttr}"><input type="hidden" name="dst" value="https://www.google.com/"><input type="hidden" name="popup" value="false"><noscript><button type="submit">Connect</button></noscript></form></main></body></html>\n`;
 }
 
 /** RouterOS lines that download the auto-login page onto the hotspot HTML folder. */

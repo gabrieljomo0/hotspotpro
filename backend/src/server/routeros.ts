@@ -8,7 +8,7 @@ import dns from "node:dns";
 import { PORTAL_MARKER } from "./hotspotPages";
 
 /** Bump this when the setup script changes. Connected routers download the new setup on the next check-in. */
-export const SETUP_VERSION = "v40";
+export const SETUP_VERSION = "v41";
 
 /** Default check-in spacing. Keep modest so weak African links stay healthy with many routers. */
 export const CHECKIN_INTERVAL = "10s";
@@ -495,7 +495,7 @@ export function buildProvisionScript(input: {
       `:do { :if ([:len [/ip hotspot profile find where name=hotspotpro]] = 0) do={ /ip hotspot profile add name=hotspotpro hotspot-address=${plan.gateway} trial-uptime-limit=0s ${useCloud ? "use-radius=yes radius-accounting=yes radius-interim-update=1m" : "use-radius=no"}; :put "Hotspot profile created" } else={ /ip hotspot profile set [find where name=hotspotpro] hotspot-address=${plan.gateway} trial-uptime-limit=0s ${useCloud ? "use-radius=yes radius-accounting=yes radius-interim-update=1m" : "use-radius=no"}; :put "Hotspot profile updated" } } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: hotspot profile"; :put "HotspotPro: could not create the hotspot profile" }`,
     );
     // Always set dns-name (Server Profiles column). Quiet=false so setup logs a failure.
-    safe(`/ip hotspot profile set [find where name=hotspotpro] dns-name=${q(loginName)} login-by=http-pap,http-chap,mac-cookie`, false, `DNS name set to ${loginName}`);
+    safe(`/ip hotspot profile set [find where name=hotspotpro] dns-name=${q(loginName)} login-by=http-pap,mac-cookie`, false, `DNS name set to ${loginName}`);
     add(
       `:do { :if ([:len [/ip hotspot find where name=hotspotpro]] = 0) do={ /ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no; :put "Hotspot server created" } else={ /ip hotspot set [find where name=hotspotpro] interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no; :put "Hotspot server kept online" } } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: hotspot server"; :put "HotspotPro: CRITICAL — hotspot server was not created. Captive portal will not open until IP → Hotspot → Servers shows hotspotpro." }`,
     );

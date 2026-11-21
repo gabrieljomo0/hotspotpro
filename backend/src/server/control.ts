@@ -190,7 +190,8 @@ export function controlScript(token: string, origin?: string): string | null {
       // http-pap is required for site-portal Connect (plain password). Keep http-chap too so
       // hp-go.html can CHAP-hash when the profile still advertises a challenge.
       // dns-name every check-in — Server Profiles must not stay blank.
-      `:do { /ip hotspot profile set [find where name=hotspotpro] login-by=http-pap,http-chap,mac-cookie trial-uptime-limit=0s dns-name="${loginDnsFromName(router.name, router.dnsName)}" use-radius=${local ? "no" : "yes"}${local ? "" : " radius-accounting=yes radius-interim-update=1m"} } on-error={ }`,
+      // PAP only — site portal / hp-go.html POST a plain password. CHAP caused Connect to bounce.
+      `:do { /ip hotspot profile set [find where name=hotspotpro] login-by=http-pap,mac-cookie trial-uptime-limit=0s dns-name="${loginDnsFromName(router.name, router.dnsName)}" use-radius=${local ? "no" : "yes"}${local ? "" : " radius-accounting=yes radius-interim-update=1m"} } on-error={ }`,
       ...(!local ? cloudRadiusEnsureLines(origin) : []),
       ...hotspotReauthEnsureLines(),
       `:do { /ip hotspot user profile set [find where name=default] shared-users=1 session-timeout=0s idle-timeout=none keepalive-timeout=none mac-cookie-timeout=1d } on-error={ }`,

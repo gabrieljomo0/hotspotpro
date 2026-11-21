@@ -1891,7 +1891,13 @@ function CaptivePortalPageInner() {
               headers: { "x-hsp-rt": routerToken },
             });
             const readyBody = await ready.json().catch(() => ({}));
-            if (readyBody.status === "ok" || readyBody.status === "failed") jobDone = true;
+            if (readyBody.status === "ok") {
+              // Connect job creates the user and downloads hp-go.html in one go.
+              jobDone = true;
+              pageReady = true;
+            } else if (readyBody.status === "failed") {
+              jobDone = true;
+            }
           } catch {
             /* keep waiting */
           }
@@ -1902,7 +1908,8 @@ function CaptivePortalPageInner() {
       // Prefer HTTP auto-login on the gateway only after the router downloaded it.
       if (continueUrl && pageReady) {
         setConnectingWifi(true);
-        window.location.replace(continueUrl);
+        const bust = continueUrl.includes("?") ? `&_=${Date.now()}` : `?_=${Date.now()}`;
+        window.location.replace(`${continueUrl}${bust}`);
         return;
       }
       // Fallback: POST to MikroTik /login (works when the portal was opened from captive with ?login=).
