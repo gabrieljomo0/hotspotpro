@@ -292,7 +292,7 @@ try {
   check("result is recorded", list2.jobs?.[0]?.status === "ok");
   const action = await send("POST", "/api/routers/jobs", { ip: "10.0.0.1", action: "full-provision" }, amaCookie);
   const actionJob = (await json(action)).job;
-  check("full provision is sent to the router", action.status === 200 && actionJob?.script?.includes("hotspotpro-action:full-provision") && actionJob.script.includes("/api/provision/tok-ama-12345678") && actionJob.script.includes("/import file-name=$hpFile"), actionJob?.script?.slice(0, 400));
+  check("full provision is sent to the router", action.status === 200 && actionJob?.script?.includes("hotspotpro-action:full-provision") && actionJob.script.includes("/api/provision/tok-ama-12345678") && actionJob.script.includes("/import file-name=$hpFile") && actionJob.script.includes(":execute script="), actionJob?.script?.slice(0, 400));
   if (actionJob?.id) await fetch(base + `/api/provision/tok-ama-12345678/job/${actionJob.id}/result?ok=1`);
   const after = await json(await send("GET", "/api/state", undefined, amaCookie));
   const amaRouter = after.docs?.routers?.value?.find((r) => r.ip === "10.0.0.1");
