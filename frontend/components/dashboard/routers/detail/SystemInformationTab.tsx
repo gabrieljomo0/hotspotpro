@@ -105,6 +105,7 @@ export function SystemInformationTab({
     loginLabel: loginLabelFrom(router.dnsName),
   });
   const [applyingHotspot, setApplyingHotspot] = useState(false);
+  const [freeWifiHours, setFreeWifiHours] = useState("0");
   const hotspotDirty = useMemo(() => {
     const label = loginLabelFrom(loginLabel);
     return (
@@ -501,6 +502,73 @@ export function SystemInformationTab({
           />
         </div>
         <p className="mt-2 text-xs text-[#737373]">The login name and DNS servers are sent to the router on its next check-in. The network and gateway stay as this hotspot was set up.</p>
+      </article>
+
+      <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]" data-testid="free-wifi-panel">
+        <h3 className="text-base font-bold text-[#1a1a1a]">Free WiFi</h3>
+        <p className="mt-1 text-sm text-[#737373]">
+          Open internet for everyone on this hotspot (all APs / ports on the guest bridge) without a voucher. Turn it off anytime to require vouchers again.
+        </p>
+        <div className="mt-4 flex flex-wrap items-center gap-4">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={!!router.freeWifiEnabled}
+            data-testid="free-wifi-toggle"
+            disabled={!hotspotOn || !!router.disconnected || !!router.paused}
+            onClick={() => {
+              const next = !router.freeWifiEnabled;
+              const hours = Number(freeWifiHours);
+              const until =
+                next && hours > 0 ? Date.now() + hours * 3600_000 : null;
+              updateRouterDetails(router.ip, {
+                freeWifiEnabled: next,
+                freeWifiUntilMs: next ? until : null,
+              });
+            }}
+            className={`relative h-6 w-11 shrink-0 rounded-full disabled:opacity-40 ${router.freeWifiEnabled ? "bg-emerald-600" : "bg-[#d4d4d4]"}`}
+          >
+            <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white ${router.freeWifiEnabled ? "left-5" : "left-0.5"}`} />
+          </button>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-[#1a1a1a]">
+              {router.freeWifiEnabled ? "Free WiFi is on" : "Free WiFi is off"}
+            </p>
+            <p className="text-xs text-[#737373]">
+              {router.freeWifiEnabled
+                ? router.freeWifiUntilMs
+                  ? `Auto-off at ${new Date(router.freeWifiUntilMs).toLocaleString()}`
+                  : "Stays free until you turn this off"
+                : "Customers must use a voucher to get online"}
+            </p>
+          </div>
+        </div>
+        <label className="mt-4 block max-w-xs">
+          <span className="mb-1 block text-xs text-[#737373]">How long (when you turn Free WiFi on)</span>
+          <select
+            value={freeWifiHours}
+            onChange={(e) => setFreeWifiHours(e.target.value)}
+            disabled={!!router.freeWifiEnabled}
+            className="h-11 w-full rounded-xl border border-[#e6e6e6] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a] disabled:opacity-50"
+            data-testid="free-wifi-duration"
+          >
+            <option value="0">Until I turn it off</option>
+            <option value="1">1 hour</option>
+            <option value="3">3 hours</option>
+            <option value="6">6 hours</option>
+            <option value="12">12 hours</option>
+            <option value="24">24 hours</option>
+          </select>
+        </label>
+        {(!hotspotOn || router.disconnected || router.paused) && (
+          <p className="mt-3 text-xs font-semibold text-amber-700">
+            {!hotspotOn
+              ? "Enable Hotspot first."
+              : router.disconnected
+                ? "Reconnect the router before Free WiFi can work."
+                : "Resume the router before Free WiFi can work."}
+          </p>
+        )}
       </article>
 
       <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">

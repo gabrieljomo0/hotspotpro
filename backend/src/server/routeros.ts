@@ -9,7 +9,7 @@ import { PORTAL_MARKER } from "./hotspotPages";
 import { packageProfileLines } from "./localUsers";
 
 /** Bump this when the setup script changes. Connected routers download the new setup on the next check-in. */
-export const SETUP_VERSION = "v60";
+export const SETUP_VERSION = "v61";
 
 /** Default check-in spacing. Keep modest so weak African links stay healthy with many routers. */
 export const CHECKIN_INTERVAL = "10s";

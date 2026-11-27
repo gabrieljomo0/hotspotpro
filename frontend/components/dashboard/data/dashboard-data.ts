@@ -189,6 +189,11 @@ export type RouterInfo = {
   hotspotDnsServers: string;
   hotspotLoginUrl: string;
 
+  /** Free WiFi: everyone on the hotspot (all APs/ports on the guest bridge) gets internet without a voucher. */
+  freeWifiEnabled?: boolean;
+  /** When set, free WiFi turns off automatically at this time (epoch ms). */
+  freeWifiUntilMs?: number | null;
+
   // PPPoE service, configurable alongside Hotspot on the same router
   pppoeEnabled: boolean;
   pppoeNetwork: string;

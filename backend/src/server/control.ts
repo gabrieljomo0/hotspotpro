@@ -24,7 +24,7 @@ import { autoLoginFetchLines, latestTicketForToken } from "./portalLogin";
 import { CHECKIN_INTERVAL, SETUP_VERSION, accessGuardCommand, accessLockEnsureCommand, checkInBody, dnsNameApplyLines, hotspotReauthEnsureLines, loginDnsFromName, remoteWinboxLines } from "./routeros";
 import { primaryWanInterface } from "./primaryWan";
 import { type IspLink, multiWanLines } from "./multiWan";
-import { bridgeWifiLines, ensureHotspotServerLines, ensureWifiOnHotspotBridgeLines, openSystemCaptivePortalLines, sealCaptivePortalLeakLines, ssidForRouter, wifiApplyLines } from "./wifiApply";
+import { bridgeWifiLines, ensureHotspotServerLines, ensureWifiOnHotspotBridgeLines, freeWifiApplyLines, openSystemCaptivePortalLines, sealCaptivePortalLeakLines, ssidForRouter, wifiApplyLines } from "./wifiApply";
 import { portalOrigin } from "./provision";
 import { radiusCloudEnabled, radiusPorts, radiusPublicHost, radiusSecret } from "./radius";
 import { winboxRelayAddress } from "./winboxRelay";
@@ -38,6 +38,10 @@ type Row = {
   paused?: boolean;
   provisioningToken?: string;
   hotspotEnabled?: boolean;
+  /** Everyone on the hotspot bridge gets internet without a voucher. */
+  freeWifiEnabled?: boolean;
+  /** Epoch ms when free WiFi auto-turns off (optional timed free). */
+  freeWifiUntilMs?: number | null;
   wanAddress?: string | null;
   wanInterface?: string;
   loginMode?: "cloud" | "local";
@@ -74,16 +78,45 @@ function managementLines(token: string): string[] {
   ];
 }
 
-function hotspotLines(router: Row): string[] {
+function freeWifiActive(router: Row, now = Date.now()): boolean {
+  if (!router.freeWifiEnabled) return false;
+  if (typeof router.freeWifiUntilMs === "number" && router.freeWifiUntilMs > 0 && now >= router.freeWifiUntilMs) {
+    return false;
+  }
+  return true;
+}
+
+/** Expire timed free WiFi on the saved router row when the clock runs out. */
+function expireFreeWifiIfNeeded(token: string, router: Row, now = Date.now()) {
+  if (!router.freeWifiEnabled) return router;
+  if (typeof router.freeWifiUntilMs !== "number" || router.freeWifiUntilMs <= 0 || now < router.freeWifiUntilMs) {
+    return router;
+  }
+  const value = getState("routers")?.value;
+  if (!Array.isArray(value)) return { ...router, freeWifiEnabled: false, freeWifiUntilMs: null };
+  let nextRow = router;
+  const next = (value as Row[]).map((row) => {
+    if (!row || row.provisioningToken !== token) return row;
+    nextRow = { ...row, freeWifiEnabled: false, freeWifiUntilMs: null };
+    return nextRow;
+  });
+  setState("routers", next, "router");
+  return nextRow;
+}
+
+function hotspotLines(router: Row, freeWifi = false): string[] {
   if (router.hotspotEnabled === false) {
     return [`:do { /ip hotspot disable [find where name=hotspotpro] } on-error={ }`];
   }
+  const free = freeWifi;
   const name = loginDnsFromName(router.name, router.dnsName);
   const lines = [
     // If Servers is empty, create hotspotpro here — enable alone does nothing.
     ...ensureHotspotServerLines(name),
-    // Bypass bindings skip the voucher page — keep them cleared.
-    `:do { /ip hotspot ip-binding remove [find where type=bypassed] } on-error={ }`,
+    // Bypass bindings skip the voucher page — clear them unless Free WiFi mode is on.
+    free
+      ? `:do { /ip hotspot ip-binding remove [find where type=bypassed && comment!="HotspotPro free wifi"] } on-error={ }`
+      : `:do { /ip hotspot ip-binding remove [find where type=bypassed] } on-error={ }`,
     // html-directory must match where HotspotPro login.html lives, or phones get MikroTik's default page.
     `:do { ${applyHtmlDirectoryRos()} } on-error={ }`,
     // applyHtmlDirectoryRos already disables non-hotspotpro servers and enables hotspotpro.
@@ -92,12 +125,14 @@ function hotspotLines(router: Row): string[] {
     // Close factory NAT / DHCP / IPv6 leaks and keep DNS hijack + hotspot on our bridge.
     ...sealCaptivePortalLeakLines(),
     // OS probes must hit Hotspot so Android/iOS/Windows open the system captive sheet.
-    ...openSystemCaptivePortalLines(),
+    ...openSystemCaptivePortalLines({ keepFreeWifi: free }),
     // Full radio re-bind once per setup version, then a cheap every-check-in verify
     // (phones otherwise join Wi‑Fi with free internet / no captive portal).
     `:global hpBridged`,
     `:if ($hpBridged != "${SETUP_VERSION}") do={ ${bridgeWifiLines().join("; ")}; :set hpBridged "${SETUP_VERSION}" }`,
     ...ensureWifiOnHotspotBridgeLines(),
+    // Free WiFi for all APs/ports on hotspotpro-bridge (or restore voucher mode).
+    ...freeWifiApplyLines(free),
   ];
   if (/^[a-z0-9][a-z0-9.-]{0,48}$/.test(name)) {
     lines.push(...dnsNameApplyLines(router.name, router.dnsName));
@@ -137,11 +172,13 @@ function pageFetch(origin: string, token: string, page: string, file: string) {
 
 /** What a router downloads every 30 seconds. null = unknown token. */
 export function controlScript(token: string, origin?: string): string | null {
-  const router = routerByToken(token);
+  let router = routerByToken(token);
   if (!router) return null;
   recordBeat(token);
+  router = expireFreeWifiIfNeeded(token, router);
   const off = !!router.disconnected;
   const paused = !!router.paused && !off;
+  const free = freeWifiActive(router) && !off && !paused;
   const access = accessDecision();
   // MikroTik RADIUS docs (help.mikrotik.com …/RADIUS + HotSpot captive portal):
   //   1) Local /ip hotspot user is checked FIRST.
@@ -164,6 +201,7 @@ export function controlScript(token: string, origin?: string): string | null {
   const lines = [
     `# HotspotPro: ${oneLine(router.name)} is ${off ? "DISCONNECTED (internet cut)" : "CONNECTED"}`,
     `# HotspotPro access: ${access.locked ? "locked" : "open"}`,
+    `# HotspotPro free wifi: ${free ? "ON" : "off"}`,
     `# HotspotPro login: ${useRadius ? "cloud+local (MikroTik local-first then RADIUS)" : "local"}`,
     `:do { /ip firewall raw ${off ? "enable" : "disable"} [find where comment="${SWITCH_COMMENT}"] } on-error={ }`,
     `:do { :if ([:len [/ip firewall raw find where comment="HotspotPro paused"]] = 0) do={ /ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=accept dst-address-type=local comment="HotspotPro paused" disabled=yes; /ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=accept dst-address-type=broadcast comment="HotspotPro paused" disabled=yes; /ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=drop comment="HotspotPro paused" disabled=yes } } on-error={ }`,
@@ -227,7 +265,7 @@ export function controlScript(token: string, origin?: string): string | null {
       `:do { :if ([:len [/ip firewall nat find where comment="HotspotPro NAT"]] = 0) do={ /ip firewall nat add chain=srcnat out-interface=${wan} action=masquerade comment="HotspotPro NAT" } } on-error={ }`,
       `:do { /ip dns set allow-remote-requests=yes } on-error={ }`,
       `:do { /ip hotspot set [find where name=hotspotpro] addresses-per-mac=1 } on-error={ }`,
-      ...hotspotLines(router),
+      ...hotspotLines(router, free),
       ...managementLines(token),
       ...remoteWinboxLines(router.remoteAccessHold !== true, origin ?? "", token, router.adminFromWan !== false, wan),
       ...multiWanLines(router.multiWanMode, router.ispLinks, router.managementPort || ""),

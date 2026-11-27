@@ -11,6 +11,7 @@ import { forgetLocalUsers, localUserLines, packageProfileLines } from "./localUs
 import {
   bridgeWifiLines,
   ensureHotspotServerLines,
+  freeWifiApplyLines,
   openSystemCaptivePortalLines,
   sealCaptivePortalLeakLines,
   ssidForRouter,
@@ -32,6 +33,8 @@ export const ROUTER_ACTIONS = [
   "sync-vouchers",
   "sync-packages",
   "push-to-router",
+  "free-wifi-on",
+  "free-wifi-off",
   "api-credentials",
   "update-script",
   "reboot",
@@ -206,6 +209,10 @@ export function routerActionScript(
       ...packageProfileLines(row?.ip || ""),
       `:put "HotspotPro: sync-packages done"`,
     ];
+  } else if (action === "free-wifi-on") {
+    body = freeWifiApplyLines(true);
+  } else if (action === "free-wifi-off") {
+    body = freeWifiApplyLines(false);
   } else if (action === "sync-vouchers") {
     const row = routerByToken(token);
     forgetLocalUsers(token);
@@ -292,6 +299,8 @@ const ACTION_TEXT: Record<string, string> = {
   wifi: "WiFi SSID and access-point radios were updated on the router.",
   "sync-vouchers": "Vouchers were copied onto the router for local login.",
   "sync-packages": "Packages were written to Hotspot User Profiles on the router.",
+  "free-wifi-on": "Free WiFi is ON — customers get internet without a voucher.",
+  "free-wifi-off": "Free WiFi is OFF — voucher login is required again.",
   "push-to-router": "Packages, vouchers, and captive portal were forced onto the router.",
   "api-credentials": "API user hotspotpro was created on the router.",
   "update-script": "The router downloaded and ran the latest HotspotPro setup.",
@@ -356,6 +365,11 @@ export function markRouterAction(token: string, script: string) {
       patch.vouchersSyncedAt = now;
     } else if (action === "sync-packages") {
       patch.packagesPushedAt = now;
+    } else if (action === "free-wifi-on") {
+      patch.freeWifiEnabled = true;
+    } else if (action === "free-wifi-off") {
+      patch.freeWifiEnabled = false;
+      patch.freeWifiUntilMs = null;
     } else if (action === "push-to-router") {
       patch.vouchersSyncedAt = now;
       patch.hotspotFilesSyncedAt = now;

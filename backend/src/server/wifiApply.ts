@@ -149,13 +149,16 @@ export function sealCaptivePortalLeakLines(): string[] {
  * OS probes must hit Hotspot (HTTP redirect to login.html) — if they are in the
  * walled garden or Detect Internet marks the link "online", the sheet never opens.
  */
-export function openSystemCaptivePortalLines(): string[] {
+export function openSystemCaptivePortalLines(opts?: { keepFreeWifi?: boolean }): string[] {
+  const clearBypass = opts?.keepFreeWifi
+    ? `:do { /ip hotspot ip-binding remove [find where type=bypassed && comment!="HotspotPro free wifi"] } on-error={ }`
+    : `:do { /ip hotspot ip-binding remove [find where type=bypassed] } on-error={ }`;
   return [
     `# HotspotPro: system captive portal detection`,
     `:do { /interface detect-internet set detect-interface-list=none } on-error={ }`,
     `:do { /ip hotspot set [find where name=hotspotpro] disabled=no interface=hotspotpro-bridge } on-error={ }`,
     `:do { /ip hotspot profile set [find where name=hotspotpro] open-status-page=http-login } on-error={ }`,
-    `:do { /ip hotspot ip-binding remove [find where type=bypassed] } on-error={ }`,
+    clearBypass,
     // OS connectivity checks — must NOT be allowed through; Hotspot redirects them to login.
     `:do { /ip hotspot walled-garden remove [find where dst-host~"captive.apple.com"] } on-error={ }`,
     `:do { /ip hotspot walled-garden remove [find where dst-host~"www.apple.com"] } on-error={ }`,
@@ -168,6 +171,34 @@ export function openSystemCaptivePortalLines(): string[] {
     `:do { /ip hotspot walled-garden remove [find where dst-host~"detectportal.firefox.com"] } on-error={ }`,
     `:do { /ip hotspot walled-garden remove [find where dst-host~"networkcheck.kde.org"] } on-error={ }`,
     `:do { /ip hotspot walled-garden remove [find where dst-host~"neverssl.com"] } on-error={ }`,
+  ];
+}
+
+/** Comment used for bridge-wide free WiFi (all APs on hotspotpro-bridge). */
+export const FREE_WIFI_COMMENT = "HotspotPro free wifi";
+
+/**
+ * Open or close free internet on the hotspot bridge (no voucher needed).
+ * Covers every AP/port on hotspotpro-bridge. Turn off restores captive portal.
+ */
+export function freeWifiApplyLines(enabled: boolean): string[] {
+  if (enabled) {
+    return [
+      `# HotspotPro: FREE WiFi ON — all clients on hotspotpro-bridge bypass login`,
+      `:do { /ip hotspot ip-binding remove [find where comment="${FREE_WIFI_COMMENT}"] } on-error={ }`,
+      // Whole guest network: any address on the hotspot server skips authentication.
+      `:do { /ip hotspot ip-binding add type=bypassed address=0.0.0.0/0 server=hotspotpro comment="${FREE_WIFI_COMMENT}" } on-error={ :do { /ip hotspot ip-binding add type=bypassed address=0.0.0.0/0 comment="${FREE_WIFI_COMMENT}" } on-error={ } }`,
+      `:put "HotspotPro: Free WiFi is ON — vouchers not required"`,
+    ];
+  }
+  return [
+    `# HotspotPro: FREE WiFi OFF — restore captive portal / vouchers`,
+    `:do { /ip hotspot ip-binding remove [find where comment="${FREE_WIFI_COMMENT}"] } on-error={ }`,
+    `:do { /ip hotspot ip-binding remove [find where type=bypassed] } on-error={ }`,
+    // Kick open sessions so phones hit the login page again.
+    `:do { /ip hotspot active remove [find] } on-error={ }`,
+    `:do { /ip hotspot cookie remove [find] } on-error={ }`,
+    `:put "HotspotPro: Free WiFi is OFF — voucher login required"`,
   ];
 }
 

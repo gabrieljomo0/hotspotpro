@@ -248,6 +248,8 @@ export function useRouterState(
       multiWanMode: DEFAULT_WAN_MODE,
       ispLinks: defaultIspLinks(),
       hotspotEnabled: input.hotspotEnabled ?? true,
+      freeWifiEnabled: false,
+      freeWifiUntilMs: null,
       loginMode: input.loginMode === "cloud" ? "cloud" : "local",
       hotspotNetwork: input.hotspotNetwork ?? "10.10.0.0/16",
       hotspotGatewayIp: input.hotspotGatewayIp ?? "10.10.0.1",
@@ -563,9 +565,19 @@ export function useRouterState(
       updates.loginMode !== undefined ||
       updates.pppoeEnabled !== undefined
     ) {
-      queueRouterAction(ip, "sync-files");
-      queueRouterAction(ip, "wifi");
-      if (updates.loginMode === "local" || updates.loginMode === undefined) queueRouterAction(ip, "sync-vouchers");
+      voidRouterAction(ip, "sync-files");
+      voidRouterAction(ip, "wifi");
+      if (updates.loginMode === "local" || updates.loginMode === undefined) voidRouterAction(ip, "sync-vouchers");
+    }
+    if (updates.freeWifiEnabled !== undefined) {
+      voidRouterAction(ip, updates.freeWifiEnabled ? "free-wifi-on" : "free-wifi-off");
+      showToast(
+        updates.freeWifiEnabled
+          ? "Free WiFi ON — applying on the router within a few seconds…"
+          : "Free WiFi OFF — voucher login will be required again…",
+      );
+      logActivity("Router", `Free WiFi ${updates.freeWifiEnabled ? "enabled" : "disabled"} on ${ip}.`);
+      return;
     }
     showToast("Router details saved. Applying on the router…");
     logActivity("Router", `Updated details for router ${ip}.`);
