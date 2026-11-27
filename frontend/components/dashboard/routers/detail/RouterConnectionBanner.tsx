@@ -10,9 +10,13 @@ import { useEffect, useState } from "react";
 import { Check, Copy, PlugZap, TriangleAlert, WifiOff, X } from "lucide-react";
 
 import type { RouterInfo } from "@/components/dashboard/data/dashboard-data";
+import { openReprovisionScript } from "@/components/dashboard/shared/editEvents";
 import { ago, fmtDuration } from "./routerUsageMath";
 import { connectionIndicator } from "../routerConnection";
 import { useRouterControl } from "../useRouterControl";
+
+const FLY_API = "https://hotspotpro-api.onrender.com";
+const LEGACY_FLY_API = "https://hotspotpro-api.fly.dev";
 
 export function RouterConnectionBanner({ router, onReconnect }: { router: RouterInfo; onReconnect: () => void }) {
   const { control } = useRouterControl(router.ip, 5000);
@@ -41,9 +45,10 @@ export function RouterConnectionBanner({ router, onReconnect }: { router: Router
           for (const c of json.candidates) list.push(c.origin);
         }
       } catch { /* none */ }
-      if (!/^(localhost|127\.|\[::1\])/.test(window.location.hostname)) list.unshift(window.location.origin);
-      const unique = [...new Set(list)];
-      if (alive) { setOrigins(unique); setOrigin((current) => current || unique[0] || ""); }
+      list.unshift(FLY_API, LEGACY_FLY_API);
+      if (!/^(localhost|127\.|\[::1\])/.test(window.location.hostname)) list.push(window.location.origin);
+      const unique = [...new Set(list.filter(Boolean))];
+      if (alive) { setOrigins(unique); setOrigin((current) => current || unique[0] || FLY_API); }
     })();
     return () => { alive = false; };
   }, []);
@@ -102,17 +107,37 @@ export function RouterConnectionBanner({ router, onReconnect }: { router: Router
             {lost && router.disconnected ? " It is also disconnected by you." : ""}
           </p>
         </div>
-        {router.disconnected && (
-          <button
-            type="button"
-            data-testid="router-banner-reconnect"
-            onClick={onReconnect}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#1a1a1a] px-4 py-2 text-sm font-bold text-white hover:bg-[#111111]"
-          >
-            <PlugZap size={15} /> Reconnect
-          </button>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {lost && (
+            <button
+              type="button"
+              data-testid="router-banner-paste"
+              onClick={() => openReprovisionScript(router.ip, "paste")}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#1a1a1a] px-4 py-2 text-sm font-bold text-white hover:bg-[#111111]"
+            >
+              <Copy size={15} /> Paste reconnect script
+            </button>
+          )}
+          {router.disconnected && (
+            <button
+              type="button"
+              data-testid="router-banner-reconnect"
+              onClick={onReconnect}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#1a1a1a] px-4 py-2 text-sm font-bold text-white hover:bg-[#111111]"
+            >
+              <PlugZap size={15} /> Reconnect
+            </button>
+          )}
+        </div>
       </div>
+
+      {lost && (
+        <p className="mt-3 text-sm text-[#1a1a1a]">
+          The router has internet but is not checking in to this cloud API — status and CPU stay blank until it contacts{" "}
+          <span className="font-mono font-semibold">{FLY_API}</span>. Use <strong>Paste reconnect script</strong> in WinBox
+          once (or Reprovision → paste script).
+        </p>
+      )}
 
       {!lost && info && (
         <div className="mt-3 text-sm" data-testid="router-banner-enforcement">

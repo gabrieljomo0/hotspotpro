@@ -16,6 +16,13 @@ import { radiusCloudEnabled, usedBytes } from "@/server/radius";
 import { findRouterByToken, publicOrigin } from "@/server/provision";
 import { getState, queueJob } from "@/server/store";
 
+/** Origin the MikroTik can fetch (API host). Never the Vercel portal host. */
+function routerFacingOrigin(request: Request) {
+  const configured = (process.env.HOTSPOTPRO_PUBLIC_URL || "").replace(/\/+$/, "");
+  if (configured) return configured;
+  return publicOrigin(request);
+}
+
 const GOOGLE = "https://www.google.com/";
 
 // Public: is this voucher good to use, and how much is left?
@@ -111,6 +118,8 @@ export async function POST(request: Request) {
   // Real UDP RADIUS when HOTSPOTPRO_RADIUS=on. On Render that stays off — vouchers are
   // checked here, then pushed onto the MikroTik so /login can put the phone online.
   const useRadius = radiusCloudEnabled() && (router as { loginMode?: string } | null)?.loginMode === "cloud";
+  // Always push a local hotspot user for Connect — other billing systems do this; RADIUS alone was failing
+  // when check-in briefly forced use-radius=no. RADIUS can still succeed when use-radius=yes.
   const authMode = useRadius ? "radius" : "push";
   if (token) {
     const gateway = (router as { hotspotGatewayIp?: string } | null)?.hotspotGatewayIp?.trim();
@@ -118,26 +127,25 @@ export async function POST(request: Request) {
     // One-time HTTP page on the gateway — phones leave HTTPS and auto-submit to MikroTik.
     const ticket = createLoginTicket(token, loginUsername, loginPassword);
     ticketId = ticket.id;
-    if (!useRadius) {
-      try {
-        const sync = getState("routerUserSync")?.value as Record<string, { codes?: string[] }> | undefined;
-        const already = !!sync?.[token]?.codes?.includes(loginUsername);
-        queuePortalPush(token, v.code);
-        syncQueued = true;
-        syncFresh = !already;
-        // One job: create the hotspot user (password matches this ticket) + download hp-go.html.
-        const script = ensureOneLocalUser(token, router?.ip || "", v.code, Date.now(), {
-          password: loginPassword,
-          origin: publicOrigin(request),
-          ticketId: ticket.id,
-        });
-        if (script.length > 1) {
-          const job = queueJob(token, script.join("\n") + "\n", "portal");
-          jobId = job.id;
-        }
-      } catch {
-        /* check-in may already have the user */
+    const apiOrigin = routerFacingOrigin(request);
+    try {
+      const sync = getState("routerUserSync")?.value as Record<string, { codes?: string[] }> | undefined;
+      const already = !!sync?.[token]?.codes?.includes(loginUsername);
+      queuePortalPush(token, v.code);
+      syncQueued = true;
+      syncFresh = !already;
+      // One job: create the hotspot user (password matches this ticket) + download hp-go.html.
+      const script = ensureOneLocalUser(token, router?.ip || "", v.code, Date.now(), {
+        password: loginPassword,
+        origin: apiOrigin,
+        ticketId: ticket.id,
+      });
+      if (script.length > 1) {
+        const job = queueJob(token, script.join("\n") + "\n", "portal");
+        jobId = job.id;
       }
+    } catch {
+      /* check-in may already have the user / page */
     }
   } else {
     const routers = getState("routers")?.value;
@@ -170,6 +178,7 @@ export async function POST(request: Request) {
     jobId,
     // Wait for check-in to push the user + download hp-go.html, then open that HTTP page.
     // Fresh vouchers need a full check-in cycle; already-synced codes are faster.
-    waitMs: useRadius ? 800 : syncQueued ? (syncFresh ? 18000 : 6000) : 2000,
+    // Always allow time for the router to download hp-go.html (login-ready), including RADIUS.
+    waitMs: syncQueued ? (syncFresh || useRadius ? 20000 : 8000) : ticketId ? 16000 : 2000,
   });
 }

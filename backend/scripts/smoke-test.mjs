@@ -89,14 +89,27 @@ try {
   check("router of Ama gets Ama's control script", ctlA.status === 200 && (await ctlA.text()).includes("Ama Router"));
   check("router of Kofi gets Kofi's control script", ctlK.status === 200 && (await ctlK.text()).includes("Kofi Router"));
   check("an unknown router token is refused", (await fetch(base + "/api/provision/not-a-real-token/control")).status === 404);
+  // Same physical MikroTik (serial) cannot be added as a second dashboard router until the first is deleted.
+  await send("PUT", "/api/state/routers", { value: [
+    { ip: "10.0.0.1", name: "Ama Router", status: "Online", provisioningToken: "tok-ama-12345678", hardwareSerial: "SERIALAMA001" },
+    { ip: "10.0.0.2", name: "Ama Dup", status: "Offline", provisioningToken: "tok-ama-dup-99999", provisioningStatus: "Pending", health: "checking" },
+  ] }, amaCookie);
+  const dupCtl = await (await fetch(base + "/api/provision/tok-ama-dup-99999/control?serial=SERIALAMA001&swid=ABCD-EFGH&cpu=1&free=1&total=2")).text();
+  check("same board cannot be added as a different router", dupCtl.includes("already registered") && dupCtl.includes("Ama Router") && !dupCtl.includes("HotspotPro: Ama Dup is CONNECTED"), dupCtl.slice(0, 400));
+  const afterDup = await json(await send("GET", "/api/state", undefined, amaCookie));
+  const dupRow = (afterDup.docs?.routers?.value ?? []).find((r) => r.provisioningToken === "tok-ama-dup-99999");
+  check("duplicate add is marked as an error on the site", dupRow?.health === "error" && String(dupRow?.lastError || "").includes("already registered"), JSON.stringify(dupRow));
+  const okSame = await (await fetch(base + "/api/provision/tok-ama-12345678/control?serial=SERIALAMA001&cpu=1&free=1&total=2")).text();
+  check("the original router can still check in with its serial", okSame.includes("Ama Router") && !okSame.includes("already registered"), okSame.slice(0, 200));
+  await send("PUT", "/api/state/routers", { value: [{ ip: "10.0.0.1", name: "Ama Router", status: "Online", provisioningToken: "tok-ama-12345678" }] }, amaCookie);
   await send("PUT", "/api/state/vouchers", { value: [{ code: "AMATEST1", password: null, packageName: "Ama Daily", status: "Available" }] }, amaCookie);
   const cloudCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
   check("with no RADIUS server a paid voucher is copied onto the router", cloudCtl.includes("use-radius=no") && cloudCtl.includes('name="AMATEST1"') && cloudCtl.includes("limit-uptime=1d") && cloudCtl.includes("session-timeout=0s") && cloudCtl.includes("keepalive-timeout=none") && cloudCtl.includes("mac-cookie-timeout=1d") && cloudCtl.includes("shared-users=1"), cloudCtl.slice(0, 500));
-  check("package user profiles are pushed to the router", cloudCtl.includes('name="AmaDaily"') && cloudCtl.includes("user profile add") && cloudCtl.includes("rate-limit="), cloudCtl.slice(0, 600));
-  check("server profile dns-name is set on check-in", /dns-name="[a-z0-9.-]+"/.test(cloudCtl) && cloudCtl.includes("dns-name="), cloudCtl.match(/dns-name="[^"]+"/)?.[0] || "missing");
+  check("package user profiles are pushed to the router", (cloudCtl.includes('name="Ama Daily"') || cloudCtl.includes('name="AmaDaily"')) && cloudCtl.includes("user profile") && cloudCtl.includes("rate-limit="), cloudCtl.slice(0, 600));
+  check("server profile dns-name is set on check-in", /dns-name=[a-z0-9.-]+/.test(cloudCtl) && cloudCtl.includes("dns-name="), cloudCtl.match(/dns-name=[a-z0-9."-]+/)?.[0] || "missing");
   check("remote WinBox is ready on check-in", cloudCtl.includes('comment="HotspotPro remote WinBox"') && cloudCtl.includes("back-to-home-vpn=enabled") && cloudCtl.includes("ddns-enabled=yes") && cloudCtl.includes("update-time=yes"));
   check("remote WebFig is open for browser access", cloudCtl.includes('comment="HotspotPro remote WebFig"') && cloudCtl.includes("/ip service set www") && cloudCtl.includes("interval=15s"), cloudCtl.slice(0, 400));
-  check("hotspot login requires voucher page then MAC cookie", cloudCtl.includes("login-by=http-pap,mac-cookie") && !cloudCtl.includes("login-by=http-pap,http-chap") && cloudCtl.includes("addresses-per-mac=1") && cloudCtl.includes("mac-address=$m"), cloudCtl.slice(0, 800));
+  check("hotspot login enables HTTP CHAP, HTTP PAP, Cookie, and MAC Cookie (no bare MAC)", cloudCtl.includes("login-by=cookie,http-chap,http-pap,mac-cookie") && !/\blogin-by=[^\s"]*\bmac\b/.test(cloudCtl.replace(/mac-cookie/g, "KEEP")) && cloudCtl.includes("addresses-per-mac=1") && cloudCtl.includes("mac-address=$m"), cloudCtl.slice(0, 800));
   check("captive portal serves HotspotPro login on the router", (await (await fetch(base + "/api/provision/tok-ama-12345678/login.html")).text()).includes('action="$(link-login-only)"') && (await (await fetch(base + "/api/provision/tok-ama-12345678/login.html")).text()).includes("Buy a package") && !(await (await fetch(base + "/api/provision/tok-ama-12345678/login.html")).text()).includes("location.replace") && (await (await fetch(base + "/api/provision/tok-ama-12345678/md5.js")).text()).includes("function hexMD5"), "login.html on-router form");
   check("connected routers download the latest setup by themselves", cloudCtl.includes("applying the latest setup") && /hpSetup != "v\d+"/.test(cloudCtl) && cloudCtl.includes("/api/provision/tok-ama-12345678?wireless=yes"), cloudCtl.slice(cloudCtl.indexOf("hpSetup"), cloudCtl.indexOf("hpSetup") + 400));
   const cloudScript = await (await fetch(base + "/api/provision/tok-ama-12345678?wireless=yes&ssid=AmaCafeWiFi")).text();
@@ -106,14 +119,14 @@ try {
   check("reprovision puts WiFi on the hotspot bridge", cloudScript.includes("hotspotpro-bridge") && (cloudScript.includes("datapath.bridge=hotspotpro-bridge") || cloudScript.includes("interface wireless")), cloudScript.slice(0, 300));
   check("check-in seals factory NAT and covers wifiwave2", cloudCtl.includes('comment~"defconf"') && cloudCtl.includes("/interface wifiwave2") && cloudCtl.includes("disable-ipv6=yes"), "seal + wifiwave2 + ipv6");
   check("check-in creates the hotspot server when Servers is empty", cloudCtl.includes('/ip hotspot add name=hotspotpro') && cloudCtl.includes("Ensure HotspotPro hotspot server exists"), "ensure hotspot server");
-  check("expired voucher clears cookies so a new voucher works without forgetting WiFi", cloudCtl.includes("hotspotpro-logout") && cloudCtl.includes("on-logout=hotspotpro-logout") && cloudCtl.includes("hotspot cookie remove") && cloudCtl.includes("hotspotpro-reauth") && !cloudCtl.includes("registration-table remove"), "logout clears cookies, keeps WiFi");
+  check("expired voucher clears cookies; MAC Cookie kept while voucher still valid (WiFi toggle reconnect)", cloudCtl.includes("hotspotpro-logout") && cloudCtl.includes("on-logout=hotspotpro-logout") && cloudCtl.includes("hotspot cookie remove") && cloudCtl.includes('scheduler remove [find where name=hotspotpro-reauth]') && !cloudCtl.includes("registration-table remove"), "logout clears cookies on expiry; no offline cookie wipe");
   check("setup seals free-internet paths", cloudScript.includes('comment~"defconf"') && cloudScript.includes("disable-ipv6=yes") && !cloudScript.includes(":execute script="), "no async wifi execute");
   // Manual hotspot DNS name (not forced from the router name).
   await send("PUT", "/api/state/routers", { value: [{ ip: "10.0.0.1", name: "Ama Router", status: "Online", provisioningToken: "tok-ama-12345678", dnsName: "login.shop" }] }, amaCookie);
   const dnsCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
   const dnsScript = await (await fetch(base + "/api/provision/tok-ama-12345678?wireless=yes")).text();
-  check("manual DNS name is used on check-in", dnsCtl.includes('dns-name="login.shop"') && dnsCtl.includes('name="login.shop"'), dnsCtl.includes("dns-name=") ? "found wrong dns-name" : "missing dns-name");
-  check("manual DNS name is used in full setup", dnsScript.includes("dns-name=\"login.shop\"") || dnsScript.includes('dns-name="login.shop"'), dnsScript.slice(dnsScript.indexOf("dns-name"), dnsScript.indexOf("dns-name") + 80));
+  check("manual DNS name is used on check-in", (dnsCtl.includes("dns-name=login.shop") || dnsCtl.includes('dns-name="login.shop"')) && (dnsCtl.includes("name=login.shop") || dnsCtl.includes('name="login.shop"')), dnsCtl.includes("dns-name=") ? "found wrong dns-name" : "missing dns-name");
+  check("manual DNS name is used in full setup", dnsScript.includes("dns-name=login.shop") || dnsScript.includes('dns-name="login.shop"'), dnsScript.slice(dnsScript.indexOf("dns-name"), dnsScript.indexOf("dns-name") + 80));
   await send("PUT", "/api/state/routers", { value: [{ ip: "10.0.0.1", name: "Ama Router", status: "Online", provisioningToken: "tok-ama-12345678" }] }, amaCookie);
   await fetch(base + "/api/provision/tok-ama-12345678/control?cpu=1&free=1&total=2&users=AMATEST1");
   const afterUse = await json(await send("GET", "/api/state", undefined, amaCookie));
@@ -144,7 +157,7 @@ try {
     }],
   }, amaCookie);
   const wanCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
-  check("Multi-WAN load balancing is applied on check-in", wanCtl.includes("HotspotPro Multi-WAN") && wanCtl.includes("interface=ether1") && wanCtl.includes("interface=ether2") && wanCtl.includes("default-route-distance=1") && wanCtl.includes('comment="HotspotPro WAN"') && wanCtl.includes('comment="HotspotPro WAN DHCP Client"'), wanCtl.slice(wanCtl.indexOf("Multi-WAN"), wanCtl.indexOf("Multi-WAN") + 500));
+  check("Multi-WAN load balancing is applied on check-in", wanCtl.includes("HotspotPro Multi-WAN") && wanCtl.includes("interface=ether1") && wanCtl.includes("interface=ether2") && wanCtl.includes("add-default-route=no") && wanCtl.includes("per-connection-classifier") && wanCtl.includes('comment="HotspotPro WAN"') && wanCtl.includes("HotspotPro WAN probe") && wanCtl.includes("check-gateway=ping") && wanCtl.includes('comment="HotspotPro WAN DHCP Client"'), wanCtl.slice(wanCtl.indexOf("Multi-WAN"), wanCtl.indexOf("Multi-WAN") + 800));
   check("check-in reports WAN IP from Multi-WAN or the first DHCP client", wanCtl.includes('comment="HotspotPro WAN"') && wanCtl.includes("HotspotPro WAN DHCP Client") && wanCtl.includes("wanip="), "wanip reporting");
   await send("PUT", "/api/state/vouchers", { value: [{ code: "TVBOX01", password: null, packageName: "Ama Daily", status: "Used", boundMac: "AA:BB:CC:DD:EE:FF", activatedAtMs: Date.now(), expiresAtMs: Date.now() + 86400000 }] }, amaCookie);
   const tvCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
@@ -230,16 +243,16 @@ try {
   check("script uses the right hotspot folder (flash-aware)", scriptA.includes("html-directory=$hpDir") && scriptA.includes("flash/hotspot"));
   check("setup disables free trial and plants the offline portal lock", scriptA.includes("trial-uptime-limit=0s") && !scriptA.includes("trial-uptime=0s") && scriptA.includes("hotspotpro-guard") && scriptA.includes("HotspotPro access lock"));
   const loginHtml = await (await fetch(base + "/api/provision/tok-ama-12345678/login.html")).text();
-  check("login page is a fast HotspotPro voucher form on the router", loginHtml.includes("HotspotPro portal") && loginHtml.includes('action="$(link-login-only)"') && loginHtml.includes('name="username"') && loginHtml.includes("Buy a package") && loginHtml.includes("/portal?rt=tok-ama-12345678") && !loginHtml.includes(":4000/portal"), loginHtml.slice(0, 280));
+  check("login page is a fast HotspotPro voucher form on the router", loginHtml.includes("HotspotPro designed-portal") && loginHtml.includes('action="$(link-login-only)"') && loginHtml.includes('name="username"') && loginHtml.includes("Buy a package") && loginHtml.includes("/portal?rt=tok-ama-12345678") && !loginHtml.includes("location.replace"), loginHtml.slice(0, 280));
   const rloginHtml = await (await fetch(base + "/api/provision/tok-ama-12345678/rlogin.html")).text();
-  check("the redirect login page is the same fast HotspotPro form", rloginHtml.includes("HotspotPro portal") && rloginHtml.includes('action="$(link-login-only)"') && rloginHtml.includes('name="username"'));
+  check("the redirect login page is the same fast HotspotPro form", rloginHtml.includes("HotspotPro designed-portal") && rloginHtml.includes('action="$(link-login-only)"') && rloginHtml.includes('name="username"'));
   check("check-in replaces MikroTik default HTML using HotspotPro marker", cloudCtl.includes("HotspotPro portal") && cloudCtl.includes('/ip hotspot disable [find where name!="hotspotpro"]'), "marker + disable other hotspots");
   check("login page for an unknown router is refused", (await fetch(base + "/api/provision/not-a-real-token/login.html")).status === 404);
   const alogin = await (await fetch(base + "/api/provision/tok-ama-12345678/alogin.html")).text();
   check("success page shows login message and opens Google", alogin.includes("Login successful") && alogin.includes("https://www.google.com/"));
   const loginDst = await (await fetch(base + "/api/provision/tok-ama-12345678/login.html")).text();
   check("login form redirects to Google after connect", loginDst.includes('name="dst" value="https://www.google.com/"'));
-  check("error page keeps a fast voucher form on the router", (await (await fetch(base + "/api/provision/tok-ama-12345678/error.html")).text()).includes('action="$(link-login-only)"') && (await (await fetch(base + "/api/provision/tok-ama-12345678/error.html")).text()).includes("Buy a package") && (await (await fetch(base + "/api/provision/tok-ama-12345678/error.html")).text()).includes("already used"));
+  check("error page keeps a fast voucher form on the router", (await (await fetch(base + "/api/provision/tok-ama-12345678/error.html")).text()).includes('action="$(link-login-only)"') && (await (await fetch(base + "/api/provision/tok-ama-12345678/error.html")).text()).includes("Buy a package") && (await (await fetch(base + "/api/provision/tok-ama-12345678/error.html")).text()).includes("did not work"));
 
   // ---- voucher status messages (success / used / expired / wrong router) ----
   await send("PUT", "/api/state/vouchers", {

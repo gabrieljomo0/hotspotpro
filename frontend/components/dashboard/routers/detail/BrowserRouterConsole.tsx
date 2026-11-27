@@ -10,6 +10,7 @@ import { Copy, Download, ExternalLink, Send, Terminal, X } from "lucide-react";
 
 import type { RouterInfo } from "@/components/dashboard/data/dashboard-data";
 import { downloadWireguardTunnel } from "@/components/dashboard/routers/autoRemoteWinbox";
+import { downloadWbConfig, resolveWinboxConnectHost } from "@/components/dashboard/routers/winboxSession";
 
 type Job = {
   id: string;
@@ -42,9 +43,10 @@ function webfigUrl(router: RouterInfo): string | null {
 }
 
 function winboxConnectAddress(router: RouterInfo): string {
-  if (router.winboxReach === "direct" && router.winboxAddress) return router.winboxAddress;
+  const publicHost = resolveWinboxConnectHost(router);
+  if (publicHost) return publicHost;
   if (router.winboxReach === "relay" || router.wireguardConfig) return "192.168.216.1";
-  return router.winboxAddress || "192.168.88.1";
+  return router.winboxAddress?.replace(/:8291$/, "") || "192.168.88.1";
 }
 
 async function copyText(text: string) {
@@ -72,7 +74,10 @@ export function BrowserRouterConsole({
   const [note, setNote] = useState("");
   const fig = webfigUrl(router);
   const address = winboxConnectAddress(router);
-  const relay = router.winboxReach === "relay" || (!!router.wireguardConfig && router.winboxReach !== "direct");
+  const publicHost = resolveWinboxConnectHost(router);
+  const relay =
+    !publicHost &&
+    (router.winboxReach === "relay" || (!!router.wireguardConfig && router.winboxReach !== "direct"));
   const remoteOn = router.remoteAccessEnabled !== false && router.remoteAccessHold !== true;
 
   const load = useCallback(async () => {
@@ -153,11 +158,13 @@ export function BrowserRouterConsole({
           <div className="rounded-xl border border-[#e6e6e6] bg-[#fafafa] p-4">
             <p className="text-sm font-semibold text-[#1a1a1a]">WinBox on this laptop</p>
             <p className="mt-1 text-xs text-[#737373]">
-              {relay
-                ? "This router is behind NAT. Download WireGuard, turn the tunnel on, then open WinBox to 192.168.216.1."
-                : remoteOn
-                  ? "Paste this address into WinBox on your laptop (port 8291)."
-                  : "Enable Remote WinBox Access first, then refresh this page."}
+              {publicHost
+                ? "Download wb.config or paste this address into WinBox (admin + router password)."
+                : relay
+                  ? "This router is behind NAT. Download WireGuard, turn the tunnel on, then open WinBox to 192.168.216.1."
+                  : remoteOn
+                    ? "Paste this address into WinBox on your laptop (port 8291)."
+                    : "Enable Remote WinBox Access first, then refresh this page."}
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <code className="rounded-lg bg-white px-3 py-2 font-mono text-sm text-[#1a1a1a]">{address}</code>
@@ -171,6 +178,18 @@ export function BrowserRouterConsole({
               >
                 <Copy size={14} /> Copy
               </button>
+              {publicHost ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    downloadWbConfig(router.name, publicHost);
+                    setNote(`wb.config downloaded — WinBox → Tools → Import, or Connect to ${publicHost} as admin.`);
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#1a1a1a] px-3 py-2 text-xs font-bold text-white hover:bg-[#111111]"
+                >
+                  <Download size={14} /> Download wb.config
+                </button>
+              ) : null}
               {relay && router.wireguardConfig ? (
                 <button
                   type="button"

@@ -35,13 +35,14 @@ export function ReprovisionPastePanel({ router }: { router: RouterInfo }) {
       } catch {
         /* none */
       }
+      list.unshift("https://hotspotpro-api.onrender.com", "https://hotspotpro-api.fly.dev");
       if (typeof window !== "undefined" && !/^(localhost|127\.|\[::1\])/.test(window.location.hostname)) {
-        list.unshift(window.location.origin);
+        list.push(window.location.origin);
       }
       const unique = [...new Set(list.filter(Boolean))];
       if (alive) {
         setOrigins(unique);
-        setOrigin((current) => current || unique[0] || "");
+        setOrigin((current) => current || unique[0] || "https://hotspotpro-api.onrender.com");
       }
     })();
     return () => {
@@ -50,8 +51,11 @@ export function ReprovisionPastePanel({ router }: { router: RouterInfo }) {
   }, []);
 
   const command = useMemo(
-    () => (token && origin ? buildReprovisionCommand({ origin, token, ssid, dnsName: router.dnsName }) : ""),
-    [token, origin, ssid, router.dnsName],
+    () =>
+      token && origin
+        ? buildReprovisionCommand({ origin, token, ssid, dnsName: router.dnsName, routerName: router.name })
+        : "",
+    [token, origin, ssid, router.dnsName, router.name],
   );
 
   async function copy() {
@@ -79,8 +83,9 @@ export function ReprovisionPastePanel({ router }: { router: RouterInfo }) {
     <article data-testid="reprovision-panel" className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
       <h3 className="text-base font-bold text-[#1a1a1a]">Reprovision — paste in WinBox</h3>
       <p className="mt-1 text-sm text-[#737373]">
-        Resets old HotspotPro config and applies a fresh setup: hotspot, captive portal, and WiFi on the voucher bridge (SSID:{" "}
-        <span className="font-mono font-semibold text-[#1a1a1a]">{ssid}</span>).
+        Applies a fresh HotspotPro setup (hotspot, captive portal, WiFi — SSID:{" "}
+        <span className="font-mono font-semibold text-[#1a1a1a]">{ssid}</span>). People already online and hotspot users stay in
+        place.
       </p>
 
       {origins.length > 1 && (

@@ -8,7 +8,7 @@ type BeforeInstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
-const DISMISS_KEY = "hotspotpro:pwa-banner-dismissed";
+const DISMISS_KEY = "hotspotpro:pwa-button-dismissed";
 
 function isStandalone() {
   if (typeof window === "undefined") return false;
@@ -73,71 +73,29 @@ function useInstallPrompt() {
   return { deferred, installed, iosTip, ready, install };
 }
 
-/** Compact install control for login / header. */
+/**
+ * Install app control — fixed at the bottom of the site only.
+ * Users can install or close (X). Closing hides it until they clear site data.
+ */
 export function InstallAppButton({ className = "" }: { className?: string }) {
   const { deferred, installed, iosTip, ready, install } = useInstallPrompt();
   const [showHelp, setShowHelp] = useState(false);
-
-  if (!ready || installed) return null;
-
-  if (iosTip) {
-    return (
-      <p className="flex items-start gap-2 rounded-lg border border-[#e6e6e6] bg-[#f7f7f7] px-3 py-2.5 text-xs leading-relaxed text-[#525252]">
-        <Share size={14} className="mt-0.5 shrink-0" />
-        <span>
-          Install on this iPhone: tap <strong className="text-[#1a1a1a]">Share</strong>, then{" "}
-          <strong className="text-[#1a1a1a]">Add to Home Screen</strong>.
-        </span>
-      </p>
-    );
-  }
-
-  return (
-    <>
-      <button
-        type="button"
-        onClick={async () => {
-          if (deferred) {
-            await install();
-            return;
-          }
-          setShowHelp(true);
-        }}
-        className={
-          className ||
-          "inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#1a1a1a] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#111111]"
-        }
-      >
-        <Download size={16} />
-        Install app
-      </button>
-      {showHelp && !deferred ? <InstallHelpSheet onClose={() => setShowHelp(false)} /> : null}
-    </>
-  );
-}
-
-/** Fixed bottom prompt — always visible until installed (dismiss only hides for this browser tab session). */
-export function InstallAppBanner() {
-  const { deferred, installed, iosTip, ready, install } = useInstallPrompt();
   const [dismissed, setDismissed] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
-  const [onPortal, setOnPortal] = useState(false);
 
   useEffect(() => {
     try {
-      setDismissed(sessionStorage.getItem(DISMISS_KEY) === "1");
+      setDismissed(localStorage.getItem(DISMISS_KEY) === "1");
     } catch {
       setDismissed(false);
     }
-    setOnPortal(window.location.pathname.startsWith("/portal"));
   }, []);
 
-  if (!ready || installed || dismissed || onPortal) return null;
+  if (!ready || installed || dismissed) return null;
 
   function dismiss() {
     setDismissed(true);
     try {
-      sessionStorage.setItem(DISMISS_KEY, "1");
+      localStorage.setItem(DISMISS_KEY, "1");
     } catch {
       /* ignore */
     }
@@ -146,20 +104,13 @@ export function InstallAppBanner() {
   return (
     <>
       <div
-        data-testid="pwa-install-banner"
-        className="fixed inset-x-0 bottom-0 z-[240] border-t border-[#e6e6e6] bg-white p-3 shadow-[0_-8px_30px_rgba(0,0,0,0.12)] sm:p-4"
+        data-testid="install-app-bar"
+        className={
+          className ||
+          "fixed inset-x-0 bottom-0 z-[200] border-t border-[#e6e6e6] bg-white/95 p-3 shadow-[0_-8px_24px_rgba(26,26,26,0.08)] backdrop-blur print:hidden"
+        }
       >
-        <div className="mx-auto flex max-w-3xl items-center gap-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icons/icon-192.png" alt="" className="h-12 w-12 shrink-0 rounded-xl" width={48} height={48} />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold text-[#1a1a1a]">Install HotspotPro</p>
-            <p className="text-xs text-[#737373]">
-              {iosTip
-                ? "Add the app icon to your Home Screen for one-tap access."
-                : "Add to your phone home screen or computer desktop."}
-            </p>
-          </div>
+        <div className="mx-auto flex max-w-lg items-center gap-2">
           <button
             type="button"
             onClick={async () => {
@@ -168,23 +119,23 @@ export function InstallAppBanner() {
                 return;
               }
               if (deferred) {
-                const ok = await install();
-                if (ok) dismiss();
+                await install();
                 return;
               }
               setShowHelp(true);
             }}
-            className="shrink-0 rounded-xl bg-[#1a1a1a] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#111111]"
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#1a1a1a] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#111111]"
           >
-            Install
+            {iosTip ? <Share size={16} /> : <Download size={16} />}
+            Install app
           </button>
           <button
             type="button"
-            aria-label="Dismiss"
+            aria-label="Hide install"
             onClick={dismiss}
-            className="shrink-0 rounded-lg p-2 text-[#737373] hover:bg-[#f4f4f4]"
+            className="shrink-0 rounded-lg border border-[#e6e6e6] p-2.5 text-[#737373] hover:bg-[#f4f4f4]"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
       </div>

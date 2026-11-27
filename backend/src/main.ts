@@ -71,6 +71,9 @@ server.listen(port, "0.0.0.0", () => {
   console.log(`  Data:      ${DATA_DIR}`);
   console.log("");
   startRadius();
+  void import("@/server/winboxRelay")
+    .then(({ restoreWinboxRelay }) => restoreWinboxRelay())
+    .catch((error) => console.warn("[winbox-relay] restore skipped:", error instanceof Error ? error.message : error));
 });
 
 async function shutdown() {

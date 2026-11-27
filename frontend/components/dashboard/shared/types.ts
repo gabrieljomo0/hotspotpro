@@ -3,6 +3,10 @@ export type ConfirmAction = {
   type: "disable-router" | "enable-router" | "remove-router";
   routerIp: string;
   routerName: string;
+  /** When set (delete), user must type this exact code before Confirm is enabled. */
+  confirmCode?: string;
+  /** True when the router was Online / in use — stronger delete warning. */
+  working?: boolean;
 };
 
 export type UserConnectionState = {
@@ -117,7 +121,12 @@ export type VoucherSaleType =
   | "Giveaway"
   | "Unassigned";
 
-export type VoucherCodeFormat = "uppercase" | "lowercase" | "mixed" | "numeric";
+export type VoucherCodeFormat =
+  | "uppercase"
+  | "lowercase"
+  | "letters-lower"
+  | "mixed"
+  | "numeric";
 /** days: time only. data: gigabytes only. both: the voucher ends when either runs out. */
 export type VoucherLimitBy = "days" | "data" | "both";
 /** signin: the day starts at the first login and keeps running. usage: the day runs only while they are online. */

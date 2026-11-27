@@ -247,6 +247,7 @@ function holder(): Holder {
       }
     }
   }
+  unlockExpiredTrials(db);
   const h: Holder = { db, timer: null, hooked: false };
   g.__hotspotproDb = h;
   if (!h.hooked) {
@@ -254,6 +255,37 @@ function holder(): Holder {
     process.on("exit", () => flushNow());
   }
   return h;
+}
+
+/**
+ * Trial is 14 days + 3 grace. Businesses past that get access:locked on every
+ * check-in — packages, vouchers, and the captive portal all stop. Grant 12 months
+ * once so the portal can open again (subscription UI can renew later).
+ */
+function unlockExpiredTrials(db: Root) {
+  const now = Date.now();
+  const DAY = 24 * 60 * 60 * 1000;
+  const TRIAL_DAYS = 14;
+  const GRACE_DAYS = 3;
+  let changed = false;
+  for (const t of Object.values(db.tenants || {})) {
+    if (!t || t.status === "suspended") continue;
+    if (typeof t.accessUntilMs === "number" && t.accessUntilMs > now) continue;
+    const created = Date.parse(t.createdAt) || now;
+    const until = typeof t.accessUntilMs === "number" ? t.accessUntilMs : created + TRIAL_DAYS * DAY;
+    const graceEnds = until + GRACE_DAYS * DAY;
+    if (now <= graceEnds) continue;
+    t.accessUntilMs = now + 365 * DAY;
+    changed = true;
+  }
+  if (changed) {
+    try {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+      fs.writeFileSync(DB_FILE, JSON.stringify(db));
+    } catch {
+      /* boot continues; in-memory unlock still applies until next flush */
+    }
+  }
 }
 
 // ---- tenants (businesses) -----------------------------------------------------------

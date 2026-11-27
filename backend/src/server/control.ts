@@ -17,16 +17,17 @@
 import { SILENT_MS, beatOf, getState, setState, takeQueuedJobs, nasKeyOf, outageOf, recordBeat, usageSnapshot } from "./store";
 import { routerForNas } from "./routerUsage";
 import { accessDecision } from "./accessGate";
-import { forgetLocalUsers, localUserLines, portalPushCodes, portalPushLines } from "./localUsers";
+import { forgetLocalUsers, localUserLines, packageProfileLines, portalPushCodes, portalPushLines } from "./localUsers";
 import { findPackageByName, findVoucher, list, noteLiveVouchers, packageSeconds } from "./packages";
 import { applyHtmlDirectoryRos, loginPageStamp, PORTAL_MARKER } from "./hotspotPages";
 import { autoLoginFetchLines, latestTicketForToken } from "./portalLogin";
-import { CHECKIN_INTERVAL, SETUP_VERSION, accessGuardCommand, accessLockEnsureCommand, checkInBody, hotspotReauthEnsureLines, loginDnsFromName, remoteWinboxLines } from "./routeros";
+import { CHECKIN_INTERVAL, SETUP_VERSION, accessGuardCommand, accessLockEnsureCommand, checkInBody, dnsNameApplyLines, hotspotReauthEnsureLines, loginDnsFromName, remoteWinboxLines } from "./routeros";
 import { primaryWanInterface } from "./primaryWan";
 import { type IspLink, multiWanLines } from "./multiWan";
-import { bridgeWifiLines, ensureHotspotServerLines, sealCaptivePortalLeakLines, ssidForRouter, wifiApplyLines } from "./wifiApply";
+import { bridgeWifiLines, ensureHotspotServerLines, ensureWifiOnHotspotBridgeLines, openSystemCaptivePortalLines, sealCaptivePortalLeakLines, ssidForRouter, wifiApplyLines } from "./wifiApply";
 import { portalOrigin } from "./provision";
 import { radiusCloudEnabled, radiusPorts, radiusPublicHost, radiusSecret } from "./radius";
+import { winboxRelayAddress } from "./winboxRelay";
 
 export const SWITCH_COMMENT = "HotspotPro internet off";
 const ACCESS_LOCK = "HotspotPro access lock";
@@ -90,13 +91,16 @@ function hotspotLines(router: Row): string[] {
     `:do { :local a ""; :do { :set a [/ip address get [find where interface=hotspotpro-bridge comment="HotspotPro"] address] } on-error={ }; :if ([:len $a] > 0) do={ :local g [:pick $a 0 [:find $a "/"]]; /ip dhcp-server network set [find where comment="HotspotPro"] dns-server=$g gateway=$g } } on-error={ }`,
     // Close factory NAT / DHCP / IPv6 leaks and keep DNS hijack + hotspot on our bridge.
     ...sealCaptivePortalLeakLines(),
-    // Radios on the hotspot bridge — once per setup version, not every poll (Africa-scale).
+    // OS probes must hit Hotspot so Android/iOS/Windows open the system captive sheet.
+    ...openSystemCaptivePortalLines(),
+    // Full radio re-bind once per setup version, then a cheap every-check-in verify
+    // (phones otherwise join Wi‑Fi with free internet / no captive portal).
     `:global hpBridged`,
     `:if ($hpBridged != "${SETUP_VERSION}") do={ ${bridgeWifiLines().join("; ")}; :set hpBridged "${SETUP_VERSION}" }`,
+    ...ensureWifiOnHotspotBridgeLines(),
   ];
   if (/^[a-z0-9][a-z0-9.-]{0,48}$/.test(name)) {
-    lines.push(`:do { /ip hotspot profile set [find where name=hotspotpro] dns-name="${name}" } on-error={ }`);
-    lines.push(`:do { :local a ""; :do { :set a [/ip address get [find where interface=hotspotpro-bridge comment="HotspotPro"] address] } on-error={ }; :if ([:len $a] > 0) do={ :local g [:pick $a 0 [:find $a "/"]]; /ip dns static remove [find where comment="HotspotPro login"]; /ip dns static add name="${name}" address=$g comment="HotspotPro login" } } on-error={ }`);
+    lines.push(...dnsNameApplyLines(router.name, router.dnsName));
   }
   const dns = (router.hotspotDnsServers || "").replace(/\s/g, "");
   if (/^(?:\d{1,3}\.){3}\d{1,3}(?:,(?:\d{1,3}\.){3}\d{1,3}){0,2}$/.test(dns)) {
@@ -139,9 +143,12 @@ export function controlScript(token: string, origin?: string): string | null {
   const off = !!router.disconnected;
   const paused = !!router.paused && !off;
   const access = accessDecision();
-  // Cloud RADIUS only when HOTSPOTPRO_RADIUS=on. Otherwise vouchers + profiles live on the MikroTik.
-  // Routers left on "cloud" from the old default were wiping HotspotPro users every check-in.
-  let local = router.loginMode !== "cloud" || !radiusCloudEnabled();
+  // MikroTik RADIUS docs (help.mikrotik.com …/RADIUS + HotSpot captive portal):
+  //   1) Local /ip hotspot user is checked FIRST.
+  //   2) RADIUS is consulted only when no local user matches.
+  //   3) use-radius=yes + /radius service=hotspot for cloud AAA / accounting.
+  // So the solid path is ALWAYS sync User Profiles + local voucher users, and ALSO
+  // point /radius at HotspotPro when loginMode=cloud and RADIUS is enabled.
   if (router.loginMode === "cloud" && !radiusCloudEnabled()) {
     const value = getState("routers")?.value;
     if (Array.isArray(value)) {
@@ -152,12 +159,12 @@ export function controlScript(token: string, origin?: string): string | null {
         forgetLocalUsers(token);
       }
     }
-    local = true;
   }
+  const useRadius = radiusCloudEnabled() && router.loginMode === "cloud";
   const lines = [
     `# HotspotPro: ${oneLine(router.name)} is ${off ? "DISCONNECTED (internet cut)" : "CONNECTED"}`,
     `# HotspotPro access: ${access.locked ? "locked" : "open"}`,
-    `# HotspotPro login: ${local ? "local" : "cloud"}`,
+    `# HotspotPro login: ${useRadius ? "cloud+local (MikroTik local-first then RADIUS)" : "local"}`,
     `:do { /ip firewall raw ${off ? "enable" : "disable"} [find where comment="${SWITCH_COMMENT}"] } on-error={ }`,
     `:do { :if ([:len [/ip firewall raw find where comment="HotspotPro paused"]] = 0) do={ /ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=accept dst-address-type=local comment="HotspotPro paused" disabled=yes; /ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=accept dst-address-type=broadcast comment="HotspotPro paused" disabled=yes; /ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=drop comment="HotspotPro paused" disabled=yes } } on-error={ }`,
     `:do { /ip firewall raw ${paused ? "enable" : "disable"} [find where comment="HotspotPro paused"] } on-error={ }`,
@@ -189,10 +196,11 @@ export function controlScript(token: string, origin?: string): string | null {
       // http-pap must stay on: the HotspotPro web portal POSTs plaintext username/password to /login.
       // http-pap is required for site-portal Connect (plain password). Keep http-chap too so
       // hp-go.html can CHAP-hash when the profile still advertises a challenge.
-      // dns-name every check-in — Server Profiles must not stay blank.
-      // PAP only — site portal / hp-go.html POST a plain password. CHAP caused Connect to bounce.
-      `:do { /ip hotspot profile set [find where name=hotspotpro] login-by=http-pap,mac-cookie trial-uptime-limit=0s dns-name="${loginDnsFromName(router.name, router.dnsName)}" use-radius=${local ? "no" : "yes"}${local ? "" : " radius-accounting=yes radius-interim-update=1m"} } on-error={ }`,
-      ...(!local ? cloudRadiusEnsureLines(origin) : []),
+      // use-radius + accounting per MikroTik HotSpot docs. interim=received so Acct-Interim-Interval from Access-Accept is used.
+      `:do { /ip hotspot profile set [find where name=hotspotpro] trial-uptime-limit=0s use-radius=${useRadius ? "yes" : "no"}${useRadius ? " radius-accounting=yes radius-interim-update=received" : ""} } on-error={ }`,
+      // Login By + DNS Name alone every check-in (WinBox Server Profiles).
+      ...dnsNameApplyLines(router.name, router.dnsName),
+      ...(useRadius ? cloudRadiusEnsureLines(origin) : []),
       ...hotspotReauthEnsureLines(),
       `:do { /ip hotspot user profile set [find where name=default] shared-users=1 session-timeout=0s idle-timeout=none keepalive-timeout=none mac-cookie-timeout=1d } on-error={ }`,
       `:do { /ip hotspot user profile set [find where name=default] on-logout=hotspotpro-logout } on-error={ }`,
@@ -224,7 +232,12 @@ export function controlScript(token: string, origin?: string): string | null {
       ...remoteWinboxLines(router.remoteAccessHold !== true, origin ?? "", token, router.adminFromWan !== false, wan),
       ...multiWanLines(router.multiWanMode, router.ispLinks, router.managementPort || ""),
       ...wifiApplyLines(ssidForRouter(router)),
+      // Last word on radius after hotspot/wifi ensure (create-only defaults to no).
+      `:do { /ip hotspot profile set [find where name=hotspotpro] use-radius=${useRadius ? "yes" : "no"}${useRadius ? " radius-accounting=yes radius-interim-update=received" : ""} } on-error={ }`,
     );
+    // Packages → User Profiles EARLY — before heavy page fetches — so a mid-script failure
+    // cannot leave WinBox with only the default profile.
+    lines.push(...packageProfileLines(router.ip));
     // Keep API + HotspotPro portal hosts reachable before login (phones open /portal directly).
     if (origin) {
       const hosts = new Set<string>();
@@ -242,26 +255,19 @@ export function controlScript(token: string, origin?: string): string | null {
         );
       }
     }
-    if (local) {
-      // After each setup bump, force a full voucher re-copy (fixes empty User Profiles / stale sync).
-      const resync = (getState("routerResync")?.value as Record<string, string> | undefined) ?? {};
-      if (resync[token] !== SETUP_VERSION) {
-        forgetLocalUsers(token);
-        setState("routerResync", { ...resync, [token]: SETUP_VERSION }, "server");
-      }
-      // Portal Connect: upsert this voucher + fetch HTTP auto-login page inside the check-in itself.
-      lines.push(...portalPushLines(token, router.ip, origin));
-      lines.push(...localUserLines(token, router.ip));
-    } else {
+    // Portal Connect upsert (local user + soft hp-go).
+    lines.push(...portalPushLines(token, router.ip, origin));
+    // MikroTik local-first: ALWAYS keep voucher users on the router. RADIUS is the fallback
+    // when a code is not in /ip hotspot user yet (docs: RADIUS consulted only if no local match).
+    const resync = (getState("routerResync")?.value as Record<string, string> | undefined) ?? {};
+    if (resync[token] !== SETUP_VERSION) {
       forgetLocalUsers(token);
-      // Cloud RADIUS: vouchers live in HotspotPro. Drop idle local copies so RADIUS is not shadowed.
-      // Never remove a user who is online right now.
-      lines.push(
-        `:do { :foreach u in=[/ip hotspot user find where comment="HotspotPro"] do={ :local n [/ip hotspot user get $u name]; :if ([:len [/ip hotspot active find where user=$n]] = 0) do={ :do { /ip hotspot user remove $u } on-error={ } } } } on-error={ }`,
-      );
-      // Site portal Connect still needs the HTTP auto-login page on the gateway (hp-go.html).
+      setState("routerResync", { ...resync, [token]: SETUP_VERSION }, "server");
+    }
+    lines.push(...localUserLines(token, router.ip));
+    if (useRadius) {
       const ticket = latestTicketForToken(token);
-      if (origin && ticket) lines.push(...autoLoginFetchLines(origin, token, ticket.id));
+      if (origin && ticket) lines.push(...autoLoginFetchLines(origin, token, ticket.id, false));
       noteCloudRadiusOnRouter(token, origin);
     }
   }
@@ -273,13 +279,16 @@ export function controlScript(token: string, origin?: string): string | null {
     // When the setup version changes, every connected router downloads and runs the latest setup by itself.
     lines.push(
       `:global hpSetup; :global hpSetupBusy`,
-      `:if ($hpSetup != "${SETUP_VERSION}" && $hpSetupBusy != "1") do={ :set hpSetupBusy "1"; :do { :put "HotspotPro: applying the latest setup (people online stay connected)..."; :do { /file remove [find where name=hotspotpro-setup.rsc] } on-error={ }; :do { /file remove [find where name="flash/hotspotpro-setup.rsc"] } on-error={ }; /tool fetch url="${origin}/api/provision/${token}?wireless=yes" dst-path=hotspotpro-setup.rsc${tls}; :do { :delay 2s } on-error={ }; :local hpFile "hotspotpro-setup.rsc"; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; :do { :execute script={/import file-name=$hpFile} file=hotspotpro-import-out.txt } on-error={ /import file-name=$hpFile }; :do { /file remove [find where name=hotspotpro-import-out.txt] } on-error={ }; :set hpSetup "${SETUP_VERSION}"; :global hpWifiSsid; :set hpWifiSsid ""; :put "HotspotPro: router is updated." } on-error={ :put "HotspotPro: setup update will try again on the next check-in." }; :set hpSetupBusy "0" }`,
+      `:if ($hpSetup != "${SETUP_VERSION}" && $hpSetupBusy != "1") do={ :set hpSetupBusy "1"; :do { :put "HotspotPro: applying the latest setup (people online stay connected)..."; :do { /file remove [find where name=hotspotpro-setup.rsc] } on-error={ }; :do { /file remove [find where name="flash/hotspotpro-setup.rsc"] } on-error={ }; /tool fetch url="${origin}/api/provision/${token}?wireless=yes&ssid=${encodeURIComponent(ssidForRouter(router))}" dst-path=hotspotpro-setup.rsc${tls}; :do { :delay 2s } on-error={ }; :local hpFile "hotspotpro-setup.rsc"; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; :do { :execute script={/import file-name=$hpFile} file=hotspotpro-import-out.txt } on-error={ /import file-name=$hpFile }; :do { /file remove [find where name=hotspotpro-import-out.txt] } on-error={ }; :set hpSetup "${SETUP_VERSION}"; :global hpWifiSsid; :set hpWifiSsid ""; :put "HotspotPro: router is updated." } on-error={ :put "HotspotPro: setup update will try again on the next check-in." }; :set hpSetupBusy "0" }`,
     );
     for (const job of queued) {
       const base = `${origin}/api/provision/${token}/job/${job.id}`;
       // Run the site command, capture :put/print output, upload it for Open in browser.
+      // Always resolve flash/… — boards that only have flash store fetches there, and a bare
+      // import name fails so packages/vouchers never land (job still looked "ok").
+      // Do NOT put $vars inside :execute script={...} — that scope often does not see them.
       lines.push(
-        `:do { :local hpOk 1; :do { /file remove [find where name=hotspotpro-job-body.rsc] } on-error={ }; :do { /file remove [find where name=hotspotpro-job-out.txt] } on-error={ }; /tool fetch url="${base}" dst-path=hotspotpro-job-body.rsc${tls}; :delay 1s; :do { :execute script={/import hotspotpro-job-body.rsc} file=hotspotpro-job-out.txt } on-error={ :set hpOk 0 }; :do { /tool fetch url=("${base}/result?ok=" . $hpOk) src-path=hotspotpro-job-out.txt upload=yes http-method=post keep-result=no${tls} } on-error={ /tool fetch url=("${base}/result?ok=" . $hpOk) keep-result=no${tls} } } on-error={ }`,
+        `:do { :local hpOk 1; :do { /file remove [find where name=hotspotpro-job-body.rsc] } on-error={ }; :do { /file remove [find where name="flash/hotspotpro-job-body.rsc"] } on-error={ }; :do { /file remove [find where name=hotspotpro-job-out.txt] } on-error={ }; :do { /file remove [find where name="flash/hotspotpro-job-out.txt"] } on-error={ }; /tool fetch url="${base}" dst-path=hotspotpro-job-body.rsc${tls}; :delay 1s; :if ([:len [/file find where name="flash/hotspotpro-job-body.rsc"]] > 0) do={ :do { /import file-name=flash/hotspotpro-job-body.rsc } on-error={ :set hpOk 0 } } else={ :do { /import file-name=hotspotpro-job-body.rsc } on-error={ :set hpOk 0 } }; :do { /tool fetch url=("${base}/result?ok=" . $hpOk) src-path=hotspotpro-job-out.txt upload=yes http-method=post keep-result=no${tls} } on-error={ :do { /tool fetch url=("${base}/result?ok=" . $hpOk) src-path=flash/hotspotpro-job-out.txt upload=yes http-method=post keep-result=no${tls} } on-error={ /tool fetch url=("${base}/result?ok=" . $hpOk) keep-result=no${tls} } } } on-error={ }`,
       );
     }
   }
@@ -289,10 +298,18 @@ export function controlScript(token: string, origin?: string): string | null {
   lines.push(`:do { /system scheduler set [find where name=hotspotpro-control] interval=${interval} } on-error={ }`);
   if (origin) {
     const source = checkInBody(origin, token).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\$/g, "\\$");
-    // Rewrite the on-router check-in script only when the setup version changes (not every poll).
+    // Stamp includes API host so moving from Render → Fly rewrites the check-in URL
+    // (status/CPU) without waiting for a manual paste when the router can still reach us.
+    let originHost = "api";
+    try {
+      originHost = new URL(origin).host.replace(/[^A-Za-z0-9.-]/g, "") || "api";
+    } catch {
+      /* ignore */
+    }
+    const ctlStamp = `${SETUP_VERSION}@${originHost}`;
     lines.push(
       `:global hpCtlVer`,
-      `:if ($hpCtlVer != "${SETUP_VERSION}") do={ :do { /system script set [find where name=hotspotpro-control] source="${source}" } on-error={ }; :set hpCtlVer "${SETUP_VERSION}" }`,
+      `:if ($hpCtlVer != "${ctlStamp}") do={ :do { /system script set [find where name=hotspotpro-control] source="${source}" } on-error={ }; :set hpCtlVer "${ctlStamp}" }`,
     );
   }
   return lines.join("\n") + "\n";
@@ -314,16 +331,21 @@ function cloudRadiusEnsureLines(origin?: string): string[] {
   const secret = radiusSecret().replace(/"/g, "");
   const { authPort, acctPort } = radiusPorts();
   const ports = `authentication-port=${authPort} accounting-port=${acctPort}`;
+  // MikroTik /radius client: service=hotspot, longer timeout for Africa→cloud RTT,
+  // require-message-auth=no so older/edge cases do not mark good Accepts as bad-replies
+  // (we still send Message-Authenticator from the server for ROS that require it).
   const lines = [
     `:do { /radius remove [find where comment="HotspotPro"] } on-error={ }`,
   ];
   if (IPV4_ADDR.test(host)) {
-    lines.push(`:do { /radius add service=hotspot address=${host} secret="${secret}" ${ports} timeout=3s comment="HotspotPro" } on-error={ }`);
+    lines.push(`:do { /radius add service=hotspot address=${host} secret="${secret}" ${ports} timeout=5s comment="HotspotPro" } on-error={ }`);
   } else {
     lines.push(`:local hpRad ""`);
     lines.push(`:do { :set hpRad [/resolve "${host}"] } on-error={ }`);
-    lines.push(`:if ([:len $hpRad] > 0) do={ :do { /radius add service=hotspot address=$hpRad secret="${secret}" ${ports} timeout=3s comment="HotspotPro" } on-error={ } }`);
+    lines.push(`:if ([:len $hpRad] > 0) do={ :do { /radius add service=hotspot address=$hpRad secret="${secret}" ${ports} timeout=5s comment="HotspotPro" } on-error={ } }`);
   }
+  lines.push(`:do { /radius set [find where comment="HotspotPro"] require-message-auth=no } on-error={ }`);
+  lines.push(`:do { :put ("HotspotPro: RADIUS hotspot → " . "${host}" . ":" . "${authPort}") } on-error={ }`);
   return lines;
 }
 
@@ -426,7 +448,7 @@ function syncActiveUsersFromRouter(routerIp: string, users: string[] | null | un
   setState("activeUsers", next, "server");
 }
 
-export function recordRouterStats(token: string, stats: { cpu: number | null; memory: number | null; uptime?: string | null; version?: string | null; architecture?: string | null; cpuCount?: string | null; board?: string | null; identity?: string | null; channel?: string | null; clients?: number | null; users?: string[] | null; dns?: string | null; pub?: string | null; wan?: string | null }) {
+export function recordRouterStats(token: string, stats: { cpu: number | null; memory: number | null; uptime?: string | null; version?: string | null; architecture?: string | null; cpuCount?: string | null; board?: string | null; identity?: string | null; channel?: string | null; clients?: number | null; users?: string[] | null; dns?: string | null; pub?: string | null; wan?: string | null; serial?: string | null; softwareId?: string | null }) {
   if (stats.users?.length) noteLiveVouchers(stats.users);
   const value = getState("routers")?.value;
   if (!Array.isArray(value)) return;
@@ -455,6 +477,8 @@ export function recordRouterStats(token: string, stats: { cpu: number | null; me
     if (stats.architecture) updated.architecture = stats.architecture;
     if (stats.cpuCount) updated.cpuCount = stats.cpuCount;
     if (stats.board) updated.hardwareModel = stats.board;
+    if (stats.serial) updated.hardwareSerial = stats.serial;
+    if (stats.softwareId) updated.softwareId = stats.softwareId;
     if (stats.identity) updated.name = stats.identity;
     if (stats.wan) updated.wanAddress = stats.wan;
     const seen = Array.isArray(row.seenHours) ? row.seenHours.filter((hour): hour is string => typeof hour === "string") : [];
@@ -481,11 +505,25 @@ export function recordRouterStats(token: string, stats: { cpu: number | null; me
         updated.winboxAddress = `${name || wanIp}:8291`;
         // Public path — laptop WinBox does not need the Back To Home tunnel IP.
         if (!row.wireguardConfig) updated.wireguardTunnelIp = null;
+      } else if (row.winboxRelay && typeof row.winboxAddress === "string" && row.winboxAddress && !String(row.winboxAddress).startsWith("192.168.216.")) {
+        // Cloud WinBox relay already published a public host:port — keep it.
+        updated.winboxReach = "direct";
+        updated.winboxAddress = row.winboxAddress;
+        updated.wireguardTunnelIp = null;
+        updated.winboxRelay = true;
       } else if (wanIp || name || ipv4(stats.pub) || row.wireguardConfig || row.winboxReach === "relay") {
-        // NAT / CGNAT / Back To Home — MikroTik's management peer is always this address.
-        updated.winboxReach = "relay";
-        updated.winboxAddress = "192.168.216.1";
-        updated.wireguardTunnelIp = "192.168.216.1";
+        // NAT / CGNAT — prefer cloud relay address when configured; else legacy tunnel IP.
+        const relay = winboxRelayAddress();
+        if (relay && row.wireguardConfig) {
+          updated.winboxReach = "direct";
+          updated.winboxAddress = relay.includes(":") ? relay : `${relay}:8291`;
+          updated.wireguardTunnelIp = null;
+          updated.winboxRelay = true;
+        } else {
+          updated.winboxReach = "relay";
+          updated.winboxAddress = "192.168.216.1";
+          updated.wireguardTunnelIp = "192.168.216.1";
+        }
       } else {
         // Remote on but WAN not reported yet — still reserve the tunnel IP so the UI is not blank.
         updated.winboxReach = "relay";
@@ -534,7 +572,11 @@ export function saveWireguardConfig(token: string, body: string) {
       remoteAccessEnabled: true,
     };
   });
-  if (changed) setState("routers", next, "router");
+  if (changed) {
+    setState("routers", next, "router");
+    // Cloud relay holds the WireGuard side so the admin PC only needs WinBox.
+    void import("./winboxRelay").then(({ armWinboxRelay }) => armWinboxRelay(token, conf)).catch(() => {});
+  }
   return changed;
 }
 

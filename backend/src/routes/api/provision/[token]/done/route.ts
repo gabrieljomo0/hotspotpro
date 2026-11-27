@@ -1,3 +1,4 @@
+import { normalizeHardwareId } from "@/server/hardwareId";
 import { completeProvision } from "@/server/provision";
 
 const TOKEN = /^[A-Za-z0-9_-]{8,128}$/;
@@ -13,7 +14,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
   const query = new URL(request.url).searchParams;
   const wan = query.get("wan") === "down";
   const net = query.get("net") === "down";
+  const serial = normalizeHardwareId(query.get("serial"));
+  const softwareId = normalizeHardwareId(query.get("swid"));
   const sourceIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null;
-  if (!completeProvision(token, { failed, sourceIp, deviceMode, wan, net })) return new Response("unknown\n", { status: 404 });
+  const result = completeProvision(token, { failed, sourceIp, deviceMode, wan, net, serial, softwareId });
+  if (!result) return new Response("unknown\n", { status: 404 });
+  if (result === "duplicate") {
+    return new Response("duplicate\n", { headers: { "Content-Type": "text/plain" } });
+  }
   return new Response("ok\n", { headers: { "Content-Type": "text/plain" } });
 }

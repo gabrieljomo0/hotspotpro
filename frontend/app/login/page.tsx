@@ -232,9 +232,6 @@ function LoginForm() {
     <main id="dashboard-root" className={`flex min-h-screen items-center justify-center bg-[#f4f4f4] px-5 py-10 text-[#1a1a1a] ${dark ? "dark" : ""}`}>
       <div className="w-full max-w-sm rounded-lg border border-[#e6e6e6] bg-white p-8">
         <p className="text-lg font-bold text-[#1a1a1a]">HotspotPro</p>
-        <div className="mt-3">
-          <InstallAppButton />
-        </div>
 
         <h1 className="mt-6 text-2xl font-bold text-[#1a1a1a]">
           {registerMode
@@ -415,6 +412,8 @@ function LoginForm() {
           </p>
         )}
       </div>
+      {/* Install stays at the bottom of the site only; users can close it. */}
+      <InstallAppButton />
     </main>
   );
 }

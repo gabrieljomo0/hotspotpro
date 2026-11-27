@@ -1,15 +1,20 @@
-# The API, router setup, and check-in (HTTPS).
-# WiFi opens the HotspotPro site portal (Vercel).
-# Render cannot receive public UDP 1812/1813. Cloud RADIUS works by:
-#   HOTSPOTPRO_RADIUS=on + HOTSPOTPRO_RADIUS_LISTEN=off + HOTSPOTPRO_RADIUS_HOST=<public IPv4>
-# and running `node scripts/radius-edge.mjs` on that public IP (forwards UDP → /api/radius/edge).
-# Or deploy the full API on Fly/Docker with UDP (see deploy/DEPLOY.md).
+# HotspotPro API on Render (HTTPS check-in, jobs, packages, vouchers).
+# WiFi portal UI stays on Vercel (HOTSPOTPRO_PORTAL_URL).
+#
+# Render cannot receive public UDP 1812/1813. Keep:
+#   HOTSPOTPRO_RADIUS=on
+#   HOTSPOTPRO_RADIUS_LISTEN=off
+#   HOTSPOTPRO_RADIUS_HOST=<public IPv4 of radius-edge / Fly / VPS>
+# and run `node scripts/radius-edge.mjs` on that IP (see deploy/DEPLOY.md).
+#
+# Persist data with SUPABASE_* (Render's free disk is wiped on deploy).
+# Prefer Starter (always-on) over Free — Free sleeps and routers miss check-ins.
 services:
   - type: web
     name: hotspotpro-api
     runtime: node
     region: frankfurt
-    plan: free
+    plan: starter
     rootDir: backend
     buildCommand: npm install --include=dev && npm run build
     startCommand: npm start
@@ -28,7 +33,9 @@ services:
       - key: HOTSPOTPRO_SESSION_SECRET
         generateValue: true
       - key: HOTSPOTPRO_PUBLIC_URL
-        sync: false
+        value: https://hotspotpro-api.onrender.com
+      - key: HOTSPOTPRO_PORTAL_URL
+        value: https://hotspotpro-mu.vercel.app
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY

@@ -40,6 +40,13 @@ primary_region = "lhr"
   [[services.ports]]
     port = 1813
 
+# Cloud WinBox: admin PC → dedicated IPv4:8291 → Back-To-Home tunnel on this VM → router.
+[[services]]
+  internal_port = 8291
+  protocol = "tcp"
+  [[services.ports]]
+    port = 8291
+
 [[vm]]
   memory = "512mb"
   cpu_kind = "shared"

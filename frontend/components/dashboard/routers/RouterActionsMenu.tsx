@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Eye, Power, Monitor, RefreshCcw, Pencil, Trash2, Bell, KeyRound, FolderSync, Clock3, FileCode2, PauseCircle, PlayCircle, PlugZap, Unplug } from "lucide-react";
+import { Eye, Power, Monitor, RefreshCcw, Pencil, Trash2, Bell, KeyRound, FolderSync, Clock3, FileCode2, PauseCircle, PlayCircle, PlugZap, Unplug, Upload } from "lucide-react";
 
 import { openEditRouter, openReprovisionScript } from "../shared/editEvents";
 import { DropdownMenuPortal } from "../shared/DropdownMenuPortal";
@@ -66,7 +66,8 @@ export function RouterActionsMenu({
       </button>
 
       <button type="button" className={itemClass} onClick={handleRemoteWinbox}>
-        <Monitor size={14} className="text-[#1a1a1a]" /> {router.remoteAccessEnabled ? "Remote WinBox is on" : "Enable remote access"}
+        <Monitor size={14} className="text-[#1a1a1a]" />{" "}
+        {router.remoteAccessEnabled ? "Prepare remote WinBox" : "Enable remote WinBox"}
       </button>
 
       <button
@@ -75,10 +76,21 @@ export function RouterActionsMenu({
         className={itemClass}
         onClick={() => {
           onClose();
-          openReprovisionScript(router.ip);
+          openReprovisionScript(router.ip, "auto");
         }}
       >
-        <RefreshCcw size={14} className="text-[#1a1a1a]" /> Reprovision router
+        <RefreshCcw size={14} className="text-[#1a1a1a]" /> Reprovision (auto)
+      </button>
+      <button
+        type="button"
+        data-testid="reprovision-router-paste"
+        className={itemClass}
+        onClick={() => {
+          onClose();
+          openReprovisionScript(router.ip, "paste");
+        }}
+      >
+        <FileCode2 size={14} className="text-[#1a1a1a]" /> Reprovision (paste script)
       </button>
 
       <button type="button" data-testid="router-edit-identity" className={itemClass} onClick={handleEditIdentity}>
@@ -97,6 +109,15 @@ export function RouterActionsMenu({
         onClick={() => run(() => startRouterTask("winbox", router.ip))}
       >
         <KeyRound size={14} className="text-[#1a1a1a]" /> Refresh WinBox
+      </button>
+
+      <button
+        type="button"
+        data-testid="push-to-router-menu"
+        className={itemClass}
+        onClick={() => run(() => startRouterTask("push-to-router", router.ip))}
+      >
+        <Upload size={14} className="text-[#1a1a1a]" /> Push packages & vouchers
       </button>
 
       <button

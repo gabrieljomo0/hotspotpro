@@ -8,6 +8,7 @@ import { ConfirmationDialog } from "../dialogs/ConfirmationDialog";
 import { RouterTaskHost } from "../routers/RouterTaskHost";
 import { ConfirmHost } from "../shared/ConfirmHost";
 import { RouterEditHost } from "../routers/RouterEditHost";
+import { InstallAppButton } from "@/components/InstallAppButton";
 import { ReprovisionScriptHost } from "../routers/ReprovisionScriptHost";
 import { DashboardLoader } from "../shared/DashboardLoader";
 import { Toast } from "../shared/Toast";
@@ -95,6 +96,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       <Toast message={controller.toastMessage} />
       <NewApplicationPopup />
       <CurrencyGate />
+      {/* Install stays at the bottom of the site only; users can close it. */}
+      <InstallAppButton />
     </div>
   );
 }

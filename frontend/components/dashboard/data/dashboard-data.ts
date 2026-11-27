@@ -128,6 +128,8 @@ export type RouterInfo = {
   winboxAddress: string;
   /** lan: admin port only. direct: public WinBox port. relay: WireGuard, then WinBox. */
   winboxReach?: "lan" | "direct" | "relay";
+  /** Cloud API holds Back-To-Home WireGuard; WinBox uses a public host:port (no client WG). */
+  winboxRelay?: boolean;
   wireguardConfig?: string | null;
   bypassModeEnabled: boolean;
   isDefault: boolean;
@@ -161,6 +163,10 @@ export type RouterInfo = {
   // Device info
   routerOSVersion: string;
   hardwareModel: string;
+  /** MikroTik routerboard serial — blocks adding the same board as a second router until deleted. */
+  hardwareSerial?: string;
+  /** Fallback board id when serial is missing (CHR / license software-id). */
+  softwareId?: string;
   architecture: string;
   cpuCount: string;
   uptime30Day: number | null;
@@ -193,8 +199,10 @@ export type RouterInfo = {
   // Only one is active. Cloud checks every login here. Local keeps the vouchers on the MikroTik.
   loginMode?: "cloud" | "local";
 
-  // Wireless capability (actual SSID lives in captivePortalConfigs per router)
+  // Wireless capability (SSID also stored here so setup/check-in keep the given name)
   hasWireless: boolean;
+  /** Wi‑Fi name chosen at Add Router (or later). Empty → use captive portal / router name. */
+  wifiSsid?: string;
 
   // The port the internet (ISP) cable goes into; ether1 unless the owner chose another.
   wanInterface?: string;

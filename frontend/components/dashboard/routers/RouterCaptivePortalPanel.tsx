@@ -44,6 +44,7 @@ export function RouterCaptivePortalPanel({
     businessLocations,
     masterPortal,
     showToast,
+    startRouterTask,
   } = useDashboard();
   const locked = masterIsOn(masterPortal, section);
 
@@ -88,13 +89,10 @@ export function RouterCaptivePortalPanel({
     setApplying(true);
     try {
       updateCaptivePortalConfigForSite(selectedSiteId, form);
-      // Push login pages, WiFi bridge, walled garden, and vouchers so WiFi opens the captive portal.
-      queueRouterAction(router.ip, "sync-files");
-      queueRouterAction(router.ip, "wifi");
-      queueRouterAction(router.ip, "walled-garden");
-      queueRouterAction(router.ip, "sync-vouchers");
+      // One force job: portal + WiFi bridge + packages + vouchers onto this router.
+      startRouterTask("push-to-router", router.ip);
       setSaved(form);
-      showToast("Settings saved. WiFi will open the voucher login page within about 3 seconds.");
+      showToast("Settings saved. Packages, vouchers, and captive portal are being pushed to this router.");
     } finally {
       setApplying(false);
     }

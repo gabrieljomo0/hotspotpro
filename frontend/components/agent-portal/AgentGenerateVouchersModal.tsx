@@ -17,7 +17,12 @@ import { X, Sparkles, Wallet, Plus, Router as RouterIcon, ShieldAlert } from "lu
 import { useDashboard } from "@/components/dashboard/context/DashboardContext";
 import { REQUIRE_COMPLETE_PROFILE_FOR_VOUCHERS, getSellablePackages, isAgentProfileComplete, missingProfileFields } from "@/components/dashboard/agents/agentPackages";
 import { settingsOf, validateCustomCredentials } from "@/components/dashboard/agents/agentSettings";
-import type { AgentProfile, VoucherCountFrom, VoucherLimitBy } from "@/components/dashboard/shared/types";
+import type {
+  AgentProfile,
+  VoucherCodeFormat,
+  VoucherCountFrom,
+  VoucherLimitBy,
+} from "@/components/dashboard/shared/types";
 import { VoucherAllowanceFields } from "@/components/dashboard/vouchers/VoucherAllowanceFields";
 import { loginMethodForRouterIps, loginMethodLabel } from "@/components/dashboard/vouchers/voucherLoginFromPortal";
 import {
@@ -44,6 +49,7 @@ export function AgentGenerateVouchersModal({
   const [limitBy, setLimitBy] = useState<VoucherLimitBy>("both");
   const [countFrom, setCountFrom] = useState<VoucherCountFrom>("signin");
   const [quantity, setQuantity] = useState<number | "">(VOUCHER_BATCH_DEFAULT);
+  const [codeFormat, setCodeFormat] = useState<VoucherCodeFormat>("uppercase");
   // Optional, and only for a single voucher — see "canCustomize" below.
   const [customCode, setCustomCode] = useState("");
   const [customPassword, setCustomPassword] = useState("");
@@ -143,7 +149,7 @@ export function AgentGenerateVouchersModal({
       packageName,
       reference: "",
       quantity: resolvedQuantity,
-      codeFormat: "uppercase",
+      codeFormat,
       codeLength: 6,
       prefix: "",
       note: "",
@@ -265,6 +271,23 @@ export function AgentGenerateVouchersModal({
             <span className="mt-1 block text-xs text-[#a3a3a3]">
               Default {VOUCHER_BATCH_DEFAULT} if empty. Up to {VOUCHER_BATCH_MAX} per batch.
             </span>
+          </label>
+
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-[#525252]">
+              Code Format <span className="text-red-500">*</span>
+            </span>
+            <select
+              value={codeFormat}
+              onChange={(event) => setCodeFormat(event.target.value as VoucherCodeFormat)}
+              className="h-11 w-full rounded-xl border border-[#d4d4d4] bg-white px-3 text-sm outline-none focus:border-[#1a1a1a]"
+            >
+              <option value="uppercase">Uppercase (A-Z, 0-9)</option>
+              <option value="lowercase">Lowercase (a-z, 0-9)</option>
+              <option value="letters-lower">Small letters only (a-z)</option>
+              <option value="mixed">Mixed Case (a-zA-Z, 0-9)</option>
+              <option value="numeric">Numeric only (0-9)</option>
+            </select>
           </label>
 
           {agent.requiresWalletFunding && selected && (

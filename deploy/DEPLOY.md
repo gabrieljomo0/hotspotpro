@@ -21,12 +21,34 @@ Then put Caddy/nginx in front of port 4000 for HTTPS. In the dashboard, add a ro
 **Cloud RADIUS** (default when RADIUS is on). WiFi opens the site portal; Connect authenticates
 vouchers via RADIUS.
 
-## Fast path: Fly.io (UDP + HTTPS)
+## Fast path: Render API + UDP edge on a public IP (no Fly card)
+
+Render cannot receive UDP. Keep the API on Render, open **Cloud RADIUS**, and run a tiny
+UDP forwarder on any machine with a public IPv4 (this PC, a VPS, etc.):
+
+```bash
+# On Render (Environment):
+#   HOTSPOTPRO_RADIUS=on
+#   HOTSPOTPRO_RADIUS_LISTEN=off
+#   HOTSPOTPRO_RADIUS_HOST=<your public IPv4>
+#   HOTSPOTPRO_RADIUS_SECRET=<shared secret>
+
+# On the public-IP machine:
+cd backend
+set HOTSPOTPRO_BACKEND_URL=https://hotspotpro-api.onrender.com
+set HOTSPOTPRO_RADIUS_SECRET=<same shared secret>
+node scripts/radius-edge.mjs
+# Windows: allow UDP 1812 and 1813 inbound (admin). RouterOS /radius address = that IPv4.
+```
+
+Set each router to **Cloud RADIUS**, then re-paste the setup command so `/radius` points at the edge IP.
+
+## Fast path: Fly.io (UDP + HTTPS on one host)
 
 ```bash
 fly auth login
 fly launch --no-deploy   # uses fly.toml in the repo root
-fly ips allocate-v4      # required for UDP — note the dedicated IPv4
+fly ips allocate-v4      # required for UDP — needs a card on Fly ($2/mo dedicated IPv4)
 fly secrets set HOTSPOTPRO_PUBLIC_URL=https://your-app.fly.dev \
   HOTSPOTPRO_RADIUS_HOST=<that dedicated IPv4> \
   HOTSPOTPRO_RADIUS=on \

@@ -26,14 +26,27 @@ import { forEachTenant, getState, getTenant, listTenants, setState, tenantsForVo
 import { switchedOffRouter } from "./control";
 import { limited } from "./limit";
 import { accessDecision } from "./accessGate";
+import { profileName } from "./localUsers";
 
 export const ACCESS_REQUEST = 1, ACCESS_ACCEPT = 2, ACCESS_REJECT = 3, ACCT_REQUEST = 4, ACCT_RESPONSE = 5;
 const A = {
   UserName: 1, UserPassword: 2, ChapPassword: 3, NasIp: 4, FramedIp: 8, ReplyMessage: 18, VendorSpecific: 26,
   SessionTimeout: 27, CalledStation: 30, CallingStation: 31, NasIdentifier: 32, AcctStatusType: 40, AcctInputOctets: 42, AcctOutputOctets: 43,
-  AcctSessionId: 44, AcctSessionTime: 46, AcctInputGiga: 52, AcctOutputGiga: 53, ChapChallenge: 60, AcctInterim: 85,
+  AcctSessionId: 44, AcctSessionTime: 46, AcctInputGiga: 52, AcctOutputGiga: 53, ChapChallenge: 60,
+  /** RFC 2869 — required by modern RouterOS (`require-message-auth`). Wrong/missing → bad-replies, voucher bounce. */
+  MessageAuthenticator: 80,
+  AcctInterim: 85,
+  /** Overrides HotSpot profile shared-users (MikroTik RADIUS docs). */
+  PortLimit: 62,
 };
 const MIKROTIK = 14988;
+/** Vendor types from MikroTik RADIUS dictionary (help.mikrotik.com RADIUS page). */
+const MT = {
+  Group: 3, // HotSpot → user profile name
+  RateLimit: 8,
+  TotalLimit: 17,
+  TotalLimitGiga: 18,
+};
 
 export function radiusSecret() {
   return process.env.HOTSPOTPRO_RADIUS_SECRET || secretFor("radius", () => crypto.randomBytes(12).toString("hex"));
@@ -115,12 +128,36 @@ const mikrotik = (vtype: number, value: Buffer | string | number) => {
   return { type: A.VendorSpecific, value: Buffer.concat([vendor, inner]) } as Attr;
 };
 
+function encodeAttrs(attrs: Attr[]) {
+  return Buffer.concat(attrs.map((a) => Buffer.concat([Buffer.from([a.type, a.value.length + 2]), a.value])));
+}
+
+/**
+ * Build Access-Accept / Access-Reject with Message-Authenticator (attr 80).
+ * RouterOS 7.15+ defaults require-message-auth=yes-for-request-resp; without a valid
+ * HMAC the router increments bad-replies and the captive portal bounces the voucher.
+ * See https://help.mikrotik.com/docs/spaces/ROS/pages/328097/RADIUS
+ */
 export function buildResponse(code: number, request: Packet, attrs: Attr[], secret: string) {
-  const body = Buffer.concat(attrs.map((a) => Buffer.concat([Buffer.from([a.type, a.value.length + 2]), a.value])));
+  const withoutMa = attrs.filter((a) => a.type !== A.MessageAuthenticator);
+  const maPlaceholder = { type: A.MessageAuthenticator, value: Buffer.alloc(16) } as Attr;
+  const withMa = [...withoutMa, maPlaceholder];
+  const body = encodeAttrs(withMa);
+  const length = 20 + body.length;
+  // HMAC-MD5 over the packet with Request Authenticator and zeroed Message-Authenticator.
+  const forHmac = Buffer.alloc(length);
+  forHmac[0] = code;
+  forHmac[1] = request.id;
+  forHmac.writeUInt16BE(length, 2);
+  request.auth.copy(forHmac, 4);
+  body.copy(forHmac, 20);
+  const hmac = crypto.createHmac("md5", secret).update(forHmac).digest();
+  hmac.copy(body, body.length - 16);
+
   const header = Buffer.alloc(20);
   header[0] = code;
   header[1] = request.id;
-  header.writeUInt16BE(20 + body.length, 2);
+  header.writeUInt16BE(length, 2);
   request.auth.copy(header, 4);
   const auth = crypto.createHash("md5").update(header).update(body).update(secret).digest();
   auth.copy(header, 4);
@@ -145,7 +182,7 @@ function decodePap(encrypted: Buffer, auth: Buffer, secret: string) {
 // ---- who may log in -----------------------------------------------------------------
 
 export type Decision =
-  | { ok: true; seconds: number; bytesLeft: number | null; rate: string; interim: number }
+  | { ok: true; seconds: number; bytesLeft: number | null; rate: string; interim: number; devices: number; group: string }
   | { ok: false; reason: string };
 
 const OPEN_WINDOW_MS = 20 * 60 * 1000; // a session not heard from for 20 min no longer counts as "online"
@@ -204,6 +241,9 @@ export function decide(
     bytesLeft: cap === null ? null : cap - used,
     rate: pkg ? `${mbps(pkg.uploadMbps)}/${mbps(pkg.downloadMbps)}` : "5000k/5000k",
     interim: 60,
+    devices,
+    // Mikrotik-Group → HotSpot user profile (must exist on router via packageProfileLines).
+    group: profileName(pkg, voucher.packageName || "default"),
   };
 }
 
@@ -347,15 +387,20 @@ function serveAccess(
   if (!decision.ok) return reject(decision.reason);
 
   activate(voucher!, station);
+  // Attributes per MikroTik RADIUS docs (help.mikrotik.com …/RADIUS):
+  // Session-Timeout, Acct-Interim-Interval, Port-Limit, Mikrotik-Rate-Limit,
+  // Mikrotik-Total-Limit(+Gigawords), Mikrotik-Group (HotSpot profile name).
   const attrs: Attr[] = [
     attr(A.SessionTimeout, decision.seconds),
     attr(A.AcctInterim, decision.interim),
-    mikrotik(8, decision.rate),
+    attr(A.PortLimit, decision.devices),
+    mikrotik(MT.RateLimit, decision.rate),
+    mikrotik(MT.Group, decision.group),
   ];
   if (decision.bytesLeft !== null) {
     const bytes = Math.max(1, decision.bytesLeft);
-    attrs.push(mikrotik(17, bytes % 2 ** 32));
-    attrs.push(mikrotik(18, Math.floor(bytes / 2 ** 32)));
+    attrs.push(mikrotik(MT.TotalLimit, bytes % 2 ** 32));
+    attrs.push(mikrotik(MT.TotalLimitGiga, Math.floor(bytes / 2 ** 32)));
   }
   attrs.push(attr(A.ReplyMessage, "Welcome"));
   void source;

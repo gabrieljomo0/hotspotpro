@@ -89,7 +89,9 @@ export default function AddRouterPage() {
   const [wifiSsid, setWifiSsid] = useState("");
 
   // Hotspot address range, chosen from how many people use it at once.
+  // Default = recommended IP for the size; Custom = owner picks their own.
   const [peak, setPeak] = useState<PeakChoice>(DEFAULT_PEAK);
+  const [lanIpMode, setLanIpMode] = useState<"default" | "custom">("default");
   const [lanIp, setLanIp] = useState("");
 
   const [started, setStarted] = useState(false);
@@ -117,10 +119,16 @@ export default function AddRouterPage() {
 
   const provisioningToken = useRef(generateToken());
   const peakPlan = planFor(peak);
-  const lanInput = lanIp.trim() || peakPlan.lanIp;
+  const lanInput = lanIpMode === "custom" && lanIp.trim() ? lanIp.trim() : peakPlan.lanIp;
   const lanParsed = parseLanIp(lanInput);
-  const lanError = "error" in lanParsed ? lanParsed.error : "";
-  const hotspotNetwork = "error" in lanParsed ? planFor(peak).lanIp : lanParsed.network;
+  const lanError =
+    lanIpMode === "custom" && !lanIp.trim()
+      ? "Enter the IP you want, like 192.168.10.1/24."
+      : "error" in lanParsed
+        ? lanParsed.error
+        : "";
+  const hotspotNetwork = "error" in lanParsed ? peakPlan.lanIp : lanParsed.network;
+  const hotspotGatewayLabel = "error" in lanParsed ? peakPlan.lanIp : `${lanParsed.ip}/${lanParsed.prefix}`;
   const typedDns = dnsName
     .toLowerCase()
     .replace(/[^a-z0-9.-]/g, "")
@@ -248,10 +256,22 @@ export default function AddRouterPage() {
   const tlsFlag = fetchMode === "https" ? " check-certificate=no" : "";
   // :execute runs without y/N prompts — paste must never wait for the keyboard.
   const modeCommand = `:execute script={/system device-mode update mode=advanced}`;
-  const provisioningCommand = `:global hpFile "hotspotpro.rsc"; :do { /interface bridge port remove [find where interface=${wanClean}] } on-error={ }; :do { /ip dhcp-client add interface=${wanClean} disabled=no add-default-route=yes use-peer-dns=yes comment="HotspotPro WAN DHCP Client" } on-error={ }; :delay 8s; :do { /tool fetch mode=${fetchMode} url="${setupUrl}" dst-path=$hpFile${tlsFlag} } on-error={ :delay 8s; /tool fetch mode=${fetchMode} url="${setupUrl}" dst-path=$hpFile${tlsFlag} }; :delay 2s; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; :if ([:len [/file find where name=$hpFile]] > 0) do={ :do { :execute script={/import file-name=$hpFile} file=hotspotpro-import-out.txt } on-error={ /import file-name=$hpFile }; :do { /file remove [find where name=hotspotpro-import-out.txt] } on-error={ }; :do { /file remove [find where name=$hpFile] } on-error={ }; :do { /file remove [find where name=("flash/" . $hpFile)] } on-error={ }; :put "HotspotPro: setup finished — no keyboard input needed." } else={ :put "HotspotPro: download failed. Check the URL and internet on this router." }`;
+  // Never use interactive /import in the Terminal — it stops on errors asking y/N ("in:").
+  // Always :execute the import (no keyboard), then stream the output file so steps still show.
+  const provisioningCommand = [
+    `:put "HotspotPro: 1/4 preparing the internet port..."`,
+    `:global hpFile "hotspotpro.rsc"`,
+    `:do { /interface bridge port remove [find where interface=${wanClean}] } on-error={ }`,
+    `:do { /ip dhcp-client add interface=${wanClean} disabled=no add-default-route=yes use-peer-dns=yes comment="HotspotPro WAN DHCP Client" } on-error={ }`,
+    `:delay 8s`,
+    `:put "HotspotPro: 2/4 downloading the setup script..."`,
+    `:do { /tool fetch mode=${fetchMode} url="${setupUrl}" dst-path=$hpFile${tlsFlag} } on-error={ :delay 8s; /tool fetch mode=${fetchMode} url="${setupUrl}" dst-path=$hpFile${tlsFlag} }`,
+    `:delay 2s`,
+    `:if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }`,
+    `:if ([:len [/file find where name=$hpFile]] > 0) do={ :put "HotspotPro: 3/4 running configuration (no keyboard needed) — steps print below..."; :do { /file remove [find where name=hotspotpro-import-out.txt] } on-error={ }; :execute script={/import file-name=$hpFile} file=hotspotpro-import-out.txt; :local hpN 0; :local hpLast 0; :local hpDone 0; :local hpIdle 0; :while ($hpN < 360 && $hpDone = 0) do={ :delay 1s; :set hpN ($hpN + 1); :do { :local c [/file get [find where name=hotspotpro-import-out.txt] contents]; :local len [:len $c]; :if ($len > $hpLast) do={ :put [:pick $c $hpLast $len]; :set hpLast $len; :set hpIdle 0 } else={ :set hpIdle ($hpIdle + 1) }; :if ([:typeof [:find $c "HotspotPro setup is complete"]] = "num") do={ :set hpDone 1 }; :if ($hpIdle > 25 && $hpLast > 0) do={ :set hpDone 1 } } on-error={ :set hpIdle ($hpIdle + 1); :if ($hpIdle > 40) do={ :set hpDone 1 } } }; :do { /file remove [find where name=hotspotpro-import-out.txt] } on-error={ }; :do { /file remove [find where name=$hpFile] } on-error={ }; :do { /file remove [find where name=("flash/" . $hpFile)] } on-error={ }; :put "HotspotPro: 4/4 setup finished on the router — no keyboard input needed." } else={ :put "HotspotPro: download failed. Check the URL and internet on this router." }`,
+  ].join("; ");
 
   const provisionSteps = buildProvisionSteps(routerType, hotspotEnabled, pppoeEnabled);
-  const connected = started && doneCount >= provisionSteps.length;
 
   // With the HotspotPro server running, the command's link is registered with
   // it while this step is open, and the LAST stage ("router checking in")
@@ -259,7 +279,10 @@ export default function AddRouterPage() {
   // falls back to the timed demo.
   const [serverMode, setServerMode] = useState(false);
   const [serverDone, setServerDone] = useState(false);
+  const [scriptFetched, setScriptFetched] = useState(false);
   const linkedIp = useRef<string | null>(null);
+  // Never treat setup as complete until the router reports /done when the API is available.
+  const connected = started && doneCount >= provisionSteps.length && (!serverMode || serverDone);
   useEffect(() => {
     if (step !== 1) return;
     let cancelled = false;
@@ -279,6 +302,7 @@ export default function AddRouterPage() {
           pppoeEnabled,
           pppoeNetwork: pppoeEnabled ? pppoeNetwork : "",
           hasWireless: routerType === "New Router" ? hasWireless : undefined,
+          wifiSsid: hasWireless ? wifiSsid.trim() : undefined,
           wanInterface: wanClean,
           managementPort: "",
           lastPortFree,
@@ -304,26 +328,37 @@ export default function AddRouterPage() {
         if (!response.ok) return;
         const status = (await response.json()) as { fetched: boolean; done: boolean; routerIp?: string | null };
         if (status.routerIp) linkedIp.current = status.routerIp;
+        if (status.fetched) setScriptFetched(true);
+        // Start the webpage loader only when the router actually downloads the script
+        // (or finishes) — not when the user merely copies the paste command.
         if (status.fetched || status.done) startProvisioning();
-        if (status.done) setServerDone(true);
+        if (status.done) {
+          setServerDone(true);
+          setDoneCount(provisionSteps.length);
+        }
       } catch {
         // try again on the next tick
       }
-    }, 2500);
+    }, 2000);
     return () => window.clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serverMode, serverDone, started]);
 
-  // Tick the stages off one by one, once the command has been run.
+  // Tick stages as the router works. Hold the last stage until /done reports in.
   useEffect(() => {
     if (!started || connected) return;
-    // Waiting for the real router to check in (server mode).
     if (serverMode && !serverDone && doneCount >= provisionSteps.length - 1) return;
+    const delay =
+      serverMode && !scriptFetched
+        ? STEP_MS * 2
+        : serverMode && !serverDone && doneCount >= provisionSteps.length - 2
+          ? STEP_MS * 2
+          : STEP_MS;
     const timer = window.setTimeout(() => {
-      setDoneCount((count) => count + 1);
-    }, STEP_MS);
+      setDoneCount((count) => Math.min(count + 1, provisionSteps.length - (serverMode && !serverDone ? 1 : 0)));
+    }, delay);
     return () => window.clearTimeout(timer);
-  }, [started, doneCount, connected, serverMode, serverDone]);
+  }, [started, doneCount, connected, serverMode, serverDone, scriptFetched, provisionSteps.length]);
 
   // Everything succeeded: say so, then open the router's dashboard.
   useEffect(() => {
@@ -355,13 +390,16 @@ export default function AddRouterPage() {
     navigator.clipboard?.writeText(which === "mode" ? modeCommand : provisioningCommand).catch(() => {});
     setCopied(which);
     window.setTimeout(() => setCopied(null), 1500);
-    if (which === "config") startProvisioning();
+    if (which === "config") {
+      showToast("Paste the command in WinBox Terminal. This page waits until the router finishes setup.");
+    }
   }
 
   function handleCheckNow() {
     if (!started) {
-      showToast("Checking router status…");
-      startProvisioning();
+      showToast(serverMode ? "Waiting for the router to download the script…" : "Checking router status…");
+      // Offline / no API: allow a local progress demo. With API, still wait for fetch/done.
+      if (!serverMode) startProvisioning();
     }
   }
 
@@ -370,6 +408,8 @@ export default function AddRouterPage() {
     setStarted(false);
     setDoneCount(0);
     setCountdown(null);
+    setServerDone(false);
+    setScriptFetched(false);
     setStep(0);
   }
 
@@ -657,7 +697,9 @@ export default function AddRouterPage() {
                       </span>
                     </div>
                     <p className="text-xs text-[#a3a3a3]">WiFi hotspot for public access</p>
-                    <p className="font-mono text-xs text-[#a3a3a3]" data-testid="hotspot-network">Network: {hotspotNetwork}</p>
+                    <p className="font-mono text-xs text-[#a3a3a3]" data-testid="hotspot-network">
+                      Network: {hotspotNetwork} · Gateway: {hotspotGatewayLabel}
+                    </p>
                   </button>
                   <button
                     type="button"
@@ -717,13 +759,86 @@ export default function AddRouterPage() {
                   </div>
                 )}
                 {hotspotEnabled && (
-                  <HotspotSizingPanel
-                    peak={peak}
-                    onPeak={(next) => {
-                      setPeak(next);
-                      setLanIp("");
-                    }}
-                  />
+                  <>
+                    <HotspotSizingPanel
+                      peak={peak}
+                      onPeak={(next) => {
+                        setPeak(next);
+                        if (lanIpMode === "default") setLanIp("");
+                      }}
+                    />
+                    <div className="mt-4 rounded-xl border border-[#e6e6e6] bg-white p-4" data-testid="lan-ip-choice">
+                      <p className="text-sm font-bold text-[#1a1a1a]">Hotspot IP address</p>
+                      <p className="mt-1 text-xs text-[#737373]">
+                        This is the gateway customers use on Wi‑Fi. Keep the recommended address, or set your own if you already use a specific range.
+                      </p>
+                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                        <button
+                          type="button"
+                          role="radio"
+                          aria-checked={lanIpMode === "default"}
+                          data-testid="lan-ip-default"
+                          onClick={() => {
+                            setLanIpMode("default");
+                            setLanIp("");
+                          }}
+                          className={`rounded-xl border-2 p-3 text-left ${
+                            lanIpMode === "default" ? "border-[#1a1a1a] bg-[#f4f4f4]" : "border-[#e6e6e6]"
+                          }`}
+                        >
+                          <span className="text-sm font-bold text-[#1a1a1a]">Keep default IP</span>
+                          <span className="mt-1 block font-mono text-xs text-[#525252]">{peakPlan.lanIp}</span>
+                          <span className="mt-1 block text-xs text-[#737373]">Recommended for the size you picked above.</span>
+                        </button>
+                        <button
+                          type="button"
+                          role="radio"
+                          aria-checked={lanIpMode === "custom"}
+                          data-testid="lan-ip-custom"
+                          onClick={() => {
+                            setLanIpMode("custom");
+                            if (!lanIp.trim()) setLanIp(peakPlan.lanIp);
+                          }}
+                          className={`rounded-xl border-2 p-3 text-left ${
+                            lanIpMode === "custom" ? "border-[#1a1a1a] bg-[#f4f4f4]" : "border-[#e6e6e6]"
+                          }`}
+                        >
+                          <span className="text-sm font-bold text-[#1a1a1a]">Use my own IP</span>
+                          <span className="mt-1 block text-xs text-[#737373]">
+                            Enter a private gateway like 192.168.10.1/24.
+                          </span>
+                        </button>
+                      </div>
+                      {lanIpMode === "custom" ? (
+                        <label className="mt-3 block">
+                          <span className="mb-1 block text-xs font-semibold text-[#525252]">Gateway IP / size</span>
+                          <input
+                            data-testid="lan-ip-input"
+                            value={lanIp}
+                            onChange={(event) => setLanIp(event.target.value.trim())}
+                            placeholder={peakPlan.lanIp}
+                            className="h-11 w-full max-w-md rounded-xl border border-[#e6e6e6] bg-white px-3 font-mono text-sm outline-none focus:border-[#1a1a1a]"
+                          />
+                          {lanError ? (
+                            <span className="mt-1 block text-xs text-red-600">{lanError}</span>
+                          ) : "error" in lanParsed ? null : (
+                            <span className="mt-1 block text-xs text-[#737373]">
+                              Network {lanParsed.network} · DHCP {lanParsed.poolStart}–{lanParsed.poolEnd} (~
+                              {lanParsed.usableHosts} addresses)
+                            </span>
+                          )}
+                          <span className="mt-1 block text-xs text-[#a3a3a3]">
+                            Do not use 192.168.88.x — that stays for WinBox admin. Private ranges only (10.x, 172.16–31.x, 192.168.x).
+                          </span>
+                        </label>
+                      ) : (
+                        <p className="mt-3 text-xs text-[#737373]">
+                          Using <span className="font-mono text-[#1a1a1a]">{peakPlan.lanIp}</span> (
+                          {"error" in lanParsed ? hotspotNetwork : lanParsed.network}).
+                        </p>
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
             )}
@@ -944,56 +1059,103 @@ export default function AddRouterPage() {
               )}
             </div>
 
-            {/* Live provisioning progress: circular percentage loader */}
-            <div data-testid="provision-progress" className="flex flex-col items-center rounded-xl border border-[#f4f4f4] p-6 text-center">
-              {(() => {
-                const pct = Math.round((doneCount / provisionSteps.length) * 100);
-                const R = 54;
-                const C = 2 * Math.PI * R;
-                return (
-                  <div className="relative h-36 w-36">
-                    <svg viewBox="0 0 128 128" className="h-full w-full -rotate-90">
-                      <circle cx="64" cy="64" r={R} fill="none" stroke="#e6e6e6" strokeWidth="10" />
-                      <circle
-                        data-testid="provision-ring"
-                        cx="64"
-                        cy="64"
-                        r={R}
-                        fill="none"
-                        stroke="#1a1a1a"
-                        strokeWidth="10"
-                        strokeLinecap="round"
-                        strokeDasharray={C}
-                        strokeDashoffset={C * (1 - pct / 100)}
-                        style={{ transition: "stroke-dashoffset 600ms ease" }}
-                      />
-                    </svg>
-                    <span
-                      data-testid="provision-percent"
-                      className="absolute inset-0 flex items-center justify-center text-3xl font-black text-[#1a1a1a]"
-                    >
-                      {pct}%
-                    </span>
-                  </div>
-                );
-              })()}
-              <p className="mt-4 text-sm font-bold text-[#1a1a1a]">
-                {connected ? "Setup completed" : "Setting up your router"}
-              </p>
-              <p data-testid="provision-status" className="text-xs text-[#a3a3a3]">
-                {!started
-                  ? "Paste the configuration command on the router to begin."
-                  : connected
-                    ? "Your router is ready."
-                    : "Please wait, this takes a moment…"}
-              </p>
+            {/* Live provisioning progress: ring + one step at a time (fade in → out) */}
+            <div data-testid="provision-progress" className="rounded-xl border border-[#f4f4f4] p-6">
+              <style>{`
+                @keyframes hp-step-fade {
+                  0% { opacity: 0; transform: translateY(8px); }
+                  14% { opacity: 1; transform: translateY(0); }
+                  78% { opacity: 1; transform: translateY(0); }
+                  100% { opacity: 0; transform: translateY(-6px); }
+                }
+                @keyframes hp-step-hold {
+                  0% { opacity: 0; transform: translateY(8px); }
+                  20% { opacity: 1; transform: translateY(0); }
+                  100% { opacity: 1; transform: translateY(0); }
+                }
+              `}</style>
+              <div className="flex flex-col items-center text-center">
+                {(() => {
+                  const pct = Math.round((doneCount / provisionSteps.length) * 100);
+                  const R = 54;
+                  const C = 2 * Math.PI * R;
+                  return (
+                    <div className="relative h-36 w-36">
+                      <svg viewBox="0 0 128 128" className="h-full w-full -rotate-90">
+                        <circle cx="64" cy="64" r={R} fill="none" stroke="#e6e6e6" strokeWidth="10" />
+                        <circle
+                          data-testid="provision-ring"
+                          cx="64"
+                          cy="64"
+                          r={R}
+                          fill="none"
+                          stroke="#1a1a1a"
+                          strokeWidth="10"
+                          strokeLinecap="round"
+                          strokeDasharray={C}
+                          strokeDashoffset={C * (1 - pct / 100)}
+                          style={{ transition: "stroke-dashoffset 600ms ease" }}
+                        />
+                      </svg>
+                      <span
+                        data-testid="provision-percent"
+                        className="absolute inset-0 flex items-center justify-center text-3xl font-black text-[#1a1a1a]"
+                      >
+                        {pct}%
+                      </span>
+                    </div>
+                  );
+                })()}
+                <p className="mt-4 text-sm font-bold text-[#1a1a1a]">
+                  {connected
+                    ? "Setup completed"
+                    : started
+                      ? "Configuring your router…"
+                      : "Waiting for the configuration command"}
+                </p>
+                <div className="mt-3 flex min-h-[3.25rem] w-full max-w-md items-center justify-center px-2">
+                  {connected ? (
+                    <p data-testid="provision-status" className="text-sm font-semibold text-[#1a1a1a]">
+                      Your router is ready.
+                    </p>
+                  ) : !started ? (
+                    <p data-testid="provision-status" className="text-xs text-[#a3a3a3]">
+                      Paste the configuration command in WinBox Terminal. This page loads until setup finishes.
+                    </p>
+                  ) : (
+                    (() => {
+                      const holdLast =
+                        serverMode && !serverDone && doneCount >= provisionSteps.length - 1;
+                      const index = Math.min(doneCount, provisionSteps.length - 1);
+                      const current = provisionSteps[index];
+                      return (
+                        <p
+                          key={`${current.id}-${doneCount}`}
+                          data-testid="provision-step-current"
+                          className="inline-flex items-center gap-2 text-sm font-semibold text-[#1a1a1a]"
+                          style={{
+                            animation: holdLast
+                              ? "hp-step-hold 0.55s ease forwards"
+                              : `hp-step-fade ${STEP_MS}ms ease forwards`,
+                          }}
+                        >
+                          <RefreshCw size={14} className="shrink-0 animate-spin text-[#737373]" />
+                          {current.label}
+                        </p>
+                      );
+                    })()
+                  )}
+                </div>
+              </div>
             </div>
 
             {!started && (
               <div className="flex items-center justify-between gap-3 rounded-xl border border-[#f4f4f4] p-4">
                 <div>
                   <p className="text-sm font-bold text-[#1a1a1a]">Router Status Check</p>
-                  <p className="text-xs text-[#a3a3a3]">Starts as soon as you copy the configuration command, or click to check now</p>
+                  <p className="text-xs text-[#a3a3a3]">
+                    This page starts loading when the router downloads the script. Use Check Now only if you need a status refresh.
+                  </p>
                 </div>
                 <button
                   type="button"

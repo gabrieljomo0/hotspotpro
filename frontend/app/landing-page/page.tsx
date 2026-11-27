@@ -190,8 +190,6 @@ export default function LandingPage() {
               {darkMode ? "Dark" : "Light"}
             </button>
 
-            <InstallAppButton className="hidden items-center gap-2 rounded-lg border border-slate-300 px-4 py-3 text-sm font-semibold transition hover:bg-slate-100 sm:inline-flex dark:border-slate-600 dark:hover:bg-slate-900" />
-
             <Link
               href="/login"
               className="rounded-lg border border-slate-300 px-6 py-3 text-sm font-semibold transition hover:bg-slate-100 dark:border-slate-600 dark:hover:bg-slate-900"
@@ -649,6 +647,8 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+      {/* Install stays at the bottom of the site only; users can close it. */}
+      <InstallAppButton />
     </main>
   );
 }

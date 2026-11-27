@@ -5,7 +5,8 @@ import { currentTenantId, registerProvision, tenantOfToken } from "@/server/stor
 const TOKEN = /^[A-Za-z0-9_-]{8,128}$/;
 const FIELDS = [
   "name", "hotspotEnabled", "hotspotNetwork", "hotspotGatewayIp", "hotspotDnsServers",
-  "dnsName", "routerType", "hasWireless", "pppoeEnabled", "pppoeNetwork", "wanInterface", "managementPort", "adminFromWan",
+  "dnsName", "routerType", "hasWireless", "wifiSsid", "pppoeEnabled", "pppoeNetwork", "wanInterface", "managementPort",
+  "lastPortFree", "adminFromWan",
   "loginMode",
 ];
 

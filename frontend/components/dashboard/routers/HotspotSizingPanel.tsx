@@ -1,7 +1,8 @@
 "use client";
 
-// Four small choices for how many people are online at once. The address
-// plan is chosen from that and is not typed here.
+// Four small choices for how many people are online at once. The recommended
+// address plan comes from that; the Add Router page can still let them pick
+// their own IP.
 
 import { PEAK_PLANS, type PeakChoice } from "./hotspotSizing";
 

@@ -6,8 +6,7 @@
 
 import { openEditRouter, openReprovisionScript } from "@/components/dashboard/shared/editEvents";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Radio, Bell, Download, Clock3, Cpu, ShieldCheck, Lock, RefreshCcw, Power, KeyRound, Pencil, Trash2, PauseCircle, PlayCircle, PlugZap, Unplug, Monitor } from "lucide-react";
+import { Radio, Bell, Download, Clock3, Cpu, ShieldCheck, Lock, RefreshCcw, Power, KeyRound, Pencil, Trash2, PauseCircle, PlayCircle, PlugZap, Unplug, Monitor, Upload } from "lucide-react";
 
 import { useDashboard } from "@/components/dashboard/context/DashboardContext";
 import { DropdownMenuPortal } from "@/components/dashboard/shared/DropdownMenuPortal";
@@ -19,18 +18,14 @@ export function RouterMoreActionsMenu({
   onClose,
   onGoToMultiWan,
   onOpenNotifications,
-  onConfirm,
 }: {
   router: RouterInfo;
   anchorRect: DOMRect | null;
   onClose: () => void;
   onGoToMultiWan: () => void;
   onOpenNotifications: () => void;
-  // Shows a confirmation popup; only runs `action` if the person confirms.
-  onConfirm: (title: string, message: string, action: () => void) => void;
 }) {
-  const { startRouterTask, downloadRouterFile, deleteRouter, toggleRemoteAccess } = useDashboard();
-  const navigate = useRouter();
+  const { startRouterTask, downloadRouterFile, toggleRemoteAccess, requestConfirmAction } = useDashboard();
   const isCut = router.status === "Offline" || !!router.disconnected;
 
   return (
@@ -59,11 +54,27 @@ export function RouterMoreActionsMenu({
       </button>
       <button
         type="button"
+        data-testid="reprovision-more-auto"
+        onClick={() => { onClose(); openReprovisionScript(router.ip, "auto"); }}
+        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-semibold text-[#1a1a1a] hover:bg-[#f4f4f4]"
+      >
+        <RefreshCcw size={14} /> Reprovision (auto)
+      </button>
+      <button
+        type="button"
         data-testid="reprovision-more"
-        onClick={() => { onClose(); openReprovisionScript(router.ip); }}
+        onClick={() => { onClose(); openReprovisionScript(router.ip, "paste"); }}
         className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-semibold text-[#1a1a1a] hover:bg-[#f4f4f4]"
       >
         <RefreshCcw size={14} /> Reprovision (paste script)
+      </button>
+      <button
+        type="button"
+        data-testid="push-to-router"
+        onClick={() => { onClose(); startRouterTask("push-to-router", router.ip); }}
+        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-semibold text-[#1a1a1a] hover:bg-[#f4f4f4]"
+      >
+        <Upload size={14} /> Push packages & vouchers
       </button>
       <button
         type="button"
@@ -109,10 +120,10 @@ export function RouterMoreActionsMenu({
       </button>
       <button
         type="button"
-        onClick={() => { onClose(); downloadRouterFile(router.ip, "wireguard-config"); }}
+        onClick={() => { onClose(); downloadRouterFile(router.ip, "winbox-config"); }}
         className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#525252] hover:bg-[#f4f4f4]"
       >
-        <Download size={14} /> Copy WinBox address
+        <Download size={14} /> Download wb.config
       </button>
       <button
         type="button"
@@ -155,10 +166,15 @@ export function RouterMoreActionsMenu({
       </button>
       <button
         type="button"
-        onClick={() => { onClose(); onConfirm("Delete Router", `Permanently delete ${router.name}? This cannot be undone.`, () => {
-          deleteRouter(router.ip);
-          navigate.push("/dashboards/configuration/routers");
-        }); }}
+        data-testid="router-delete-more"
+        onClick={() => {
+          onClose();
+          requestConfirmAction({
+            type: "remove-router",
+            routerIp: router.ip,
+            routerName: router.name,
+          });
+        }}
         className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-semibold text-red-600 hover:bg-red-50"
       >
         <Trash2 size={14} /> Delete

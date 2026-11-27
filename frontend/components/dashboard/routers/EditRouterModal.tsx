@@ -9,12 +9,11 @@ import { Eye, EyeOff } from "lucide-react";
 
 import { useDashboard } from "@/components/dashboard/context/DashboardContext";
 import type { RouterInfo } from "@/components/dashboard/data/dashboard-data";
-import { askConfirm } from "@/components/dashboard/shared/askConfirm";
 import { ModalFrame } from "@/components/dashboard/agents/detail/ModalFrame";
 
 export function EditRouterModal({ router, onClose }: { router: RouterInfo; onClose: () => void }) {
   const navRouter = useRouter();
-  const { updateRouterDetails, deleteRouter } = useDashboard();
+  const { updateRouterDetails, requestConfirmAction } = useDashboard();
 
   const [showApiPassword, setShowApiPassword] = useState(false);
   const [showLegacyPassword, setShowLegacyPassword] = useState(false);
@@ -52,12 +51,13 @@ export function EditRouterModal({ router, onClose }: { router: RouterInfo; onClo
   }
 
   function handleDelete() {
-    askConfirm(`Permanently delete ${router.name}? This cannot be undone.`, "Delete router").then((ok) => {
-      if (!ok) return;
-      deleteRouter(router.ip);
-      onClose();
-      navRouter.push("/dashboards/configuration/routers");
+    onClose();
+    requestConfirmAction({
+      type: "remove-router",
+      routerIp: router.ip,
+      routerName: router.name,
     });
+    navRouter.push("/dashboards/configuration/routers");
   }
 
   return (

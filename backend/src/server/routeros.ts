@@ -6,14 +6,25 @@
 
 import dns from "node:dns";
 import { PORTAL_MARKER } from "./hotspotPages";
+import { packageProfileLines } from "./localUsers";
 
 /** Bump this when the setup script changes. Connected routers download the new setup on the next check-in. */
-export const SETUP_VERSION = "v42";
+export const SETUP_VERSION = "v60";
 
 /** Default check-in spacing. Keep modest so weak African links stay healthy with many routers. */
 export const CHECKIN_INTERVAL = "10s";
 
-/** Hotspot login DNS name (MikroTik profile dns-name). Prefer a manually typed value. */
+/**
+ * WinBox Server Profiles → Login By.
+ * HTTP PAP is required for portal Connect / hp-go.html (plain password POST).
+ * HTTP CHAP + Cookie + MAC Cookie stay on.
+ * MAC Cookie (not bare MAC) is what re-auths after Wi‑Fi off/on while the voucher still has time/data.
+ * Bare MAC must stay OFF — without a matching MAC user, MikroTik rejects the phone
+ * first and voucher dial bounces straight back to the captive portal (no internet).
+ */
+export const HOTSPOT_LOGIN_BY = "cookie,http-chap,http-pap,mac-cookie";
+
+/** Hotspot login DNS name (MikroTik profile dns-name). Prefer a manually typed value; else first 4 letters of the router name. */
 export function loginDnsFromName(routerName: string, given?: string): string {
   const clean = (value: string) =>
     value
@@ -28,8 +39,31 @@ export function loginDnsFromName(routerName: string, given?: string): string {
   return fromName || "wifi";
 }
 
+/**
+ * Force Server Profiles → DNS Name + Login By in WinBox.
+ * DNS Name and login-by are set alone — never bundle with use-radius (one failure used to leave DNS Name blank).
+ */
+export function dnsNameApplyLines(routerName: string, given?: string): string[] {
+  const dns = loginDnsFromName(routerName, given);
+  return [
+    `# HotspotPro Server Profile DNS Name: ${dns}`,
+    `:do { :if ([:len [/ip hotspot profile find where name=hotspotpro]] = 0) do={ /ip hotspot profile add name=hotspotpro hotspot-address=10.10.0.1 dns-name=${dns} login-by=${HOTSPOT_LOGIN_BY} trial-uptime-limit=0s } } on-error={ }`,
+    // dns-name without quotes (RouterOS accepts a simple hostname); WinBox DNS Name column must not stay blank.
+    `:do { /ip hotspot profile set [find where name=hotspotpro] dns-name=${dns} } on-error={ :log warning "HotspotPro: could not set dns-name on hotspotpro" }`,
+    `:do { /ip hotspot profile set [find where name=hotspotpro] login-by=${HOTSPOT_LOGIN_BY} } on-error={ }`,
+    // Also write onto whatever profile the live server uses (hsprof1 / default / renamed).
+    `:do { :local p [/ip hotspot get [find where name=hotspotpro] profile]; :if ([:len $p] > 0) do={ /ip hotspot profile set [find where name=$p] dns-name=${dns}; /ip hotspot profile set [find where name=$p] login-by=${HOTSPOT_LOGIN_BY} } } on-error={ }`,
+    // Drop hosts stuck unauthorized after prior MAC login attempts (voucher dial can then succeed).
+    `:do { /ip hotspot host remove [find where authorized=no] } on-error={ }`,
+    `:do { :local a ""; :do { :set a [/ip address get [find where interface=hotspotpro-bridge comment="HotspotPro"] address] } on-error={ }; :if ([:len $a] = 0) do={ :do { :set a [/ip address get [find where interface=hotspotpro-bridge] address] } on-error={ } }; :if ([:len $a] > 0) do={ :local g [:pick $a 0 [:find $a "/"]]; /ip dns static remove [find where comment="HotspotPro login"]; /ip dns static add name=${dns} address=$g comment="HotspotPro login"; /ip dns set allow-remote-requests=yes } } on-error={ }`,
+    `:do { :local d [/ip hotspot profile get [find where name=hotspotpro] dns-name]; :if ([:len $d] = 0) do={ :log warning "HotspotPro: Server Profiles DNS Name is still empty"; :put "HotspotPro: DNS Name is still empty — open IP → Hotspot → Server Profiles" } else={ :put ("HotspotPro: DNS Name is " . $d) } } on-error={ }`,
+  ];
+}
+
 export type ProvisionRouter = {
   name: string;
+  /** Dashboard / live router id — used to scope package → User Profiles. */
+  ip?: string;
   hotspotEnabled?: boolean;
   hotspotNetwork?: string;
   hotspotGatewayIp?: string;
@@ -142,28 +176,24 @@ function logoutSource() {
   return ':local mac $"mac-address"; :local user $"user"; :if ([:len $mac] > 0) do={ :do { /ip hotspot cookie remove [find where mac-address=$mac] } on-error={ } }; :if ([:len $user] > 0) do={ :do { /ip hotspot cookie remove [find where user=$user] } on-error={ } }';
 }
 
-/**
- * Drop hotspot cookies for anyone who is not currently online.
- * Stale cookies after a failed/expired login make phones skip the captive portal until "Forget WiFi".
- */
-function reauthCleanSource() {
-  return ':foreach c in=[/ip hotspot cookie find] do={ :local mac [/ip hotspot cookie get $c mac-address]; :local u [/ip hotspot cookie get $c user]; :local keep false; :if ([:len $mac] > 0 && [:len [/ip hotspot active find where mac-address=$mac]] > 0) do={ :set keep true }; :if ([:len $u] > 0 && [:len [/ip hotspot active find where user=$u]] > 0) do={ :set keep true }; :if (!$keep) do={ :do { /ip hotspot cookie remove $c } on-error={ } } }';
-}
-
 function rosQuoted(source: string) {
   return `"${source.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\$/g, "\\$")}"`;
 }
 
-/** Install logout + reauth helpers so expired vouchers reopen the captive portal on the saved WiFi. */
+/**
+ * Logout clears cookies when time/data ends so the captive portal shows again.
+ * Do NOT wipe cookies while a phone is briefly offline (Wi‑Fi toggle) — that killed
+ * MAC Cookie auto-reconnect even though the voucher still had days/bandwidth left.
+ * Remove any older hotspotpro-reauth scheduler that did that wipe every 5s.
+ */
 export function hotspotReauthEnsureLines(): string[] {
   return [
     `:do { /system script remove [find where name=hotspotpro-logout] } on-error={ }`,
     `:do { /system script add name=hotspotpro-logout source=${rosQuoted(logoutSource())} policy=read,write,policy,test comment="HotspotPro" } on-error={ }`,
     `:do { /ip hotspot user profile set [find] on-logout=hotspotpro-logout } on-error={ }`,
-    `:do { /system script remove [find where name=hotspotpro-reauth] } on-error={ }`,
-    `:do { /system script add name=hotspotpro-reauth source=${rosQuoted(reauthCleanSource())} policy=read,write,policy,test comment="HotspotPro" } on-error={ }`,
+    // v52: stop wiping MAC cookies for offline phones — keep them until on-logout / voucher remove.
     `:do { /system scheduler remove [find where name=hotspotpro-reauth] } on-error={ }`,
-    `:do { /system scheduler add name=hotspotpro-reauth interval=5s start-time=startup on-event=hotspotpro-reauth policy=read,write,policy,test comment="HotspotPro" } on-error={ }`,
+    `:do { /system script remove [find where name=hotspotpro-reauth] } on-error={ }`,
   ];
 }
 
@@ -188,7 +218,8 @@ export function checkInBody(origin: string, token: string): string {
   const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
   const url = `${origin}/api/provision/${token}/control`;
   // wanip: prefer Multi-WAN DHCP clients (comment HotspotPro WAN), then the original single-WAN client.
-  return `:local hpCpu 0; :local hpFree 0; :local hpTotal 1; :local hpUp ""; :local hpVer ""; :local hpArch ""; :local hpCpuN ""; :local hpActive 0; :local hpUsers ""; :local hpCount 0; :local hpDns ""; :local hpPub ""; :local hpWan ""; :local hpBoard ""; :local hpName ""; :local hpCh ""; :do { :set hpCpu [/system resource get cpu-load] } on-error={ }; :do { :set hpFree [/system resource get free-memory] } on-error={ }; :do { :set hpTotal [/system resource get total-memory] } on-error={ }; :do { :set hpUp [/system resource get uptime] } on-error={ }; :do { :set hpVer [/system resource get version]; :set hpVer [:pick $hpVer 0 [:find $hpVer " "]] } on-error={ }; :do { :set hpArch [/system resource get architecture-name] } on-error={ }; :do { :set hpCpuN [/system resource get cpu-count] } on-error={ }; :do { :set hpBoard [/system resource get board-name]; :while ([:typeof [:find $hpBoard " "]] = "num") do={ :local p [:find $hpBoard " "]; :set hpBoard ([:pick $hpBoard 0 $p] . "+" . [:pick $hpBoard ($p + 1) [:len $hpBoard]]) } } on-error={ }; :do { :set hpName [/system identity get name]; :while ([:typeof [:find $hpName " "]] = "num") do={ :local p [:find $hpName " "]; :set hpName ([:pick $hpName 0 $p] . "+" . [:pick $hpName ($p + 1) [:len $hpName]]) } } on-error={ }; :do { :set hpCh [/system package update get channel] } on-error={ }; :do { :set hpActive [:len [/ip hotspot active find]] } on-error={ }; :do { :foreach i in=[/ip hotspot active find] do={ :if ($hpCount < 40) do={ :set hpUsers ($hpUsers . "," . [/ip hotspot active get $i user]); :set hpCount ($hpCount + 1) } } } on-error={ }; :do { :set hpDns [/ip cloud get dns-name] } on-error={ }; :do { :set hpPub [/ip cloud get public-address] } on-error={ }; :do { :local hpIds [/ip dhcp-client find where comment="HotspotPro WAN"]; :if ([:len $hpIds] > 0) do={ :set hpWan [/ip dhcp-client get [:pick $hpIds 0] address] } } on-error={ }; :do { :if ([:len $hpWan] = 0) do={ :set hpWan [/ip dhcp-client get [find where comment="HotspotPro WAN DHCP Client"] address] } } on-error={ }; :do { :if ([:find $hpWan "/"] >= 0) do={ :set hpWan [:pick $hpWan 0 [:find $hpWan "/"]] } } on-error={ }; :local hpUrl "${url}"; :set hpUrl ($hpUrl . "?cpu=" . $hpCpu . "&free=" . $hpFree . "&total=" . $hpTotal . "&up=" . $hpUp . "&ver=" . $hpVer . "&arch=" . $hpArch . "&cpus=" . $hpCpuN . "&board=" . $hpBoard . "&id=" . $hpName . "&ch=" . $hpCh . "&active=" . $hpActive . "&users=" . $hpUsers . "&dns=" . $hpDns . "&pub=" . $hpPub . "&wanip=" . $hpWan); :do { /tool fetch url=$hpUrl dst-path=hotspotpro-control.rsc${tls}; :delay 2s; /import file-name=hotspotpro-control.rsc } on-error={ }`;
+  // serial + software-id identify the physical board so the same MikroTik cannot be added twice.
+  return `:local hpCpu 0; :local hpFree 0; :local hpTotal 1; :local hpUp ""; :local hpVer ""; :local hpArch ""; :local hpCpuN ""; :local hpActive 0; :local hpUsers ""; :local hpCount 0; :local hpDns ""; :local hpPub ""; :local hpWan ""; :local hpBoard ""; :local hpName ""; :local hpCh ""; :local hpSerial ""; :local hpSwid ""; :do { :set hpCpu [/system resource get cpu-load] } on-error={ }; :do { :set hpFree [/system resource get free-memory] } on-error={ }; :do { :set hpTotal [/system resource get total-memory] } on-error={ }; :do { :set hpUp [/system resource get uptime] } on-error={ }; :do { :set hpVer [/system resource get version]; :set hpVer [:pick $hpVer 0 [:find $hpVer " "]] } on-error={ }; :do { :set hpArch [/system resource get architecture-name] } on-error={ }; :do { :set hpCpuN [/system resource get cpu-count] } on-error={ }; :do { :set hpBoard [/system resource get board-name]; :while ([:typeof [:find $hpBoard " "]] = "num") do={ :local p [:find $hpBoard " "]; :set hpBoard ([:pick $hpBoard 0 $p] . "+" . [:pick $hpBoard ($p + 1) [:len $hpBoard]]) } } on-error={ }; :do { :set hpName [/system identity get name]; :while ([:typeof [:find $hpName " "]] = "num") do={ :local p [:find $hpName " "]; :set hpName ([:pick $hpName 0 $p] . "+" . [:pick $hpName ($p + 1) [:len $hpName]]) } } on-error={ }; :do { :set hpCh [/system package update get channel] } on-error={ }; :do { :set hpSerial [/system routerboard get serial-number] } on-error={ }; :do { :set hpSwid [/system license get software-id] } on-error={ }; :do { :set hpActive [:len [/ip hotspot active find]] } on-error={ }; :do { :foreach i in=[/ip hotspot active find] do={ :if ($hpCount < 40) do={ :set hpUsers ($hpUsers . "," . [/ip hotspot active get $i user]); :set hpCount ($hpCount + 1) } } } on-error={ }; :do { :set hpDns [/ip cloud get dns-name] } on-error={ }; :do { :set hpPub [/ip cloud get public-address] } on-error={ }; :do { :local hpIds [/ip dhcp-client find where comment="HotspotPro WAN"]; :if ([:len $hpIds] > 0) do={ :set hpWan [/ip dhcp-client get [:pick $hpIds 0] address] } } on-error={ }; :do { :if ([:len $hpWan] = 0) do={ :set hpWan [/ip dhcp-client get [find where comment="HotspotPro WAN DHCP Client"] address] } } on-error={ }; :do { :if ([:find $hpWan "/"] >= 0) do={ :set hpWan [:pick $hpWan 0 [:find $hpWan "/"]] } } on-error={ }; :local hpUrl "${url}"; :set hpUrl ($hpUrl . "?cpu=" . $hpCpu . "&free=" . $hpFree . "&total=" . $hpTotal . "&up=" . $hpUp . "&ver=" . $hpVer . "&arch=" . $hpArch . "&cpus=" . $hpCpuN . "&board=" . $hpBoard . "&id=" . $hpName . "&ch=" . $hpCh . "&active=" . $hpActive . "&users=" . $hpUsers . "&dns=" . $hpDns . "&pub=" . $hpPub . "&wanip=" . $hpWan . "&serial=" . $hpSerial . "&swid=" . $hpSwid); :do { /tool fetch url=$hpUrl dst-path=hotspotpro-control.rsc${tls}; :delay 2s; :local hpCtl "hotspotpro-control.rsc"; :if ([:len [/file find where name="flash/hotspotpro-control.rsc"]] > 0) do={ :set hpCtl "flash/hotspotpro-control.rsc" }; :do { /import file-name=$hpCtl; :put ("HotspotPro: control applied from " . $hpCtl) } on-error={ :log warning "HotspotPro: control import failed — packages/portal may be stale"; :put "HotspotPro: control import failed" } } on-error={ :log warning "HotspotPro: control fetch failed"; :put "HotspotPro: control fetch failed" }`;
 }
 
 /** Open or close WinBox from outside the shop. Off keeps it on the admin port only. */
@@ -315,9 +346,14 @@ export function buildProvisionScript(input: {
   const add = (line: string) => lines.push(line);
   const plain = (message: string) => message.replace(/[\r\n"\\$]/g, " ").replace(/\s+/g, " ").trim().slice(0, 180);
   // Printed in the WinBox terminal so the person pasting the command can watch each step.
+  let stageNo = 0;
   const say = (message: string) => {
     const text = plain(message);
     if (text) add(`:put "${text}"`);
+  };
+  const stage = (message: string) => {
+    stageNo += 1;
+    say(`---------- Step ${stageNo}: ${message} ----------`);
   };
   // Every step is allowed to fail without stopping the script (a step that was
   // already done, or a feature this model doesn't have), but each failure is
@@ -345,7 +381,9 @@ export function buildProvisionScript(input: {
   add(`:global hpKeep ""`);
   say("==========================================");
   say("HotspotPro setup is starting...");
+  say("Watch each step below in this terminal.");
   say("==========================================");
+  stage("Checking RouterOS version");
   add(`:do { :local v [/system resource get version]; :put ("RouterOS version check passed: " . $v) } on-error={ :put "RouterOS version could not be read. Setup continues." }`);
   // Device mode is a separate short command. Calling it here asks for a restart before the hotspot exists.
   // The port this WinBox is using must stay where it is. Moving it drops the
@@ -360,16 +398,19 @@ export function buildProvisionScript(input: {
   };
 
   // MikroTik sends this name as NAS-Identifier on every RADIUS packet. Accounting and Disconnect match the router by it.
+  stage("Setting the router name");
   say("Setting the router name...");
   safe(`/system identity set name=${q(router.name)}`, false, "Router name set");
 
   // WAN
   // The ISP port gets its address by DHCP (ether1 unless the owner chose another port).
   // A new MikroTik keeps that port inside the factory bridge, and a DHCP client on a bridge port never gets an address.
+  stage(`Setting the internet port ${wan}`);
   say(`Setting the internet port ${wan}...`);
   if (!input.existing) add(`:do { :if ($hpKeep != "${wan}") do={ /interface bridge port remove [find where interface=${wan}]; :put "Internet port ${wan} can take an address from the ISP." } else={ :put "HotspotPro: WinBox is using ${wan}, so that cable stays as it is." } } on-error={ }`);
   safe(`/ip dhcp-client add interface=${wan} disabled=no use-peer-dns=yes use-peer-ntp=yes add-default-route=yes comment="HotspotPro WAN DHCP Client"`, true, `DHCP client added on ${wan}`);
   safe(`/ip dhcp-client set [find where interface=${wan}] disabled=no use-peer-dns=yes use-peer-ntp=yes add-default-route=yes`, false, `DHCP client is on ${wan}`);
+  stage("Configuring DNS, API, and security");
   say("Configuring DNS...");
   safe(`/ip dns set allow-remote-requests=yes servers=8.8.8.8,1.1.1.1`, false, "DNS configured");
   say("Configuring API and services...");
@@ -380,9 +421,9 @@ export function buildProvisionScript(input: {
   say("Security settings configured");
   // Voucher time limits depend on the router's clock.
   say("Setting the clock...");
-  safe(`/system ntp client set enabled=yes`, true);
-  safe(`/system ntp client servers add address=pool.ntp.org`, true, "Clock service turned on");
-  safe(`/system clock set time-zone-name=Africa/Accra`, false, "Timezone set to Africa/Accra");
+  // NTP/timezone via :execute — never wait for keyboard if RouterOS asks to confirm.
+  add(`:do { :execute script={:do { /system ntp client set enabled=yes } on-error={ }; :do { /system ntp client servers add address=pool.ntp.org } on-error={ }; :do { /system clock set time-zone-name=Africa/Accra } on-error={ }} } on-error={ }`);
+  say("Clock service turned on");
   // The login pages and the "I'm finished" call need this port to have an address first.
   if (!input.existing) {
     say(`Waiting for the internet cable on ${wan}...`);
@@ -414,6 +455,7 @@ export function buildProvisionScript(input: {
   // Remote WinBox + Back To Home WireGuard are part of the default setup script (not optional).
   // The tunnel file is uploaded to HotspotPro once; later remote enable reuses it.
   for (const line of remoteWinboxLines(true, origin, token, false, wan)) add(line);
+  stage("Preparing remote WinBox and WireGuard");
   say("Remote WinBox and the WireGuard tunnel are part of this setup. The site stores the tunnel so you do not set it up again.");
   add(`:do { :delay 2s } on-error={ }`);
 
@@ -450,6 +492,7 @@ export function buildProvisionScript(input: {
       add(`:do { :if ([:len [/ip address find where address="192.168.88.1/24"]] = 0 && $hpKeep != "${mgmt}") do={ /interface bridge add name=hotspotpro-admin comment="HotspotPro admin"; /interface bridge port remove [find where interface=${mgmt}]; /interface bridge port add bridge=hotspotpro-admin interface=${mgmt} comment="HotspotPro admin"; /ip address add address=192.168.88.1/24 interface=hotspotpro-admin comment="HotspotPro admin"; /ip pool add name=hotspotpro-admin-pool ranges=192.168.88.10-192.168.88.60; /ip dhcp-server network add address=192.168.88.0/24 gateway=192.168.88.1 dns-server=192.168.88.1 comment="HotspotPro admin"; /ip dhcp-server add name=hotspotpro-admin-dhcp interface=hotspotpro-admin address-pool=hotspotpro-admin-pool disabled=no; /interface list member add list=LAN interface=hotspotpro-admin comment="HotspotPro admin"; :put "Admin port ${mgmt} is ready." } else={ :put "Admin port ${mgmt} stays connected." } } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: admin port setup"; :put "HotspotPro: the admin port step had a problem and was skipped. Setup continues." }`);
     }
     add(`# --- Hotspot network ${plan.network}`);
+    stage(`Preparing the hotspot network ${plan.network}`);
     say(`Preparing the hotspot network ${plan.network}...`);
     // Soft update when HotspotPro is already live: never tear down the bridge, DHCP, hotspot
     // server, or gateway — that would drop people already online. Only create missing pieces.
@@ -489,14 +532,17 @@ export function buildProvisionScript(input: {
     add(`:do { :if ([:len [/ip firewall nat find where comment="HotspotPro NAT"]] = 0) do={ /ip firewall nat add chain=srcnat out-interface=${wan} action=masquerade comment="HotspotPro NAT"; :put "Internet sharing rule added" } else={ /ip firewall nat set [find where comment="HotspotPro NAT"] out-interface=${wan} action=masquerade; :put "Internet sharing rule kept" } } on-error={ :set hpFails ($hpFails + 1); :put "HotspotPro: NAT step skipped" }`);
     // One mode at a time. Cloud asks RADIUS. Local does not, and the check-in copies vouchers onto the router instead.
     const useCloud = router.loginMode === "cloud" && !!radius && process.env.HOTSPOTPRO_RADIUS === "on";
+    stage("Creating the hotspot server");
     say("Creating the hotspot server...");
     const loginName = loginDnsFromName(router.name, router.dnsName);
     // Upsert profile + server. Never remove a live hotspot — that signs everyone out.
     add(
       `:do { :if ([:len [/ip hotspot profile find where name=hotspotpro]] = 0) do={ /ip hotspot profile add name=hotspotpro hotspot-address=${plan.gateway} trial-uptime-limit=0s ${useCloud ? "use-radius=yes radius-accounting=yes radius-interim-update=1m" : "use-radius=no"}; :put "Hotspot profile created" } else={ /ip hotspot profile set [find where name=hotspotpro] hotspot-address=${plan.gateway} trial-uptime-limit=0s ${useCloud ? "use-radius=yes radius-accounting=yes radius-interim-update=1m" : "use-radius=no"}; :put "Hotspot profile updated" } } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: hotspot profile"; :put "HotspotPro: could not create the hotspot profile" }`,
     );
-    // Always set dns-name (Server Profiles column). Quiet=false so setup logs a failure.
-    safe(`/ip hotspot profile set [find where name=hotspotpro] dns-name=${q(loginName)} login-by=http-pap,mac-cookie`, false, `DNS name set to ${loginName}`);
+    // Login By (all four) + DNS Name — separate from use-radius so WinBox never stays blank.
+    safe(`/ip hotspot profile set [find where name=hotspotpro] login-by=${HOTSPOT_LOGIN_BY}`, false, "Login By: Cookie, HTTP CHAP, HTTP PAP, MAC Cookie (MAC off — required for vouchers)");
+    for (const line of dnsNameApplyLines(router.name, router.dnsName)) add(line);
+    say(`DNS Name set to ${loginName} (Server Profiles)`);
     add(
       `:do { :if ([:len [/ip hotspot find where name=hotspotpro]] = 0) do={ /ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no; :put "Hotspot server created" } else={ /ip hotspot set [find where name=hotspotpro] interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no; :put "Hotspot server kept online" } } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: hotspot server"; :put "HotspotPro: CRITICAL — hotspot server was not created. Captive portal will not open until IP → Hotspot → Servers shows hotspotpro." }`,
     );
@@ -509,6 +555,7 @@ export function buildProvisionScript(input: {
     safe(`/ip hotspot ip-binding remove [find where type=bypassed]`, true, "Removed hotspot bypass bindings");
     // Never kick people already online: no active/cookie wipe on reprovision.
     say("Keeping customers who are already online...");
+    // Static DNS for the login name is already created in dnsNameApplyLines; keep a setup-time copy with the known gateway.
     safe(`/ip dns static remove [find where comment="HotspotPro login"]`, true);
     safe(`/ip dns static add name=${q(loginName)} address=${plan.gateway} comment="HotspotPro login"`, true, "Login name points at this router");
     safe(`/ip firewall nat remove [find where comment="HotspotPro DNS"]`, true);
@@ -518,6 +565,9 @@ export function buildProvisionScript(input: {
     // When time/data ends: clear cookie + drop WiFi so tapping the saved network opens the portal again.
     for (const line of hotspotReauthEnsureLines()) add(line);
     safe(`/ip hotspot user profile set [find where name=default] shared-users=1 session-timeout=0s idle-timeout=none keepalive-timeout=none mac-cookie-timeout=1d on-logout=hotspotpro-logout`, false, "Default profile allows one device");
+    // Site packages → WinBox User Profiles (vouchers use these by package name).
+    for (const line of packageProfileLines(router.ip || "")) add(line);
+    say("Package profiles are ready under IP → Hotspot → User Profiles.");
     if (radius) {
       say("Configuring RADIUS login...");
       // RouterOS asks this server whether each voucher may get online (time, data and speed limits come back in the answer).
@@ -525,12 +575,13 @@ export function buildProvisionScript(input: {
       const secret = q(radius.secret);
       const ports = `authentication-port=${radius.authPort} accounting-port=${radius.acctPort}`;
       if (target.ip) {
-        safe(`/radius add service=hotspot address=${target.ip} secret=${secret} ${ports} timeout=3s comment="HotspotPro"`, false, "RADIUS server added");
+        safe(`/radius add service=hotspot address=${target.ip} secret=${secret} ${ports} timeout=5s comment="HotspotPro"`, false, "RADIUS server added");
       } else if (target.name) {
         add(`:local hpRad ""`);
         add(`:do { :set hpRad [/resolve ${q(target.name)}] } on-error={ :set hpFails ($hpFails + 1); :log warning "HotspotPro step failed: could not resolve the RADIUS server"; :put "HotspotPro could not find the RADIUS server name. Setup continues." }`);
-        safe(`/radius add service=hotspot address=$hpRad secret=${secret} ${ports} timeout=3s comment="HotspotPro"`, false, "RADIUS server added");
+        safe(`/radius add service=hotspot address=$hpRad secret=${secret} ${ports} timeout=5s comment="HotspotPro"`, false, "RADIUS server added");
       }
+      safe(`/radius set [find where comment="HotspotPro"] require-message-auth=no`, true, "RADIUS message-auth compatible");
     } else if (router.loginMode === "cloud") {
       say("Vouchers stay in HotspotPro and are sent to this router.");
     } else {
@@ -540,6 +591,7 @@ export function buildProvisionScript(input: {
     // Do NOT run /ip hotspot reset-html — it asks "Current html pages will be lost? [y/N]" in the
     // terminal and stops a pasted setup. We clear old pages and download HotspotPro's captive portal instead.
     const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
+    stage("Installing the HotspotPro captive portal");
     say("Installing the HotspotPro captive portal...");
     // Do not set html-directory yet — pointing at flash/hotspot before HotspotPro pages land serves MikroTik's factory portal.
     // Remove MikroTik defaults (and any previous HotspotPro pages) so fetch can write ours.
@@ -595,6 +647,7 @@ export function buildProvisionScript(input: {
     say("Allowing the login page before a customer has paid...");
     garden(host);
     try { garden(new URL(portalBase).hostname); } catch { /* portal address was not a URL */ }
+    stage("Configuring firewall and login access");
     say("Configuring firewall rules...");
     say("Configuring tethering protection...");
     safe(`/ip firewall mangle remove [find where comment="HotspotPro tethering"]`, true);
@@ -609,6 +662,7 @@ export function buildProvisionScript(input: {
   if (router.pppoeEnabled) {
     const pppoe = planNetwork(router.pppoeNetwork || "192.168.91.0/24", undefined);
     add(`# --- PPPoE network ${pppoe.network}`);
+    stage("Configuring PPPoE");
     say("Configuring PPPoE...");
     safe(`/ip pool remove [find where name=hotspotpro-pppoe-pool]`, true);
     safe(`/ppp profile remove [find where name=hotspotpro-pppoe]`, true);
@@ -621,26 +675,23 @@ export function buildProvisionScript(input: {
 
   // Always attach WiFi to the hotspot bridge when wireless is on — including Existing Router
   // reprovision — otherwise joining the SSID never shows the voucher portal.
-  // Run inline (not :execute) so datapath.bridge is set before the paste finishes.
+  // Use :execute for wifi sets so RouterOS never pauses for keyboard (y/N) mid-setup.
   if (input.wireless) {
     const wifiName = (ssid && ssid.trim()) || loginDnsFromName(router.name) || "HotspotPro";
     add(`# --- WiFi`);
+    stage("Configuring wireless for the captive portal");
     say("Configuring wireless interfaces for the captive portal...");
     const band = wifiName.replace(/\s+5G$/i, "").slice(0, 29);
     const ssid24 = q(band.slice(0, 32));
     const ssid5 = q(`${band} 5G`.slice(0, 32));
-    add(`:do { :local hpWifi 0; :do { :set hpWifi [:len [/interface wifi find]] } on-error={ }; :if ($hpWifi > 0) do={ :put "Found RouterOS 7 wifi interfaces, configuring..."; :do { /interface wifi configuration set [find] ssid=${ssid24} mode=ap } on-error={ }; :do { /interface wifi set [find where name=wifi1] disabled=no configuration.ssid=${ssid24} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ }; :do { /interface wifi set [find where name=wifi2] disabled=no configuration.ssid=${ssid5} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ }; :do { :foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :if ($n != "wifi1" && $n != "wifi2" && $n != $hpKeep) do={ /interface wifi set $p disabled=no configuration.ssid=${ssid24} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } } } on-error={ } } } on-error={ }`);
-    add(`:do { :foreach p in=[/interface wifiwave2 find] do={ :do { /interface wifiwave2 set $p disabled=no configuration.ssid=${ssid24} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ } } } on-error={ }`);
-    add(`:do { /interface wireless security-profiles set [find default=yes] mode=none } on-error={ }`);
-    add(`:do { /interface wireless set [find where name=wlan1] disabled=no ssid=${ssid24} mode=ap-bridge security-profile=default } on-error={ }`);
-    add(`:do { /interface wireless set [find where name=wlan2] disabled=no ssid=${ssid5} mode=ap-bridge security-profile=default } on-error={ }`);
+    add(`:do { :local hpWifi 0; :do { :set hpWifi [:len [/interface wifi find]] } on-error={ }; :if ($hpWifi > 0) do={ :put "Found RouterOS 7 wifi interfaces, configuring..."; :execute script={:do { /interface wifi configuration set [find] ssid=${ssid24} mode=ap } on-error={ }; :do { /interface wifi set [find where name=wifi1] disabled=no configuration.ssid=${ssid24} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ }; :do { /interface wifi set [find where name=wifi2] disabled=no configuration.ssid=${ssid5} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ }; :do { :foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :if ($n != "wifi1" && $n != "wifi2") do={ /interface wifi set $p disabled=no configuration.ssid=${ssid24} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } } } on-error={ } }; :delay 3s; :put "RouterOS 7 wifi interfaces configured." } } on-error={ }`);
+    add(`:do { :execute script={:foreach p in=[/interface wifiwave2 find] do={ :do { /interface wifiwave2 set $p disabled=no configuration.ssid=${ssid24} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ } }} } on-error={ }`);
+    add(`:do { :execute script={:do { /interface wireless security-profiles set [find default=yes] mode=none } on-error={ }; :do { /interface wireless set [find where name=wlan1] disabled=no ssid=${ssid24} mode=ap-bridge security-profile=default } on-error={ }; :do { /interface wireless set [find where name=wlan2] disabled=no ssid=${ssid5} mode=ap-bridge security-profile=default } on-error={ }} } on-error={ }`);
     // ROS7 wifi: datapath.bridge only. Also remove factory bridge ports so WiFi is not free internet.
     add(`:do { :foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :if ($n != $hpKeep) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ } } } } on-error={ }`);
     add(`:do { :foreach p in=[/interface wifiwave2 find] do={ :local n [/interface wifiwave2 get $p name]; :if ($n != $hpKeep) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ } } } } on-error={ }`);
     add(`:do { :foreach p in=[/interface wireless find] do={ :local n [/interface wireless get $p name]; :if ($n != $hpKeep) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`);
-    add(`:do { /interface wifi enable [find] } on-error={ }`);
-    add(`:do { /interface wifiwave2 enable [find] } on-error={ }`);
-    add(`:do { /interface wireless enable [find] } on-error={ }`);
+    add(`:do { :execute script={:do { /interface wifi enable [find] } on-error={ }; :do { /interface wifiwave2 enable [find] } on-error={ }; :do { /interface wireless enable [find] } on-error={ }} } on-error={ }`);
     for (const name of ["wifi1", "wifi2", "wlan1", "wlan2"]) keepPort(name);
     say("WiFi is set. Customers log in on the portal page.");
   } else if (!input.wireless) {
@@ -662,13 +713,15 @@ export function buildProvisionScript(input: {
   }
 
   add(`# --- Self-check: is the ISP port working?`);
+  stage("Checking the internet connection");
   say("Checking the internet...");
   add(`:do { :local n 0; :while ($n < 10 && [/ip dhcp-client get [find where interface=${wan}] status] != "bound") do={ :delay 2s; :set n ($n + 1) }; :if ([/ip dhcp-client get [find where interface=${wan}] status] != "bound") do={ :set hpWan "down"; :put "The internet cable on ${wan} has no address from your ISP yet. Check the cable and modem."; :log warning "HotspotPro: the ISP port ${wan} has no address from your ISP yet. Check the cable and modem on ${wan}." } else={ :put "Internet port ${wan} has an address." } } on-error={ }`);
   add(`:do { :if ($hpWan = "") do={ :if ([/ping 8.8.8.8 count=3] = 0) do={ :set hpNet "down"; :put "The router cannot reach the internet yet. Customers will not get online until it works."; :log warning "HotspotPro: the router cannot reach the internet (ping 8.8.8.8 failed). Customers will not get online until it works." } else={ :put "The router can reach the internet." } } } on-error={ }`);
   add(`# --- Tell HotspotPro this router finished setting up`);
+  stage("Reporting back to HotspotPro");
   say("Telling HotspotPro this router is ready...");
   const reportTls = origin.startsWith("https:") ? " check-certificate=no" : "";
-  add(`:do { :local hpTry 0; :while ($hpTry < 4) do={ :do { /tool fetch url=(${q(`${origin}/api/provision/${token}/done?failed=`)} . $hpFails . "&dm=" . $hpDm . "&wan=" . $hpWan . "&net=" . $hpNet) keep-result=no${reportTls}; :set hpTry 4; :put "HotspotPro received this router." } on-error={ :set hpTry ($hpTry + 1); :delay 8s; :put "HotspotPro is reaching the site again..." } } } on-error={ :put "HotspotPro could not be told that setup finished. The router is still configured."; :log warning "HotspotPro could not report back to the server" }`);
+  add(`:do { :local hpSerial ""; :local hpSwid ""; :do { :set hpSerial [/system routerboard get serial-number] } on-error={ }; :do { :set hpSwid [/system license get software-id] } on-error={ }; :local hpTry 0; :while ($hpTry < 4) do={ :do { /tool fetch url=(${q(`${origin}/api/provision/${token}/done?failed=`)} . $hpFails . "&dm=" . $hpDm . "&wan=" . $hpWan . "&net=" . $hpNet . "&serial=" . $hpSerial . "&swid=" . $hpSwid) keep-result=no${reportTls}; :set hpTry 4; :put "HotspotPro received this router." } on-error={ :set hpTry ($hpTry + 1); :delay 8s; :put "HotspotPro is reaching the site again..." } } } on-error={ :put "HotspotPro could not be told that setup finished. The router is still configured."; :log warning "HotspotPro could not report back to the server" }`);
   if (router.hotspotEnabled !== false) safe(`/system script run hotspotpro-control`, true);
   add(`:log info ("HotspotPro provisioning finished, steps failed: " . $hpFails)`);
   say("==========================================");

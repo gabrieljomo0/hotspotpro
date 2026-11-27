@@ -12,7 +12,8 @@ import { addAudit, currentTenantId, getState, jobsFor, queueJob, setState } from
 //   POST { ip, script }              -> queue a command
 //   POST { ip, action, multiWanMode, ispLinks } -> save Multi-WAN then queue apply
 const MAX = 8000;
-const ACTION_MAX = 20000;
+/** Push-to-router (portal files + packages + vouchers) can exceed 20k on busy sites. */
+const ACTION_MAX = 60000;
 
 function routerToken(ip: string): string | null {
   const value = getState("routers")?.value;
@@ -98,20 +99,38 @@ export async function POST(request: Request) {
       setState("routers", next, "router");
     }
   }
-  const built = body.action
-    ? routerActionScript(body.action, {
-        origin: publicOrigin(request),
-        token,
-        username: body.username,
-        mac: body.mac,
-      })
-    : null;
+  const origin = publicOrigin(request);
+  const input = {
+    origin,
+    token,
+    username: body.username,
+    mac: body.mac,
+  };
+  const built = body.action ? routerActionScript(body.action, input) : null;
   if (body.action && !built) return NextResponse.json({ message: "Unknown router action." }, { status: 400 });
   const script = (built ?? body.script ?? "").replace(/\r/g, "").trim();
   if (!script) return NextResponse.json({ message: "Type a RouterOS command first." }, { status: 400 });
   const limit = built ? ACTION_MAX : MAX;
   if (script.length > limit) return NextResponse.json({ message: `Too long (maximum ${limit} characters).` }, { status: 400 });
-  const job = queueJob(token, script, session.email);
+
+  // takeQueuedJobs runs oldest first. queueJob prepends — so the first queueJob() here runs first.
+  let job;
+  if (body.action === "push-to-router") {
+    const packagesOnly = routerActionScript("sync-packages", input);
+    const ps = (packagesOnly ?? "").replace(/\r/g, "").trim();
+    if (ps && ps.length <= ACTION_MAX) {
+      job = queueJob(token, ps, session.email); // runs first → User Profiles
+    }
+    job = queueJob(token, script, session.email); // portal push
+    const vouchers = routerActionScript("sync-vouchers", input);
+    const vs = (vouchers ?? "").replace(/\r/g, "").trim();
+    if (vs && vs.length <= ACTION_MAX) queueJob(token, vs, session.email);
+    const files = routerActionScript("sync-files", input);
+    const fs = (files ?? "").replace(/\r/g, "").trim();
+    if (fs && fs.length <= ACTION_MAX) queueJob(token, fs, session.email);
+  } else {
+    job = queueJob(token, script, session.email);
+  }
   addAudit({ type: "router-command", text: `${session.email} queued a command for router ${body.ip}`, tenantId: currentTenantId(), actor: session.email });
   return NextResponse.json({ job });
 }

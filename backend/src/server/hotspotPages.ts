@@ -1,9 +1,8 @@
 // The HTML files a MikroTik hotspot serves from its own login folder.
-// Phones must only see the HotspotPro designed portal (website /portal) — never the
-// mini on-router username/password page and never MikroTik's factory skin.
-// These router files only bounce the captive sheet to that designed portal.
-// Voucher auth runs on the site (API / RADIUS when enabled); MikroTik then receives /login.
-// MikroTik replaces $(...) before the phone sees the page.
+// Like SopraEnt / Apaka: customers dial the voucher ON the router (POST to /login).
+// Cloud mode → MikroTik asks HotspotPro RADIUS; local mode → /ip hotspot user.
+// The website /portal is only for buying packages — optional link on the login page.
+// Never serve MikroTik's factory skin. MikroTik replaces $(...) before the phone sees the page.
 
 import { findRouterByToken, portalOrigin, publicOrigin, routerForToken } from "./provision";
 import { getState } from "./store";
@@ -53,11 +52,12 @@ export function voucherOnlyLogin(token: string): boolean {
 /** Unique marker so we never treat MikroTik factory HTML or the old mini login as "ours". */
 export const PORTAL_MARKER = "HotspotPro designed-portal";
 
-/** Delete MikroTik factory portal files that lack our marker so phones cannot open the default skin. */
+/** Delete MikroTik factory portal files that lack our marker so phones cannot open the default skin.
+ * Only wipe a folder when HotspotPro login.html already exists in the other path — never leave both empty (WinBox/phones show "not found"). */
 export function removeFactoryPortalRos(): string {
-  const wipe = (dir: string) =>
-    `:local hpChk ""; :do { :set hpChk [/file get [find where name="${dir}/login.html"] contents] } on-error={ }; :if ([:len [/file find where name="${dir}/login.html"]] > 0 && [:typeof [:find $hpChk "${PORTAL_MARKER}"]] != "num") do={ :foreach hpPg in={"login.html";"rlogin.html";"alogin.html";"error.html";"logout.html";"redirect.html";"status.html";"md5.js"} do={ :do { /file remove [find where name=("${dir}/" . $hpPg)] } on-error={ } } }`;
-  return `${wipe("flash/hotspot")}; ${wipe("hotspot")}`;
+  const wipe = (dir: string, other: string) =>
+    `:local hpChk ""; :local hpOther ""; :do { :set hpChk [/file get [find where name="${dir}/login.html"] contents] } on-error={ }; :do { :set hpOther [/file get [find where name="${other}/login.html"] contents] } on-error={ }; :if ([:len [/file find where name="${dir}/login.html"]] > 0 && [:typeof [:find $hpChk "${PORTAL_MARKER}"]] != "num" && [:typeof [:find $hpOther "${PORTAL_MARKER}"]] = "num") do={ :foreach hpPg in={"login.html";"rlogin.html";"alogin.html";"error.html";"logout.html";"redirect.html";"status.html";"md5.js"} do={ :do { /file remove [find where name=("${dir}/" . $hpPg)] } on-error={ } } }`;
+  return `${wipe("flash/hotspot", "hotspot")}; ${wipe("hotspot", "flash/hotspot")}`;
 }
 
 /** Prefer flash/hotspot only when that login.html is HotspotPro's — file existence alone can be factory HTML. */
@@ -72,11 +72,11 @@ export function applyHtmlDirectoryRos(): string {
 
 export function loginPageStamp(token: string): string {
   const look = portalLook(token);
-  const raw = `${look.pin ? "pin" : "user"}|${look.title}|${look.button}|${look.page}|bounce`;
+  const raw = `${look.pin ? "pin" : "user"}|${look.title}|${look.button}|${look.page}|dial`;
   let hash = 0;
   for (let i = 0; i < raw.length; i += 1) hash = (hash * 33 + raw.charCodeAt(i)) >>> 0;
   // Bump prefix whenever the install/detect marker or login HTML shape changes so routers re-download pages.
-  return `v23-${hash.toString(16)}`;
+  return `v26-${hash.toString(16)}`;
 }
 
 /** Files that make the hotspot folder a skin WinBox can open: the stylesheet and the CHAP helper. */
@@ -97,11 +97,23 @@ const MD5_JS = `function hexMD5(s){function add(x,y){return(x+y)|0}function rol(
 
 const SUCCESS_URL = "https://www.google.com/";
 
-/** Router HTML that only opens the designed website portal — no mini login form. */
-function designPortalBounce(portalUrl: string, look: PortalLook, title: string, hint: string): string {
+/**
+ * On-router voucher dial (Apaka / SopraEnt style).
+ * Posts username/password to MikroTik $(link-login-only) → local users or cloud RADIUS.
+ * "Buy a package" opens the website portal; it is not required for dialing.
+ */
+function onRouterLoginForm(buyUrl: string, look: PortalLook, title: string, errorHint = ""): string {
   const mark = `<!-- ${PORTAL_MARKER} -->`;
-  const safeUrl = portalUrl.replace(/"/g, "");
-  return `<!DOCTYPE html><html>${mark}<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=${safeUrl}"><meta http-equiv="pragma" content="no-cache"><title>${title}</title><style>body{margin:0;background:${look.page};color:#1e3a8a;font-family:system-ui,sans-serif}main{max-width:420px;margin:0 auto;padding:36px 18px;text-align:center}h1{font-size:26px;line-height:1.15;margin:0 0 10px}p{color:#3b82f6;line-height:1.45;font-size:14px;margin:0 0 18px}a.btn{display:block;background:${look.button};color:#fff;text-decoration:none;border-radius:12px;padding:14px;font-size:16px;font-weight:700}</style><script>try{location.replace("${safeUrl}")}catch(e){}</script></head><body><main><h1>${title}</h1><p>${hint}</p><p><a class="btn" href="${safeUrl}">Open WiFi login</a></p></main></body></html>\n`;
+  const safeBuy = buyUrl.replace(/"/g, "");
+  const pin = look.pin;
+  const fields = pin
+    ? `<label>Voucher code</label><input name="username" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" required placeholder="Enter voucher"><input type="hidden" name="password" value="">`
+    : `<label>Username</label><input name="username" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" required placeholder="Voucher code"><label>Password</label><input name="password" type="password" autocomplete="current-password" required placeholder="Password">`;
+  const err = errorHint
+    ? `<p class="err">${errorHint}</p>`
+    : "";
+  // PAP always works for plain forms; CHAP when chap-id is present (md5.js).
+  return `<!DOCTYPE html><html>${mark}<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="pragma" content="no-cache"><title>${title}</title><link rel="stylesheet" href="hotspotpro.css"><script src="md5.js"></script><style>body{margin:0;background:${look.page};color:#1e3a8a;font-family:system-ui,sans-serif}main{max-width:420px;margin:0 auto;padding:36px 18px}h1{font-size:28px;line-height:1.15;margin:0 0 8px}p{color:#3b82f6;line-height:1.45;font-size:14px;margin:0 0 14px}.err{color:#b42318;background:#fef3f2;border:1px solid #fecdca;border-radius:10px;padding:10px 12px;font-weight:600}form{margin-top:8px;background:#fff;border:1px solid #bfdbfe;border-radius:18px;padding:18px}label{display:block;margin-top:10px;font-size:13px;font-weight:600;color:#1e3a8a}input{width:100%;box-sizing:border-box;margin-top:6px;border:1px solid #93c5fd;border-radius:12px;padding:14px;font-size:16px}button{width:100%;margin-top:16px;border:0;border-radius:12px;background:${look.button};color:#fff;padding:14px;font-size:16px;font-weight:700}a.buy{display:block;margin-top:16px;text-align:center;color:#2563eb;font-weight:700;text-decoration:none}</style><script>function doLogin(){var f=document.forms.login;if(!f)return true;var u=f.username,p=f.password;if(p&&!p.value&&u&&u.value)p.value=u.value;var chapId=f['chap-id'],chapCh=f['chap-challenge'];if(chapId&&chapId.value&&chapCh&&chapCh.value&&typeof hexMD5==='function'){var h=document.createElement('input');h.type='hidden';h.name='password';h.value=hexMD5(chapId.value+p.value+chapCh.value);p.parentNode.removeChild(p);f.appendChild(h)}return true}</script></head><body><main><h1>${title}</h1><p>Enter your voucher to get online.</p>${err}<form name="login" method="post" action="$(link-login-only)" onsubmit="return doLogin()"><input type="hidden" name="dst" value="$(link-orig-esc)"><input type="hidden" name="popup" value="false"><input type="hidden" name="chap-id" value="$(chap-id)"><input type="hidden" name="chap-challenge" value="$(chap-challenge)">${fields}<button type="submit">Connect</button></form><a class="buy" href="${safeBuy}">Buy a package</a></main></body></html>\n`;
 }
 
 function pageBody(page: HotspotPage, portal: string, look: PortalLook): string {
@@ -111,28 +123,13 @@ function pageBody(page: HotspotPage, portal: string, look: PortalLook): string {
   switch (page) {
     case "login.html":
     case "rlogin.html":
-      return designPortalBounce(
-        portalUrl,
-        look,
-        title,
-        "Opening the HotspotPro login page…",
-      );
+      return onRouterLoginForm(portalUrl, look, title);
     case "alogin.html":
       return `<!DOCTYPE html><html>${mark}<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="1;url=${SUCCESS_URL}"><meta http-equiv="pragma" content="no-cache"><title>Login successful</title><style>body{margin:0;background:${look.page};color:#2563eb;font-family:system-ui,sans-serif}main{max-width:420px;margin:40px auto;padding:28px 18px;text-align:center}.ok{background:#ecfdf3;border:1px solid #abefc6;color:#067647;border-radius:12px;padding:16px;font-weight:700}a{color:#2563eb;font-weight:700}</style></head><body><main><div class="ok">Login successful! You are connected to the internet.</div><p>Opening Google…</p><p><a href="${SUCCESS_URL}">Continue to Google</a></p></main></body></html>\n`;
     case "error.html":
-      return designPortalBounce(
-        portalUrl,
-        look,
-        title,
-        "That login did not work. Opening the HotspotPro login page so you can try again.",
-      );
+      return onRouterLoginForm(portalUrl, look, title, "That voucher did not work. Check the code and try again.");
     case "logout.html":
-      return designPortalBounce(
-        portalUrl,
-        look,
-        title,
-        "Signed out. Opening the HotspotPro login page…",
-      );
+      return onRouterLoginForm(portalUrl, look, title, "Signed out. Enter a voucher to connect again.");
     case "redirect.html":
       return `<html>${mark}<head><meta http-equiv="refresh" content="0; url=${SUCCESS_URL}"><meta http-equiv="pragma" content="no-cache"></head><body><a href="${SUCCESS_URL}">Continue</a></body></html>\n`;
     case "status.html":

@@ -12,7 +12,11 @@ export function openEditRouter(ip: string, mode: EditRouterMode = "full") {
 
 export const REPROVISION_SCRIPT_EVENT = "hotspotpro:reprovision-script";
 
-/** Open the paste-in-WinBox reconfiguration script for a router. */
-export function openReprovisionScript(ip: string) {
-  window.dispatchEvent(new CustomEvent<{ ip: string }>(REPROVISION_SCRIPT_EVENT, { detail: { ip } }));
+export type ReprovisionOpenMode = "auto" | "paste";
+
+/** Open Reprovision — auto queues a job; paste shows the WinBox script. */
+export function openReprovisionScript(ip: string, mode: ReprovisionOpenMode = "auto") {
+  window.dispatchEvent(
+    new CustomEvent<{ ip: string; mode: ReprovisionOpenMode }>(REPROVISION_SCRIPT_EVENT, { detail: { ip, mode } }),
+  );
 }

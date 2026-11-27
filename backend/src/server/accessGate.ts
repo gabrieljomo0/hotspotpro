@@ -7,8 +7,9 @@
 
 import { currentTenantId, getTenant, updateTenant } from "./store";
 
-export const TRIAL_DAYS = 14;
-export const GRACE_DAYS = 3;
+/** Free trial length. Past trial+grace the check-in script locks the portal (no packages/vouchers). */
+export const TRIAL_DAYS = 90;
+export const GRACE_DAYS = 7;
 const DAY = 24 * 60 * 60 * 1000;
 
 export type AccessDecision = {

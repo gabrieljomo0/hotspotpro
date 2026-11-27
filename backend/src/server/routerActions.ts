@@ -4,11 +4,18 @@
 
 import { getState, setState } from "./store";
 import { type IspLink, multiWanLines } from "./multiWan";
-import { remoteWinboxLines } from "./routeros";
+import { dnsNameApplyLines, loginDnsFromName, remoteWinboxLines } from "./routeros";
 import { primaryWanInterface } from "./primaryWan";
 import { applyHtmlDirectoryRos, pickHtmlDirectoryRos, PORTAL_MARKER } from "./hotspotPages";
-import { forgetLocalUsers, localUserLines } from "./localUsers";
-import { ssidForRouter, wifiApplyLines } from "./wifiApply";
+import { forgetLocalUsers, localUserLines, packageProfileLines } from "./localUsers";
+import {
+  bridgeWifiLines,
+  ensureHotspotServerLines,
+  openSystemCaptivePortalLines,
+  sealCaptivePortalLeakLines,
+  ssidForRouter,
+  wifiApplyLines,
+} from "./wifiApply";
 
 export const ROUTER_ACTIONS = [
   "full-provision",
@@ -23,6 +30,8 @@ export const ROUTER_ACTIONS = [
   "multiwan",
   "wifi",
   "sync-vouchers",
+  "sync-packages",
+  "push-to-router",
   "api-credentials",
   "update-script",
   "reboot",
@@ -179,14 +188,52 @@ export function routerActionScript(
   } else if (action === "multiwan") {
     const row = routerByToken(token);
     // Force a fresh apply even if the router already ran this Multi-WAN stamp.
-    body = [":global hpWan; :set hpWan \"\"", ...multiWanLines(row?.multiWanMode, row?.ispLinks, row?.managementPort || "")];
+    body = [":global hpWanCfg; :set hpWanCfg \"\"", ":global hpWan; :set hpWan \"\"", ...multiWanLines(row?.multiWanMode, row?.ispLinks, row?.managementPort || "")];
   } else if (action === "wifi") {
     const row = routerByToken(token);
-    body = [":global hpWifiSsid; :set hpWifiSsid \"\"", ...wifiApplyLines(ssidForRouter(row ?? {}))];
+    body = [
+      ":global hpWifiSsid; :set hpWifiSsid \"\"",
+      ...wifiApplyLines(ssidForRouter(row ?? {})),
+      // System Information Apply also saves DNS Name — put it on Server Profiles now.
+      ...dnsNameApplyLines(row?.name || "", row?.dnsName),
+    ];
+  } else if (action === "sync-packages") {
+    // Tiny job: User Profiles only — runs first so a long portal script cannot block packages.
+    const row = routerByToken(token);
+    body = [
+      `:put "HotspotPro: sync-packages — creating User Profiles"`,
+      `:do { :if ([:len [/ip hotspot find where name=hotspotpro]] = 0) do={ :put "HotspotPro: CRITICAL — no hotspotpro server" } } on-error={ }`,
+      ...packageProfileLines(row?.ip || ""),
+      `:put "HotspotPro: sync-packages done"`,
+    ];
   } else if (action === "sync-vouchers") {
     const row = routerByToken(token);
     forgetLocalUsers(token);
-    body = localUserLines(token, row?.ip || "");
+    // Packages → User Profiles first, then voucher accounts (local mode).
+    body = [...packageProfileLines(row?.ip || ""), ...localUserLines(token, row?.ip || "")];
+  } else if (action === "push-to-router") {
+    // Packages FIRST (must appear in WinBox User Profiles), then captive portal hardening.
+    // Jobs route also queues sync-packages, sync-vouchers, sync-files as separate jobs.
+    const row = routerByToken(token);
+    const dns = loginDnsFromName(row?.name || "", row?.dnsName);
+    body = [
+      `:put "HotspotPro: Push to router — packages first"`,
+      `:do { :if ([:len [/ip hotspot find where name=hotspotpro]] = 0) do={ :put "HotspotPro: CRITICAL — no hotspotpro server" } } on-error={ }`,
+      ...packageProfileLines(row?.ip || ""),
+      `:put "HotspotPro: packages done — applying captive portal"`,
+      `:global hpPages; :set hpPages ""`,
+      `:global hpWifiSsid; :set hpWifiSsid ""`,
+      `:global hpBridged; :set hpBridged ""`,
+      `:global hpLockState; :set hpLockState ""`,
+      ...ensureHotspotServerLines(dns),
+      ...bridgeWifiLines(),
+      ...sealCaptivePortalLeakLines(),
+      ...openSystemCaptivePortalLines(),
+      ...gardenLines(origin),
+      ...wifiApplyLines(ssidForRouter(row ?? {})),
+      ...dnsNameApplyLines(row?.name || "", row?.dnsName),
+      `:put "HotspotPro: push portal done — vouchers/files follow in next jobs"`,
+    ];
   } else if (action === "api-credentials") {
     const secret = password();
     body = [`# hotspotpro-password:${secret}`, step(`/user remove [find where name=hotspotpro]`), `/user add name=hotspotpro group=full password=${secret} comment="HotspotPro"`];
@@ -218,6 +265,8 @@ function routerByToken(token: string) {
   if (!Array.isArray(value)) return null;
   return (value as {
     provisioningToken?: string;
+    name?: string;
+    dnsName?: string;
     wanInterface?: string;
     adminFromWan?: boolean;
     remoteAccessHold?: boolean;
@@ -242,6 +291,8 @@ const ACTION_TEXT: Record<string, string> = {
   multiwan: "Multi-WAN load balancing / failover was applied on the router.",
   wifi: "WiFi SSID and access-point radios were updated on the router.",
   "sync-vouchers": "Vouchers were copied onto the router for local login.",
+  "sync-packages": "Packages were written to Hotspot User Profiles on the router.",
+  "push-to-router": "Packages, vouchers, and captive portal were forced onto the router.",
   "api-credentials": "API user hotspotpro was created on the router.",
   "update-script": "The router downloaded and ran the latest HotspotPro setup.",
   reboot: "Reboot sent.",
@@ -303,6 +354,14 @@ export function markRouterAction(token: string, script: string) {
       patch.wifiAppliedAt = now;
     } else if (action === "sync-vouchers") {
       patch.vouchersSyncedAt = now;
+    } else if (action === "sync-packages") {
+      patch.packagesPushedAt = now;
+    } else if (action === "push-to-router") {
+      patch.vouchersSyncedAt = now;
+      patch.hotspotFilesSyncedAt = now;
+      patch.walledGardenConfigured = true;
+      patch.wifiAppliedAt = now;
+      patch.packagesPushedAt = now;
     } else if (action === "api-credentials" && secret) {
       patch.apiUsername = "hotspotpro";
       patch.apiPassword = secret;

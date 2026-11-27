@@ -278,6 +278,7 @@ export default function AgentVoucherPresetsPage({
                       >
                         <option value="uppercase">Uppercase (A-Z, 0-9)</option>
                         <option value="lowercase">Lowercase (a-z, 0-9)</option>
+                        <option value="letters-lower">Small letters only (a-z)</option>
                         <option value="mixed">Mixed Case</option>
                         <option value="numeric">Numeric only</option>
                       </select>
@@ -479,8 +480,9 @@ export default function AgentVoucherPresetsPage({
                               >
                                 <option value="uppercase">Uppercase (A-Z, 0-9)</option>
                                 <option value="lowercase">Lowercase (a-z, 0-9)</option>
-                                <option value="mixed">Mixed Case</option>
-                                <option value="numeric">Numeric only</option>
+                                <option value="letters-lower">Small letters only (a-z)</option>
+                                <option value="mixed">Mixed Case (a-zA-Z, 0-9)</option>
+                                <option value="numeric">Numeric only (0-9)</option>
                               </select>
                             </label>
                             <label className="block">

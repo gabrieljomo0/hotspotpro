@@ -3,20 +3,35 @@
 // The pop-up that shows a router action while it runs: a circular
 // percentage loader, then the result. Mounted once for the whole admin
 // dashboard — any menu can start a task with startRouterTask().
+// On success the popup shows the message briefly, then closes by itself (no Done click).
 
+import { useEffect } from "react";
 import { X } from "lucide-react";
 
 import { useDashboard } from "@/components/dashboard/context/DashboardContext";
+import { openReprovisionScript } from "@/components/dashboard/shared/editEvents";
 import { ROUTER_TASKS } from "./routerTasks";
 
 export function RouterTaskHost() {
-  const { routerTask, confirmRouterTask, closeRouterTask } = useDashboard();
+  const { routerTask, confirmRouterTask, closeRouterTask, showToast } = useDashboard();
+
+  useEffect(() => {
+    if (!routerTask || routerTask.status !== "done") return;
+    const def = ROUTER_TASKS[routerTask.kind];
+    showToast(`${routerTask.name} ${def.success}`);
+    const timer = window.setTimeout(() => closeRouterTask(), 2200);
+    return () => window.clearTimeout(timer);
+  }, [routerTask, closeRouterTask, showToast]);
+
   if (!routerTask) return null;
 
   const def = ROUTER_TASKS[routerTask.kind];
-  const { status, doneCount, error, name } = routerTask;
+  const { status, doneCount, error, name, kind, ip } = routerTask;
   const total = def.steps.length;
   const percent = Math.round((doneCount / total) * 100);
+  const waitingCheckIn = status === "running" && !!routerTask.jobId && doneCount < total - 1;
+  const showPaste =
+    status === "failed" && (kind === "full-provision" || kind === "update-script");
 
   return (
     <div
@@ -81,7 +96,7 @@ export function RouterTaskHost() {
                     cy="64"
                     r="54"
                     fill="none"
-                    stroke={status === "failed" ? "#1a1a1a" : "#1a1a1a"}
+                    stroke="#1a1a1a"
                     strokeWidth="10"
                     strokeLinecap="round"
                     strokeDasharray={2 * Math.PI * 54}
@@ -94,15 +109,24 @@ export function RouterTaskHost() {
                 </span>
               </div>
               <p data-testid="router-task-status" className="mt-3 text-sm font-semibold text-[#525252]">
-                {status === "running" && (routerTask.jobId ? "Waiting for the router. It picks this up within about 3 seconds." : "Please wait…")}
+                {status === "running" &&
+                  (waitingCheckIn
+                    ? "Waiting for the router to check in… (up to ~90s). If it stays here, use Paste script."
+                    : routerTask.jobId
+                      ? "Router is applying the setup…"
+                      : "Sending to the router…")}
                 {status === "done" && "Setup completed"}
                 {status === "failed" && "Stopped"}
               </p>
+              {status === "running" && doneCount > 0 && doneCount <= total && (
+                <p className="mt-1 text-xs text-[#737373]">{def.steps[Math.min(doneCount, total) - 1]}</p>
+              )}
             </div>
 
             {status === "done" && (
               <div data-testid="router-task-result" className="mb-4 rounded-lg bg-[#f4f4f4] p-3 text-sm text-[#1a1a1a]">
                 <strong>{name}</strong> {def.success}
+                <p className="mt-2 text-xs text-[#737373]">Closing automatically…</p>
               </div>
             )}
             {status === "failed" && (
@@ -111,9 +135,22 @@ export function RouterTaskHost() {
               </div>
             )}
 
-            {status !== "running" && (
-              <div className="flex gap-3">
-                {status === "failed" && (
+            {status === "failed" && (
+              <div className="flex flex-wrap gap-3">
+                {showPaste && (
+                  <button
+                    type="button"
+                    data-testid="router-task-paste"
+                    onClick={() => {
+                      closeRouterTask();
+                      openReprovisionScript(ip, "paste");
+                    }}
+                    className="rounded-xl bg-[#1a1a1a] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#111111]"
+                  >
+                    Paste script
+                  </button>
+                )}
+                {!showPaste && (
                   <button
                     type="button"
                     data-testid="router-task-retry"
@@ -129,7 +166,7 @@ export function RouterTaskHost() {
                   onClick={closeRouterTask}
                   className="rounded-xl bg-[#f4f4f4] px-5 py-2.5 text-sm font-bold text-[#525252] hover:bg-[#e6e6e6]"
                 >
-                  {status === "done" ? "Done" : "Close"}
+                  Close
                 </button>
               </div>
             )}

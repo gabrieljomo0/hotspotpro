@@ -267,6 +267,7 @@ type DashboardContextValue = {
     doneCount: number;
     error: string | null;
     jobId: string | null;
+    startedAt: number;
   } | null;
   startRouterTask: (kind: RouterTaskKind, ip: string) => void;
   confirmRouterTask: () => void;
@@ -279,7 +280,7 @@ type DashboardContextValue = {
   configureWalledGarden: (ip: string) => void;
   hardenServices: (ip: string) => void;
   updateRouterScript: (ip: string) => void;
-  downloadRouterFile: (ip: string, kind: "provision-script" | "wireguard-config") => void;
+  downloadRouterFile: (ip: string, kind: "provision-script" | "wireguard-config" | "winbox-config") => void;
   updateRouterNotificationContacts: (ip: string, phones: string[], emails: string[]) => void;
   updateMultiWanConfig: (ip: string, mode: RouterInfo["multiWanMode"], ispLinks: RouterISPLink[], silent?: boolean) => void;
   updateRouterDetails: (ip: string, updates: Partial<RouterInfo>) => void;
@@ -1373,29 +1374,64 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     removePackagePush,
   } = usePackageState(showToast, logActivity, currentAgentId, packages, setPackages, setVouchers, setVoucherBatches, actingAgentLabel, canActOnPackage);
 
-  function syncPackageProfilesToRouters(pkg: { routerIps?: string[]; applyToAllSites?: boolean } | null | undefined) {
-    const linked = routers
-      .filter((r) => typeof r.provisioningToken === "string" && r.provisioningToken.length > 0)
-      .map((r) => r.ip);
-    if (linked.length === 0) return;
-    if (pkg?.applyToAllSites || !pkg?.routerIps?.length) {
-      queueRouterActionMany(linked, "sync-vouchers");
-      return;
-    }
-    const targets = pkg.routerIps.filter((ip) => linked.includes(ip));
-    if (targets.length > 0) queueRouterActionMany(targets, "sync-vouchers");
-    else queueRouterActionMany(linked, "sync-vouchers");
+  function syncPackageProfilesToRouters(
+    pkg: { routerIps?: string[]; applyToAllSites?: boolean; name?: string } | null | undefined,
+    nextPackages: Package[],
+  ) {
+    void (async () => {
+      // Persist first — router jobs/check-in read server state; a debounced save races the push.
+      await persistNow("packages", nextPackages);
+      const linked = routers
+        .filter((r) => typeof r.provisioningToken === "string" && r.provisioningToken.length > 0)
+        .map((r) => r.ip);
+      if (linked.length === 0) {
+        showToast(
+          "Package saved. Connect/provision a MikroTik so User Profiles can sync (IP → Hotspot → User Profiles).",
+        );
+        return;
+      }
+      if (pkg?.applyToAllSites || !pkg?.routerIps?.length) {
+        queueRouterActionMany(linked, "push-to-router");
+      } else {
+        const targets = pkg.routerIps.filter((ip) => linked.includes(ip));
+        queueRouterActionMany(targets.length > 0 ? targets : linked, "push-to-router");
+      }
+      showToast(
+        pkg?.name
+          ? `“${pkg.name}” saved — pushing packages & vouchers to the selected router(s)…`
+          : "Package saved — pushing packages & vouchers to the router(s)…",
+      );
+    })();
   }
 
   function addPackage(input: PackageInput) {
     const created = addPackageBase(input);
-    if (created) syncPackageProfilesToRouters(created);
+    if (created) syncPackageProfilesToRouters(created, [created, ...packages]);
     return created;
   }
 
   function updatePackage(id: string, input: PackageInput) {
     updatePackageBase(id, input);
-    syncPackageProfilesToRouters({ ...input, routerIps: input.routerIps, applyToAllSites: input.applyToAllSites });
+    const nextPackages = packages.map((pkg) =>
+      pkg.id === id
+        ? {
+            ...pkg,
+            ...input,
+            ...derivePackageDisplayFields(input),
+          }
+        : pkg,
+    );
+    syncPackageProfilesToRouters(
+      { ...input, routerIps: input.routerIps, applyToAllSites: input.applyToAllSites, name: input.name },
+      nextPackages,
+    );
+  }
+
+  function setPackageStatusAndSync(id: string, status: PackageStatus) {
+    setPackageStatus(id, status);
+    const nextPackages = packages.map((pkg) => (pkg.id === id ? { ...pkg, status } : pkg));
+    const row = nextPackages.find((pkg) => pkg.id === id);
+    if (status === "Active" && row) syncPackageProfilesToRouters(row, nextPackages);
   }
 
   const {
@@ -1515,6 +1551,15 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   }
 
   function requestConfirmAction(action: ConfirmAction) {
+    if (action.type === "remove-router" && !action.confirmCode) {
+      const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let code = "";
+      for (let i = 0; i < 6; i++) code += alphabet[Math.floor(Math.random() * alphabet.length)];
+      const router = routers.find((r) => r.ip === action.routerIp);
+      const working = !!router && router.status === "Online" && !router.disconnected;
+      setConfirmAction({ ...action, confirmCode: code, working });
+      return;
+    }
     setConfirmAction(action);
   }
 
@@ -1567,8 +1612,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         delete next[confirmAction.routerIp];
         return next;
       });
-      showToast("Router removed.");
-      logActivity("Router", `Removed router ${confirmAction.routerIp}.`);
+      showToast(`${confirmAction.routerName} deleted.`);
+      logActivity("Router", `Deleted router ${confirmAction.routerName} (${confirmAction.routerIp}).`);
     }
 
     setConfirmAction(null);
@@ -1651,15 +1696,17 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       ),
     );
     if (user?.voucherUsername) {
-      setVouchers((current) =>
-        current.map((v) =>
-          v.code.toLowerCase() === user.voucherUsername.toLowerCase()
-            ? { ...v, packageName: newPackage }
-            : v,
-        ),
+      const nextVouchers = vouchers.map((v) =>
+        v.code.toLowerCase() === user.voucherUsername.toLowerCase()
+          ? { ...v, packageName: newPackage }
+          : v,
       );
+      setVouchers(nextVouchers);
       const ip = user.routerIp || routers.find((r) => (r.liveUsers ?? []).includes(user.voucherUsername))?.ip;
-      if (ip) queueRouterAction(ip, "sync-vouchers");
+      void (async () => {
+        await persistNow("vouchers", nextVouchers);
+        if (ip) queueRouterAction(ip, "sync-vouchers");
+      })();
     }
     showToast(`Package changed to ${newPackage}.`);
     logActivity("User", `Changed ${userId}'s package to ${newPackage}.`);
@@ -1677,18 +1724,20 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       ),
     );
     if (user?.voucherUsername) {
-      setVouchers((current) =>
-        current.map((v) =>
-          v.code.toLowerCase() === user.voucherUsername.toLowerCase()
-            ? { ...v, password: newPassword }
-            : v,
-        ),
+      const nextVouchers = vouchers.map((v) =>
+        v.code.toLowerCase() === user.voucherUsername.toLowerCase()
+          ? { ...v, password: newPassword }
+          : v,
       );
+      setVouchers(nextVouchers);
       const ip = user.routerIp || routers.find((r) => (r.liveUsers ?? []).includes(user.voucherUsername))?.ip;
-      if (ip) {
-        queueRouterAction(ip, "sync-vouchers");
-        queueRouterAction(ip, "kick-user", { username: user.voucherUsername, mac: user.macAddress || undefined });
-      }
+      void (async () => {
+        await persistNow("vouchers", nextVouchers);
+        if (ip) {
+          queueRouterAction(ip, "sync-vouchers");
+          queueRouterAction(ip, "kick-user", { username: user.voucherUsername, mac: user.macAddress || undefined });
+        }
+      })();
     }
 
     showToast("Voucher password reset. User must reconnect with the new password.");
@@ -2087,19 +2136,23 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       const chars =
         input.codeFormat === "numeric"
           ? "0123456789"
-          : input.codeFormat === "lowercase"
-            ? "abcdefghjkmnpqrstuvwxyz23456789"
-            : input.codeFormat === "mixed"
-              ? "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789"
-              : "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+          : input.codeFormat === "letters-lower"
+            ? "abcdefghjkmnpqrstuvwxyz"
+            : input.codeFormat === "lowercase"
+              ? "abcdefghjkmnpqrstuvwxyz23456789"
+              : input.codeFormat === "mixed"
+                ? "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789"
+                : "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
       let code = "";
       for (let i = 0; i < input.codeLength; i += 1) {
         code += chars[Math.floor(Math.random() * chars.length)];
       }
       const prefixCased =
-        input.codeFormat === "lowercase"
+        input.codeFormat === "lowercase" || input.codeFormat === "letters-lower"
           ? input.prefix.toLowerCase()
-          : input.prefix.toUpperCase();
+          : input.codeFormat === "mixed"
+            ? input.prefix
+            : input.prefix.toUpperCase();
       return `${input.prefix ? prefixCased : ""}${code}`;
     }
 
@@ -3348,7 +3401,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     findPackage,
     addPackage,
     updatePackage,
-    setPackageStatus,
+    setPackageStatus: setPackageStatusAndSync,
     deletePackage,
     duplicatePackage,
     expirePackageVouchers,

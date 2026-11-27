@@ -144,11 +144,19 @@ function RouterDetailPageInner({
           <button
             type="button"
             data-testid="reprovision-open"
-            onClick={() => openReprovisionScript(router.ip)}
+            onClick={() => openReprovisionScript(router.ip, "auto")}
             className="inline-flex items-center gap-2 rounded-xl bg-[#1a1a1a] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#111111]"
           >
             <RefreshCcw size={15} />
             Reprovision
+          </button>
+          <button
+            type="button"
+            data-testid="reprovision-open-paste"
+            onClick={() => openReprovisionScript(router.ip, "paste")}
+            className="inline-flex items-center gap-2 rounded-xl border border-[#e6e6e6] bg-white px-4 py-2.5 text-sm font-bold text-[#1a1a1a] hover:bg-[#f7f7f7]"
+          >
+            Paste script
           </button>
 
           <div className="relative">
@@ -171,7 +179,6 @@ function RouterDetailPageInner({
                 onClose={() => setMoreOpen(false)}
                 onGoToMultiWan={() => setTab("Multi-WAN")}
                 onOpenNotifications={() => setNotifModalOpen(true)}
-                onConfirm={confirmAnd}
               />
             )}
           </div>

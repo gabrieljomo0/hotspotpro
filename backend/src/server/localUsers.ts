@@ -27,13 +27,17 @@ function userName(code: string) {
   return code.trim().replace(/[^A-Za-z0-9_-]/g, "").slice(0, 32);
 }
 
-/** WinBox → User Profiles name: prefer the package title (Daily, Weekly…), not a cryptic id. */
-function profileName(pkg: Pkg | null, fallback: string) {
+/** WinBox → User Profiles name: prefer the package title (Daily, Weekly…), not a cryptic id.
+ * Also used as Mikrotik-Group in Access-Accept (HotSpot default profile for RADIUS users). */
+export function profileName(pkg: Pkg | null, fallback: string) {
   const raw = (pkg?.name || fallback)
-    .replace(/[^A-Za-z0-9]/g, "")
-    .slice(0, 15);
+    .replace(/[^A-Za-z0-9 _-]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 32);
   if (!raw) return "HotspotPro";
-  return /^[A-Za-z]/.test(raw) ? raw.slice(0, 16) : (`P${raw}`).slice(0, 16);
+  // MikroTik profile names should start with a letter.
+  return /^[A-Za-z]/.test(raw) ? raw : (`P${raw}`).slice(0, 32);
 }
 
 function rate(pkg: Pkg | null) {
@@ -121,23 +125,33 @@ function emitProfile(pkg: Pkg | null, fallbackName: string, lines: string[]) {
   const name = profileName(pkg, fallbackName);
   const seconds = pkg ? packageSeconds(pkg) : 86400;
   const devices = pkg?.devices && pkg.devices > 1 ? Math.floor(pkg.devices) : 1;
-  // Create without on-logout first — if the logout script is missing, the whole add used to fail
-  // and User Profiles stayed empty (only "default").
-  const limit = `rate-limit=${rate(pkg)} shared-users=${devices} session-timeout=0s idle-timeout=none keepalive-timeout=none mac-cookie-timeout=${rosDuration(seconds)}`;
   const label = (pkg?.name || fallbackName || name).replace(/[\\"$\r\n]/g, "").slice(0, 48);
-  lines.push(
-    `:do { :if ([:len [/ip hotspot user profile find where name=${quote(name)}]] = 0) do={ /ip hotspot user profile add name=${quote(name)} ${limit} comment="HotspotPro:${label}" } else={ /ip hotspot user profile set [find where name=${quote(name)}] ${limit} comment="HotspotPro:${label}" } } on-error={ }`,
-  );
-  lines.push(`:do { /ip hotspot user profile set [find where name=${quote(name)}] on-logout=hotspotpro-logout } on-error={ }`);
+  const q = quote(name);
+  // Stepwise create/set — a single long `add` with every property fails silently on some ROS
+  // builds (unknown attr → whole add aborted → User Profiles stays empty except default).
+  lines.push(`:do { :if ([:len [/ip hotspot user profile find where name=${q}]] = 0) do={ /ip hotspot user profile add name=${q} comment="HotspotPro:${label}"; :put ("HotspotPro: User Profile " . ${q} . " created") } } on-error={ :log warning ("HotspotPro: User Profile add failed for " . ${q}) }`);
+  lines.push(`:do { /ip hotspot user profile set [find where name=${q}] rate-limit=${rate(pkg)} } on-error={ }`);
+  lines.push(`:do { /ip hotspot user profile set [find where name=${q}] shared-users=${devices} } on-error={ }`);
+  lines.push(`:do { /ip hotspot user profile set [find where name=${q}] session-timeout=0s } on-error={ }`);
+  lines.push(`:do { /ip hotspot user profile set [find where name=${q}] idle-timeout=none } on-error={ }`);
+  lines.push(`:do { /ip hotspot user profile set [find where name=${q}] keepalive-timeout=none } on-error={ }`);
+  lines.push(`:do { /ip hotspot user profile set [find where name=${q}] mac-cookie-timeout=${rosDuration(seconds)} } on-error={ }`);
+  lines.push(`:do { /ip hotspot user profile set [find where name=${q}] comment="HotspotPro:${label}" } on-error={ }`);
+  lines.push(`:do { /ip hotspot user profile set [find where name=${q}] on-logout=hotspotpro-logout } on-error={ }`);
   return name;
 }
 
 /** Push Hotspot user profiles for every active package on this router (WinBox → User Profiles). */
 function emitPackageProfiles(routerIp: string, lines: string[]) {
-  const active = list<Pkg>("packages").filter((pkg) => pkg && (!pkg.status || pkg.status === "Active"));
+  // Active + Hidden both need User Profiles (Hidden still sells via vouchers/agents).
+  const active = list<Pkg>("packages").filter(
+    (pkg) => pkg && (!pkg.status || pkg.status === "Active" || pkg.status === "Hidden"),
+  );
   let pkgs = active.filter((pkg) => routerAllowsPackage(pkg, routerIp));
   // After pending-* → linked-*, scoped packages can miss the new id — still show packages in WinBox.
   if (pkgs.length === 0 && active.length > 0) pkgs = active;
+  // Prefer every usable package on check-in so User Profiles is never empty when the site has packages.
+  if (active.length > pkgs.length) pkgs = active;
   const seen = new Set<string>();
   for (const pkg of pkgs) {
     const name = profileName(pkg, pkg.name || pkg.id || "default");
@@ -145,6 +159,26 @@ function emitPackageProfiles(routerIp: string, lines: string[]) {
     seen.add(name);
     emitProfile(pkg, pkg.name || pkg.id || "default", lines);
   }
+  if (seen.size > 0) {
+    lines.push(`:put ("HotspotPro: ${seen.size} package profile(s) on this router")`);
+  }
+  // Prove to the log / job output how many HotspotPro profiles actually exist after the push.
+  lines.push(
+    `:do { :local n [:len [/ip hotspot user profile find where comment~"HotspotPro"]]; :put ("HotspotPro: WinBox User Profiles with HotspotPro comment = " . $n) } on-error={ :put "HotspotPro: could not count User Profiles — is the hotspot package installed?" }`,
+  );
+}
+
+/**
+ * RouterOS lines that create/update one User Profile per package.
+ * Always safe to run (local or cloud RADIUS) — WinBox → Hotspot → User Profiles.
+ */
+export function packageProfileLines(routerIp: string): string[] {
+  const lines: string[] = ["# HotspotPro packages → Hotspot User Profiles"];
+  emitPackageProfiles(routerIp || "", lines);
+  if (lines.length === 1) {
+    lines.push(`:put "HotspotPro: no packages yet — create a package on the site to fill User Profiles"`);
+  }
+  return lines;
 }
 
 function emitUsers(users: WantedUser[], pin: boolean, lines: string[]) {
@@ -325,6 +359,9 @@ export function ensureOneLocalUser(
     `:do { :if ([:len [/ip hotspot user profile find where name=${profile}]] = 0) do={ /ip hotspot user set [find where name=${quote(user.name)}] profile=default } } on-error={ }`,
   );
   lines.push(`:do { /ip hotspot cookie remove [find where user=${quote(user.name)}] } on-error={ }`);
+  // Clear hosts stuck after a failed MAC auth attempt so the voucher HTTP login can put them online.
+  lines.push(`:do { /ip hotspot host remove [find where authorized=no] } on-error={ }`);
+  lines.push(`:put ("HotspotPro: voucher " . ${quote(user.name)} . " is on the router for login")`);
   if (opts?.origin && opts?.ticketId) {
     lines.push(...autoLoginFetchLines(opts.origin, token, opts.ticketId));
   }
@@ -339,14 +376,20 @@ export function portalPushLines(token: string, routerIp: string, origin?: string
   const lines: string[] = ["# HotspotPro portal push (Connect)"];
   const done: string[] = [];
   for (const code of codes) {
-    const part = ensureOneLocalUser(token, routerIp, code, now);
+    // Password must match the login ticket / hp-go.html (do not overwrite with PIN-only secret).
+    const matchTicket =
+      ticket &&
+      (ticket.username === userName(code) || ticket.username.toLowerCase() === code.trim().toLowerCase());
+    const part = ensureOneLocalUser(token, routerIp, code, now, {
+      password: matchTicket ? ticket.password : undefined,
+    });
     if (part.length > 1) {
       lines.push(...part);
       done.push(userName(code));
     }
   }
-  // Download HTTP auto-login page so the phone can leave HTTPS and POST on the gateway.
-  if (origin && ticket) lines.push(...autoLoginFetchLines(origin, token, ticket.id));
+  // Soft fetch on check-in — hard :error would abort packages/jobs for the whole poll.
+  if (origin && ticket) lines.push(...autoLoginFetchLines(origin, token, ticket.id, false));
   // Re-emit on two check-ins so a flaky import still lands the user, then clear.
   const file = portalPushFile();
   const row = file[token];

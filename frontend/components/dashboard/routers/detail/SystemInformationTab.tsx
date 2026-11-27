@@ -7,7 +7,7 @@
 // currently connected to it — everything else is computed from that.
 
 import { useEffect, useMemo, useState } from "react";
-import { Eye, EyeOff, Copy, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Eye, EyeOff, Copy, Download, CheckCircle2, AlertTriangle } from "lucide-react";
 import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { useDashboard } from "@/components/dashboard/context/DashboardContext";
@@ -16,7 +16,7 @@ import { useRouterControl } from "@/components/dashboard/routers/useRouterContro
 import { routerLiveStatus } from "@/components/dashboard/routers/routerLiveStatus";
 import { DirtyApplyBar } from "@/components/dashboard/shared/DirtyApplyBar";
 import { OpenBrowserConsoleButton } from "@/components/dashboard/routers/detail/BrowserRouterConsole";
-import { autoPrepareRemoteWinbox, downloadWireguardTunnel } from "@/components/dashboard/routers/autoRemoteWinbox";
+import { autoPrepareRemoteWinbox } from "@/components/dashboard/routers/autoRemoteWinbox";
 
 const WARN_AT = 75;
 const OVERLOAD_AT = 90;
@@ -64,7 +64,14 @@ export function SystemInformationTab({
   isEnabled: boolean;
   connectedUserCount: number;
 }) {
-  const { showToast, updateRouterDetails, applyRouterPatch, routerEnabled, toggleRemoteAccess } = useDashboard();
+  const {
+    showToast,
+    updateRouterDetails,
+    applyRouterPatch,
+    routerEnabled,
+    toggleRemoteAccess,
+    downloadRouterFile,
+  } = useDashboard();
   const [preparingRemote, setPreparingRemote] = useState(false);
   const [radiusOn, setRadiusOn] = useState(false);
   const [radiusHost, setRadiusHost] = useState<string | null>(null);
@@ -298,54 +305,79 @@ export function SystemInformationTab({
           >
             {preparingRemote ? "Preparing…" : "Prepare remote access"}
           </button>
+          {router.remoteAccessEnabled &&
+          router.winboxAddress &&
+          !String(router.winboxAddress).startsWith("192.168.216.") ? (
+            <>
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl border border-[#e6e6e6] bg-white px-4 py-2.5 text-sm font-bold text-[#1a1a1a] hover:bg-[#f7f7f7]"
+                onClick={() => {
+                  const address = String(router.winboxAddress).replace(/:8291$/, "");
+                  void navigator.clipboard.writeText(address).then(
+                    () => showToast(`Copied ${address} — paste into WinBox Connect (login: admin).`),
+                    () => showToast(`WinBox address: ${address} (login: admin + router password).`),
+                  );
+                }}
+              >
+                <Copy size={14} /> Copy WinBox address
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl border border-[#e6e6e6] bg-white px-4 py-2.5 text-sm font-bold text-[#1a1a1a] hover:bg-[#f7f7f7]"
+                onClick={() => downloadRouterFile(router.ip, "winbox-config")}
+              >
+                <Download size={14} /> Download wb.config
+              </button>
+            </>
+          ) : null}
         </div>
-        <p className="mb-4 text-xs text-[#737373]">
-          Open in browser sends commands from this site (works even if the router is far away). For full WinBox on your laptop, prepare remote access, then use the address / WireGuard steps below.
+        <p className="mb-4 text-sm text-[#525252]">
+          Turn remote access on, then open <span className="font-semibold text-[#1a1a1a]">WinBox on this PC</span> and log in.
+          You do <span className="font-semibold text-[#1a1a1a]">not</span> install WireGuard — the cloud holds that tunnel for you.
         </p>
+        <ol className="mb-5 list-decimal space-y-1.5 pl-5 text-sm text-[#525252]">
+          <li>Tap <span className="font-semibold text-[#1a1a1a]">Prepare remote access</span> (router must be Online).</li>
+          <li>
+            Open <span className="font-semibold text-[#1a1a1a]">WinBox</span> → Connect to the address below → user{" "}
+            <span className="font-mono font-semibold text-[#1a1a1a]">admin</span> + this router’s admin password.
+          </li>
+        </ol>
         <div className="mb-5 space-y-4">
           <div>
             <p className="text-xs text-[#737373]">Status</p>
             <span className={`mt-1 inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${router.remoteAccessEnabled ? "bg-[#f4f4f4] text-[#111111]" : "bg-slate-200 text-slate-700"}`}>
               {router.remoteAccessEnabled ? "Enabled" : "Disabled"}
             </span>
-            {router.remoteAccessEnabled && router.winboxReach ? (
+            {router.remoteAccessEnabled ? (
               <span className="ml-2 text-xs text-[#737373]">
-                {router.winboxReach === "direct" ? "Public path" : router.winboxReach === "relay" ? "Tunnel (NAT)" : "LAN only"}
+                {router.winboxReach === "direct" || router.winboxRelay
+                  ? "Ready for WinBox on this PC"
+                  : router.winboxReach === "relay"
+                    ? "Preparing cloud path…"
+                    : "LAN only"}
               </span>
             ) : null}
           </div>
           <div>
-            <p className="text-xs text-[#737373]">WinBox address (laptop)</p>
+            <p className="text-xs text-[#737373]">WinBox connect address</p>
             <p className="mt-1 font-mono text-sm font-semibold text-[#1a1a1a]">
-              {router.winboxReach === "direct" && router.winboxAddress
-                ? router.winboxAddress
+              {router.remoteAccessEnabled && router.winboxAddress && !String(router.winboxAddress).startsWith("192.168.216.")
+                ? String(router.winboxAddress).replace(/:8291$/, "")
                 : router.remoteAccessEnabled
-                  ? "192.168.216.1"
+                  ? "Preparing…"
                   : "—"}
             </p>
+            <p className="mt-1 text-xs text-[#737373]">Login: admin · Password: the MikroTik admin password for this router</p>
             <p className="mt-1 text-sm text-[#1a1a1a]">
-              {router.remoteAccessEnabled && router.winboxReach === "direct"
-                ? "Paste that address into WinBox on this laptop with the router admin password."
-                : router.remoteAccessEnabled && router.wireguardConfig
-                  ? "Download WireGuard, activate the tunnel on this laptop, then open WinBox to 192.168.216.1."
-                  : router.remoteAccessEnabled
-                    ? "Waiting for the router to finish creating the tunnel on the next check-in. Tap Prepare remote access."
-                    : "Tap Prepare remote access (or enable remote), then Open in browser / WinBox on your laptop."}
+              {router.remoteAccessEnabled && router.winboxAddress && !String(router.winboxAddress).startsWith("192.168.216.")
+                ? "Paste that address into WinBox Connect — nothing else to install."
+                : router.remoteAccessEnabled
+                  ? "Waiting for the router / cloud relay (up to ~90s). Tap Prepare again if it stays blank."
+                  : "Tap Prepare remote access, then open WinBox with the address shown."}
             </p>
           </div>
         </div>
-        {router.remoteAccessEnabled && router.wireguardConfig && (
-          <button
-            type="button"
-            className="mb-5 rounded-xl bg-[#1a1a1a] px-4 py-2 text-sm font-bold text-white"
-            onClick={() => {
-              downloadWireguardTunnel(router.name, router.wireguardConfig || "");
-              showToast("Tunnel file downloaded. Import into WireGuard on this laptop, turn it on, then WinBox → 192.168.216.1");
-            }}
-          >
-            Download WireGuard file
-          </button>
-        )}
 
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="rounded-xl border border-[#f4f4f4] p-4">
@@ -448,7 +480,7 @@ export function SystemInformationTab({
                 await fetch("/api/routers/jobs", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ ip: router.ip, action: "wifi" }),
+                  body: JSON.stringify({ ip: router.ip, action: "push-to-router" }),
                 }).catch(() => {});
                 setSavedHotspot({
                   hotspotOn,
@@ -457,7 +489,7 @@ export function SystemInformationTab({
                   dnsServers: dnsServers.trim(),
                   loginLabel: label,
                 });
-                showToast("Hotspot settings saved and sent to the router.");
+                showToast("Hotspot settings saved. Packages, vouchers, and captive portal are being pushed.");
               } finally {
                 setApplyingHotspot(false);
               }
@@ -573,6 +605,12 @@ export function SystemInformationTab({
             <p className="text-xs text-[#737373]">Hardware Model</p>
             <span className="inline-flex rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-bold text-[#111111]">
               {router.hardwareModel || (live === "Online" ? "Reporting…" : "Waiting for check-in")}
+            </span>
+          </div>
+          <div>
+            <p className="text-xs text-[#737373]">Board serial</p>
+            <span className="inline-flex rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-bold text-[#111111]">
+              {router.hardwareSerial || router.softwareId || (live === "Online" ? "Reporting…" : "Waiting for check-in")}
             </span>
           </div>
           <div>

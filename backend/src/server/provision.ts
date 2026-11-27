@@ -1,4 +1,5 @@
 import os from "node:os";
+import { duplicateRouterMessage, findHardwareConflict, markDuplicateRouterAttempt } from "./hardwareId";
 import { type ProvisionRouter, buildProvisionScript } from "./routeros";
 import { radiusCloudEnabled, radiusPorts, radiusPublicHost, radiusSecret } from "./radius";
 import { getProvision, getState, setState, touchProvision } from "./store";
@@ -24,14 +25,31 @@ export const WEB_PORT = String(process.env.HOTSPOTPRO_WEB_PORT || 3000);
  * and API are hosted separately (e.g. Vercel + Render). HOTSPOTPRO_PUBLIC_URL alone is fine when one
  * https address serves everything; locally this is the website port (3000), not the backend's (4000).
  */
+/** True when this host is the API only — phones must open the Vercel website for /portal. */
+function isApiOnlyHost(hostname: string) {
+  return (
+    /\.onrender\.com$/i.test(hostname) ||
+    /\.fly\.dev$/i.test(hostname) ||
+    /^hotspotpro-api(\.|$)/i.test(hostname)
+  );
+}
+
 export function portalOrigin(origin: string) {
   const dedicated = (process.env.HOTSPOTPRO_PORTAL_URL || process.env.HOTSPOTPRO_SITE_URL || "").replace(/\/+$/, "");
-  if (dedicated) return dedicated;
+  if (dedicated) {
+    try {
+      // Never send customers to the API host even if PORTAL_URL was mis-set to fly/render.
+      if (isApiOnlyHost(new URL(dedicated).hostname)) return "https://hotspotpro-mu.vercel.app";
+    } catch {
+      /* use dedicated */
+    }
+    return dedicated;
+  }
   const configured = (process.env.HOTSPOTPRO_PUBLIC_URL || "").replace(/\/+$/, "");
   if (configured) {
     try {
       // API-only hosts must not be used as the customer portal — phones need the website UI.
-      if (/\.onrender\.com$/i.test(new URL(configured).hostname)) {
+      if (isApiOnlyHost(new URL(configured).hostname)) {
         return "https://hotspotpro-mu.vercel.app";
       }
     } catch {
@@ -41,6 +59,7 @@ export function portalOrigin(origin: string) {
   }
   try {
     const url = new URL(origin);
+    if (isApiOnlyHost(url.hostname)) return "https://hotspotpro-mu.vercel.app";
     url.port = WEB_PORT;
     return url.origin;
   } catch {
@@ -91,17 +110,35 @@ function apiPasswordFor(token: string): string {
   return password;
 }
 
-function wifiFromStore(router: ProvisionRouter & { ip?: string; siteId?: string | null; name?: string }, options: { wireless?: boolean; ssid?: string }) {
+function isPlaceholderSsid(value: string | undefined) {
+  const n = (value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ");
+  return !n || n === "hotspotpro" || n === "hotspotpro wifi" || n === "hotspotprowifi";
+}
+
+function wifiFromStore(
+  router: ProvisionRouter & { ip?: string; siteId?: string | null; name?: string; wifiSsid?: string },
+  options: { wireless?: boolean; ssid?: string },
+) {
   if (options.wireless === false) return { wireless: false as const, ssid: undefined };
   if (router.hasWireless === false && options.wireless !== true) return { wireless: false as const, ssid: undefined };
   const configs = getState("captivePortalConfigs")?.value as Record<string, { ssid?: string }> | undefined;
   const key = router.siteId || router.ip || "";
   const saved = (key && configs?.[key]?.ssid ? configs[key].ssid : "").trim().slice(0, 32);
   const asked = (options.ssid || "").trim().slice(0, 32);
+  const onRouter = (router.wifiSsid || "").trim().slice(0, 32);
   const fallback = (router.name || "HotspotPro").replace(/[^\w\s-]/g, "").trim().slice(0, 32) || "HotspotPro";
-  const ssid = asked || saved || fallback;
+  // Prefer the SSID typed at setup / on the router — never stick on stock "HotspotPro WiFi".
+  const ssid =
+    (asked && !isPlaceholderSsid(asked) ? asked : "") ||
+    (onRouter && !isPlaceholderSsid(onRouter) ? onRouter : "") ||
+    (saved && !isPlaceholderSsid(saved) ? saved : "") ||
+    fallback;
   // Reprovision / wireless=yes must always configure WiFi onto the hotspot bridge (captive portal).
-  if (options.wireless === true || !!saved || router.hasWireless === true || router.routerType !== "Existing Router") {
+  if (options.wireless === true || !!saved || !!onRouter || router.hasWireless === true || router.routerType !== "Existing Router") {
     return { wireless: true as const, ssid };
   }
   return { wireless: false as const, ssid: undefined };
@@ -149,14 +186,87 @@ export function lanOrigins(port: string, protocol = "http") {
 }
 
 /** The router ran its script (or a test pretended it did): mark it set up in the saved data. */
-export function completeProvision(token: string, details: { failed: number; sourceIp: string | null; simulated?: boolean; deviceMode?: "blocked" | null; wan?: boolean; net?: boolean }) {
+export function completeProvision(
+  token: string,
+  details: {
+    failed: number;
+    sourceIp: string | null;
+    simulated?: boolean;
+    deviceMode?: "blocked" | null;
+    wan?: boolean;
+    net?: boolean;
+    serial?: string | null;
+    softwareId?: string | null;
+  },
+): true | false | "duplicate" {
   const pending = getProvision(token);
   const routers = getState("routers")?.value;
   const now = new Date().toLocaleString("en-GB", {
     day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit",
   });
-  const { failed, sourceIp, simulated, deviceMode, wan: wanDown, net: netDown } = details;
+  const { failed, sourceIp, simulated, deviceMode, wan: wanDown, net: netDown, serial, softwareId } = details;
   const wanAddress = sourceIp && !/^(127\.|0\.0\.0\.0|::1$)/.test(sourceIp) ? sourceIp : null;
+
+  // Same board already linked to another dashboard router — refuse until that row is deleted.
+  const conflict = findHardwareConflict(token, { serial, softwareId });
+  if (conflict) {
+    markDuplicateRouterAttempt(token, conflict);
+    // If the wizard already created a pending row, keep the error on it; never create a second Online router.
+    if (Array.isArray(routers) && (routers as { provisioningToken?: string }[]).some((r) => r.provisioningToken === token)) {
+      touchProvision(token, "fetchedAt");
+      touchProvision(token, "doneAt");
+      return "duplicate";
+    }
+    if (pending) {
+      // Create a visible failed row so the owner sees the message, then mark it duplicate.
+      const config = (pending.config ?? {}) as Record<string, unknown>;
+      const text = (value: unknown, fallback = "") => (typeof value === "string" && value.trim() ? value.trim() : fallback);
+      const created = {
+        name: text(config.name, "Router"),
+        ip: `linked-${token.slice(0, 12)}`,
+        status: "Offline",
+        uptime: "0m",
+        clients: 0,
+        cpu: 0,
+        memory: 0,
+        lastSeen: "Just now",
+        provisioningStatus: "Pending" as const,
+        health: "error" as const,
+        connectionMode: "On the router",
+        remoteAccessEnabled: false,
+        winboxAddress: "192.168.88.1",
+        apiUsername: "hotspotpro",
+        apiPassword: typeof config.apiPassword === "string" ? config.apiPassword : "",
+        port: 8728,
+        lastConnectedAt: now,
+        lastError: duplicateRouterMessage(conflict),
+        deviceMode: null,
+        provisionedAt: null,
+        hotspotEnabled: config.hotspotEnabled !== false,
+        loginMode: config.loginMode === "cloud" && radiusCloudEnabled() ? "cloud" : "local",
+        hotspotNetwork: text(config.hotspotNetwork, "10.10.0.0/16"),
+        hotspotGatewayIp: text(config.hotspotGatewayIp, "10.10.0.1"),
+        hotspotDnsServers: text(config.hotspotDnsServers, "8.8.8.8,8.8.4.4"),
+        pppoeEnabled: config.pppoeEnabled === true,
+        pppoeNetwork: text(config.pppoeNetwork, "192.168.91.0/24"),
+        routerType: text(config.routerType, "New Router"),
+        dnsName: text(config.dnsName),
+        wanInterface: text(config.wanInterface, "ether1"),
+        managementPort: text(config.managementPort),
+        adminFromWan: config.adminFromWan !== false,
+        hasWireless: config.hasWireless === true,
+        provisioningToken: token,
+        activity: [{ at: now, text: duplicateRouterMessage(conflict) }],
+      };
+      const current = Array.isArray(routers) ? (routers as Record<string, unknown>[]) : [];
+      setState("routers", [created, ...current], "router");
+      touchProvision(token, "fetchedAt");
+      touchProvision(token, "doneAt");
+      return "duplicate";
+    }
+    return "duplicate";
+  }
+
   let found = false;
   if (Array.isArray(routers)) {
     const next = (routers as Record<string, unknown>[]).map((r) => {
@@ -169,6 +279,8 @@ export function completeProvision(token: string, details: { failed: number; sour
         status: "Online",
         lastSeen: "Just now",
         ...(wanAddress ? { wanAddress } : {}),
+        ...(serial ? { hardwareSerial: serial } : {}),
+        ...(softwareId ? { softwareId } : {}),
         ...(typeof pending?.config?.apiPassword === "string" && /^[A-Za-z0-9]{12,32}$/.test(pending.config.apiPassword)
           ? { apiUsername: "hotspotpro", apiPassword: pending.config.apiPassword, port: 8728 }
           : {}),
@@ -225,6 +337,8 @@ export function completeProvision(token: string, details: { failed: number; sour
       deviceMode: deviceMode ?? null,
       provisionedAt: now,
       ...(wanAddress ? { wanAddress } : {}),
+      ...(serial ? { hardwareSerial: serial } : {}),
+      ...(softwareId ? { softwareId } : {}),
       hotspotEnabled: config.hotspotEnabled !== false,
       loginMode: onRouter ? "local" : "cloud",
       hotspotNetwork: text(config.hotspotNetwork, "10.10.0.0/16"),
@@ -239,6 +353,9 @@ export function completeProvision(token: string, details: { failed: number; sour
       ...(typeof config.lastPortFree === "boolean" ? { lastPortFree: config.lastPortFree } : {}),
       adminFromWan: config.adminFromWan !== false,
       hasWireless: config.hasWireless === true,
+      ...(typeof config.wifiSsid === "string" && config.wifiSsid.trim()
+        ? { wifiSsid: String(config.wifiSsid).trim().slice(0, 32) }
+        : {}),
       provisioningToken: token,
       activity: [{ at: now, text: `Router ran its setup script${sourceIp ? ` (from ${sourceIp})` : ""} and connected.` }],
     };

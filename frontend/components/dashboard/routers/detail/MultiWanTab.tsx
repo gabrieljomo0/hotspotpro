@@ -61,7 +61,7 @@ export function MultiWanTab({ router }: { router: RouterInfo }) {
         if (res.ok) {
           setSavedMode(wanMode);
           setSavedLinks(ispLinks);
-          setAppliedNote("Defaults sent to the router (~3 seconds).");
+          setAppliedNote("Defaults sent to the router (~10 seconds).");
         }
       })
       .catch(() => undefined);
@@ -111,8 +111,8 @@ export function MultiWanTab({ router }: { router: RouterInfo }) {
       }
       setSavedMode(wanMode);
       setSavedLinks(ispLinks);
-      setAppliedNote(`Applied ${new Date().toLocaleTimeString()} — live in about 3 seconds.`);
-      showToast("Multi-WAN applied. Load balancing / failover updates on the next check-in (~3 seconds).");
+      setAppliedNote(`Applied ${new Date().toLocaleTimeString()} — live in about 10 seconds.`);
+      showToast("Multi-WAN applied. Load balancing / failover updates on the next check-in (~10 seconds).");
     } finally {
       setApplying(false);
     }
@@ -123,7 +123,7 @@ export function MultiWanTab({ router }: { router: RouterInfo }) {
       <article className="rounded-2xl border border-[#e6e6e6] bg-white p-5 shadow-[0_8px_24px_rgba(26,26,26,0.06)]">
         <h3 className="text-base font-bold text-[#1a1a1a]">Multi-WAN</h3>
         <p className="mt-1 text-sm text-[#737373]">
-          Load balancing and failover across your ISP links. Change mode or interfaces, then Apply — the router picks it up in about 3 seconds.
+          Load balancing and failover across your ISP links. Change mode or interfaces, then Apply — the router picks it up on the next check-in (~10 seconds).
         </p>
         {appliedNote && <p className="mt-2 text-xs font-semibold text-[#525252]">{appliedNote}</p>}
       </article>

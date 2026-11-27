@@ -146,17 +146,26 @@ export function useRouterState(
   // that site is set to "siteWide"), else the account-wide shared name (if
   // "Use the same SSID everywhere" is on), else the router's own name.
   function getEffectiveSsid(ip: string): string {
+    const placeholder = (value: string) => {
+      const n = (value || "").trim().toLowerCase().replace(/[-_]+/g, " ").replace(/\s+/g, " ");
+      return !n || n === "hotspotpro" || n === "hotspotpro wifi" || n === "hotspotprowifi";
+    };
     // Master hotspot settings win over everything below while switched on.
-    if (masterPortal.hotspotOverride && masterPortal.config.ssid.trim()) return masterPortal.config.ssid;
+    if (masterPortal.hotspotOverride && masterPortal.config.ssid.trim() && !placeholder(masterPortal.config.ssid)) {
+      return masterPortal.config.ssid;
+    }
     const router = routers.find((r) => r.ip === ip);
+    if (router?.wifiSsid?.trim() && !placeholder(router.wifiSsid)) return router.wifiSsid.trim().slice(0, 32);
     const site = router?.siteId ? businessLocations.find((s) => s.id === router.siteId) : null;
     if (site?.ssidMode === "siteWide") {
       return site.siteWideSsid || site.name;
     }
-    if (hotspotSettings.ssidStrategy === "same") {
+    if (hotspotSettings.ssidStrategy === "same" && !placeholder(hotspotSettings.ssid)) {
       return hotspotSettings.ssid;
     }
-    return getRouterConfig(ip).ssid;
+    const configured = getRouterConfig(ip).ssid;
+    if (!placeholder(configured)) return configured;
+    return (router?.name || "HotspotPro").replace(/[^\w\s-]/g, "").trim().slice(0, 32) || "HotspotPro";
   }
 
   function updateRouterConfig(ip: string, updates: Partial<RouterConfig>) {
@@ -250,6 +259,7 @@ export function useRouterState(
       dnsName: input.dnsName ?? "",
       paused: false,
       hasWireless: input.hasWireless ?? true,
+      wifiSsid: (input.wifiSsid || "").trim().slice(0, 32) || undefined,
       wanInterface: input.wanInterface || "ether1",
       managementPort: input.managementPort || "",
       lastPortFree: input.lastPortFree !== false,
@@ -271,28 +281,45 @@ export function useRouterState(
         : {}),
     };
 
-    // Seed this router's captive portal config. If it's joining an existing
-    // site that already has a config, getCaptivePortalConfig will resolve
-    // to that automatically — nothing to seed. Only a genuinely new site
-    // (or a router with no site) needs its own starting config.
+    // Seed / update captive portal SSID from the name typed at Add Router.
+    // Prefer that over stock "HotspotPro WiFi" so check-in keeps the given SSID.
     if (input.hasWireless ?? true) {
       const configKey = resolvedSiteId ?? newRouter.ip;
-      const alreadyHasConfig = resolvedSiteId && captivePortalConfigs[resolvedSiteId];
+      const given = (input.wifiSsid || "").trim().slice(0, 32);
+      const placeholder = (value: string) => {
+        const n = value.trim().toLowerCase().replace(/[-_]+/g, " ").replace(/\s+/g, " ");
+        return !n || n === "hotspotpro" || n === "hotspotpro wifi" || n === "hotspotprowifi";
+      };
+      const existing = captivePortalConfigs[configKey]?.ssid || "";
+      const accountWide =
+        hotspotSettings.ssidStrategy === "same" && !placeholder(hotspotSettings.ssid)
+          ? hotspotSettings.ssid.trim().slice(0, 32)
+          : "";
+      const ssidValue =
+        given ||
+        accountWide ||
+        (!placeholder(existing) ? existing : "") ||
+        (input.name || "").replace(/[^\w\s-]/g, "").trim().slice(0, 32) ||
+        "HotspotPro";
 
-      if (!alreadyHasConfig) {
-        const ssidForRouter =
-          hotspotSettings.ssidStrategy === "same"
-            ? hotspotSettings.ssid
-            : input.wifiSsid ?? "";
-
+      if (given || !captivePortalConfigs[configKey] || placeholder(existing)) {
         setCaptivePortalConfigs((current) => ({
           ...current,
           [configKey]: {
-            ...defaultCaptivePortalConfig,
-            ssid: ssidForRouter,
+            ...(current[configKey] ?? defaultCaptivePortalConfig),
+            ssid: ssidValue,
           },
         }));
       }
+
+      setRouterConfigs((current) => ({
+        ...current,
+        [newRouter.ip]: {
+          ...getRouterConfig(newRouter.ip),
+          ...(current[newRouter.ip] ?? {}),
+          ssid: ssidValue,
+        },
+      }));
     }
 
     setRouters((current) => [newRouter, ...current]);
@@ -394,29 +421,77 @@ export function useRouterState(
     startRouterTask("update-script", ip);
   }
 
-  function downloadRouterFile(ip: string, kind: "provision-script" | "wireguard-config") {
+  function downloadRouterFile(ip: string, kind: "provision-script" | "wireguard-config" | "winbox-config") {
     const router = routers.find((r) => r.ip === ip);
     if (!router) return;
 
-    if (kind === "wireguard-config") {
-      if (router.wireguardConfig) {
-        const blob = new Blob([router.wireguardConfig], { type: "text/plain" });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `${router.name}-winbox.conf`;
-        link.click();
-        URL.revokeObjectURL(url);
-        showToast("Tunnel file downloaded. WinBox address is 192.168.216.1 after WireGuard activates it.");
-        logActivity("Router", `Downloaded the WireGuard tunnel for ${router.name}.`);
-        return;
-      }
-      const address = router.winboxReach === "direct" && router.winboxAddress ? router.winboxAddress : "192.168.88.1";
-      void navigator.clipboard?.writeText(address);
-      showToast(router.remoteAccessEnabled
-        ? `Copied ${address}. Enable or refresh Remote WinBox to prepare the tunnel automatically.`
-        : `Copied ${address}. Enable Remote WinBox to prepare a remote connection automatically.`);
-      logActivity("Router", `Copied the WinBox address for ${router.name}.`);
+    if (kind === "wireguard-config" || kind === "winbox-config") {
+      void (async () => {
+        const { resolveWinboxConnectHost, downloadWbConfig } = await import("../routers/winboxSession");
+        const { autoPrepareRemoteWinbox, publicWinboxHost, downloadWireguardTunnel } = await import(
+          "../routers/autoRemoteWinbox"
+        );
+
+        const ship = (host: string) => {
+          downloadWbConfig(router.name, host);
+          void navigator.clipboard?.writeText(host);
+          showToast(
+            `Downloaded wb.config for ${host}. Open WinBox → Tools → Import, or Connect to ${host} as admin.`,
+          );
+          logActivity("Router", `Downloaded wb.config for ${router.name} (${host}).`);
+        };
+
+        let host = resolveWinboxConnectHost(router) || publicWinboxHost(router);
+        if (host) {
+          ship(host);
+          return;
+        }
+
+        showToast("Preparing remote WinBox, then downloading wb.config…");
+        let preparedHost = "";
+        const result = await autoPrepareRemoteWinbox({
+          ip: router.ip,
+          name: router.name,
+          forceDownload: true,
+          patchRouter: (targetIp, patch) => {
+            applyRouterPatch(targetIp, patch);
+            const next = resolveWinboxConnectHost(patch);
+            if (next) preparedHost = next;
+          },
+          showToast,
+        });
+
+        if (!preparedHost) {
+          try {
+            const res = await fetch("/api/state", { credentials: "same-origin", cache: "no-store" });
+            if (res.ok) {
+              const data = (await res.json()) as { docs?: { routers?: { value?: RouterInfo[] } } };
+              const row = data.docs?.routers?.value?.find((entry) => entry?.ip === ip);
+              if (row) preparedHost = resolveWinboxConnectHost(row);
+            }
+          } catch {
+            /* ignore */
+          }
+        }
+
+        host = preparedHost;
+        if (host) {
+          ship(host);
+          return;
+        }
+
+        // Legacy fallback: only when there is no public path and a client WG conf exists.
+        if (router.wireguardConfig && result !== "direct") {
+          downloadWireguardTunnel(router.name, router.wireguardConfig);
+          showToast(
+            "No public WinBox path yet — downloaded WireGuard tunnel. After it connects, WinBox → 192.168.216.1",
+          );
+          logActivity("Router", `Downloaded the WireGuard tunnel for ${router.name}.`);
+          return;
+        }
+
+        showToast("Could not get a public WinBox address. Keep the router Online and tap Prepare remote access.");
+      })();
       return;
     }
     if (!router.provisioningToken) {
@@ -588,25 +663,15 @@ export function useRouterState(
   }
 
   function syncRouter(ip: string) {
-    // Push vouchers + login pages + WiFi from the site onto this router now.
+    // Force portal + packages + vouchers onto this MikroTik in one job.
     void fetch("/api/routers/jobs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ip, action: "sync-vouchers" }),
-    }).catch(() => {});
-    void fetch("/api/routers/jobs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ip, action: "sync-files" }),
-    }).catch(() => {});
-    void fetch("/api/routers/jobs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ip, action: "wifi" }),
+      body: JSON.stringify({ ip, action: "push-to-router" }),
     }).catch(() => {});
     const router = routers.find((r) => r.ip === ip);
-    showToast(`${router?.name ?? "Router"} will sync vouchers, login pages and WiFi within about 3 seconds.`);
-    logActivity("Router", `Queued a live sync for ${router?.name ?? ip}.`);
+    showToast(`${router?.name ?? "Router"} will receive packages, vouchers, and the captive portal within about 3 seconds.`);
+    logActivity("Router", `Queued Push to router for ${router?.name ?? ip}.`);
   }
 
   function restartRouter(ip: string) {
@@ -807,7 +872,7 @@ export function useRouterState(
   }
 
   // ---- step-by-step router tasks ----------------------------------------
-  const REMOTE_TASKS = new Set<RouterTaskKind>(["full-provision", "sync-files", "sync-time", "snmp", "walled-garden", "harden", "winbox", "api-credentials", "update-script", "reboot"]);
+  const REMOTE_TASKS = new Set<RouterTaskKind>(["full-provision", "sync-files", "push-to-router", "sync-time", "snmp", "walled-garden", "harden", "winbox", "api-credentials", "update-script", "reboot"]);
   type ActiveRouterTask = {
     kind: RouterTaskKind;
     ip: string;
@@ -816,15 +881,37 @@ export function useRouterState(
     doneCount: number;
     error: string | null;
     jobId: string | null;
+    startedAt: number;
   };
   const [routerTask, setRouterTask] = useState<ActiveRouterTask | null>(null);
   const postingTask = useRef(false);
+  /** How long to wait for the router to pick up a queued job before failing. */
+  const REMOTE_JOB_TIMEOUT_MS = 90_000;
 
   function startRouterTask(kind: RouterTaskKind, ip: string) {
     const router = routers.find((r) => r.ip === ip);
     if (!router) return;
     const def = ROUTER_TASKS[kind];
     postingTask.current = false;
+    // Auto reprovision cannot finish if the router is not checking in — fail early with paste guidance.
+    if (
+      REMOTE_TASKS.has(kind) &&
+      (kind === "full-provision" || kind === "update-script") &&
+      (router.status === "Offline" || router.disconnected)
+    ) {
+      setRouterTask({
+        kind,
+        ip,
+        name: router.name.split(" (")[0],
+        status: "failed",
+        doneCount: 0,
+        error:
+          "This router is Offline (not checking in to HotspotPro). Auto Reprovision cannot run. Use Paste script in WinBox once so it can reach https://hotspotpro-api.onrender.com, then try again.",
+        jobId: null,
+        startedAt: Date.now(),
+      });
+      return;
+    }
     setRouterTask({
       kind,
       ip,
@@ -833,12 +920,15 @@ export function useRouterState(
       doneCount: 0,
       error: null,
       jobId: null,
+      startedAt: Date.now(),
     });
   }
 
   function confirmRouterTask() {
     postingTask.current = false;
-    setRouterTask((task) => (task ? { ...task, status: "running", doneCount: 0, error: null, jobId: null } : task));
+    setRouterTask((task) =>
+      task ? { ...task, status: "running", doneCount: 0, error: null, jobId: null, startedAt: Date.now() } : task,
+    );
   }
 
   function closeRouterTask() {
@@ -896,12 +986,30 @@ export function useRouterState(
               setRouterTask((task) => task && task.ip === ip && task.kind === kind ? { ...task, status: "failed", error: data.message ?? "Could not send this to the router." } : task);
               return;
             }
-            setRouterTask((task) => task && task.ip === ip && task.kind === kind ? { ...task, jobId: data.job!.id, doneCount: 1 } : task);
+            setRouterTask((task) =>
+              task && task.ip === ip && task.kind === kind
+                ? { ...task, jobId: data.job!.id, doneCount: Math.max(1, task.doneCount) }
+                : task,
+            );
           })
           .catch(() => {
             postingTask.current = false;
             setRouterTask((task) => task && task.ip === ip && task.kind === kind ? { ...task, status: "failed", error: "Could not reach the site." } : task);
           });
+        return;
+      }
+      const elapsed = Date.now() - (routerTask.startedAt || Date.now());
+      if (elapsed >= REMOTE_JOB_TIMEOUT_MS) {
+        setRouterTask((task) =>
+          task && task.jobId === routerTask.jobId
+            ? {
+                ...task,
+                status: "failed",
+                error:
+                  "Timed out waiting for the router (90s). It is not picking up jobs — usually it is still checking in to the old server. Use Paste script → WinBox Terminal (server https://hotspotpro-api.onrender.com), then try Reprovision again.",
+              }
+            : task,
+        );
         return;
       }
       const timer = window.setTimeout(() => {
@@ -910,7 +1018,11 @@ export function useRouterState(
           .then((response) => response.json())
           .then((data: { jobs?: { id: string; status: string }[] }) => {
             const job = (data.jobs ?? []).find((item) => item.id === jobId);
-            if (!job) return;
+            if (!job) {
+              // Keep polling — job list can lag one tick after queue.
+              setRouterTask((task) => (task && task.jobId === jobId ? { ...task } : task));
+              return;
+            }
             if (job.status === "ok" || (kind === "reboot" && job.status === "sent")) {
               setRouterTask((task) => task && task.jobId === jobId ? { ...task, status: "done", doneCount: def.steps.length } : task);
               return;
@@ -919,9 +1031,15 @@ export function useRouterState(
               setRouterTask((task) => task && task.jobId === jobId ? { ...task, status: "failed", error: "The router reported an error. Its log (System → Log) shows which line failed." } : task);
               return;
             }
-            setRouterTask((task) => task && task.jobId === jobId ? { ...task, doneCount: Math.max(task.doneCount, job.status === "sent" ? def.steps.length - 1 : 1) } : task);
+            // pending → still waiting for check-in (step 2); sent → almost done (step 3).
+            const nextDone = job.status === "sent" ? def.steps.length - 1 : 2;
+            setRouterTask((task) =>
+              task && task.jobId === jobId ? { ...task, doneCount: Math.max(task.doneCount, nextDone) } : task,
+            );
           })
-          .catch(() => undefined);
+          .catch(() => {
+            setRouterTask((task) => (task && task.jobId === jobId ? { ...task } : task));
+          });
       }, 2000);
       return () => window.clearTimeout(timer);
     }

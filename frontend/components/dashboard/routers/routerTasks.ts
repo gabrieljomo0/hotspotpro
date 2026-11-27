@@ -11,6 +11,7 @@ export type RouterTaskKind =
   | "walled-garden"
   | "harden"
   | "winbox"
+  | "push-to-router"
   | "api-credentials"
   | "update-script"
   | "reboot"
@@ -32,23 +33,35 @@ export type RouterTaskDef = {
 
 export const ROUTER_TASKS: Record<RouterTaskKind, RouterTaskDef> = {
   "full-provision": {
-    title: "Full Provision",
-    confirm:
-      "This sends SNMP, service lockdown, the walled garden, hotspot login files and the clock to the router. Paid vouchers stay on the router, because this site has no RADIUS port. The router applies it within about 3 seconds. Make sure it is plugged in and has internet.",
+    title: "Reprovision",
     needsReachable: false,
     steps: [
       "Sending the setup to the router",
       "Waiting for the next check-in",
-      "SNMP, services, walled garden, hotspot files and clock",
+      "Downloading and applying the setup",
       "Router confirms it ran",
     ],
-    success: "ran the setup. SNMP, services, the walled garden, hotspot files and the clock are on the router. Paid logins stay on the router.",
+    success: "was reprovisioned. Hotspot, captive portal, WiFi and services are updated. People already online stay connected.",
   },
   "sync-files": {
     title: "Sync hotspot files",
     needsReachable: true,
     steps: ["Connecting to the router", "Checking the hotspot profile", "Uploading login.html and assets", "Verifying the files"],
     success: "now has the latest hotspot login files.",
+  },
+  "push-to-router": {
+    title: "Push to router",
+    needsReachable: true,
+    confirm:
+      "This forces packages (User Profiles), vouchers, WiFi bridge binding, and the captive portal login page onto this router so customers can connect with voucher codes.",
+    steps: [
+      "Queuing push for this router",
+      "Opening captive portal + binding WiFi",
+      "Pushing packages (User Profiles)",
+      "Pushing voucher accounts",
+      "Router confirms it applied",
+    ],
+    success: "now has packages, vouchers, and the captive portal ready for WiFi logins.",
   },
   "sync-time": {
     title: "Sync router time",

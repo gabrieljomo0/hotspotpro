@@ -408,7 +408,6 @@ export function GenerateVouchersModal({
             </label>
             )}
 
-            {!isAgentMode && (
             <label className="block">
               <span className="mb-2 block text-sm font-semibold text-[#525252]">
                 Code Format <span className="text-red-500">*</span>
@@ -422,11 +421,11 @@ export function GenerateVouchersModal({
               >
                 <option value="uppercase">Uppercase (A-Z, 0-9)</option>
                 <option value="lowercase">Lowercase (a-z, 0-9)</option>
+                <option value="letters-lower">Small letters only (a-z)</option>
                 <option value="mixed">Mixed Case (a-zA-Z, 0-9)</option>
                 <option value="numeric">Numeric only (0-9)</option>
               </select>
             </label>
-            )}
 
             {!isAgentMode && (
             <label className="block">

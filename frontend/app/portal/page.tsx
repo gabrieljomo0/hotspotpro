@@ -1853,7 +1853,6 @@ function CaptivePortalPageInner() {
       const waitMs = typeof body.waitMs === "number" ? body.waitMs : 0;
       const jobId = typeof body.jobId === "string" ? body.jobId : "";
       const ticketId = typeof body.ticketId === "string" ? body.ticketId : "";
-      const authMode = typeof body.authMode === "string" ? body.authMode : "";
       const continueUrl =
         typeof body.continueUrl === "string" && /^https?:\/\//.test(body.continueUrl)
           ? body.continueUrl
@@ -1867,17 +1866,19 @@ function CaptivePortalPageInner() {
           ? body.hotspotLogin
           : null;
       setVoucherError("Preparing this WiFi login…");
-      // Push path: wait until the router has the voucher user AND (when possible) hp-go.html.
-      // Never open hp-go.html early — that is the main reason Connect fails.
-      const deadline = Date.now() + Math.max(waitMs, ticketId || jobId ? 22000 : 800);
-      let pageReady = !ticketId || authMode === "radius";
-      let jobDone = !jobId || authMode === "radius";
-      while (Date.now() < deadline && (!pageReady || !jobDone)) {
-        await new Promise((resolve) => window.setTimeout(resolve, 1000));
-        if (ticketId && routerToken && !pageReady) {
+      // Wait until the router has downloaded hp-go.html (login-ready).
+      // Never treat job "ok" as page-ready — import can succeed while fetch of hp-go failed,
+      // and opening a missing page bounces the phone straight back to the captive portal.
+      const deadline = Date.now() + Math.max(waitMs, ticketId ? 32000 : jobId ? 18000 : 800);
+      let pageReady = !ticketId;
+      let jobFailed = false;
+      while (Date.now() < deadline && !pageReady && !jobFailed) {
+        await new Promise((resolve) => window.setTimeout(resolve, 900));
+        if (ticketId && routerToken) {
           try {
             const ready = await fetch(`/api/portal/login-ready?t=${encodeURIComponent(ticketId)}`, {
               headers: { "x-hsp-rt": routerToken },
+              cache: "no-store",
             });
             const readyBody = await ready.json().catch(() => ({}));
             if (readyBody.ready) pageReady = true;
@@ -1885,19 +1886,14 @@ function CaptivePortalPageInner() {
             /* keep waiting */
           }
         }
-        if (jobId && routerToken && !jobDone) {
+        if (jobId && routerToken && !pageReady) {
           try {
             const ready = await fetch(`/api/portal/job?id=${encodeURIComponent(jobId)}`, {
               headers: { "x-hsp-rt": routerToken },
+              cache: "no-store",
             });
             const readyBody = await ready.json().catch(() => ({}));
-            if (readyBody.status === "ok") {
-              // Connect job creates the user and downloads hp-go.html in one go.
-              jobDone = true;
-              pageReady = true;
-            } else if (readyBody.status === "failed") {
-              jobDone = true;
-            }
+            if (readyBody.status === "failed") jobFailed = true;
           } catch {
             /* keep waiting */
           }
@@ -1905,15 +1901,25 @@ function CaptivePortalPageInner() {
         if (!ticketId && !jobId) break;
       }
       setVoucherError("");
-      // Prefer HTTP auto-login on the gateway only after the router downloaded it.
-      if (continueUrl && pageReady) {
-        setConnectingWifi(true);
-        const bust = continueUrl.includes("?") ? `&_=${Date.now()}` : `?_=${Date.now()}`;
-        window.location.replace(`${continueUrl}${bust}`);
+      if (jobFailed) {
+        setConnectingWifi(false);
+        setVoucherError(
+          "The router could not finish this login. Stay on this WiFi and tap Connect again. If it keeps failing, check that the router is Online in HotspotPro.",
+        );
         return;
       }
-      // Fallback: POST to MikroTik /login (works when the portal was opened from captive with ?login=).
+      // Prefer HTTP auto-login on the gateway only after the router downloaded it.
+      // No ?_= cache-bust — MikroTik static hotspot files often 404 on unknown query strings.
+      if (continueUrl && pageReady) {
+        setConnectingWifi(true);
+        setConnectedFromVoucher(true);
+        window.location.replace(continueUrl);
+        return;
+      }
+      // Fallback: POST to MikroTik /login when captive opened the portal with ?login= (or known gateway).
+      // Only after we gave the router time to receive the voucher user.
       if (hotspotLogin || hotspotLoginFromQuery || hotspotLoginFallback) {
+        setConnectedFromVoucher(true);
         routerLogin(mikrotikUser, mikrotikPass, hotspotLogin);
         return;
       }

@@ -1,4 +1,10 @@
 import { controlScript, recordRouterStats } from "@/server/control";
+import {
+  bindHardwareToToken,
+  duplicateHardwareScript,
+  markDuplicateRouterAttempt,
+  normalizeHardwareId,
+} from "@/server/hardwareId";
 import { publicOrigin } from "@/server/provision";
 
 const TOKEN = /^[A-Za-z0-9_-]{8,128}$/;
@@ -48,7 +54,19 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
   const dns = text("dns", /^[A-Za-z0-9.-]{1,80}$/);
   const pub = text("pub", /^(?:25[0-5]|2[0-4]\d|1?\d?\d)(?:\.(?:25[0-5]|2[0-4]\d|1?\d?\d)){3}$/);
   const wan = text("wanip", /^(?:25[0-5]|2[0-4]\d|1?\d?\d)(?:\.(?:25[0-5]|2[0-4]\d|1?\d?\d)){3}$/);
-  if (query.has("cpu") || query.has("free") || uptime || version || architecture || cpuCount || board || identity || channel || clients !== null || users || query.has("dns") || query.has("pub") || query.has("wanip")) {
+  const serial = normalizeHardwareId(query.get("serial"));
+  const softwareId = normalizeHardwareId(query.get("swid"));
+  // Same physical MikroTik cannot be bound to a second dashboard router until the first is deleted.
+  if (serial || softwareId) {
+    const conflict = bindHardwareToToken(token, { serial, softwareId });
+    if (conflict) {
+      markDuplicateRouterAttempt(token, conflict);
+      return new Response(duplicateHardwareScript(conflict), {
+        headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" },
+      });
+    }
+  }
+  if (query.has("cpu") || query.has("free") || uptime || version || architecture || cpuCount || board || identity || channel || clients !== null || users || query.has("dns") || query.has("pub") || query.has("wanip") || serial || softwareId) {
     recordRouterStats(token, {
       cpu: cpu === null ? null : Math.max(0, Math.min(100, Math.round(cpu))),
       memory,
@@ -64,6 +82,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
       dns,
       pub,
       wan,
+      serial,
+      softwareId,
     });
   }
   const script = controlScript(token, publicOrigin(request));

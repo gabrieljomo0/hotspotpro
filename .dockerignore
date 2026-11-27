@@ -1,0 +1,17 @@
+.git
+.vercel
+frontend
+node_modules
+**/node_modules
+backend/node_modules
+backend/data
+backend/.edge
+backend/.env
+backend/dist
+**/.env
+**/*.log
+agent-transcripts
+.cursor
+deploy
+*.md
+!backend/README.md

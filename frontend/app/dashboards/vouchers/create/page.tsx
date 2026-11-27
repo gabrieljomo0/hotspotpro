@@ -415,6 +415,7 @@ export default function CreateVoucherPage() {
             >
               <option value="uppercase">Uppercase (A-Z, 0-9)</option>
               <option value="lowercase">Lowercase (a-z, 0-9)</option>
+              <option value="letters-lower">Small letters only (a-z)</option>
               <option value="mixed">Mixed Case (a-zA-Z, 0-9)</option>
               <option value="numeric">Numeric only (0-9)</option>
             </select>
