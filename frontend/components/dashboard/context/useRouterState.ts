@@ -565,12 +565,12 @@ export function useRouterState(
       updates.loginMode !== undefined ||
       updates.pppoeEnabled !== undefined
     ) {
-      voidRouterAction(ip, "sync-files");
-      voidRouterAction(ip, "wifi");
-      if (updates.loginMode === "local" || updates.loginMode === undefined) voidRouterAction(ip, "sync-vouchers");
+      queueRouterAction(ip, "sync-files");
+      queueRouterAction(ip, "wifi");
+      if (updates.loginMode === "local" || updates.loginMode === undefined) queueRouterAction(ip, "sync-vouchers");
     }
     if (updates.freeWifiEnabled !== undefined) {
-      voidRouterAction(ip, updates.freeWifiEnabled ? "free-wifi-on" : "free-wifi-off");
+      queueRouterAction(ip, updates.freeWifiEnabled ? "free-wifi-on" : "free-wifi-off");
       showToast(
         updates.freeWifiEnabled
           ? "Free WiFi ON — applying on the router within a few seconds…"
