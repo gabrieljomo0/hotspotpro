@@ -14,6 +14,7 @@
 //
 // If the server can't be reached, the router keeps whatever state it had last.
 
+import { walledGardenHostLine } from "./hotspotEnsure";
 import { SILENT_MS, beatOf, getState, setState, takeQueuedJobs, nasKeyOf, outageOf, recordBeat, usageSnapshot } from "./store";
 import { routerForNas } from "./routerUsage";
 import { accessDecision } from "./accessGate";
@@ -327,7 +328,7 @@ export function controlScript(token: string, origin?: string): string | null {
       }
       for (const host of hosts) {
         lines.push(
-          `:do { :if ([:len [/ip hotspot walled-garden find where dst-host="${host}" comment="HotspotPro"]] = 0) do={ /ip hotspot walled-garden add dst-host="${host}" comment="HotspotPro" } } on-error={ }`,
+          walledGardenHostLine(host),
         );
       }
     }

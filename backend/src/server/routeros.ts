@@ -5,7 +5,7 @@
 // pieces are updated in place so people already online are not kicked offline.
 
 import dns from "node:dns";
-import { hotspotProfileEnsureLine, hotspotServerEnsureLine } from "./hotspotEnsure";
+import { hotspotProfileEnsureLine, hotspotServerEnsureLine, walledGardenHostLine, walledGardenIpLine } from "./hotspotEnsure";
 import { PORTAL_MARKER } from "./hotspotPages";
 import { packageProfileLines } from "./localUsers";
 
@@ -763,9 +763,9 @@ export function buildProvisionScript(input: {
       for (const ip of ipv4sOf(name)) {
         if (LOOPBACK.test(ip) || seenGarden.has(`ip:${ip}`)) continue;
         seenGarden.add(`ip:${ip}`);
-        safe(`/ip hotspot walled-garden ip add action=accept dst-address=${ip} comment="HotspotPro"`);
+        add(walledGardenIpLine(ip));
       }
-      if (!IPV4.test(name)) safe(`/ip hotspot walled-garden add dst-host=${q(name)} comment="HotspotPro"`);
+      if (!IPV4.test(name)) add(walledGardenHostLine(name));
     };
     say("Allowing the login page before a customer has paid...");
     garden(host);

@@ -145,7 +145,10 @@ function emitProfile(pkg: Pkg | null, fallbackName: string, lines: string[]) {
   const q = quote(name);
   // Stepwise create/set — a single long `add` with every property fails silently on some ROS
   // builds (unknown attr → whole add aborted → User Profiles stays empty except default).
-  lines.push(`:do { :if ([:len [/ip hotspot user profile find where name=${q}]] = 0) do={ /ip hotspot user profile add name=${q} comment="HotspotPro:${label}"; :put ("HotspotPro: User Profile " . ${q} . " created") } } on-error={ :log warning ("HotspotPro: User Profile add failed for " . ${q}) }`);
+  // Name only: some RouterOS builds have no comment= on hotspot user profiles, and one unknown
+  // property makes the router refuse the whole add (seen on a hAP ax S: "User Profile add failed").
+  // The comment is set on its own below and may fail there harmlessly.
+  lines.push(`:do { :if ([:len [/ip hotspot user profile find where name=${q}]] = 0) do={ /ip hotspot user profile add name=${q}; :put ("HotspotPro: User Profile " . ${q} . " created") } } on-error={ :log warning ("HotspotPro: User Profile add failed for " . ${q}) }`);
   lines.push(`:do { /ip hotspot user profile set [find where name=${q}] rate-limit=${rate(pkg)} } on-error={ }`);
   lines.push(`:do { /ip hotspot user profile set [find where name=${q}] shared-users=${devices} } on-error={ }`);
   lines.push(`:do { /ip hotspot user profile set [find where name=${q}] session-timeout=0s } on-error={ }`);
@@ -157,15 +160,27 @@ function emitProfile(pkg: Pkg | null, fallbackName: string, lines: string[]) {
   return name;
 }
 
+/** Router-side record of the package profile names HotspotPro made (a /system script's source). */
+const PROFILE_LIST_SCRIPT = "hotspotpro-profiles";
+
 /**
  * Remove User Profiles HotspotPro made for packages that are gone from the site.
- * Only profiles with a "HotspotPro:" comment are touched (never default or the owner's own), and a
- * profile a hotspot user on the router still points at is kept until that user is gone.
+ * "Made by HotspotPro" = named in the hotspotpro-profiles list this line keeps on the router, or a
+ * "HotspotPro:" comment (routers that accept comments). Never default or the owner's own profiles, and
+ * a profile a hotspot user on the router still points at is kept until that user is gone.
  * Callers skip this when the site has no packages, so a missing package list never empties the router.
  */
 function staleProfileCleanupLine(keep: string[]) {
   const list = keep.map(quote).join(";");
-  return `:do { :local hpKeep {${list}}; :foreach p in=[/ip hotspot user profile find where comment~"^HotspotPro:"] do={ :local n [/ip hotspot user profile get $p name]; :if ([:typeof [:find $hpKeep $n]] = "nil" && [:len [/ip hotspot user find where profile=$n]] = 0) do={ :do { /ip hotspot user profile remove $p; :put ("HotspotPro: removed User Profile " . $n . " (package deleted on the site)") } on-error={ } } } } on-error={ }`;
+  const csv = keep.join(",");
+  return [
+    `:do {`,
+    `:local hpKeep {${list}};`,
+    `:local hpOld [:toarray ""]; :do { :set hpOld [:toarray [/system script get [find where name=${PROFILE_LIST_SCRIPT}] source]] } on-error={ };`,
+    `:foreach p in=[/ip hotspot user profile find] do={ :local n [/ip hotspot user profile get $p name]; :local c ""; :do { :set c [/ip hotspot user profile get $p comment] } on-error={ }; :if ((([:typeof [:find $hpOld $n]] != "nil") || ([:pick $c 0 11] = "HotspotPro:")) && [:typeof [:find $hpKeep $n]] = "nil" && [:len [/ip hotspot user find where profile=$n]] = 0) do={ :do { /ip hotspot user profile remove $p; :put ("HotspotPro: removed User Profile " . $n . " (package deleted on the site)") } on-error={ } } };`,
+    `:if ([:len [/system script find where name=${PROFILE_LIST_SCRIPT}]] = 0) do={ /system script add name=${PROFILE_LIST_SCRIPT} source="${csv}" comment="HotspotPro: package profile names (do not edit)" } else={ :if ([/system script get [find where name=${PROFILE_LIST_SCRIPT}] source] != "${csv}") do={ /system script set [find where name=${PROFILE_LIST_SCRIPT}] source="${csv}" } }`,
+    `} on-error={ }`,
+  ].join(" ");
 }
 
 /** Push Hotspot user profiles for every active package on this router (WinBox → User Profiles). */
@@ -190,9 +205,11 @@ function emitPackageProfiles(routerIp: string, lines: string[]) {
     lines.push(`:put ("HotspotPro: ${seen.size} package profile(s) on this router")`);
     lines.push(staleProfileCleanupLine([...seen]));
   }
-  // Prove to the log / job output how many HotspotPro profiles actually exist after the push.
+  // Prove to the log / job output how many package profiles actually exist after the push
+  // (by name: comments are not accepted on every RouterOS build).
+  const names = [...seen].map(quote).join(";");
   lines.push(
-    `:do { :local n [:len [/ip hotspot user profile find where comment~"HotspotPro"]]; :put ("HotspotPro: WinBox User Profiles with HotspotPro comment = " . $n) } on-error={ :put "HotspotPro: could not count User Profiles — is the hotspot package installed?" }`,
+    `:do { :local n 0; :foreach k in={${names}} do={ :if ([:len [/ip hotspot user profile find where name=$k]] > 0) do={ :set n ($n + 1) } }; :put ("HotspotPro: package User Profiles on this router = " . $n . " of ${seen.size}"); :if ($n < ${seen.size}) do={ :log warning ("HotspotPro: only " . $n . " of ${seen.size} package User Profiles exist") } } on-error={ :put "HotspotPro: could not count User Profiles — is the hotspot package installed?" }`,
   );
 }
 

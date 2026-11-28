@@ -45,6 +45,21 @@ export function hotspotProfileEnsureLine(opts: { onCreate?: string[]; always?: s
 }
 
 /**
+ * Walled-garden entry for a host phones must reach before paying (the portal site, the API).
+ * Found by host, added without a comment, labelled on its own: a router that refuses comment= would
+ * otherwise drop the entry (no portal before login) or, when found by comment, add a copy every check-in.
+ * host is a plain hostname (no quotes).
+ */
+export function walledGardenHostLine(host: string): string {
+  return `:do { :if ([:len [/ip hotspot walled-garden find where dst-host="${host}"]] = 0) do={ /ip hotspot walled-garden add dst-host="${host}" }; :do { /ip hotspot walled-garden set [find where dst-host="${host}" && comment!="HotspotPro"] comment="HotspotPro" } on-error={ } } on-error={ :log warning "HotspotPro: walled garden add failed for ${host}" }`;
+}
+
+/** Same as walledGardenHostLine, for an IPv4 address (walled-garden ip, action=accept). */
+export function walledGardenIpLine(ip: string): string {
+  return `:do { :if ([:len [/ip hotspot walled-garden ip find where dst-address=${ip}]] = 0) do={ /ip hotspot walled-garden ip add action=accept dst-address=${ip} }; :do { /ip hotspot walled-garden ip set [find where dst-address=${ip} && comment!="HotspotPro"] comment="HotspotPro" } on-error={ } } on-error={ :log warning "HotspotPro: walled garden ip add failed for ${ip}" }`;
+}
+
+/**
  * One RouterOS line that makes sure the `hotspotpro` hotspot server exists on hotspotpro-bridge and is on.
  * Created with only name + interface; pool, profile, comment and enable are each set on their own.
  */

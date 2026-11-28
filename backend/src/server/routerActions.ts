@@ -2,6 +2,7 @@
 // and runs one queued script, so these work from behind any modem.
 // Paid logins stay on the router: this host has no public RADIUS port.
 
+import { walledGardenHostLine } from "./hotspotEnsure";
 import { getState, setState } from "./store";
 import { type IspLink, multiWanLines } from "./multiWan";
 import { dnsNameApplyLines, guardOptionalMenus, loginDnsFromName, remoteWinboxLines } from "./routeros";
@@ -138,7 +139,7 @@ function gardenLines(origin: string) {
     step(`/ip hotspot walled-garden ip remove [find where comment="HotspotPro"]`),
   ];
   for (const host of hosts(origin)) {
-    lines.push(step(`/ip hotspot walled-garden add dst-host="${host}" comment="HotspotPro"`));
+    lines.push(walledGardenHostLine(host));
   }
   return lines;
 }
