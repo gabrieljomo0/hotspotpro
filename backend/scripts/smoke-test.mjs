@@ -275,9 +275,9 @@ try {
   check("script uses the right hotspot folder (flash-aware)", scriptA.includes("html-directory=$hpPick") && scriptA.includes("flash/hotspot"));
   check("setup disables free trial and plants the offline portal lock", scriptA.includes("trial-uptime-limit=0s") && !scriptA.includes("trial-uptime=0s") && scriptA.includes("hotspotpro-guard") && scriptA.includes("HotspotPro access lock"));
   const loginHtml = await (await fetch(base + "/api/provision/tok-ama-12345678/login.html")).text();
-  // The site portal is the first page; the on-router form is the fallback when the site can't be reached.
-  const sitePortalFirst = (html) => /location\.replace\(u\)/.test(html) && /var u="[^"]*\/portal\?rt=tok-ama-12345678&login=\$\(link-login-only\)/.test(html) && html.includes('fetch("') && html.includes('id="hp-form" style="display:none"') && html.includes("<noscript>");
-  check("login page opens the site portal first, with the router form as fallback", loginHtml.includes("HotspotPro designed-portal") && sitePortalFirst(loginHtml) && loginHtml.includes('action="$(link-login-only)"') && loginHtml.includes('name="username"'), loginHtml.slice(0, 280));
+  // The site portal opens at once: the redirect is the first thing in <head>, nothing is shown first.
+  const sitePortalFirst = (html) => /<head><script>location\.replace\("[^"]*\/portal\?rt=tok-ama-12345678&login=\$\(link-login-only\)[^"]*"\)<\/script><meta http-equiv="refresh" content="0;url=[^"]*\/portal\?rt=tok-ama-12345678/.test(html) && !html.includes("Opening the WiFi portal") && html.includes('<main style="display:none">');
+  check("login page opens the site portal at once", loginHtml.includes("HotspotPro designed-portal") && sitePortalFirst(loginHtml) && loginHtml.includes('action="$(link-login-only)"') && loginHtml.includes('name="username"'), loginHtml.slice(0, 280));
   const rloginHtml = await (await fetch(base + "/api/provision/tok-ama-12345678/rlogin.html")).text();
   check("the redirect login page also opens the site portal first", rloginHtml.includes("HotspotPro designed-portal") && sitePortalFirst(rloginHtml) && rloginHtml.includes('action="$(link-login-only)"'));
   const logoutHtml = await (await fetch(base + "/api/provision/tok-ama-12345678/logout.html")).text();

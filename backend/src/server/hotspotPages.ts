@@ -91,7 +91,7 @@ export function applyHtmlDirectoryRos(): string {
 
 export function loginPageStamp(token: string): string {
   const look = portalLook(token);
-  const raw = `${look.pin ? "pin" : "user"}|${look.title}|${look.button}|${look.page}|site`;
+  const raw = `${look.pin ? "pin" : "user"}|${look.title}|${look.button}|${look.page}|site-now`;
   let hash = 0;
   for (let i = 0; i < raw.length; i += 1) hash = (hash * 33 + raw.charCodeAt(i)) >>> 0;
   // Bump prefix whenever the install/detect marker or login HTML shape changes so routers re-download pages.
@@ -141,19 +141,19 @@ function onRouterLoginForm(buyUrl: string, look: PortalLook, title: string, erro
 }
 
 /**
- * The site portal first: phones land on the website /portal (buy or enter a voucher there; it hands
- * the login back to this router). The page first checks the site can be reached; if it can't (the
- * router's internet is down, the site is blocked), the on-router voucher form shows instead, so
- * nobody is stuck on a blank page. Without JavaScript the form shows straight away.
+ * The site portal at once: phones go straight to the website /portal (buy or enter a voucher there;
+ * it hands the login back to this router). The redirect is the first thing in <head> (script, plus a
+ * meta refresh for browsers without JavaScript), so nothing is drawn before it. The on-router form
+ * stays in the page, hidden, only as a last resort for a browser that follows neither.
+ * Trade-off chosen by the owner: no reachability check first, so if the site is down the phone shows
+ * a browser error rather than the router form (a wrong voucher still lands on error.html's form).
  */
 function sitePortalFirst(portalUrl: string, look: PortalLook, title: string, hint = ""): string {
   const url = portalUrl.replace(/["<>\\]/g, "");
-  const origin = url.split("/").slice(0, 3).join("/");
-  const opening = `<p id="hp-opening" style="font-family:system-ui,sans-serif;text-align:center;padding:48px 18px;color:#2563eb;font-weight:600">Opening the WiFi portal…</p>`;
-  const script = `<script>(function(){var u="${url}";function show(){var a=document.getElementById("hp-opening");if(a)a.style.display="none";var m=document.getElementById("hp-form");if(m)m.style.display="block"}function go(){location.replace(u)}if(!window.fetch){go();return}var done=false;setTimeout(function(){if(!done){done=true;show()}},4000);fetch("${origin}/favicon.ico",{mode:"no-cors",cache:"no-store"}).then(function(){if(!done){done=true;go()}},function(){if(!done){done=true;show()}})})();</script>`;
+  const go = `<script>location.replace("${url}")</script><meta http-equiv="refresh" content="0;url=${url}">`;
   return onRouterLoginForm(portalUrl, look, title, hint)
-    .replace("<body><main>", `<body><noscript><style>#hp-form{display:block!important}#hp-opening{display:none}</style></noscript>${opening}<main id="hp-form" style="display:none">`)
-    .replace("</body>", `${script}</body>`);
+    .replace("<head>", `<head>${go}`)
+    .replace("<body><main>", `<body><main style="display:none">`);
 }
 
 function pageBody(page: HotspotPage, portal: string, look: PortalLook): string {
