@@ -67,7 +67,7 @@ export function bridgeWifiLines(): string[] {
     // Older ROS7 wifiwave2 name
     `:do { :foreach p in=[/interface wifiwave2 find] do={ :do { /interface wifiwave2 set $p disabled=no configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ } } } on-error={ }`,
     // Legacy wireless package still needs a bridge port
-    `:do { :foreach p in=[/interface wireless find] do={ :local n [/interface wireless get $p name]; :do { /interface wireless set $p disabled=no mode=ap-bridge } on-error={ }; :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } on-error={ }`,
+    `:do { :foreach p in=[/interface wireless find] do={ :local n [/interface wireless get $p name]; :do { /interface wireless set $p disabled=no mode=ap-bridge comment="HotspotPro: guest WiFi" } on-error={ }; :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro: guest WiFi port" } on-error={ } } } on-error={ }`,
     `:do { /interface wifi enable [find] } on-error={ }`,
     `:do { /interface wifiwave2 enable [find] } on-error={ }`,
     `:do { /interface wireless enable [find] } on-error={ }`,
@@ -99,25 +99,27 @@ export function ensureHotspotServerLines(dnsName = "wifi"): string[] {
     .slice(0, 48) || "wifi";
   return [
     `# Ensure HotspotPro hotspot server exists (Servers tab must not be empty)`,
-    `:do { :if ([:len [/interface bridge find where name=hotspotpro-bridge]] = 0) do={ /interface bridge add name=hotspotpro-bridge comment="HotspotPro" } } on-error={ }`,
-    `:do { /interface list member add list=LAN interface=hotspotpro-bridge } on-error={ }`,
+    `:do { :if ([:len [/interface bridge find where name=hotspotpro-bridge]] = 0) do={ /interface bridge add name=hotspotpro-bridge comment="HotspotPro: guest bridge" } } on-error={ }`,
+    `:do { /interface bridge set [find where name=hotspotpro-bridge] comment="HotspotPro: guest bridge" } on-error={ }`,
+    `:do { /interface list member add list=LAN interface=hotspotpro-bridge comment="HotspotPro: guest on LAN" } on-error={ }`,
+    // Keep comment="HotspotPro" on gateway/DHCP network — other scripts find them by exact comment.
     `:do { :if ([:len [/ip address find where comment="HotspotPro" interface=hotspotpro-bridge]] = 0) do={ /ip address add address=10.10.0.1/16 interface=hotspotpro-bridge comment="HotspotPro" } } on-error={ }`,
-    `:do { :if ([:len [/ip pool find where name=hotspotpro-pool]] = 0) do={ /ip pool add name=hotspotpro-pool ranges=10.10.0.2-10.10.3.254 } } on-error={ }`,
+    `:do { :if ([:len [/ip pool find where name=hotspotpro-pool]] = 0) do={ /ip pool add name=hotspotpro-pool ranges=10.10.0.2-10.10.3.254 comment="HotspotPro: guest pool" } else={ /ip pool set [find where name=hotspotpro-pool] comment="HotspotPro: guest pool" } } on-error={ }`,
     `:do { :if ([:len [/ip dhcp-server network find where comment="HotspotPro"]] = 0) do={ /ip dhcp-server network add address=10.10.0.0/16 gateway=10.10.0.1 dns-server=10.10.0.1 comment="HotspotPro" } } on-error={ }`,
     `:do { /ip dhcp-server network set [find where comment="HotspotPro"] dns-server=10.10.0.1 gateway=10.10.0.1 } on-error={ }`,
-    `:do { :if ([:len [/ip dhcp-server find where name=hotspotpro-dhcp]] = 0) do={ /ip dhcp-server add name=hotspotpro-dhcp interface=hotspotpro-bridge address-pool=hotspotpro-pool disabled=no } } on-error={ }`,
+    `:do { :if ([:len [/ip dhcp-server find where name=hotspotpro-dhcp]] = 0) do={ /ip dhcp-server add name=hotspotpro-dhcp interface=hotspotpro-bridge address-pool=hotspotpro-pool disabled=no comment="HotspotPro: guest DHCP" } else={ /ip dhcp-server set [find where name=hotspotpro-dhcp] comment="HotspotPro: guest DHCP" } } on-error={ }`,
     `:do { /ip dhcp-server enable [find where name=hotspotpro-dhcp] } on-error={ }`,
     // Profile first without html-directory (folder may not exist yet).
     // On create only: default use-radius=no. Never force use-radius=no on set — that wiped cloud RADIUS
     // every check-in and made voucher dial bounce (no local user + RADIUS off).
-    `:do { :if ([:len [/ip hotspot profile find where name=hotspotpro]] = 0) do={ /ip hotspot profile add name=hotspotpro hotspot-address=10.10.0.1 login-by=${HOTSPOT_LOGIN_BY} trial-uptime-limit=0s use-radius=no } else={ /ip hotspot profile set [find where name=hotspotpro] login-by=${HOTSPOT_LOGIN_BY} trial-uptime-limit=0s } } on-error={ }`,
+    `:do { :if ([:len [/ip hotspot profile find where name=hotspotpro]] = 0) do={ /ip hotspot profile add name=hotspotpro hotspot-address=10.10.0.1 login-by=${HOTSPOT_LOGIN_BY} trial-uptime-limit=0s use-radius=no open-status-page=http-login comment="HotspotPro: captive portal (voucher login)" } else={ /ip hotspot profile set [find where name=hotspotpro] login-by=${HOTSPOT_LOGIN_BY} trial-uptime-limit=0s open-status-page=http-login comment="HotspotPro: captive portal (voucher login)" } } on-error={ }`,
     // Keep hotspot-address = live bridge IP (custom LAN is not always 10.10.0.1).
     `:do { :local a ""; :do { :set a [/ip address get [find where interface=hotspotpro-bridge comment="HotspotPro"] address] } on-error={ }; :if ([:len $a] = 0) do={ :do { :set a [/ip address get [find where interface=hotspotpro-bridge] address] } on-error={ } }; :if ([:len $a] > 0) do={ :local g [:pick $a 0 [:find $a "/"]]; /ip hotspot profile set [find where name=hotspotpro] hotspot-address=$g } } on-error={ }`,
     // DNS Name alone — WinBox Server Profiles column; do not bundle with use-radius.
     `:do { /ip hotspot profile set [find where name=hotspotpro] dns-name=${dns} } on-error={ :log warning "HotspotPro: dns-name set failed" }`,
     `:do { /ip hotspot profile set [find where name=hotspotpro] login-by=${HOTSPOT_LOGIN_BY} } on-error={ }`,
     `:do { ${applyHtmlDirectoryRos()} } on-error={ }`,
-    `:do { :if ([:len [/ip hotspot find where name=hotspotpro]] = 0) do={ /ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no; :put "HotspotPro: hotspot server created on hotspotpro-bridge" } else={ /ip hotspot set [find where name=hotspotpro] interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no } } on-error={ }`,
+    `:do { :if ([:len [/ip hotspot find where name=hotspotpro]] = 0) do={ /ip hotspot add name=hotspotpro interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no comment="HotspotPro: captive portal server"; :put "HotspotPro: hotspot server created on hotspotpro-bridge" } else={ /ip hotspot set [find where name=hotspotpro] interface=hotspotpro-bridge address-pool=hotspotpro-pool profile=hotspotpro disabled=no comment="HotspotPro: captive portal server" } } on-error={ }`,
     `:do { /ip hotspot disable [find where name!="hotspotpro"] } on-error={ }`,
     `:do { /ip hotspot enable [find where name=hotspotpro] } on-error={ }`,
     `:do { :if ([:len [/ip hotspot find where name=hotspotpro]] = 0) do={ :put "HotspotPro: CRITICAL — Servers is still empty" } } on-error={ }`,
@@ -130,12 +132,14 @@ export function ensureHotspotServerLines(dnsName = "wifi"): string[] {
  */
 export function sealCaptivePortalLeakLines(): string[] {
   return [
-    `:do { /ip hotspot set [find where name=hotspotpro] interface=hotspotpro-bridge disabled=no addresses-per-mac=1 } on-error={ }`,
+    `# HotspotPro: seal free-internet leaks past the voucher portal`,
+    `:do { /ip hotspot set [find where name=hotspotpro] interface=hotspotpro-bridge disabled=no addresses-per-mac=1 comment="HotspotPro: captive portal server" } on-error={ }`,
     `:do { /ip firewall nat disable [find where chain=srcnat action=masquerade comment=""] } on-error={ }`,
     `:do { /ip firewall nat disable [find where chain=srcnat action=masquerade comment~"defconf"] } on-error={ }`,
     `:do { /ip firewall nat enable [find where comment~"HotspotPro"] } on-error={ }`,
     `:do { /ip dhcp-server disable [find where name!="hotspotpro-dhcp" && name!="hotspotpro-admin-dhcp"] } on-error={ }`,
     `:do { /ip dhcp-server enable [find where name="hotspotpro-dhcp"] } on-error={ }`,
+    `:do { /ip dhcp-server set [find where name=hotspotpro-dhcp] comment="HotspotPro: guest DHCP" } on-error={ }`,
     `:do { /ipv6 settings set disable-ipv6=yes } on-error={ }`,
     `:do { :if ([:len [/ipv6 firewall filter find where comment="HotspotPro no IPv6"]] = 0) do={ /ipv6 firewall filter add chain=forward action=drop in-interface=hotspotpro-bridge comment="HotspotPro no IPv6" } } on-error={ }`,
     `:do { /ip firewall nat remove [find where comment="HotspotPro DNS"] } on-error={ }`,
@@ -154,23 +158,29 @@ export function openSystemCaptivePortalLines(opts?: { keepFreeWifi?: boolean }):
     ? `:do { /ip hotspot ip-binding remove [find where type=bypassed && comment!="HotspotPro free wifi"] } on-error={ }`
     : `:do { /ip hotspot ip-binding remove [find where type=bypassed] } on-error={ }`;
   return [
-    `# HotspotPro: system captive portal detection`,
+    `# HotspotPro: force OUR voucher login as the only system captive portal`,
     `:do { /interface detect-internet set detect-interface-list=none } on-error={ }`,
-    `:do { /ip hotspot set [find where name=hotspotpro] disabled=no interface=hotspotpro-bridge } on-error={ }`,
-    `:do { /ip hotspot profile set [find where name=hotspotpro] open-status-page=http-login } on-error={ }`,
+    `:do { /ip hotspot set [find where name=hotspotpro] disabled=no interface=hotspotpro-bridge comment="HotspotPro: captive portal server" } on-error={ }`,
+    `:do { /ip hotspot profile set [find where name=hotspotpro] open-status-page=http-login comment="HotspotPro: captive portal (voucher login)" } on-error={ }`,
+    // Only HotspotPro HTML — never MikroTik factory skin / other hotspot servers.
+    `:do { ${applyHtmlDirectoryRos()} } on-error={ }`,
     clearBypass,
-    // OS connectivity checks — must NOT be allowed through; Hotspot redirects them to login.
+    // OS connectivity checks — must NOT be allowed through; Hotspot redirects them to OUR login.html.
     `:do { /ip hotspot walled-garden remove [find where dst-host~"captive.apple.com"] } on-error={ }`,
     `:do { /ip hotspot walled-garden remove [find where dst-host~"www.apple.com"] } on-error={ }`,
+    `:do { /ip hotspot walled-garden remove [find where dst-host~"apple.com"] } on-error={ }`,
     `:do { /ip hotspot walled-garden remove [find where dst-host~"connectivitycheck.gstatic.com"] } on-error={ }`,
     `:do { /ip hotspot walled-garden remove [find where dst-host~"clients3.google.com"] } on-error={ }`,
     `:do { /ip hotspot walled-garden remove [find where dst-host~"www.gstatic.com"] } on-error={ }`,
     `:do { /ip hotspot walled-garden remove [find where dst-host~"generate_204"] } on-error={ }`,
+    `:do { /ip hotspot walled-garden remove [find where dst-host~"android.com"] } on-error={ }`,
     `:do { /ip hotspot walled-garden remove [find where dst-host~"msftconnecttest.com"] } on-error={ }`,
     `:do { /ip hotspot walled-garden remove [find where dst-host~"msftncsi.com"] } on-error={ }`,
     `:do { /ip hotspot walled-garden remove [find where dst-host~"detectportal.firefox.com"] } on-error={ }`,
     `:do { /ip hotspot walled-garden remove [find where dst-host~"networkcheck.kde.org"] } on-error={ }`,
     `:do { /ip hotspot walled-garden remove [find where dst-host~"neverssl.com"] } on-error={ }`,
+    `:do { /ip hotspot walled-garden remove [find where dst-host~"ping.archlinux.org"] } on-error={ }`,
+    `:put "HotspotPro: captive portal locked to HotspotPro voucher login page"`,
   ];
 }
 
@@ -210,11 +220,11 @@ export function wifiApplyLines(ssidRaw: string | undefined): string[] {
   const ssid5 = quote(`${band} 5G`.slice(0, 32));
   const stamp = `v4-${ssid.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 36)}`;
   const ssidBody = [
-    `:do { :local hpWifi 0; :do { :set hpWifi [:len [/interface wifi find]] } on-error={ }; :if ($hpWifi > 0) do={ /interface wifi configuration set [find] ssid=${ssid24} mode=ap; /interface wifi set [find where name=wifi1] disabled=no configuration.ssid=${ssid24} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge; /interface wifi set [find where name=wifi2] disabled=no configuration.ssid=${ssid5} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge; :foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :if ($n != "wifi1" && $n != "wifi2") do={ /interface wifi set $p disabled=no configuration.ssid=${ssid24} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } } } } on-error={ }`,
-    `:do { :local hpWw 0; :do { :set hpWw [:len [/interface wifiwave2 find]] } on-error={ }; :if ($hpWw > 0) do={ :foreach p in=[/interface wifiwave2 find] do={ :do { /interface wifiwave2 set $p disabled=no configuration.ssid=${ssid24} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ } } } } on-error={ }`,
+    `:do { :local hpWifi 0; :do { :set hpWifi [:len [/interface wifi find]] } on-error={ }; :if ($hpWifi > 0) do={ /interface wifi configuration set [find] ssid=${ssid24} mode=ap; /interface wifi set [find where name=wifi1] disabled=no configuration.ssid=${ssid24} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge comment="HotspotPro: guest WiFi 2.4GHz"; /interface wifi set [find where name=wifi2] disabled=no configuration.ssid=${ssid5} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge comment="HotspotPro: guest WiFi 5GHz"; :foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :if ($n != "wifi1" && $n != "wifi2") do={ /interface wifi set $p disabled=no configuration.ssid=${ssid24} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge comment="HotspotPro: guest WiFi" } } } } on-error={ }`,
+    `:do { :local hpWw 0; :do { :set hpWw [:len [/interface wifiwave2 find]] } on-error={ }; :if ($hpWw > 0) do={ :foreach p in=[/interface wifiwave2 find] do={ :do { /interface wifiwave2 set $p disabled=no configuration.ssid=${ssid24} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge comment="HotspotPro: guest WiFi" } on-error={ } } } } on-error={ }`,
     `:do { /interface wireless security-profiles set [find default=yes] mode=none } on-error={ }`,
-    `:do { /interface wireless set [find where name=wlan1] disabled=no ssid=${ssid24} mode=ap-bridge security-profile=default } on-error={ }`,
-    `:do { /interface wireless set [find where name=wlan2] disabled=no ssid=${ssid5} mode=ap-bridge security-profile=default } on-error={ }`,
+    `:do { /interface wireless set [find where name=wlan1] disabled=no ssid=${ssid24} mode=ap-bridge security-profile=default comment="HotspotPro: guest WiFi 2.4GHz" } on-error={ }`,
+    `:do { /interface wireless set [find where name=wlan2] disabled=no ssid=${ssid5} mode=ap-bridge security-profile=default comment="HotspotPro: guest WiFi 5GHz" } on-error={ }`,
   ];
   // Full SSID + bridge apply when the stamp changes; every check-in still verifies bridge below.
   const bridge = bridgeWifiLines().join("; ");

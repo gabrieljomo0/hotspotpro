@@ -133,7 +133,9 @@ function serviceLines(remoteOn: boolean) {
 }
 
 function gardenLines(origin: string) {
+  // Keep comment="HotspotPro" so setup/check-in can find and refresh these entries.
   const lines = [
+    `# HotspotPro: walled garden — allow API/portal hosts before voucher login`,
     step(`/ip hotspot walled-garden remove [find where comment="HotspotPro"]`),
     step(`/ip hotspot walled-garden ip remove [find where comment="HotspotPro"]`),
   ];

@@ -65,9 +65,25 @@ export function pickHtmlDirectoryRos(): string {
   return `:local hpDir "hotspot"; :local hpFlash ""; :local hpHot ""; :do { :set hpFlash [/file get [find where name="flash/hotspot/login.html"] contents] } on-error={ }; :do { :set hpHot [/file get [find where name="hotspot/login.html"] contents] } on-error={ }; :if ([:typeof [:find $hpFlash "${PORTAL_MARKER}"]] = "num") do={ :set hpDir "flash/hotspot" } else={ :if ([:typeof [:find $hpHot "${PORTAL_MARKER}"]] = "num") do={ :set hpDir "hotspot" } }`;
 }
 
-/** Point the hotspotpro profile at the directory that actually has HotspotPro login.html. */
+/**
+ * Point hotspotpro at HotspotPro login.html only — never MikroTik factory skin.
+ * Also stamps WinBox comments and forces the HTTP login page (voucher form) for
+ * the system captive-portal sheet.
+ */
 export function applyHtmlDirectoryRos(): string {
-  return `${removeFactoryPortalRos()}; ${pickHtmlDirectoryRos()}; :do { /ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir } on-error={ }; :do { /ip hotspot profile set [find where name=hotspotpro] html-directory-override=$hpDir } on-error={ }; :do { /ip hotspot disable [find where name!="hotspotpro"] } on-error={ }; :do { /ip hotspot enable [find where name=hotspotpro] } on-error={ }`;
+  return [
+    removeFactoryPortalRos(),
+    pickHtmlDirectoryRos(),
+    `:do { /ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir html-directory-override=$hpDir open-status-page=http-login comment="HotspotPro: captive portal (voucher login)" } on-error={ }`,
+    `:do { /ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir } on-error={ }`,
+    `:do { /ip hotspot profile set [find where name=hotspotpro] html-directory-override=$hpDir } on-error={ }`,
+    `:do { /ip hotspot profile set [find where name=hotspotpro] open-status-page=http-login } on-error={ }`,
+    `:do { /ip hotspot profile set [find where name=hotspotpro] comment="HotspotPro: captive portal (voucher login)" } on-error={ }`,
+    // Only our server may answer — other servers still serve MikroTik defaults.
+    `:do { /ip hotspot disable [find where name!="hotspotpro"] } on-error={ }`,
+    `:do { /ip hotspot set [find where name=hotspotpro] disabled=no comment="HotspotPro: captive portal server" } on-error={ }`,
+    `:do { /ip hotspot enable [find where name=hotspotpro] } on-error={ }`,
+  ].join("; ");
 }
 
 export function loginPageStamp(token: string): string {
@@ -76,7 +92,7 @@ export function loginPageStamp(token: string): string {
   let hash = 0;
   for (let i = 0; i < raw.length; i += 1) hash = (hash * 33 + raw.charCodeAt(i)) >>> 0;
   // Bump prefix whenever the install/detect marker or login HTML shape changes so routers re-download pages.
-  return `v26-${hash.toString(16)}`;
+  return `v27-${hash.toString(16)}`;
 }
 
 /** Files that make the hotspot folder a skin WinBox can open: the stylesheet and the CHAP helper. */
