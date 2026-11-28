@@ -4,6 +4,7 @@
 // login cannot stay online forever. Local mode does not ask the cloud.
 
 import { voucherOnlyLogin } from "./hotspotPages";
+import { logoutApplyLine } from "./hotspotLogout";
 import { autoLoginFetchLines, latestTicketForToken } from "./portalLogin";
 import { getState, setState } from "./store";
 import { type Pkg, type Vch, findPackageByName, findVoucher, list, normalizeMac, packageBytes, packageSeconds, routerAllowsPackage, voucherAllowedOnRouter, voucherCountFrom, voucherLimitBy } from "./packages";
@@ -154,7 +155,6 @@ function emitProfile(pkg: Pkg | null, fallbackName: string, lines: string[]) {
   lines.push(`:do { /ip hotspot user profile set [find where name=${q}] idle-timeout=none } on-error={ }`);
   lines.push(`:do { /ip hotspot user profile set [find where name=${q}] keepalive-timeout=none } on-error={ }`);
   lines.push(`:do { /ip hotspot user profile set [find where name=${q}] mac-cookie-timeout=${rosDuration(seconds)} } on-error={ }`);
-  lines.push(`:do { /ip hotspot user profile set [find where name=${q}] on-logout=hotspotpro-logout } on-error={ }`);
   return name;
 }
 
@@ -202,6 +202,8 @@ function emitPackageProfiles(routerIp: string, lines: string[]) {
   if (seen.size > 0) {
     lines.push(`:put ("HotspotPro: ${seen.size} package profile(s) on this router")`);
     lines.push(staleProfileCleanupLine([...seen]));
+    // New profiles get the logout code (clears cookies, brings the portal back) this same check-in.
+    lines.push(logoutApplyLine());
   }
   // Prove to the log / job output how many package profiles actually exist after the push
   // (by name: comments are not accepted on every RouterOS build).

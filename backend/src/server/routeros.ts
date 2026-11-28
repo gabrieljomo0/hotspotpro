@@ -6,6 +6,7 @@
 
 import dns from "node:dns";
 import { hotspotProfileEnsureLine, hotspotServerEnsureLine, walledGardenHostLine, walledGardenIpLine } from "./hotspotEnsure";
+import { logoutApplyLine } from "./hotspotLogout";
 import { PORTAL_MARKER } from "./hotspotPages";
 import { packageProfileLines } from "./localUsers";
 
@@ -227,10 +228,6 @@ function guardSource() {
 }
 
 /** When a voucher ends: clear cookies only. Do NOT kick WiFi (that removes signal bars). Phone stays on the saved network and the local login page opens again fast. */
-function logoutSource() {
-  return ':local mac $"mac-address"; :local user $"user"; :if ([:len $mac] > 0) do={ :do { /ip hotspot cookie remove [find where mac-address=$mac] } on-error={ } }; :if ([:len $user] > 0) do={ :do { /ip hotspot cookie remove [find where user=$user] } on-error={ } }';
-}
-
 function rosQuoted(source: string) {
   return `"${source.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\$/g, "\\$")}"`;
 }
@@ -243,9 +240,9 @@ function rosQuoted(source: string) {
  */
 export function hotspotReauthEnsureLines(): string[] {
   return [
-    `:do { /system script remove [find where name=hotspotpro-logout] } on-error={ }`,
-    `:do { /system script add name=hotspotpro-logout source=${rosQuoted(logoutSource())} policy=read,write,policy,test comment="HotspotPro" } on-error={ }`,
-    `:do { /ip hotspot user profile set [find] on-logout=hotspotpro-logout } on-error={ }`,
+    // on-logout is script code; the old named script is no longer used.
+    `:do { :if ([:len [/system script find where name=hotspotpro-logout]] > 0) do={ /system script remove [find where name=hotspotpro-logout] } } on-error={ }`,
+    logoutApplyLine(),
     // v52: stop wiping MAC cookies for offline phones — keep them until on-logout / voucher remove.
     `:do { /system scheduler remove [find where name=hotspotpro-reauth] } on-error={ }`,
     `:do { /system script remove [find where name=hotspotpro-reauth] } on-error={ }`,
@@ -686,7 +683,8 @@ export function buildProvisionScript(input: {
     say("Creating hotspot user profiles...");
     // When time/data ends: clear cookie + drop WiFi so tapping the saved network opens the portal again.
     for (const line of hotspotReauthEnsureLines()) add(line);
-    safe(`/ip hotspot user profile set [find where name=default] shared-users=1 session-timeout=0s idle-timeout=none keepalive-timeout=none mac-cookie-timeout=1d on-logout=hotspotpro-logout`, false, "Default profile allows one device");
+    safe(`/ip hotspot user profile set [find where name=default] shared-users=1 session-timeout=0s idle-timeout=none keepalive-timeout=none mac-cookie-timeout=1d`, false, "Default profile allows one device");
+    add(logoutApplyLine());
     // Site packages → WinBox User Profiles (vouchers use these by package name).
     for (const line of packageProfileLines(router.ip || "")) add(line);
     say("Package profiles are ready under IP → Hotspot → User Profiles.");

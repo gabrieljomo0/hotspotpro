@@ -91,7 +91,7 @@ export function applyHtmlDirectoryRos(): string {
 
 export function loginPageStamp(token: string): string {
   const look = portalLook(token);
-  const raw = `${look.pin ? "pin" : "user"}|${look.title}|${look.button}|${look.page}|dial`;
+  const raw = `${look.pin ? "pin" : "user"}|${look.title}|${look.button}|${look.page}|site`;
   let hash = 0;
   for (let i = 0; i < raw.length; i += 1) hash = (hash * 33 + raw.charCodeAt(i)) >>> 0;
   // Bump prefix whenever the install/detect marker or login HTML shape changes so routers re-download pages.
@@ -140,6 +140,22 @@ function onRouterLoginForm(buyUrl: string, look: PortalLook, title: string, erro
   return `<!DOCTYPE html><html>${mark}<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="pragma" content="no-cache"><title>${title}</title><link rel="stylesheet" href="hotspotpro.css"><script src="md5.js"></script><style>body{margin:0;background:${look.page};color:#1e3a8a;font-family:system-ui,sans-serif}main{max-width:420px;margin:0 auto;padding:36px 18px}h1{font-size:28px;line-height:1.15;margin:0 0 8px}p{color:#3b82f6;line-height:1.45;font-size:14px;margin:0 0 14px}.err{color:#b42318;background:#fef3f2;border:1px solid #fecdca;border-radius:10px;padding:10px 12px;font-weight:600}form{margin-top:8px;background:#fff;border:1px solid #bfdbfe;border-radius:18px;padding:18px}label{display:block;margin-top:10px;font-size:13px;font-weight:600;color:#1e3a8a}input{width:100%;box-sizing:border-box;margin-top:6px;border:1px solid #93c5fd;border-radius:12px;padding:14px;font-size:16px}button{width:100%;margin-top:16px;border:0;border-radius:12px;background:${look.button};color:#fff;padding:14px;font-size:16px;font-weight:700}a.buy{display:block;margin-top:16px;text-align:center;color:#2563eb;font-weight:700;text-decoration:none}</style><script>function doLogin(){var f=document.forms.login;if(!f)return true;var u=f.username,p=f.password;if(p&&!p.value&&u&&u.value)p.value=u.value;var chapId=f['chap-id'],chapCh=f['chap-challenge'];if(chapId&&chapId.value&&chapCh&&chapCh.value&&typeof hexMD5==='function'){var h=document.createElement('input');h.type='hidden';h.name='password';h.value=hexMD5(chapId.value+p.value+chapCh.value);p.parentNode.removeChild(p);f.appendChild(h)}return true}</script></head><body><main><h1>${title}</h1><p>Enter your voucher to get online.</p>${err}<form name="login" method="post" action="$(link-login-only)" onsubmit="return doLogin()"><input type="hidden" name="dst" value="$(link-orig-esc)"><input type="hidden" name="popup" value="false"><input type="hidden" name="chap-id" value="$(chap-id)"><input type="hidden" name="chap-challenge" value="$(chap-challenge)">${fields}<button type="submit">Connect</button></form><a class="buy" href="${safeBuy}">Buy a package</a></main></body></html>\n`;
 }
 
+/**
+ * The site portal first: phones land on the website /portal (buy or enter a voucher there; it hands
+ * the login back to this router). The page first checks the site can be reached; if it can't (the
+ * router's internet is down, the site is blocked), the on-router voucher form shows instead, so
+ * nobody is stuck on a blank page. Without JavaScript the form shows straight away.
+ */
+function sitePortalFirst(portalUrl: string, look: PortalLook, title: string, hint = ""): string {
+  const url = portalUrl.replace(/["<>\\]/g, "");
+  const origin = url.split("/").slice(0, 3).join("/");
+  const opening = `<p id="hp-opening" style="font-family:system-ui,sans-serif;text-align:center;padding:48px 18px;color:#2563eb;font-weight:600">Opening the WiFi portal…</p>`;
+  const script = `<script>(function(){var u="${url}";function show(){var a=document.getElementById("hp-opening");if(a)a.style.display="none";var m=document.getElementById("hp-form");if(m)m.style.display="block"}function go(){location.replace(u)}if(!window.fetch){go();return}var done=false;setTimeout(function(){if(!done){done=true;show()}},4000);fetch("${origin}/favicon.ico",{mode:"no-cors",cache:"no-store"}).then(function(){if(!done){done=true;go()}},function(){if(!done){done=true;show()}})})();</script>`;
+  return onRouterLoginForm(portalUrl, look, title, hint)
+    .replace("<body><main>", `<body><noscript><style>#hp-form{display:block!important}#hp-opening{display:none}</style></noscript>${opening}<main id="hp-form" style="display:none">`)
+    .replace("</body>", `${script}</body>`);
+}
+
 function pageBody(page: HotspotPage, portal: string, look: PortalLook): string {
   const title = look.title || "HotspotPro";
   const mark = `<!-- ${PORTAL_MARKER} -->`;
@@ -147,13 +163,13 @@ function pageBody(page: HotspotPage, portal: string, look: PortalLook): string {
   switch (page) {
     case "login.html":
     case "rlogin.html":
-      return onRouterLoginForm(portalUrl, look, title);
+      return sitePortalFirst(portalUrl, look, title);
     case "alogin.html":
       return `<!DOCTYPE html><html>${mark}<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="1;url=${SUCCESS_URL}"><meta http-equiv="pragma" content="no-cache"><title>Login successful</title><style>body{margin:0;background:${look.page};color:#2563eb;font-family:system-ui,sans-serif}main{max-width:420px;margin:40px auto;padding:28px 18px;text-align:center}.ok{background:#ecfdf3;border:1px solid #abefc6;color:#067647;border-radius:12px;padding:16px;font-weight:700}a{color:#2563eb;font-weight:700}</style></head><body><main><div class="ok">Login successful! You are connected to the internet.</div><p>Opening Google…</p><p><a href="${SUCCESS_URL}">Continue to Google</a></p></main></body></html>\n`;
     case "error.html":
       return onRouterLoginForm(portalUrl, look, title, "That voucher did not work. Check the code and try again.");
     case "logout.html":
-      return onRouterLoginForm(portalUrl, look, title, "Signed out. Enter a voucher to connect again.");
+      return sitePortalFirst(portalUrl, look, title, "Signed out. Enter a voucher to connect again.");
     case "redirect.html":
       return `<html>${mark}<head><meta http-equiv="refresh" content="0; url=${SUCCESS_URL}"><meta http-equiv="pragma" content="no-cache"></head><body><a href="${SUCCESS_URL}">Continue</a></body></html>\n`;
     case "status.html":
