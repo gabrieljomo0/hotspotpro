@@ -30,6 +30,7 @@ const child = spawn(process.execPath, ["dist/server.mjs"], {
   stdio: ["ignore", "pipe", "pipe"],
 });
 let out = "";
+let restarted = null; // second API process for the restart check
 child.stdout.on("data", (d) => (out += d));
 child.stderr.on("data", (d) => (out += d));
 
@@ -448,10 +449,28 @@ try {
 
   const activity = await json(await send("GET", "/api/super/activity", undefined, superCookie));
   check("activity log recorded it all", activity.entries?.some((e) => e.type === "signup") && activity.entries.some((e) => e.type === "suspended") && activity.entries.some((e) => e.type === "view-as") && activity.entries.some((e) => e.type === "deleted"));
+
+  // ---- cloud WinBox relay comes back by itself after the API restarts ----
+  await fetch(base + "/api/provision/tok-ama-12345678/winbox", { method: "POST", body: "[Interface]\nPrivateKey = abcdefghijklmnop=\nAddress = 192.168.216.2/32\n\n[Peer]\nPublicKey = abc=\nEndpoint = localhost:13231\n" });
+  await sleep(600); // let the data file be written
+  child.kill("SIGTERM");
+  await new Promise((r) => (child.exitCode !== null ? r() : child.once("exit", r)));
+  const armsBefore = relayArms.length;
+  const port2 = port + 1;
+  restarted = spawn(process.execPath, ["dist/server.mjs"], {
+    cwd: dir,
+    env: { ...process.env, PORT: String(port2), HOTSPOTPRO_DATA_DIR: data, HOTSPOTPRO_LOG: "off", HOTSPOTPRO_RADIUS: "off", NODE_ENV: "development", HOTSPOTPRO_WINBOX_RELAY_URL: relayUrl },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  restarted.stdout.on("data", (d) => (out += d));
+  restarted.stderr.on("data", (d) => (out += d));
+  for (let i = 0; i < 100 && relayArms.length === armsBefore; i++) await sleep(100);
+  check("after a restart the cloud WinBox relay reconnects by itself", relayArms.length > armsBefore && !!relayArms.at(-1)?.includes("Endpoint = 127.0.0.1:13231") && !out.includes("restore skipped"), out.match(/\[winbox-relay\][^\n]*/g)?.join(" | ") || "no relay log");
 } catch (e) {
   check("smoke test ran", false, String(e));
 } finally {
   child.kill("SIGTERM");
+  restarted?.kill("SIGTERM");
   fakeRelay.close();
   await sleep(500);
   fs.rmSync(data, { recursive: true, force: true });

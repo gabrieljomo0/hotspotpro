@@ -3,7 +3,7 @@
 
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
-import { getState, setState } from "./store";
+import { currentTenantId, getState, listTenants, setState, withTenant } from "./store";
 
 const CONTROL = (process.env.HOTSPOTPRO_WINBOX_RELAY_URL || "http://127.0.0.1:4091").replace(/\/+$/, "");
 
@@ -73,7 +73,9 @@ export async function resolveConfEndpoint(conf: string, resolve: Lookup = defaul
 }
 
 // Last conf we armed with, so a changed router IP behind the DDNS name re-arms the relay.
-let armed: { token: string; conf: string; endpoint: string } | null = null;
+// tenantId: the business that owns the armed router. Timers run outside any request, so the
+// re-arm must select that business again before it touches the router row.
+let armed: { token: string; conf: string; endpoint: string; tenantId: string | null } | null = null;
 let watcher: ReturnType<typeof setInterval> | null = null;
 const RECHECK_MS = Number(process.env.HOTSPOTPRO_WINBOX_RECHECK_MS || 5 * 60_000) || 5 * 60_000;
 
@@ -86,7 +88,8 @@ function watchEndpoint() {
       .then(({ endpoint }) => {
         if (endpoint && endpoint !== current.endpoint && armed === current) {
           console.log("[winbox-relay] router address changed, re-arming");
-          return armWinboxRelay(current.token, current.conf);
+          const rearm = () => armWinboxRelay(current.token, current.conf);
+          return current.tenantId ? withTenant(current.tenantId, rearm) : rearm();
         }
       })
       .catch(() => {});
@@ -115,7 +118,7 @@ export async function armWinboxRelay(token: string, conf: string): Promise<boole
       console.warn("[winbox-relay] arm failed:", res.status, await res.text().catch(() => ""));
       return false;
     }
-    armed = { token, conf, endpoint: resolved.endpoint };
+    armed = { token, conf, endpoint: resolved.endpoint, tenantId: currentTenantId() };
     watchEndpoint();
     const address = winboxRelayAddress();
     if (!address) {
@@ -168,18 +171,25 @@ export async function restoreWinboxRelay() {
     console.warn("[winbox-relay] sidecar not ready:", status.error || "down");
     return;
   }
-  const value = getState("routers")?.value;
-  if (!Array.isArray(value)) return;
-  const rows = value as {
-    provisioningToken?: string;
-    wireguardConfig?: string;
-    remoteAccessHold?: boolean;
-    remoteAccessEnabled?: boolean;
-  }[];
-  const candidate =
-    rows.find((r) => r.remoteAccessHold !== true && typeof r.wireguardConfig === "string" && r.wireguardConfig.includes("[Interface]")) ||
-    null;
-  if (!candidate?.provisioningToken || !candidate.wireguardConfig) return;
-  const ok = await armWinboxRelay(candidate.provisioningToken, candidate.wireguardConfig);
-  if (ok) console.log("[winbox-relay] restored tunnel for a router");
+  // Boot runs outside any request, so look through each business's routers in turn.
+  for (const tenant of listTenants()) {
+    const ok = await withTenant(tenant.id, async () => {
+      const value = getState("routers")?.value;
+      if (!Array.isArray(value)) return false;
+      const rows = value as {
+        provisioningToken?: string;
+        wireguardConfig?: string;
+        remoteAccessHold?: boolean;
+      }[];
+      const candidate = rows.find(
+        (r) => r && r.remoteAccessHold !== true && typeof r.wireguardConfig === "string" && r.wireguardConfig.includes("[Interface]"),
+      );
+      if (!candidate?.provisioningToken || !candidate.wireguardConfig) return false;
+      return armWinboxRelay(candidate.provisioningToken, candidate.wireguardConfig);
+    });
+    if (ok) {
+      console.log("[winbox-relay] restored tunnel for a router");
+      return;
+    }
+  }
 }
