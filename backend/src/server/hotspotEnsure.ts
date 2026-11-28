@@ -54,6 +54,20 @@ export function walledGardenHostLine(host: string): string {
   return `:do { :if ([:len [/ip hotspot walled-garden find where dst-host="${host}"]] = 0) do={ /ip hotspot walled-garden add dst-host="${host}" } } on-error={ :log warning "HotspotPro: walled garden add failed for ${host}" }`;
 }
 
+/**
+ * HTTPS to a host before login. The name-only walled garden is HTTP; HTTPS needs the IP walled garden.
+ * Two rules, refreshed every check-in: one by name (dst-host, the router matches it through its DNS)
+ * and one for the address the ROUTER resolves now, which is what phones get (their DNS goes to the
+ * router). Addresses looked up elsewhere (on the API server, once at setup) can differ for Vercel-style
+ * hosts, and then the site portal can't load before login and nobody can enter a voucher.
+ */
+export function walledGardenHttpsLines(host: string): string[] {
+  return [
+    `:do { :if ([:len [/ip hotspot walled-garden ip find where dst-host="${host}"]] = 0) do={ /ip hotspot walled-garden ip add action=accept dst-host="${host}" } } on-error={ :log warning "HotspotPro: walled garden ip by name failed for ${host}" }`,
+    `:do { :local a [:resolve "${host}"]; :if ([:len $a] > 0 && [:len [/ip hotspot walled-garden ip find where dst-address=$a]] = 0) do={ /ip hotspot walled-garden ip add action=accept dst-address=$a } } on-error={ :log warning "HotspotPro: could not resolve ${host} for the walled garden" }`,
+  ];
+}
+
 /** Same as walledGardenHostLine, for an IPv4 address (walled-garden ip, action=accept). */
 export function walledGardenIpLine(ip: string): string {
   return `:do { :if ([:len [/ip hotspot walled-garden ip find where dst-address=${ip}]] = 0) do={ /ip hotspot walled-garden ip add action=accept dst-address=${ip} } } on-error={ :log warning "HotspotPro: walled garden ip add failed for ${ip}" }`;

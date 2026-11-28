@@ -14,7 +14,7 @@
 //
 // If the server can't be reached, the router keeps whatever state it had last.
 
-import { walledGardenHostLine } from "./hotspotEnsure";
+import { walledGardenHostLine, walledGardenHttpsLines } from "./hotspotEnsure";
 import { SILENT_MS, beatOf, getState, setState, takeQueuedJobs, nasKeyOf, outageOf, recordBeat, usageSnapshot } from "./store";
 import { routerForNas } from "./routerUsage";
 import { accessDecision } from "./accessGate";
@@ -327,9 +327,8 @@ export function controlScript(token: string, origin?: string): string | null {
         }
       }
       for (const host of hosts) {
-        lines.push(
-          walledGardenHostLine(host),
-        );
+        // HTTP by name, and HTTPS by name + by the address the router resolves (the site portal is HTTPS).
+        lines.push(walledGardenHostLine(host), ...walledGardenHttpsLines(host));
       }
     }
     // Portal Connect upsert (local user + soft hp-go).
