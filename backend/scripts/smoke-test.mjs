@@ -2,6 +2,7 @@
 // including that separate businesses can never see each other's data.
 import { spawn } from "node:child_process";
 import fs from "node:fs";
+import http from "node:http";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,9 +11,22 @@ const dir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const data = fs.mkdtempSync(path.join(os.tmpdir(), "hsp-smoke-"));
 const port = 4400 + Math.floor(Math.random() * 400);
 const base = `http://127.0.0.1:${port}`;
+// Stand-in for the WinBox relay sidecar: records the WireGuard confs it is asked to arm.
+const relayArms = [];
+const fakeRelay = http.createServer((req, res) => {
+  let b = "";
+  req.on("data", (d) => (b += d));
+  req.on("end", () => {
+    if (req.url === "/arm") { try { relayArms.push(JSON.parse(b).config); } catch {} }
+    res.setHeader("content-type", "application/json");
+    res.end(JSON.stringify({ ok: true, armed: relayArms.length > 0 }));
+  });
+});
+await new Promise((r) => fakeRelay.listen(0, "127.0.0.1", r));
+const relayUrl = `http://127.0.0.1:${fakeRelay.address().port}`;
 const child = spawn(process.execPath, ["dist/server.mjs"], {
   cwd: dir,
-  env: { ...process.env, PORT: String(port), HOTSPOTPRO_DATA_DIR: data, HOTSPOTPRO_LOG: "off", HOTSPOTPRO_RADIUS: "off", NODE_ENV: "development" },
+  env: { ...process.env, PORT: String(port), HOTSPOTPRO_DATA_DIR: data, HOTSPOTPRO_LOG: "off", HOTSPOTPRO_RADIUS: "off", NODE_ENV: "development", HOTSPOTPRO_WINBOX_RELAY_URL: relayUrl },
   stdio: ["ignore", "pipe", "pipe"],
 });
 let out = "";
@@ -168,9 +182,11 @@ try {
   await fetch(base + "/api/provision/tok-ama-12345678/control?cpu=1&wanip=192.168.1.20&pub=41.1.1.1");
   const relay = (await json(await send("GET", "/api/state", undefined, amaCookie))).docs?.routers?.value?.[0];
   check("a router behind another modem uses the relay address", relay?.winboxReach === "relay" && relay?.winboxAddress === "192.168.216.1", JSON.stringify(relay?.winboxAddress));
-  const wg = await fetch(base + "/api/provision/tok-ama-12345678/winbox", { method: "POST", body: "[Interface]\nPrivateKey = abcdefghijklmnop=\nAddress = 192.168.216.2/32\n\n[Peer]\nPublicKey = abc=\nEndpoint = abc.vpn.mynetname.net:13231\n" });
+  const wg = await fetch(base + "/api/provision/tok-ama-12345678/winbox", { method: "POST", body: "[Interface]\nPrivateKey = abcdefghijklmnop=\nAddress = 192.168.216.2/32\n\n[Peer]\nPublicKey = abc=\nEndpoint = localhost:13231\n" });
   const savedWg = (await json(await send("GET", "/api/state", undefined, amaCookie))).docs?.routers?.value?.[0];
   check("the router can hand over its WireGuard file", wg.status === 200 && savedWg?.wireguardConfig?.includes("PrivateKey") && savedWg?.wireguardTunnelIp === "192.168.216.1", String(wg.status));
+  for (let i = 0; i < 20 && relayArms.length === 0; i++) await sleep(100);
+  check("the cloud WinBox relay gets the Back To Home hostname as an IP address", !!relayArms.at(-1)?.includes("Endpoint = 127.0.0.1:13231") && !!savedWg?.wireguardConfig?.includes("Endpoint = localhost:13231"), JSON.stringify(relayArms.at(-1)));
   await send("PUT", "/api/state/routers", { value: routerA }, amaCookie);
   check("the check-in sends the router's CPU and memory", cloudCtl.includes("cpu-load") && cloudCtl.includes("free-memory") && cloudCtl.includes("board-name") && cloudCtl.includes("identity"));
   await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], loginMode: "local" }] }, amaCookie);
@@ -436,6 +452,7 @@ try {
   check("smoke test ran", false, String(e));
 } finally {
   child.kill("SIGTERM");
+  fakeRelay.close();
   await sleep(500);
   fs.rmSync(data, { recursive: true, force: true });
 }
