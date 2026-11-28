@@ -15,8 +15,8 @@ import { ago, fmtDuration } from "./routerUsageMath";
 import { connectionIndicator } from "../routerConnection";
 import { useRouterControl } from "../useRouterControl";
 
-const FLY_API = "https://hotspotpro-api.onrender.com";
-const LEGACY_FLY_API = "https://hotspotpro-api.fly.dev";
+const FLY_API = "https://hotspotpro-api.fly.dev";
+const LEGACY_FLY_API = "https://hotspotpro-api.onrender.com";
 
 export function RouterConnectionBanner({ router, onReconnect }: { router: RouterInfo; onReconnect: () => void }) {
   const { control } = useRouterControl(router.ip, 5000);

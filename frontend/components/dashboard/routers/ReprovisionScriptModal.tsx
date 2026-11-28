@@ -63,15 +63,15 @@ export function ReprovisionScriptModal({
       } catch {
         /* none */
       }
-      // Prefer Render API (HTTPS); Fly remains a fallback for UDP RADIUS hosts.
-      list.unshift("https://hotspotpro-api.onrender.com", "https://hotspotpro-api.fly.dev");
+      // Prefer Fly (HTTPS + UDP RADIUS). Render is HTTPS-only fallback.
+      list.unshift("https://hotspotpro-api.fly.dev", "https://hotspotpro-api.onrender.com");
       if (typeof window !== "undefined" && !/^(localhost|127\.|\[::1\])/.test(window.location.hostname)) {
         list.push(window.location.origin);
       }
       const unique = [...new Set(list.filter(Boolean))];
       if (alive) {
         setOrigins(unique);
-        setOrigin((current) => current || unique[0] || "https://hotspotpro-api.onrender.com");
+        setOrigin((current) => current || unique[0] || "https://hotspotpro-api.fly.dev");
       }
     })();
     return () => {

@@ -918,7 +918,7 @@ export function useRouterState(
         status: "failed",
         doneCount: 0,
         error:
-          "This router is Offline (not checking in to HotspotPro). Auto Reprovision cannot run. Use Paste script in WinBox once so it can reach https://hotspotpro-api.onrender.com, then try again.",
+          "This router is Offline (not checking in to HotspotPro). Auto Reprovision cannot run. Use Paste script in WinBox once so it can reach https://hotspotpro-api.fly.dev, then try again.",
         jobId: null,
         startedAt: Date.now(),
       });
@@ -1018,7 +1018,7 @@ export function useRouterState(
                 ...task,
                 status: "failed",
                 error:
-                  "Timed out waiting for the router (90s). It is not picking up jobs — usually it is still checking in to the old server. Use Paste script → WinBox Terminal (server https://hotspotpro-api.onrender.com), then try Reprovision again.",
+                  "Timed out waiting for the router (90s). It is not picking up jobs — usually it is still checking in to the old server. Use Paste script → WinBox Terminal (server https://hotspotpro-api.fly.dev), then try Reprovision again.",
               }
             : task,
         );

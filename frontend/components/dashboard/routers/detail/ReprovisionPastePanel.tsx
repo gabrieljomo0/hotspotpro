@@ -35,14 +35,14 @@ export function ReprovisionPastePanel({ router }: { router: RouterInfo }) {
       } catch {
         /* none */
       }
-      list.unshift("https://hotspotpro-api.onrender.com", "https://hotspotpro-api.fly.dev");
+      list.unshift("https://hotspotpro-api.fly.dev", "https://hotspotpro-api.onrender.com");
       if (typeof window !== "undefined" && !/^(localhost|127\.|\[::1\])/.test(window.location.hostname)) {
         list.push(window.location.origin);
       }
       const unique = [...new Set(list.filter(Boolean))];
       if (alive) {
         setOrigins(unique);
-        setOrigin((current) => current || unique[0] || "https://hotspotpro-api.onrender.com");
+        setOrigin((current) => current || unique[0] || "https://hotspotpro-api.fly.dev");
       }
     })();
     return () => {
