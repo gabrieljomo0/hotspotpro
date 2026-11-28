@@ -157,6 +157,17 @@ function emitProfile(pkg: Pkg | null, fallbackName: string, lines: string[]) {
   return name;
 }
 
+/**
+ * Remove User Profiles HotspotPro made for packages that are gone from the site.
+ * Only profiles with a "HotspotPro:" comment are touched (never default or the owner's own), and a
+ * profile a hotspot user on the router still points at is kept until that user is gone.
+ * Callers skip this when the site has no packages, so a missing package list never empties the router.
+ */
+function staleProfileCleanupLine(keep: string[]) {
+  const list = keep.map(quote).join(";");
+  return `:do { :local hpKeep {${list}}; :foreach p in=[/ip hotspot user profile find where comment~"^HotspotPro:"] do={ :local n [/ip hotspot user profile get $p name]; :if ([:typeof [:find $hpKeep $n]] = "nil" && [:len [/ip hotspot user find where profile=$n]] = 0) do={ :do { /ip hotspot user profile remove $p; :put ("HotspotPro: removed User Profile " . $n . " (package deleted on the site)") } on-error={ } } } } on-error={ }`;
+}
+
 /** Push Hotspot user profiles for every active package on this router (WinBox → User Profiles). */
 function emitPackageProfiles(routerIp: string, lines: string[]) {
   // Active + Hidden both need User Profiles (Hidden still sells via vouchers/agents).
@@ -177,6 +188,7 @@ function emitPackageProfiles(routerIp: string, lines: string[]) {
   }
   if (seen.size > 0) {
     lines.push(`:put ("HotspotPro: ${seen.size} package profile(s) on this router")`);
+    lines.push(staleProfileCleanupLine([...seen]));
   }
   // Prove to the log / job output how many HotspotPro profiles actually exist after the push.
   lines.push(
