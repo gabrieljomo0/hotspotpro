@@ -91,7 +91,7 @@ export function applyHtmlDirectoryRos(): string {
 
 export function loginPageStamp(token: string): string {
   const look = portalLook(token);
-  const raw = `${look.pin ? "pin" : "user"}|${look.title}|${look.button}|${look.page}|site-now`;
+  const raw = `${look.pin ? "pin" : "user"}|${look.title}|${look.button}|${look.page}|site-check`;
   let hash = 0;
   for (let i = 0; i < raw.length; i += 1) hash = (hash * 33 + raw.charCodeAt(i)) >>> 0;
   // Bump prefix whenever the install/detect marker or login HTML shape changes so routers re-download pages.
@@ -140,20 +140,24 @@ function onRouterLoginForm(buyUrl: string, look: PortalLook, title: string, erro
   return `<!DOCTYPE html><html>${mark}<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="pragma" content="no-cache"><title>${title}</title><link rel="stylesheet" href="hotspotpro.css"><script src="md5.js"></script><style>body{margin:0;background:${look.page};color:#1e3a8a;font-family:system-ui,sans-serif}main{max-width:420px;margin:0 auto;padding:36px 18px}h1{font-size:28px;line-height:1.15;margin:0 0 8px}p{color:#3b82f6;line-height:1.45;font-size:14px;margin:0 0 14px}.err{color:#b42318;background:#fef3f2;border:1px solid #fecdca;border-radius:10px;padding:10px 12px;font-weight:600}form{margin-top:8px;background:#fff;border:1px solid #bfdbfe;border-radius:18px;padding:18px}label{display:block;margin-top:10px;font-size:13px;font-weight:600;color:#1e3a8a}input{width:100%;box-sizing:border-box;margin-top:6px;border:1px solid #93c5fd;border-radius:12px;padding:14px;font-size:16px}button{width:100%;margin-top:16px;border:0;border-radius:12px;background:${look.button};color:#fff;padding:14px;font-size:16px;font-weight:700}a.buy{display:block;margin-top:16px;text-align:center;color:#2563eb;font-weight:700;text-decoration:none}</style><script>function doLogin(){var f=document.forms.login;if(!f)return true;var u=f.username,p=f.password;if(p&&!p.value&&u&&u.value)p.value=u.value;var chapId=f['chap-id'],chapCh=f['chap-challenge'];if(chapId&&chapId.value&&chapCh&&chapCh.value&&typeof hexMD5==='function'){var h=document.createElement('input');h.type='hidden';h.name='password';h.value=hexMD5(chapId.value+p.value+chapCh.value);p.parentNode.removeChild(p);f.appendChild(h)}return true}</script></head><body><main><h1>${title}</h1><p>Enter your voucher to get online.</p>${err}<form name="login" method="post" action="$(link-login-only)" onsubmit="return doLogin()"><input type="hidden" name="dst" value="$(link-orig-esc)"><input type="hidden" name="popup" value="false"><input type="hidden" name="chap-id" value="$(chap-id)"><input type="hidden" name="chap-challenge" value="$(chap-challenge)">${fields}<button type="submit">Connect</button></form><a class="buy" href="${safeBuy}">Buy a package</a></main></body></html>\n`;
 }
 
+/** How long the login page waits for the website before showing the on-router voucher form. */
+export const SITE_CHECK_MS = 2000;
+
 /**
- * The site portal at once: phones go straight to the website /portal (buy or enter a voucher there;
- * it hands the login back to this router). The redirect is the first thing in <head> (script, plus a
- * meta refresh for browsers without JavaScript), so nothing is drawn before it. The on-router form
- * stays in the page, hidden, only as a last resort for a browser that follows neither.
- * Trade-off chosen by the owner: no reachability check first, so if the site is down the phone shows
- * a browser error rather than the router form (a wrong voucher still lands on error.html's form).
+ * The site portal first, with the router form as the fallback: phones go to the website /portal (buy
+ * or enter a voucher there; it hands the login back to this router). The page stays blank (no
+ * "Opening…" text) while it checks the site answers, which usually takes a fraction of a second,
+ * then opens it. If the site does not answer within SITE_CHECK_MS (the router's internet is down,
+ * the site is blocked), the on-router voucher form shows instead, so a customer can always dial a
+ * voucher. Without JavaScript the form shows straight away.
  */
 function sitePortalFirst(portalUrl: string, look: PortalLook, title: string, hint = ""): string {
   const url = portalUrl.replace(/["<>\\]/g, "");
-  const go = `<script>location.replace("${url}")</script><meta http-equiv="refresh" content="0;url=${url}">`;
+  const origin = url.split("/").slice(0, 3).join("/");
+  const script = `<script>(function(){var u="${url}",done=false;function show(){if(done)return;done=true;var m=document.getElementById("hp-form");if(m)m.style.display="block"}function go(){if(done)return;done=true;location.replace(u)}if(!window.fetch){go();return}setTimeout(show,${SITE_CHECK_MS});fetch("${origin}/favicon.ico",{mode:"no-cors",cache:"no-store"}).then(go,show)})();</script>`;
   return onRouterLoginForm(portalUrl, look, title, hint)
-    .replace("<head>", `<head>${go}`)
-    .replace("<body><main>", `<body><main style="display:none">`);
+    .replace("<body><main>", `<body><noscript><style>#hp-form{display:block!important}</style></noscript><main id="hp-form" style="display:none">`)
+    .replace("</body>", `${script}</body>`);
 }
 
 function pageBody(page: HotspotPage, portal: string, look: PortalLook): string {

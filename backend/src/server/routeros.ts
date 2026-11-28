@@ -286,7 +286,8 @@ export const FAST_PUSH_INTERVAL = "2s";
  */
 export function fastPushLines(origin: string, token: string): string[] {
   const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
-  const event = `:if ([:len [/system script job find where script=hotspotpro-control]] = 0) do={ :local r ""; :do { :set r ([/tool fetch url="${origin}/api/provision/${token}/pending" output=user as-value${tls}]->"data") } on-error={ }; :if ([:pick $r 0 1] = "1") do={ /system script run hotspotpro-control } }`;
+  // Also says who is online (count + up to 40 users) so Active Users on the dashboard keeps up in ~2s.
+  const event = `:if ([:len [/system script job find where script=hotspotpro-control]] = 0) do={ :local n 0; :local u ""; :do { :foreach i in=[/ip hotspot active find] do={ :set n ($n + 1); :if ($n <= 40) do={ :set u ($u . "," . [/ip hotspot active get $i user]) } } } on-error={ }; :local r ""; :do { :set r ([/tool fetch url=("${origin}/api/provision/${token}/pending?active=" . $n . "&users=" . $u) output=user as-value${tls}]->"data") } on-error={ }; :if ([:pick $r 0 1] = "1") do={ /system script run hotspotpro-control } }`;
   const q = rosQuoted(event);
   return [
     `# HotspotPro fast push (site changes reach the router in ~${FAST_PUSH_INTERVAL})`,

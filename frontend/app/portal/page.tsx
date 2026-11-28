@@ -1873,7 +1873,7 @@ function CaptivePortalPageInner() {
       let pageReady = !ticketId;
       let jobFailed = false;
       while (Date.now() < deadline && !pageReady && !jobFailed) {
-        await new Promise((resolve) => window.setTimeout(resolve, 900));
+        await new Promise((resolve) => window.setTimeout(resolve, 500));
         if (ticketId && routerToken) {
           try {
             const ready = await fetch(`/api/portal/login-ready?t=${encodeURIComponent(ticketId)}`, {

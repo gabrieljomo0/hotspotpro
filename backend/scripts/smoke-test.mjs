@@ -278,9 +278,11 @@ try {
   check("script uses the right hotspot folder (flash-aware)", scriptA.includes("html-directory=$hpPick") && scriptA.includes("flash/hotspot"));
   check("setup disables free trial and plants the offline portal lock", scriptA.includes("trial-uptime-limit=0s") && !scriptA.includes("trial-uptime=0s") && scriptA.includes("hotspotpro-guard") && scriptA.includes("HotspotPro access lock"));
   const loginHtml = await (await fetch(base + "/api/provision/tok-ama-12345678/login.html")).text();
-  // The site portal opens at once: the redirect is the first thing in <head>, nothing is shown first.
-  const sitePortalFirst = (html) => /<head><script>location\.replace\("[^"]*\/portal\?rt=tok-ama-12345678&login=\$\(link-login-only\)[^"]*"\)<\/script><meta http-equiv="refresh" content="0;url=[^"]*\/portal\?rt=tok-ama-12345678/.test(html) && !html.includes("Opening the WiFi portal") && html.includes('<main style="display:none">');
-  check("login page opens the site portal at once", loginHtml.includes("HotspotPro designed-portal") && sitePortalFirst(loginHtml) && loginHtml.includes('action="$(link-login-only)"') && loginHtml.includes('name="username"'), loginHtml.slice(0, 280));
+  // The site portal opens first (blank while it checks the site, no "Opening…" text); if the site does
+  // not answer within 2s, or without JavaScript, the router's own voucher form shows so customers can
+  // always dial a voucher.
+  const sitePortalFirst = (html) => /var u="[^"]*\/portal\?rt=tok-ama-12345678&login=\$\(link-login-only\)/.test(html) && html.includes("location.replace(u)") && html.includes("setTimeout(show,2000)") && html.includes('fetch("') && html.includes('<main id="hp-form" style="display:none">') && html.includes("<noscript>") && !html.includes("Opening the WiFi portal") && !html.includes('http-equiv="refresh"');
+  check("login page opens the site portal, with the router voucher form after 2s if the site is down", loginHtml.includes("HotspotPro designed-portal") && sitePortalFirst(loginHtml) && loginHtml.includes('action="$(link-login-only)"') && loginHtml.includes('name="username"'), loginHtml.slice(0, 280));
   const rloginHtml = await (await fetch(base + "/api/provision/tok-ama-12345678/rlogin.html")).text();
   check("the redirect login page also opens the site portal first", rloginHtml.includes("HotspotPro designed-portal") && sitePortalFirst(rloginHtml) && rloginHtml.includes('action="$(link-login-only)"'));
   const logoutHtml = await (await fetch(base + "/api/provision/tok-ama-12345678/logout.html")).text();
@@ -340,6 +342,16 @@ try {
   check("…and cleared once the router has it", (await pendingOf()) === "0", await pendingOf());
   await send("POST", "/api/routers/jobs", { ip: "10.0.0.1", action: "sync-time" }, amaCookie);
   check("a dashboard button is picked up at once", (await pendingOf()) === "1", await pendingOf());
+  await fetch(base + "/api/provision/tok-ama-12345678/control");
+  // The 2s ping also reports who is online, so Active Users keeps up without a full check-in.
+  check("the fast ping reports who is online", fastCtl.includes("pending?active=") && fastCtl.includes("/ip hotspot active get $i user"), "no active users in ping");
+  const routersRev = async () => (await json(await send("GET", "/api/state/routers", undefined, amaCookie))).rev;
+  await fetch(base + "/api/provision/tok-ama-12345678/pending?active=2&users=,ZZTOP002,AMATEST1");
+  const liveRow = (await json(await send("GET", "/api/state/routers", undefined, amaCookie))).value?.[0];
+  check("…and Active Users updates within a ping", liveRow?.clients === 2 && JSON.stringify(liveRow?.liveUsers) === JSON.stringify(["AMATEST1", "ZZTOP002"]), JSON.stringify({ clients: liveRow?.clients, users: liveRow?.liveUsers }));
+  const revBefore = await routersRev();
+  await fetch(base + "/api/provision/tok-ama-12345678/pending?active=2&users=,AMATEST1,ZZTOP002");
+  check("…without saving again when nothing changed", (await routersRev()) === revBefore, `${revBefore} -> ${await routersRev()}`);
   await fetch(base + "/api/provision/tok-ama-12345678/control");
 
   // ---- a package deleted with "keep customers" still serves its customers ----
