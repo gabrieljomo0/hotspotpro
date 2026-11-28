@@ -1,11 +1,10 @@
 "use client";
 
-// Two modes:
-//  - auto: queue full-provision on the router (no Terminal paste)
-//  - paste: show WinBox copy/paste script
+// The WinBox paste script for Reprovision. ReprovisionScriptHost opens it when the router is not
+// checking in (offline) — a router that is online is reprovisioned directly, without this modal.
 
 import { useEffect, useMemo, useState } from "react";
-import { Check, Copy, Loader2 } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 
 import { ModalFrame } from "@/components/dashboard/agents/detail/ModalFrame";
 import { useDashboard } from "@/components/dashboard/context/DashboardContext";
@@ -16,37 +15,26 @@ export type ReprovisionMode = "auto" | "paste";
 
 export function ReprovisionScriptModal({
   router,
-  mode = "auto",
+  offline = false,
   onClose,
 }: {
   router: RouterInfo;
+  /** Kept for older callers; the modal always shows the paste script. */
   mode?: ReprovisionMode;
+  /** Opened because the router is not checking in — say so above the script. */
+  offline?: boolean;
   onClose: () => void;
 }) {
-  const { getCaptivePortalConfigForSite, getEffectiveSsid, showToast, startRouterTask } = useDashboard();
+  const { getCaptivePortalConfigForSite, getEffectiveSsid, showToast } = useDashboard();
   const [origins, setOrigins] = useState<string[]>([]);
   const [origin, setOrigin] = useState("");
   const [copied, setCopied] = useState(false);
-  const [queued, setQueued] = useState(false);
 
   const siteId = router.siteId ?? router.ip;
   const portal = getCaptivePortalConfigForSite(siteId);
   const ssid = cleanReprovisionSsid(portal.ssid || getEffectiveSsid(router.ip) || router.name || "HotspotPro") || "HotspotPro";
   const token = router.provisioningToken;
-  const online = router.status === "Online" && !router.disconnected;
-  const paste = mode === "paste";
-
-  useEffect(() => {
-    if (paste || !token) return;
-    startRouterTask("full-provision", router.ip);
-    setQueued(true);
-    showToast(
-      online
-        ? "Reprovision sent to the router. It reconfigures itself in a few seconds — no paste needed."
-        : "Reprovision queued. Bring the router online, or use Reprovision (paste script) instead.",
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.ip, token, paste]);
+  const paste = true;
 
   useEffect(() => {
     if (!paste) return;
@@ -101,7 +89,7 @@ export function ReprovisionScriptModal({
 
   return (
     <ModalFrame
-      title={paste ? "Reprovision (paste script)" : "Reprovision"}
+      title="Reprovision"
       subtitle={router.name}
       onClose={onClose}
       widthClass="max-w-2xl"
@@ -111,12 +99,18 @@ export function ReprovisionScriptModal({
         <p className="text-sm text-[#525252]">
           This router has no setup link yet. Remove it and add it again from Add Router.
         </p>
-      ) : paste ? (
+      ) : (
         <div className="space-y-4">
+          {offline && (
+            <p data-testid="reprovision-offline" className="rounded-xl bg-[#f3f1ec] p-3 text-sm font-semibold text-[#1a1a1a]">
+              This router is not checking in to HotspotPro right now, so it cannot be reprovisioned from here. Paste
+              the script below in WinBox once.
+            </p>
+          )}
           <p className="text-sm text-[#525252]">
-            Copy this script and paste it in WinBox → New Terminal. Refreshes hotspot, captive portal, and WiFi (SSID:{" "}
-            <span className="font-mono font-semibold text-[#1a1a1a]">{ssid}</span>) without signing out people already
-            online.
+            Copy this script and paste it in WinBox → New Terminal. It refreshes the hotspot, captive portal and WiFi
+            (SSID: <span className="font-mono font-semibold text-[#1a1a1a]">{ssid}</span>). People already online stay
+            connected, and vouchers and packages on the router are kept.
           </p>
 
           {origins.length > 1 && (
@@ -176,37 +170,6 @@ export function ReprovisionScriptModal({
             <li>Paste the script and press Enter</li>
             <li>Wait until it prints that reconfiguration finished</li>
           </ol>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <div className="rounded-xl bg-[#f4f4f4] p-4">
-            <p className="flex items-center gap-2 text-sm font-bold text-[#1a1a1a]">
-              {queued ? <Loader2 size={16} className="animate-spin" /> : null}
-              {online ? "Running on the router automatically" : "Queued for the router"}
-            </p>
-            <p className="mt-2 text-sm text-[#525252]">
-              You do <span className="font-semibold text-[#1a1a1a]">not</span> need to open Terminal or paste anything.
-              {online
-                ? " The router picks this up on the next check-in and rebuilds hotspot + captive portal + WiFi"
-                : " When the router comes online it will apply the setup by itself"}
-              {" "}
-              (SSID: <span className="font-mono font-semibold text-[#1a1a1a]">{ssid}</span>). People already online stay
-              connected.
-            </p>
-            {!online && (
-              <p className="mt-2 text-xs text-[#737373]">
-                If the router stays Offline, use <span className="font-semibold">Reprovision (paste script)</span> in More
-                Actions so it can reach the cloud again.
-              </p>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-xl bg-[#1a1a1a] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#111111]"
-          >
-            Done
-          </button>
         </div>
       )}
     </ModalFrame>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Eye, Power, Monitor, RefreshCcw, Pencil, Trash2, Bell, KeyRound, FolderSync, Clock3, FileCode2, PauseCircle, PlayCircle, PlugZap, Unplug, Upload } from "lucide-react";
+import { Eye, Power, Monitor, RefreshCcw, Pencil, Trash2, Bell, KeyRound, FolderSync, Clock3, PauseCircle, PlayCircle, PlugZap, Unplug } from "lucide-react";
 
 import { openEditRouter, openReprovisionScript } from "../shared/editEvents";
 import { DropdownMenuPortal } from "../shared/DropdownMenuPortal";
@@ -70,27 +70,17 @@ export function RouterActionsMenu({
         {router.remoteAccessEnabled ? "Prepare remote WinBox" : "Enable remote WinBox"}
       </button>
 
+      {/* One Reprovision: runs on the router if it is checking in, otherwise shows the paste script. */}
       <button
         type="button"
         data-testid="reprovision-router"
         className={itemClass}
         onClick={() => {
           onClose();
-          openReprovisionScript(router.ip, "auto");
+          openReprovisionScript(router.ip);
         }}
       >
-        <RefreshCcw size={14} className="text-[#1a1a1a]" /> Reprovision (auto)
-      </button>
-      <button
-        type="button"
-        data-testid="reprovision-router-paste"
-        className={itemClass}
-        onClick={() => {
-          onClose();
-          openReprovisionScript(router.ip, "paste");
-        }}
-      >
-        <FileCode2 size={14} className="text-[#1a1a1a]" /> Reprovision (paste script)
+        <RefreshCcw size={14} className="text-[#1a1a1a]" /> Reprovision
       </button>
 
       <button type="button" data-testid="router-edit-identity" className={itemClass} onClick={handleEditIdentity}>
@@ -113,15 +103,6 @@ export function RouterActionsMenu({
 
       <button
         type="button"
-        data-testid="push-to-router-menu"
-        className={itemClass}
-        onClick={() => run(() => startRouterTask("push-to-router", router.ip))}
-      >
-        <Upload size={14} className="text-[#1a1a1a]" /> Push packages & vouchers
-      </button>
-
-      <button
-        type="button"
         className={itemClass}
         onClick={() => run(() => startRouterTask("sync-files", router.ip))}
       >
@@ -134,14 +115,6 @@ export function RouterActionsMenu({
         onClick={() => run(() => startRouterTask("sync-time", router.ip))}
       >
         <Clock3 size={14} className="text-[#1a1a1a]" /> Sync Router Time
-      </button>
-
-      <button
-        type="button"
-        className={itemClass}
-        onClick={() => run(() => startRouterTask("update-script", router.ip))}
-      >
-        <FileCode2 size={14} className="text-[#1a1a1a]" /> Update Script
       </button>
 
       <div className="my-2 border-t border-[#f4f4f4]" />

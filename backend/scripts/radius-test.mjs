@@ -123,14 +123,17 @@ const hashPw = (pw) => { const salt = crypto.randomBytes(16); return `scrypt$${s
     const script = await (await fetch(base + "/api/provision/tok-ama-radius")).text();
     check("cloud setup adds MikroTik /radius and use-radius=yes", script.includes("/radius add service=hotspot address=127.0.0.1") && script.includes("use-radius=yes") && script.includes("radius-accounting=yes"), script.slice(0, 400));
     const ctl = await (await fetch(base + "/api/provision/tok-ama-radius/control")).text();
-    check("check-in keeps cloud RADIUS on the router", ctl.includes("HotspotPro login: cloud") && ctl.includes("use-radius=yes") && ctl.includes("/radius add") && !ctl.includes('name="AMA-1111"'), ctl.slice(0, 500));
+    // Cloud mode is local-first: the voucher is also copied onto the router (MikroTik checks local
+    // users before RADIUS), so a RADIUS outage does not stop logins.
+    check("check-in keeps cloud RADIUS on the router", ctl.includes("HotspotPro login: cloud") && ctl.includes("use-radius=yes") && ctl.includes("/radius add") && ctl.includes('name="AMA-1111"'), ctl.slice(0, 500));
     const portal = await fetch(base + "/api/portal/voucher", {
       method: "POST",
       headers: { ...J, "x-hsp-rt": "tok-ama-radius" },
       body: JSON.stringify({ username: "AMA-1111", password: "AMA-1111" }),
     });
     const portalBody = await portal.json();
-    check("site portal Connect uses RADIUS auth (no local push)", portal.ok && portalBody.authMode === "radius" && portalBody.syncQueued === false && portalBody.waitMs <= 1000, JSON.stringify(portalBody));
+    // RADIUS auth, plus the local push as a safety net (RADIUS alone was bouncing phones).
+    check("site portal Connect uses RADIUS auth (with local push)", portal.ok && portalBody.authMode === "radius" && portalBody.syncQueued === true, JSON.stringify(portalBody));
 
     check("RADIUS accepts Ama's voucher", (await login(authPort, "AMA-1111", "AMA-1111")) === 2);
     check("RADIUS accepts Kofi's voucher", (await login(authPort, "KOF-2222", "KOF-2222")) === 2);

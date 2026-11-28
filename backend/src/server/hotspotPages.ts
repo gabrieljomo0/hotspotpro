@@ -6,6 +6,7 @@
 
 import { findRouterByToken, portalOrigin, publicOrigin, routerForToken } from "./provision";
 import { getState } from "./store";
+import { optionalRos } from "./routeros";
 
 const TOKEN = /^[A-Za-z0-9_-]{8,128}$/;
 
@@ -74,9 +75,11 @@ export function applyHtmlDirectoryRos(): string {
   return [
     removeFactoryPortalRos(),
     pickHtmlDirectoryRos(),
-    `:do { /ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir html-directory-override=$hpDir open-status-page=http-login comment="HotspotPro: captive portal (voucher login)" } on-error={ }`,
-    `:do { /ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir } on-error={ }`,
-    `:do { /ip hotspot profile set [find where name=hotspotpro] html-directory-override=$hpDir } on-error={ }`,
+    `:do { /ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir open-status-page=http-login comment="HotspotPro: captive portal (voucher login)" } on-error={ }`,
+    // html-directory-override does not exist on older RouterOS. Parsed at run time (optionalRos) so a
+    // router without it skips just this command; the folder is handed over in a global.
+    `:global hpHtmlDir; :set hpHtmlDir $hpDir`,
+    optionalRos(`/ip hotspot profile set [find where name=hotspotpro] html-directory-override=$hpHtmlDir`, ["hpHtmlDir"]),
     `:do { /ip hotspot profile set [find where name=hotspotpro] open-status-page=http-login } on-error={ }`,
     `:do { /ip hotspot profile set [find where name=hotspotpro] comment="HotspotPro: captive portal (voucher login)" } on-error={ }`,
     // Only our server may answer — other servers still serve MikroTik defaults.
@@ -93,6 +96,11 @@ export function loginPageStamp(token: string): string {
   for (let i = 0; i < raw.length; i += 1) hash = (hash * 33 + raw.charCodeAt(i)) >>> 0;
   // Bump prefix whenever the install/detect marker or login HTML shape changes so routers re-download pages.
   return `v27-${hash.toString(16)}`;
+}
+
+/** Text written into every HotspotPro page (except locked.html) and searched for by the check-in. */
+export function stampComment(token: string): string {
+  return `hp-stamp:${loginPageStamp(token)}`;
 }
 
 /** Files that make the hotspot folder a skin WinBox can open: the stylesheet and the CHAP helper. */
@@ -160,6 +168,9 @@ export function hotspotHtml(page: string, request: Request, token: string): Resp
   if (!HOTSPOT_PAGES.includes(page as HotspotPage)) return new Response("unknown\n", { status: 404 });
   // Escaped MikroTik variables, so the router address survives as one query parameter.
   const portal = `${portalOrigin(publicOrigin(request))}/portal?rt=${token}`;
-  const html = pageBody(page as HotspotPage, portal, portalLook(token));
+  let html = pageBody(page as HotspotPage, portal, portalLook(token));
+  // The stamp lets the check-in see that the router already has THIS version of the pages (it is
+  // stored in the file, so it survives reboots). locked.html never carries it, so unlocking refetches.
+  if (page !== "locked.html") html = html.replace("<html>", `<html><!-- ${stampComment(token)} -->`);
   return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
 }

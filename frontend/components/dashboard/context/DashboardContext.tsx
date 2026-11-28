@@ -269,7 +269,8 @@ type DashboardContextValue = {
     jobId: string | null;
     startedAt: number;
   } | null;
-  startRouterTask: (kind: RouterTaskKind, ip: string) => void;
+  /** live: the caller has just confirmed the router is checking in, so skip the saved-status offline check. */
+  startRouterTask: (kind: RouterTaskKind, ip: string, opts?: { live?: boolean }) => void;
   confirmRouterTask: () => void;
   closeRouterTask: () => void;
   regenerateApiCredentials: (ip: string) => void;
@@ -1390,16 +1391,18 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         );
         return;
       }
+      // Only User Profiles — a small job the router runs on its next check-in (seconds). The check-in
+      // itself also refreshes profiles, so no manual "push" is ever needed.
       if (pkg?.applyToAllSites || !pkg?.routerIps?.length) {
-        queueRouterActionMany(linked, "push-to-router");
+        queueRouterActionMany(linked, "sync-packages");
       } else {
         const targets = pkg.routerIps.filter((ip) => linked.includes(ip));
-        queueRouterActionMany(targets.length > 0 ? targets : linked, "push-to-router");
+        queueRouterActionMany(targets.length > 0 ? targets : linked, "sync-packages");
       }
       showToast(
         pkg?.name
-          ? `“${pkg.name}” saved — pushing packages & vouchers to the selected router(s)…`
-          : "Package saved — pushing packages & vouchers to the router(s)…",
+          ? `“${pkg.name}” saved — it appears in the router's User Profiles within a few seconds.`
+          : "Package saved — it appears in the router's User Profiles within a few seconds.",
       );
     })();
   }
