@@ -317,6 +317,29 @@ try {
   // Restore Ama Daily package for later checks that expect it.
   await send("PUT", "/api/state/packages", { value: [{ id: "p1", name: "Ama Daily", downloadMbps: 5, uploadMbps: 5, durationValue: 1, durationUnit: "Days", price: 3, status: "Active", validity: "1 day" }] }, amaCookie);
   await send("PUT", "/api/state/vouchers", { value: [{ code: "AMATEST1", password: null, packageName: "Ama Daily", status: "Used", activatedAtMs: Date.now() - 1000, expiresAtMs: Date.now() + 86400000 }] }, amaCookie);
+
+  // ---- fast push: the router asks /pending every 2s and runs the check-in when something changed ----
+  const pendingOf = async () => (await (await fetch(base + "/api/provision/tok-ama-12345678/pending")).text()).trim();
+  const fastCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
+  check("check-in installs the 2s fast-push scheduler", fastCtl.includes("name=hotspotpro-ping interval=2s") && fastCtl.includes("/api/provision/tok-ama-12345678/pending") && fastCtl.includes("/system script run hotspotpro-control"), "no hotspotpro-ping");
+  check("nothing new right after a check-in", (await pendingOf()) === "0", await pendingOf());
+  await send("PUT", "/api/state/packages", { value: [{ id: "p1", name: "Ama Daily", downloadMbps: 6, uploadMbps: 6, durationValue: 1, durationUnit: "Days", price: 3, status: "Active", validity: "1 day" }] }, amaCookie);
+  check("a package change is picked up at once", (await pendingOf()) === "1", await pendingOf());
+  await fetch(base + "/api/provision/tok-ama-12345678/control");
+  check("…and cleared once the router has it", (await pendingOf()) === "0", await pendingOf());
+  await send("POST", "/api/routers/jobs", { ip: "10.0.0.1", action: "sync-time" }, amaCookie);
+  check("a dashboard button is picked up at once", (await pendingOf()) === "1", await pendingOf());
+  await fetch(base + "/api/provision/tok-ama-12345678/control");
+
+  // ---- a package deleted with "keep customers" still serves its customers ----
+  await send("PUT", "/api/state/deletedPackages", { value: [{ pkg: { id: "p9", name: "Gone Weekly", downloadMbps: 7, uploadMbps: 7, durationValue: 7, durationUnit: "Days", price: 9, status: "Active", validity: "7 days" }, deletedAtMs: Date.now(), keepCustomers: true }] }, amaCookie);
+  await send("PUT", "/api/state/vouchers", { value: [{ code: "AMATEST1", password: null, packageName: "Ama Daily", status: "Used", activatedAtMs: Date.now() - 1000, expiresAtMs: Date.now() + 86400000 }, { code: "GONEWK01", password: null, packageName: "Gone Weekly", status: "Used", activatedAtMs: Date.now() - 1000, expiresAtMs: Date.now() + 7 * 86400000 }] }, amaCookie);
+  const goneCtl = await (await fetch(base + "/api/provision/tok-ama-12345678/control")).text();
+  check("customers of a package deleted with 'keep customers' keep its speed", goneCtl.includes('profile add name="Gone Weekly"') && goneCtl.includes('[find where name="Gone Weekly"] rate-limit=7000k/7000k') && goneCtl.includes('name="GONEWK01"'), (goneCtl.match(/Gone Weekly[^\n]{0,120}/) || ["no Gone Weekly"])[0]);
+  check("…and the deleted package is not sold any more", !(await (await fetch(base + "/api/portal/config?rt=tok-ama-12345678")).text()).includes("Gone Weekly"));
+  await send("PUT", "/api/state/deletedPackages", { value: [] }, amaCookie);
+  await send("PUT", "/api/state/packages", { value: [{ id: "p1", name: "Ama Daily", downloadMbps: 5, uploadMbps: 5, durationValue: 1, durationUnit: "Days", price: 3, status: "Active", validity: "1 day" }] }, amaCookie);
+  await send("PUT", "/api/state/vouchers", { value: [{ code: "AMATEST1", password: null, packageName: "Ama Daily", status: "Used", activatedAtMs: Date.now() - 1000, expiresAtMs: Date.now() + 86400000 }] }, amaCookie);
   check("DHCP pool is capped so a small router can create it", scriptA.includes("ranges=10.10.0.2-10.10.3.254"));
   check("script checks the ISP port and internet at the end", scriptA.includes('&wan=') && scriptA.includes("/ping 8.8.8.8"));
   await fetch(base + "/api/provision/tok-ama-12345678/done?failed=0&wan=down");

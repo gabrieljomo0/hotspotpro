@@ -5,10 +5,11 @@ import { useState } from "react";
 import { useDashboard } from "@/components/dashboard/context/DashboardContext";
 import { PackagesHeader } from "@/components/dashboard/packages/PackagesHeader";
 import { PackagesTable } from "@/components/dashboard/packages/PackagesTable";
+import { RecentlyDeletedPackages } from "@/components/dashboard/packages/RecentlyDeletedPackages";
 import { BackLink } from "@/components/dashboard/shared/BackLink";
 
 export default function PackagesPage() {
-  const { packages, setPackageStatus, deletePackage, routers, businessLocations } = useDashboard();
+  const { packages, setPackageStatus, routers, businessLocations } = useDashboard();
   const [filter, setFilter] = useState("All");
   const [routerFilter, setRouterFilter] = useState("All");
   const [siteFilter, setSiteFilter] = useState("All");
@@ -42,8 +43,8 @@ export default function PackagesPage() {
         packages={filteredPackages}
         routers={routers}
         onSetStatus={setPackageStatus}
-        onDelete={deletePackage}
       />
+      <RecentlyDeletedPackages />
     </section>
   );
 }

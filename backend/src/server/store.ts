@@ -570,6 +570,11 @@ export function takeQueuedJobs(token: string): RouterJob[] {
   return queued;
 }
 
+/** True when a job is waiting for this router (does not mark anything sent). */
+export function hasQueuedJobs(token: string): boolean {
+  return (T().jobs?.[token] ?? []).some((j) => j.status === "queued");
+}
+
 export function jobById(token: string, id: string): RouterJob | null {
   return jobsFor(token).find((j) => j.id === id) ?? null;
 }

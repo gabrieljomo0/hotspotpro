@@ -22,7 +22,8 @@ import { forgetLocalUsers, localUserLines, packageProfileLines, portalPushCodes,
 import { findPackageByName, findVoucher, list, noteLiveVouchers, packageSeconds } from "./packages";
 import { applyHtmlDirectoryRos, stampComment } from "./hotspotPages";
 import { autoLoginFetchLines, latestTicketForToken } from "./portalLogin";
-import { CHECKIN_INTERVAL, SETUP_MARK, SETUP_VERSION, guardOptionalMenus, setupVersionMarkLines, accessGuardCommand, accessLockEnsureCommand, checkInBody, dnsNameApplyLines, hotspotReauthEnsureLines, loginDnsFromName, remoteWinboxLines } from "./routeros";
+import { markServed } from "./fastPush";
+import { CHECKIN_INTERVAL, SETUP_MARK, SETUP_VERSION, fastPushLines, guardOptionalMenus, setupVersionMarkLines, accessGuardCommand, accessLockEnsureCommand, checkInBody, dnsNameApplyLines, hotspotReauthEnsureLines, loginDnsFromName, remoteWinboxLines } from "./routeros";
 import { primaryWanInterface } from "./primaryWan";
 import { type IspLink, multiWanLines } from "./multiWan";
 import { bridgeWifiLines, ensureHotspotServerLines, ensureWifiOnHotspotBridgeLines, freeWifiEnsureLines, openSystemCaptivePortalLines, sealCaptivePortalLeakLines, ssidForRouter, wifiApplyLines } from "./wifiApply";
@@ -394,7 +395,9 @@ export function controlScript(token: string, origin?: string): string | null {
       `:global hpCtlVer`,
       `:if ($hpCtlVer != "${ctlStamp}") do={ :do { /system script set [find where name=hotspotpro-control] source="${source}" } on-error={ }; :set hpCtlVer "${ctlStamp}" }`,
     );
+    lines.push(...fastPushLines(origin, token));
   }
+  markServed(token);
   // Any line still touching a menu this router may not have is parsed at run time, so it can no
   // longer stop the rest of the check-in (packages, vouchers, jobs) — see guardOptionalMenus.
   return guardOptionalMenus(lines.join("\n")) + "\n";

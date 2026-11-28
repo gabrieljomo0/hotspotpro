@@ -277,6 +277,26 @@ export function checkInBody(origin: string, token: string): string {
   return `:local hpCpu 0; :local hpFree 0; :local hpTotal 1; :local hpUp ""; :local hpVer ""; :local hpArch ""; :local hpCpuN ""; :local hpActive 0; :local hpUsers ""; :local hpCount 0; :local hpDns ""; :local hpPub ""; :local hpWan ""; :local hpBoard ""; :local hpName ""; :local hpCh ""; :local hpSerial ""; :local hpSwid ""; :do { :set hpCpu [/system resource get cpu-load] } on-error={ }; :do { :set hpFree [/system resource get free-memory] } on-error={ }; :do { :set hpTotal [/system resource get total-memory] } on-error={ }; :do { :set hpUp [/system resource get uptime] } on-error={ }; :do { :set hpVer [/system resource get version]; :set hpVer [:pick $hpVer 0 [:find $hpVer " "]] } on-error={ }; :do { :set hpArch [/system resource get architecture-name] } on-error={ }; :do { :set hpCpuN [/system resource get cpu-count] } on-error={ }; :do { :set hpBoard [/system resource get board-name]; :while ([:typeof [:find $hpBoard " "]] = "num") do={ :local p [:find $hpBoard " "]; :set hpBoard ([:pick $hpBoard 0 $p] . "+" . [:pick $hpBoard ($p + 1) [:len $hpBoard]]) } } on-error={ }; :do { :set hpName [/system identity get name]; :while ([:typeof [:find $hpName " "]] = "num") do={ :local p [:find $hpName " "]; :set hpName ([:pick $hpName 0 $p] . "+" . [:pick $hpName ($p + 1) [:len $hpName]]) } } on-error={ }; :do { :set hpCh [/system package update get channel] } on-error={ }; :do { :set hpSerial [/system routerboard get serial-number] } on-error={ }; :do { :set hpSwid [/system license get software-id] } on-error={ }; :do { :set hpActive [:len [/ip hotspot active find]] } on-error={ }; :do { :foreach i in=[/ip hotspot active find] do={ :if ($hpCount < 40) do={ :set hpUsers ($hpUsers . "," . [/ip hotspot active get $i user]); :set hpCount ($hpCount + 1) } } } on-error={ }; :do { :set hpDns [/ip cloud get dns-name] } on-error={ }; :do { :set hpPub [/ip cloud get public-address] } on-error={ }; :do { :local hpIds [/ip dhcp-client find where comment="HotspotPro WAN"]; :if ([:len $hpIds] > 0) do={ :set hpWan [/ip dhcp-client get [:pick $hpIds 0] address] } } on-error={ }; :do { :if ([:len $hpWan] = 0) do={ :set hpWan [/ip dhcp-client get [find where comment="HotspotPro WAN DHCP Client"] address] } } on-error={ }; :do { :if ([:find $hpWan "/"] >= 0) do={ :set hpWan [:pick $hpWan 0 [:find $hpWan "/"]] } } on-error={ }; :local hpUrl "${url}"; :set hpUrl ($hpUrl . "?cpu=" . $hpCpu . "&free=" . $hpFree . "&total=" . $hpTotal . "&up=" . $hpUp . "&ver=" . $hpVer . "&arch=" . $hpArch . "&cpus=" . $hpCpuN . "&board=" . $hpBoard . "&id=" . $hpName . "&ch=" . $hpCh . "&active=" . $hpActive . "&users=" . $hpUsers . "&dns=" . $hpDns . "&pub=" . $hpPub . "&wanip=" . $hpWan . "&serial=" . $hpSerial . "&swid=" . $hpSwid); :do { /tool fetch url=$hpUrl dst-path=hotspotpro-control.rsc${tls}; :delay 2s; :local hpCtl "hotspotpro-control.rsc"; :if ([:len [/file find where name="flash/hotspotpro-control.rsc"]] > 0) do={ :set hpCtl "flash/hotspotpro-control.rsc" }; :do { /import file-name=$hpCtl; :put ("HotspotPro: control applied from " . $hpCtl) } on-error={ :log warning "HotspotPro: control import failed — packages/portal may be stale"; :put "HotspotPro: control import failed" } } on-error={ :log warning "HotspotPro: control fetch failed"; :put "HotspotPro: control fetch failed" }`;
 }
 
+/** How often the router asks "anything new?" (a few bytes) between full check-ins. */
+export const FAST_PUSH_INTERVAL = "2s";
+
+/**
+ * Keeps the hotspotpro-ping scheduler on the router: every FAST_PUSH_INTERVAL it fetches
+ * /api/provision/<token>/pending (one byte) and runs hotspotpro-control at once when the answer is "1"
+ * and no check-in is already running. Site changes (packages, vouchers, dashboard buttons) then reach
+ * the router in ~2s instead of waiting for the next full check-in. on-event is only rewritten when it
+ * differs, so the router log does not fill up.
+ */
+export function fastPushLines(origin: string, token: string): string[] {
+  const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
+  const event = `:if ([:len [/system script job find where script=hotspotpro-control]] = 0) do={ :local r ""; :do { :set r ([/tool fetch url="${origin}/api/provision/${token}/pending" output=user as-value${tls}]->"data") } on-error={ }; :if ([:pick $r 0 1] = "1") do={ /system script run hotspotpro-control } }`;
+  const q = rosQuoted(event);
+  return [
+    `# HotspotPro fast push (site changes reach the router in ~${FAST_PUSH_INTERVAL})`,
+    `:do { :if ([:len [/system scheduler find where name=hotspotpro-ping]] = 0) do={ /system scheduler add name=hotspotpro-ping interval=${FAST_PUSH_INTERVAL} start-time=startup policy=ftp,reboot,read,write,policy,test comment="HotspotPro fast push" on-event=${q} } else={ :if ([/system scheduler get [find where name=hotspotpro-ping] on-event] != ${q}) do={ /system scheduler set [find where name=hotspotpro-ping] on-event=${q} interval=${FAST_PUSH_INTERVAL} disabled=no } } } on-error={ :log warning "HotspotPro: fast push scheduler could not be set" }`,
+  ];
+}
+
 /** Open or close WinBox from outside the shop. Off keeps it on the admin port only. */
 /**
  * Accept rule on the ISP port only, written once. Rules from older versions that accepted the port on

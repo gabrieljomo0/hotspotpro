@@ -160,6 +160,22 @@ export type Voucher = {
 
 export type VoucherLoginMethod = "code" | "credentials";
 
+/** How long a deleted package can still be restored. */
+export const PACKAGE_RESTORE_MS = 3 * 24 * 60 * 60 * 1000;
+
+/**
+ * A package deleted on the site, kept so it can be restored within PACKAGE_RESTORE_MS.
+ * keepCustomers: customers already on it carry on until their time runs out (the server still reads
+ * the package for their vouchers). Otherwise their vouchers were ended and they were signed out;
+ * endedVouchers remembers each voucher's status before, so a restore gives them back.
+ */
+export type DeletedPackage = {
+  pkg: Package;
+  deletedAtMs: number;
+  keepCustomers: boolean;
+  endedVouchers: { code: string; status: VoucherStatus }[];
+};
+
 // A saved set of voucher-generation settings — pick it next time instead
 // of reconfiguring package, code format, router scope, etc. from scratch.
 export type VoucherPreset = {

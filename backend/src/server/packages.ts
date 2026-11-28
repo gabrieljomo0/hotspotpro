@@ -61,8 +61,19 @@ export function packageBytes(pkg: Pkg): number | null {
   return Math.round(pkg.fupValue * (pkg.fupUnit === "GB" ? 1024 ** 3 : 1024 ** 2));
 }
 
+/** A package the admin deleted on the site (kept so it can be restored, and so its customers keep working). */
+type DeletedPackage = { pkg?: Pkg; deletedAtMs?: number; keepCustomers?: boolean };
+
+/**
+ * The package a voucher belongs to. Every caller starts from an existing voucher, never from a sale, so
+ * a package deleted with "keep customers" still answers here: its customers keep their speed and time
+ * until their vouchers run out. Selling only ever reads the live "packages" list.
+ */
 export function findPackageByName(name: string) {
-  return list<Pkg>("packages").find((p) => p.name === name) ?? null;
+  const live = list<Pkg>("packages").find((p) => p.name === name);
+  if (live) return live;
+  const kept = list<DeletedPackage>("deletedPackages").find((d) => d?.keepCustomers && d.pkg?.name === name);
+  return kept?.pkg ?? null;
 }
 
 type RouterIdRow = {

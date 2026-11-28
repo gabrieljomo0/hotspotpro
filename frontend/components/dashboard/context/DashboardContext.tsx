@@ -19,6 +19,7 @@ import { useSubscriptionState } from "./useSubscriptionState";
 import { useRevenueSettingsState } from "./useRevenueSettingsState";
 import { useAgentState } from "./useAgentState";
 import { usePackageState, initialPackages } from "./usePackageState";
+import { usePackageTrash } from "./usePackageTrash";
 import { makePackageGuard } from "../agents/agentPackages";
 import { useAlertsState } from "./useAlertsState";
 import { nowTimestamp, DEFAULT_AGENT_ID } from "./utils";
@@ -133,6 +134,7 @@ import type {
   CommissionSettings,
   RouterConfig,
   AgentSettings,
+  DeletedPackage,
 } from "../shared/types";
 import { defaultPermissionsForRole } from "../agents/permissionSchema";
 
@@ -315,6 +317,11 @@ type DashboardContextValue = {
   updatePackage: (id: string, input: PackageInput) => void;
   setPackageStatus: (id: string, status: PackageStatus) => void;
   deletePackage: (id: string) => void;
+  /** Deleted packages that can still be restored (3 days), newest first. */
+  deletedPackages: DeletedPackage[];
+  deletePackages: (ids: string[], keepCustomers: boolean) => void;
+  restoreDeletedPackage: (id: string) => void;
+  purgeDeletedPackage: (id: string) => void;
   duplicatePackage: (id: string) => Package | undefined;
   expirePackageVouchers: (packageName: string) => void;
   pushPackageToAgents: (packageId: string, agentIds: string[]) => void;
@@ -1374,6 +1381,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     pushPackageToAgents,
     removePackagePush,
   } = usePackageState(showToast, logActivity, currentAgentId, packages, setPackages, setVouchers, setVoucherBatches, actingAgentLabel, canActOnPackage);
+  const { deletedPackages, deletePackages, restoreDeletedPackage, purgeDeletedPackage } = usePackageTrash({
+    packages, setPackages, vouchers, setVouchers, routers, canAct: canActOnPackage, showToast, logActivity,
+  });
 
   function syncPackageProfilesToRouters(
     pkg: { routerIps?: string[]; applyToAllSites?: boolean; name?: string } | null | undefined,
@@ -3406,6 +3416,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     updatePackage,
     setPackageStatus: setPackageStatusAndSync,
     deletePackage,
+    deletedPackages,
+    deletePackages,
+    restoreDeletedPackage,
+    purgeDeletedPackage,
     duplicatePackage,
     expirePackageVouchers,
     pushPackageToAgents,
