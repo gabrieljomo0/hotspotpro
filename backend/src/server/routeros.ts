@@ -645,7 +645,8 @@ export function buildProvisionScript(input: {
     // One phone per MAC. Shared users stay at 1 unless a package on the site says more.
     safe(`/ip hotspot set [find where name=hotspotpro] disabled=no addresses-per-mac=1`, true);
     // Bypass bindings let phones skip the voucher page — clear them on every setup / reprovision.
-    safe(`/ip hotspot ip-binding remove [find where type=bypassed]`, true, "Removed hotspot bypass bindings");
+    // Keep the Free WiFi binding — reprovision must not cut off people using Free WiFi.
+    safe(`/ip hotspot ip-binding remove [find where type=bypassed && comment!="HotspotPro free wifi"]`, true, "Removed hotspot bypass bindings");
     // Never kick people already online: no active/cookie wipe on reprovision.
     say("Keeping customers who are already online...");
     // Static DNS for the login name is already created in dnsNameApplyLines; keep a setup-time copy with the known gateway.
@@ -687,15 +688,11 @@ export function buildProvisionScript(input: {
     stage("Installing the HotspotPro captive portal");
     say("Installing the HotspotPro captive portal...");
     // Do not set html-directory yet — pointing at flash/hotspot before HotspotPro pages land serves MikroTik's factory portal.
-    // Remove MikroTik defaults (and any previous HotspotPro pages) so fetch can write ours.
-    for (const page of ["login.html", "rlogin.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html", "md5.js", "css/hotspotpro.css"]) {
-      safe(`/file remove [find where name=($hpDir . "/${page}")]`, true);
-      safe(`/file remove [find where name="hotspot/${page}"]`, true);
-      safe(`/file remove [find where name="flash/hotspot/${page}"]`, true);
-    }
+    // Download OVER the existing pages — no delete first. Deleting left the folder empty while the
+    // downloads ran, and MikroTik served its default portal to anyone connecting during a reprovision.
+    // If a page did not take (no HotspotPro marker), the retry loops below delete and fetch again.
     say("Downloading the captive portal pages...");
     const pull = (page: string, dest: string, quiet: boolean, done?: string) => {
-      safe(`/file remove [find where name=${dest}]`, true);
       safe(`/tool fetch url="${origin}/api/provision/${token}/${page}" dst-path=${dest}${tls}`, quiet, done);
     };
     for (const page of ["login.html", "rlogin.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html", "md5.js"]) {

@@ -6,7 +6,7 @@
 
 import { openEditRouter, openReprovisionScript } from "@/components/dashboard/shared/editEvents";
 import Link from "next/link";
-import { Radio, Bell, Download, Clock3, Cpu, ShieldCheck, Lock, RefreshCcw, Power, KeyRound, Pencil, Trash2, PauseCircle, PlayCircle, PlugZap, Unplug, Monitor, Upload } from "lucide-react";
+import { Radio, Bell, Download, Clock3, Cpu, ShieldCheck, Lock, RefreshCcw, Power, KeyRound, Pencil, Trash2, PauseCircle, PlayCircle, PlugZap, Unplug, Monitor } from "lucide-react";
 
 import { useDashboard } from "@/components/dashboard/context/DashboardContext";
 import { DropdownMenuPortal } from "@/components/dashboard/shared/DropdownMenuPortal";
@@ -52,29 +52,14 @@ export function RouterMoreActionsMenu({
       >
         <Bell size={14} /> Notification Contacts
       </button>
-      <button
-        type="button"
-        data-testid="reprovision-more-auto"
-        onClick={() => { onClose(); openReprovisionScript(router.ip, "auto"); }}
-        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-semibold text-[#1a1a1a] hover:bg-[#f4f4f4]"
-      >
-        <RefreshCcw size={14} /> Reprovision (auto)
-      </button>
+      {/* One Reprovision: runs on the router if it is checking in, otherwise shows the paste script. */}
       <button
         type="button"
         data-testid="reprovision-more"
-        onClick={() => { onClose(); openReprovisionScript(router.ip, "paste"); }}
+        onClick={() => { onClose(); openReprovisionScript(router.ip); }}
         className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-semibold text-[#1a1a1a] hover:bg-[#f4f4f4]"
       >
-        <RefreshCcw size={14} /> Reprovision (paste script)
-      </button>
-      <button
-        type="button"
-        data-testid="push-to-router"
-        onClick={() => { onClose(); startRouterTask("push-to-router", router.ip); }}
-        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-semibold text-[#1a1a1a] hover:bg-[#f4f4f4]"
-      >
-        <Upload size={14} /> Push packages & vouchers
+        <RefreshCcw size={14} /> Reprovision
       </button>
       <button
         type="button"
@@ -141,13 +126,6 @@ export function RouterMoreActionsMenu({
         className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50"
       >
         <Power size={14} /> Reboot Router
-      </button>
-      <button
-        type="button"
-        onClick={() => { onClose(); startRouterTask("update-script", router.ip); }}
-        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#525252] hover:bg-[#f4f4f4]"
-      >
-        <KeyRound size={14} /> Update Script
       </button>
       <button
         type="button"

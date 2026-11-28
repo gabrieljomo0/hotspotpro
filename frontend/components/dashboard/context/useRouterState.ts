@@ -900,13 +900,15 @@ export function useRouterState(
   /** How long to wait for the router to pick up a queued job before failing. */
   const REMOTE_JOB_TIMEOUT_MS = 90_000;
 
-  function startRouterTask(kind: RouterTaskKind, ip: string) {
+  function startRouterTask(kind: RouterTaskKind, ip: string, opts?: { live?: boolean }) {
     const router = routers.find((r) => r.ip === ip);
     if (!router) return;
     const def = ROUTER_TASKS[kind];
     postingTask.current = false;
     // Auto reprovision cannot finish if the router is not checking in — fail early with paste guidance.
+    // (Skipped when the caller just checked live contact: a Disconnected router still checks in.)
     if (
+      !opts?.live &&
       REMOTE_TASKS.has(kind) &&
       (kind === "full-provision" || kind === "update-script") &&
       (router.status === "Offline" || router.disconnected)
