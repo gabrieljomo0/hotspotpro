@@ -64,12 +64,26 @@ export function confEndpoint(conf: string): { host: string; port: string } | nul
  * hostname as Endpoint. Swap it for the address it resolves to right now.
  */
 export async function resolveConfEndpoint(conf: string, resolve: Lookup = defaultLookup): Promise<{ conf: string; endpoint: string }> {
-  const ep = confEndpoint(conf);
-  if (!ep) return { conf, endpoint: "" };
-  if (isIP(ep.host)) return { conf, endpoint: ep.host };
-  const ip = await resolve(ep.host);
-  const hostPort = isIP(ip) === 6 ? `[${ip}]:${ep.port}` : `${ip}:${ep.port}`;
-  return { conf: conf.replace(ENDPOINT_LINE, (_line, lead: string) => lead + hostPort), endpoint: ip };
+  // Back To Home confs carry more than one [Peer] (a *.sn.mynetname.net one and a *.vpn.mynetname.net
+  // one). WireGuard refuses the whole conf if ANY Endpoint is a name, so every one is swapped.
+  const all = new RegExp(ENDPOINT_LINE.source, "gim");
+  const lines = [...conf.matchAll(all)];
+  if (lines.length === 0) return { conf, endpoint: "" };
+  const ips = new Map<string, string>();
+  for (const m of lines) {
+    const ep = confEndpoint(m[0]);
+    if (ep && !isIP(ep.host) && !ips.has(ep.host)) ips.set(ep.host, await resolve(ep.host));
+  }
+  const endpoints: string[] = [];
+  const out = conf.replace(all, (line: string, lead: string) => {
+    const ep = confEndpoint(line);
+    if (!ep) return line;
+    const ip = isIP(ep.host) ? ep.host : ips.get(ep.host) ?? ep.host;
+    endpoints.push(ip);
+    return lead + (isIP(ip) === 6 ? `[${ip}]:${ep.port}` : `${ip}:${ep.port}`);
+  });
+  // Joined so the 5-minute recheck notices a change on any peer.
+  return { conf: out, endpoint: endpoints.join(",") };
 }
 
 // Last conf we armed with, so a changed router IP behind the DDNS name re-arms the relay.

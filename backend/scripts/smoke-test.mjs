@@ -186,11 +186,12 @@ try {
   await fetch(base + "/api/provision/tok-ama-12345678/control?cpu=1&wanip=192.168.1.20&pub=41.1.1.1");
   const relay = (await json(await send("GET", "/api/state", undefined, amaCookie))).docs?.routers?.value?.[0];
   check("a router behind another modem uses the relay address", relay?.winboxReach === "relay" && relay?.winboxAddress === "192.168.216.1", JSON.stringify(relay?.winboxAddress));
-  const wg = await fetch(base + "/api/provision/tok-ama-12345678/winbox", { method: "POST", body: "[Interface]\nPrivateKey = abcdefghijklmnop=\nAddress = 192.168.216.2/32\n\n[Peer]\nPublicKey = abc=\nEndpoint = localhost:13231\n" });
+  // Two peers, like a real Back To Home conf (*.sn.mynetname.net and *.vpn.mynetname.net).
+  const wg = await fetch(base + "/api/provision/tok-ama-12345678/winbox", { method: "POST", body: "[Interface]\nPrivateKey = abcdefghijklmnop=\nAddress = 192.168.216.2/32\n\n[Peer]\nPublicKey = abc=\nEndpoint = localhost:13231\n\n[Peer]\nPublicKey = def=\nAllowedIPs = 0.0.0.0/0\nEndpoint = localhost:35988\n" });
   const savedWg = (await json(await send("GET", "/api/state", undefined, amaCookie))).docs?.routers?.value?.[0];
   check("the router can hand over its WireGuard file", wg.status === 200 && savedWg?.wireguardConfig?.includes("PrivateKey") && savedWg?.wireguardTunnelIp === "192.168.216.1", String(wg.status));
   for (let i = 0; i < 20 && relayArms.length === 0; i++) await sleep(100);
-  check("the cloud WinBox relay gets the Back To Home hostname as an IP address", !!relayArms.at(-1)?.includes("Endpoint = 127.0.0.1:13231") && !!savedWg?.wireguardConfig?.includes("Endpoint = localhost:13231"), JSON.stringify(relayArms.at(-1)));
+  check("the cloud WinBox relay gets every Back To Home hostname as an IP address", !relayArms.at(-1)?.includes("localhost") && !!relayArms.at(-1)?.includes("Endpoint = 127.0.0.1:35988") && !!relayArms.at(-1)?.includes("Endpoint = 127.0.0.1:13231") && !!savedWg?.wireguardConfig?.includes("Endpoint = localhost:13231"), JSON.stringify(relayArms.at(-1)));
   await send("PUT", "/api/state/routers", { value: routerA }, amaCookie);
   check("the check-in sends the router's CPU and memory", cloudCtl.includes("cpu-load") && cloudCtl.includes("free-memory") && cloudCtl.includes("board-name") && cloudCtl.includes("identity"));
   await send("PUT", "/api/state/routers", { value: [{ ...routerA[0], loginMode: "local" }] }, amaCookie);
