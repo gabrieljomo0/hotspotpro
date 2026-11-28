@@ -111,7 +111,7 @@ try {
   check("remote WebFig is open for browser access", cloudCtl.includes('comment="HotspotPro remote WebFig"') && cloudCtl.includes("/ip service set www") && cloudCtl.includes("interval=15s"), cloudCtl.slice(0, 400));
   check("hotspot login enables HTTP CHAP, HTTP PAP, Cookie, and MAC Cookie (no bare MAC)", cloudCtl.includes("login-by=cookie,http-chap,http-pap,mac-cookie") && !/\blogin-by=[^\s"]*\bmac\b/.test(cloudCtl.replace(/mac-cookie/g, "KEEP")) && cloudCtl.includes("addresses-per-mac=1") && cloudCtl.includes("mac-address=$m"), cloudCtl.slice(0, 800));
   check("captive portal serves HotspotPro login on the router", (await (await fetch(base + "/api/provision/tok-ama-12345678/login.html")).text()).includes('action="$(link-login-only)"') && (await (await fetch(base + "/api/provision/tok-ama-12345678/login.html")).text()).includes("Buy a package") && !(await (await fetch(base + "/api/provision/tok-ama-12345678/login.html")).text()).includes("location.replace") && (await (await fetch(base + "/api/provision/tok-ama-12345678/md5.js")).text()).includes("function hexMD5"), "login.html on-router form");
-  check("connected routers download the latest setup by themselves", cloudCtl.includes("applying the latest setup") && /hpSetup != "v\d+"/.test(cloudCtl) && cloudCtl.includes("/api/provision/tok-ama-12345678?wireless=yes"), cloudCtl.slice(cloudCtl.indexOf("hpSetup"), cloudCtl.indexOf("hpSetup") + 400));
+  check("connected routers download the latest setup by themselves", cloudCtl.includes("applying the latest setup") && /hpMark != "v\d+"/.test(cloudCtl) && cloudCtl.includes("hotspotpro-setup-version") && cloudCtl.includes("/api/provision/tok-ama-12345678?wireless=yes"), cloudCtl.slice(cloudCtl.indexOf("hpSetup"), cloudCtl.indexOf("hpSetup") + 400));
   const cloudScript = await (await fetch(base + "/api/provision/tok-ama-12345678?wireless=yes&ssid=AmaCafeWiFi")).text();
   check("setup creates hotspot server in safe steps", cloudScript.includes("hotspot server is ready") && cloudScript.includes("/ip hotspot profile add name=hotspotpro hotspot-address="), cloudScript.slice(cloudScript.indexOf("Creating the hotspot"), cloudScript.indexOf("Creating the hotspot") + 400));
   check("reprovision keeps people already online", cloudScript.includes("people already on WiFi stay connected") && cloudScript.includes("Hotspot server kept online") && cloudScript.includes("Keeping customers who are already online") && !cloudScript.includes("Signed out active hotspot users") && !/\/ip hotspot remove \[find where name=hotspotpro\]/.test(cloudScript) && !/\/ip hotspot profile remove \[find where name=hotspotpro\]/.test(cloudScript), "soft upsert");
@@ -194,7 +194,7 @@ try {
   check("setup downloads the captive portal pages", scriptA.includes("/login.html") && scriptA.includes("alogin.html") && scriptA.includes("HotspotPro login: cloud"));
   check("setup installs the captive portal without reset-html prompt", !scriptA.includes("/ip hotspot reset-html") && scriptA.includes("Installing the HotspotPro captive portal") && scriptA.includes("md5.js") && scriptA.includes("hotspot/css/hotspotpro.css"));
   check("setup replaces the MikroTik login page", scriptA.includes('/file remove [find where name=($hpDir . "/login.html")]') && scriptA.includes("rlogin.html") && scriptA.includes("HotspotPro portal") && scriptA.includes("/tool fetch url="));
-  check("setup disables other hotspot servers so only HotspotPro HTML is used", scriptA.includes('/ip hotspot disable [find where name!="hotspotpro"]') && scriptA.includes("html-directory-override=$hpDir"));
+  check("setup disables other hotspot servers so only HotspotPro HTML is used", scriptA.includes('/ip hotspot disable [find where name!="hotspotpro"]') && scriptA.includes("html-directory-override=\\$hpHtmlDir"));
   check("setup sets the clock, the API login and tethering protection", scriptA.includes("time-zone-name=Africa/Accra") && scriptA.includes("API user created: hotspotpro") && scriptA.includes("new-ttl=set:1") && scriptA.includes("mac-cookie-timeout=1d"));
   const registered = await send("POST", "/api/provision", { token: "tok-live-12345678", router: { name: "Live Router", loginMode: "local", hotspotEnabled: true, routerType: "New Router", wanInterface: "ether1" } }, amaCookie);
   const liveScript = await (await fetch(base + "/api/provision/tok-live-12345678")).text();
@@ -240,7 +240,7 @@ try {
   await send("PUT", "/api/state/routers", { value: routerA }, amaCookie);
 
   // ---- customers' login page + self-checks ----
-  check("script uses the right hotspot folder (flash-aware)", scriptA.includes("html-directory=$hpDir") && scriptA.includes("flash/hotspot"));
+  check("script uses the right hotspot folder (flash-aware)", scriptA.includes("html-directory=$hpPick") && scriptA.includes("flash/hotspot"));
   check("setup disables free trial and plants the offline portal lock", scriptA.includes("trial-uptime-limit=0s") && !scriptA.includes("trial-uptime=0s") && scriptA.includes("hotspotpro-guard") && scriptA.includes("HotspotPro access lock"));
   const loginHtml = await (await fetch(base + "/api/provision/tok-ama-12345678/login.html")).text();
   check("login page is a fast HotspotPro voucher form on the router", loginHtml.includes("HotspotPro designed-portal") && loginHtml.includes('action="$(link-login-only)"') && loginHtml.includes('name="username"') && loginHtml.includes("Buy a package") && loginHtml.includes("/portal?rt=tok-ama-12345678") && !loginHtml.includes("location.replace"), loginHtml.slice(0, 280));
@@ -305,7 +305,7 @@ try {
   check("result is recorded", list2.jobs?.[0]?.status === "ok");
   const action = await send("POST", "/api/routers/jobs", { ip: "10.0.0.1", action: "full-provision" }, amaCookie);
   const actionJob = (await json(action)).job;
-  check("full provision is sent to the router", action.status === 200 && actionJob?.script?.includes("hotspotpro-action:full-provision") && actionJob.script.includes("/api/provision/tok-ama-12345678") && actionJob.script.includes("/import file-name=$hpFile") && actionJob.script.includes(":execute script="), actionJob?.script?.slice(0, 400));
+  check("full provision is sent to the router", action.status === 200 && actionJob?.script?.includes("hotspotpro-action:full-provision") && actionJob.script.includes("/api/provision/tok-ama-12345678") && actionJob.script.includes("/import file-name=$hpFile") && !actionJob.script.includes(":execute script={/import"), actionJob?.script?.slice(0, 400));
   if (actionJob?.id) await fetch(base + `/api/provision/tok-ama-12345678/job/${actionJob.id}/result?ok=1`);
   const after = await json(await send("GET", "/api/state", undefined, amaCookie));
   const amaRouter = after.docs?.routers?.value?.find((r) => r.ip === "10.0.0.1");

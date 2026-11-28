@@ -45,7 +45,23 @@ function rate(pkg: Pkg | null) {
   return `${kbps(pkg?.uploadMbps)}/${kbps(pkg?.downloadMbps)}`;
 }
 
-type SyncRow = { codes: string[]; at: number; offset?: number };
+type SyncRow = {
+  codes: string[];
+  at: number;
+  offset?: number;
+  /** Fingerprint of what was last sent per voucher, so edits (password, package, limits, MAC) are re-sent. */
+  sigs?: Record<string, string>;
+  /** Codes waiting to be removed from the router → first attempt (ms). Retried while the user is still online. */
+  removing?: Record<string, number>;
+  /** Last time removal lines were sent (retries are spaced out, not sent every 10s check-in). */
+  removeAt?: number;
+};
+
+/** Spacing between removal retries. */
+const REMOVE_EVERY_MS = 5 * 60_000;
+
+/** How long a removal is retried before giving up (the voucher's own limits end the session anyway). */
+const REMOVE_RETRY_MS = 3 * 86400_000;
 type SyncFile = Record<string, SyncRow>;
 
 type WantedUser = {
@@ -222,43 +238,83 @@ export function forgetLocalUsers(token: string) {
  * RouterOS lines that upsert a rotating batch of vouchers and drop only codes that
  * are truly gone (not merely outside this batch). Safe for large voucher inventories.
  */
+/** Everything emitUsers writes for one voucher. A change means the router copy is stale. */
+function userSig(user: WantedUser, pin: boolean) {
+  const seconds = user.pkg ? packageSeconds(user.pkg) : 86400;
+  const cap = (user.pkg ? packageBytes(user.pkg) : 0) ?? 0;
+  return [
+    pin ? user.name : user.password || user.name,
+    profileName(user.pkg, user.name),
+    user.limitBy === "data" ? "0s" : rosDuration(seconds),
+    user.limitBy === "days" ? 0 : cap,
+    user.mac,
+  ].join("|");
+}
+
 export function localUserLines(token: string, routerIp: string, now = Date.now()): string[] {
   const file = syncFile();
   const row = file[token];
   const previous = row?.codes ?? [];
+  const prevSigs = row?.sigs ?? {};
+  const pin = voucherOnlyLogin(token);
   const all = wanted(routerIp, now);
   const allCodes = codesOf(all);
   const allDesired = new Set(allCodes);
-  // Only remove vouchers that no longer exist in HotspotPro — never remove valid codes
-  // just because they are outside the current batch window.
-  const remove = previous.filter((code) => !allDesired.has(code)).slice(0, BATCH);
-  const missing = all.filter((u) => !previous.includes(u.name));
+
+  // Removals: codes that left HotspotPro. The router skips a user who is still online, and it cannot
+  // tell us, so keep retrying for REMOVE_RETRY_MS instead of forgetting the code after one try
+  // (which left deleted vouchers usable on the router forever).
+  const removing: Record<string, number> = {};
+  for (const [code, first] of Object.entries(row?.removing ?? {})) {
+    if (!allDesired.has(code) && now - first < REMOVE_RETRY_MS) removing[code] = first;
+  }
+  let fresh = false;
+  for (const code of previous) {
+    if (!allDesired.has(code) && !(code in removing)) {
+      removing[code] = now;
+      fresh = true;
+    }
+  }
+  const sendRemovals = fresh || now - (row?.removeAt ?? 0) >= REMOVE_EVERY_MS;
+  const remove = sendRemovals ? Object.keys(removing).slice(0, BATCH) : [];
+  const removeAt = remove.length > 0 ? now : row?.removeAt;
+
+  // Missing = not on the router yet, or changed since it was sent.
+  const sigs: Record<string, string> = {};
+  for (const user of all) sigs[user.name] = userSig(user, pin);
+  const missing = all.filter((u) => !previous.includes(u.name) || prevSigs[u.name] !== sigs[u.name]);
   const source = missing.length > 0 ? missing : all;
   const { slice: batch, nextOffset } = roundRobin(source, row?.offset ?? 0, BATCH);
   const batchCodes = codesOf(batch);
   const kept = previous.filter((code) => allDesired.has(code));
   const nextCodes = [...new Set([...kept, ...batchCodes])];
-  const fullySynced = missing.length === 0 && remove.length === 0 && allCodes.every((code) => previous.includes(code));
+  const fullySynced = missing.length === 0 && allCodes.every((code) => previous.includes(code));
 
-  if (!fullySynced || nextCodes.length !== previous.length || nextCodes.some((c, i) => c !== previous[i])) {
-    file[token] = { codes: nextCodes, at: now, offset: nextOffset };
+  // Only what was actually sent counts as synced; the rest keeps its old fingerprint.
+  const nextSigs: Record<string, string> = {};
+  for (const name of Object.keys(sigs)) if (prevSigs[name] !== undefined) nextSigs[name] = prevSigs[name];
+  if (!fullySynced) for (const user of batch) nextSigs[user.name] = sigs[user.name];
+
+  const changed =
+    !fullySynced ||
+    nextCodes.length !== previous.length ||
+    nextCodes.some((c, i) => c !== previous[i]) ||
+    JSON.stringify(removing) !== JSON.stringify(row?.removing ?? {}) ||
+    removeAt !== row?.removeAt ||
+    Object.keys(nextSigs).length !== Object.keys(prevSigs).length;
+  if (changed) {
+    file[token] = { codes: nextCodes, at: now, offset: nextOffset, sigs: nextSigs, removing, removeAt };
     setState("routerUserSync", file, "server");
   }
 
-  if (fullySynced) {
-    // Still refresh package profiles so WinBox User Profiles stay in step after package edits.
-    const refresh: string[] = ["# HotspotPro local vouchers already in sync"];
-    emitPackageProfiles(routerIp, refresh);
-    refresh.push(macBindLine());
-    return refresh;
-  }
-
-  const pin = voucherOnlyLogin(token);
-  const lines: string[] = ["# HotspotPro local vouchers (kept on this router; each one has a time limit)"];
+  const lines: string[] = fullySynced
+    ? ["# HotspotPro local vouchers already in sync"]
+    : ["# HotspotPro local vouchers (kept on this router; each one has a time limit)"];
+  // Package profiles always refresh so WinBox User Profiles stay in step after package edits.
   emitPackageProfiles(routerIp, lines);
-  emitUsers(batch, pin, lines);
+  if (!fullySynced) emitUsers(batch, pin, lines);
   for (const code of remove) {
-    // Only clear idle expired vouchers. Skip anyone still online.
+    // Only clear idle vouchers. Anyone still online is retried on a later check-in.
     lines.push(
       `:do { :if ([:len [/ip hotspot active find where user=${quote(code)}]] = 0) do={ :do { /ip hotspot cookie remove [find where user=${quote(code)}] } on-error={ }; :do { /ip hotspot user remove [find where name=${quote(code)} comment="HotspotPro"] } on-error={ } } } on-error={ }`,
     );
@@ -359,8 +415,8 @@ export function ensureOneLocalUser(
     `:do { :if ([:len [/ip hotspot user profile find where name=${profile}]] = 0) do={ /ip hotspot user set [find where name=${quote(user.name)}] profile=default } } on-error={ }`,
   );
   lines.push(`:do { /ip hotspot cookie remove [find where user=${quote(user.name)}] } on-error={ }`);
-  // Clear hosts stuck after a failed MAC auth attempt so the voucher HTTP login can put them online.
-  lines.push(`:do { /ip hotspot host remove [find where authorized=no] } on-error={ }`);
+  // No `host remove [find where authorized=no]`: MAC login is off, and wiping hosts resets the CHAP
+  // challenge of every other phone that is on the login page, so their vouchers bounce.
   lines.push(`:put ("HotspotPro: voucher " . ${quote(user.name)} . " is on the router for login")`);
   if (opts?.origin && opts?.ticketId) {
     lines.push(...autoLoginFetchLines(opts.origin, token, opts.ticketId));

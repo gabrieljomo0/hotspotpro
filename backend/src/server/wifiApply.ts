@@ -4,7 +4,7 @@
 // hit the captive portal after joining the SSID.
 
 import { applyHtmlDirectoryRos } from "./hotspotPages";
-import { HOTSPOT_LOGIN_BY } from "./routeros";
+import { HOTSPOT_LOGIN_BY, optionalRos } from "./routeros";
 import { getState } from "./store";
 
 function cleanSsid(value: string | undefined) {
@@ -58,19 +58,21 @@ export function ssidForRouter(router: {
  * Legacy wireless: use bridge ports.
  */
 export function bridgeWifiLines(): string[] {
+  // Each command is parsed at run time (optionalRos): a router has only one of these menus, and a
+  // missing menu used to be a syntax error that stopped the whole check-in.
   return [
     // Pull radios off the factory LAN bridge first — that is what gives free internet.
-    `:do { :foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :do { /interface bridge port remove [find where interface=$n] } on-error={ } } } on-error={ }`,
-    `:do { :foreach p in=[/interface wifiwave2 find] do={ :local n [/interface wifiwave2 get $p name]; :do { /interface bridge port remove [find where interface=$n] } on-error={ } } } on-error={ }`,
+    optionalRos(`:foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :do { /interface bridge port remove [find where interface=$n] } on-error={ } }`),
+    optionalRos(`:foreach p in=[/interface wifiwave2 find] do={ :local n [/interface wifiwave2 get $p name]; :do { /interface bridge port remove [find where interface=$n] } on-error={ } }`),
     // RouterOS 7 wifi package (hAP ax / ax S): datapath.bridge is what feeds Hotspot.
-    `:do { :foreach p in=[/interface wifi find] do={ :do { /interface wifi set $p disabled=no configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ } } } on-error={ }`,
+    optionalRos(`:foreach p in=[/interface wifi find] do={ :do { /interface wifi set $p disabled=no configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ } }`),
     // Older ROS7 wifiwave2 name
-    `:do { :foreach p in=[/interface wifiwave2 find] do={ :do { /interface wifiwave2 set $p disabled=no configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ } } } on-error={ }`,
+    optionalRos(`:foreach p in=[/interface wifiwave2 find] do={ :do { /interface wifiwave2 set $p disabled=no configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ } }`),
     // Legacy wireless package still needs a bridge port
-    `:do { :foreach p in=[/interface wireless find] do={ :local n [/interface wireless get $p name]; :do { /interface wireless set $p disabled=no mode=ap-bridge comment="HotspotPro: guest WiFi" } on-error={ }; :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro: guest WiFi port" } on-error={ } } } on-error={ }`,
-    `:do { /interface wifi enable [find] } on-error={ }`,
-    `:do { /interface wifiwave2 enable [find] } on-error={ }`,
-    `:do { /interface wireless enable [find] } on-error={ }`,
+    optionalRos(`:foreach p in=[/interface wireless find] do={ :local n [/interface wireless get $p name]; :do { /interface wireless set $p disabled=no mode=ap-bridge comment="HotspotPro: guest WiFi" } on-error={ }; :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro: guest WiFi port" } on-error={ } }`),
+    optionalRos(`/interface wifi enable [find]`),
+    optionalRos(`/interface wifiwave2 enable [find]`),
+    optionalRos(`/interface wireless enable [find]`),
   ];
 }
 
@@ -82,7 +84,11 @@ export function bridgeWifiLines(): string[] {
 export function ensureWifiOnHotspotBridgeLines(): string[] {
   return [
     `# HotspotPro: keep radios on hotspotpro-bridge (captive portal)`,
-    `:do { :local hpFix 0; :foreach p in=[/interface wifi find] do={ :local b ""; :do { :set b [/interface wifi get $p datapath.bridge] } on-error={ }; :if ($b != "hotspotpro-bridge") do={ :set hpFix 1; :do { /interface wifi set $p disabled=no configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ }; :local n [/interface wifi get $p name]; :do { /interface bridge port remove [find where interface=$n] } on-error={ } } }; :foreach p in=[/interface wifiwave2 find] do={ :local b ""; :do { :set b [/interface wifiwave2 get $p datapath.bridge] } on-error={ }; :if ($b != "hotspotpro-bridge") do={ :set hpFix 1; :do { /interface wifiwave2 set $p disabled=no configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ }; :local n [/interface wifiwave2 get $p name]; :do { /interface bridge port remove [find where interface=$n] } on-error={ } } }; :foreach p in=[/interface wireless find] do={ :local n [/interface wireless get $p name]; :local onHp [:len [/interface bridge port find where interface=$n bridge=hotspotpro-bridge]]; :if ($onHp = 0) do={ :set hpFix 1; :do { /interface wireless set $p disabled=no mode=ap-bridge } on-error={ }; :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } }; :if ($hpFix = 1) do={ :put "HotspotPro: WiFi re-bound to hotspotpro-bridge (captive portal)" } } on-error={ }`,
+    // One run-time-parsed command per menu, so a router without wifiwave2 (all of 7.13+) or without
+    // the wifi package still checks the radios it does have.
+    optionalRos(`:foreach p in=[/interface wifi find] do={ :local b ""; :do { :set b [/interface wifi get $p datapath.bridge] } on-error={ }; :if ($b != "hotspotpro-bridge") do={ :do { /interface wifi set $p disabled=no configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ }; :local n [/interface wifi get $p name]; :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :put "HotspotPro: WiFi re-bound to hotspotpro-bridge (captive portal)" } }`),
+    optionalRos(`:foreach p in=[/interface wifiwave2 find] do={ :local b ""; :do { :set b [/interface wifiwave2 get $p datapath.bridge] } on-error={ }; :if ($b != "hotspotpro-bridge") do={ :do { /interface wifiwave2 set $p disabled=no configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge } on-error={ }; :local n [/interface wifiwave2 get $p name]; :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :put "HotspotPro: WiFi re-bound to hotspotpro-bridge (captive portal)" } }`),
+    optionalRos(`:foreach p in=[/interface wireless find] do={ :local n [/interface wireless get $p name]; :local onHp [:len [/interface bridge port find where interface=$n bridge=hotspotpro-bridge]]; :if ($onHp = 0) do={ :do { /interface wireless set $p disabled=no mode=ap-bridge } on-error={ }; :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ }; :put "HotspotPro: WiFi re-bound to hotspotpro-bridge (captive portal)" } }`),
   ];
 }
 
@@ -106,7 +112,8 @@ export function ensureHotspotServerLines(dnsName = "wifi"): string[] {
     `:do { :if ([:len [/ip address find where comment="HotspotPro" interface=hotspotpro-bridge]] = 0) do={ /ip address add address=10.10.0.1/16 interface=hotspotpro-bridge comment="HotspotPro" } } on-error={ }`,
     `:do { :if ([:len [/ip pool find where name=hotspotpro-pool]] = 0) do={ /ip pool add name=hotspotpro-pool ranges=10.10.0.2-10.10.3.254 comment="HotspotPro: guest pool" } else={ /ip pool set [find where name=hotspotpro-pool] comment="HotspotPro: guest pool" } } on-error={ }`,
     `:do { :if ([:len [/ip dhcp-server network find where comment="HotspotPro"]] = 0) do={ /ip dhcp-server network add address=10.10.0.0/16 gateway=10.10.0.1 dns-server=10.10.0.1 comment="HotspotPro" } } on-error={ }`,
-    `:do { /ip dhcp-server network set [find where comment="HotspotPro"] dns-server=10.10.0.1 gateway=10.10.0.1 } on-error={ }`,
+    // Gateway + DNS = the bridge's real address (custom / 10.77 networks are not 10.10.0.1).
+    `:do { :local a ""; :do { :set a [/ip address get [find where interface=hotspotpro-bridge comment="HotspotPro"] address] } on-error={ }; :if ([:len $a] = 0) do={ :do { :set a [/ip address get [find where interface=hotspotpro-bridge] address] } on-error={ } }; :if ([:len $a] > 0) do={ :local g [:pick $a 0 [:find $a "/"]]; /ip dhcp-server network set [find where comment="HotspotPro"] dns-server=$g gateway=$g } } on-error={ }`,
     `:do { :if ([:len [/ip dhcp-server find where name=hotspotpro-dhcp]] = 0) do={ /ip dhcp-server add name=hotspotpro-dhcp interface=hotspotpro-bridge address-pool=hotspotpro-pool disabled=no comment="HotspotPro: guest DHCP" } else={ /ip dhcp-server set [find where name=hotspotpro-dhcp] comment="HotspotPro: guest DHCP" } } on-error={ }`,
     `:do { /ip dhcp-server enable [find where name=hotspotpro-dhcp] } on-error={ }`,
     // Profile first without html-directory (folder may not exist yet).
@@ -212,6 +219,20 @@ export function freeWifiApplyLines(enabled: boolean): string[] {
   ];
 }
 
+/**
+ * Every-check-in version of the Free WiFi switch. Only keeps the bypass binding in the
+ * right state — it never signs anyone out. (freeWifiApplyLines(false) kicks every session
+ * and wipes cookies; run that only when the owner presses Free WiFi Off.)
+ */
+export function freeWifiEnsureLines(enabled: boolean): string[] {
+  if (enabled) {
+    return [
+      `:do { :if ([:len [/ip hotspot ip-binding find where comment="${FREE_WIFI_COMMENT}"]] = 0) do={ :do { /ip hotspot ip-binding add type=bypassed address=0.0.0.0/0 server=hotspotpro comment="${FREE_WIFI_COMMENT}" } on-error={ :do { /ip hotspot ip-binding add type=bypassed address=0.0.0.0/0 comment="${FREE_WIFI_COMMENT}" } on-error={ } } } } on-error={ }`,
+    ];
+  }
+  return [`:do { /ip hotspot ip-binding remove [find where comment="${FREE_WIFI_COMMENT}"] } on-error={ }`];
+}
+
 /** RouterOS that sets wifi1/wifi2 (and legacy wlan) to the site SSID and keeps them on the hotspot bridge. */
 export function wifiApplyLines(ssidRaw: string | undefined): string[] {
   const ssid = cleanSsid(ssidRaw) || "HotspotPro";
@@ -219,12 +240,13 @@ export function wifiApplyLines(ssidRaw: string | undefined): string[] {
   const ssid24 = quote(band.slice(0, 32));
   const ssid5 = quote(`${band} 5G`.slice(0, 32));
   const stamp = `v4-${ssid.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 36)}`;
+  // Run-time parsed per menu (optionalRos) — see bridgeWifiLines.
   const ssidBody = [
-    `:do { :local hpWifi 0; :do { :set hpWifi [:len [/interface wifi find]] } on-error={ }; :if ($hpWifi > 0) do={ /interface wifi configuration set [find] ssid=${ssid24} mode=ap; /interface wifi set [find where name=wifi1] disabled=no configuration.ssid=${ssid24} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge comment="HotspotPro: guest WiFi 2.4GHz"; /interface wifi set [find where name=wifi2] disabled=no configuration.ssid=${ssid5} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge comment="HotspotPro: guest WiFi 5GHz"; :foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :if ($n != "wifi1" && $n != "wifi2") do={ /interface wifi set $p disabled=no configuration.ssid=${ssid24} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge comment="HotspotPro: guest WiFi" } } } } on-error={ }`,
-    `:do { :local hpWw 0; :do { :set hpWw [:len [/interface wifiwave2 find]] } on-error={ }; :if ($hpWw > 0) do={ :foreach p in=[/interface wifiwave2 find] do={ :do { /interface wifiwave2 set $p disabled=no configuration.ssid=${ssid24} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge comment="HotspotPro: guest WiFi" } on-error={ } } } } on-error={ }`,
-    `:do { /interface wireless security-profiles set [find default=yes] mode=none } on-error={ }`,
-    `:do { /interface wireless set [find where name=wlan1] disabled=no ssid=${ssid24} mode=ap-bridge security-profile=default comment="HotspotPro: guest WiFi 2.4GHz" } on-error={ }`,
-    `:do { /interface wireless set [find where name=wlan2] disabled=no ssid=${ssid5} mode=ap-bridge security-profile=default comment="HotspotPro: guest WiFi 5GHz" } on-error={ }`,
+    optionalRos(`:local hpWifi [:len [/interface wifi find]]; :if ($hpWifi > 0) do={ :do { /interface wifi configuration set [find] ssid=${ssid24} mode=ap } on-error={ }; :do { /interface wifi set [find where name=wifi1] disabled=no configuration.ssid=${ssid24} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge comment="HotspotPro: guest WiFi 2.4GHz" } on-error={ }; :do { /interface wifi set [find where name=wifi2] disabled=no configuration.ssid=${ssid5} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge comment="HotspotPro: guest WiFi 5GHz" } on-error={ }; :foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :if ($n != "wifi1" && $n != "wifi2") do={ :do { /interface wifi set $p disabled=no configuration.ssid=${ssid24} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge comment="HotspotPro: guest WiFi" } on-error={ } } } }`),
+    optionalRos(`:foreach p in=[/interface wifiwave2 find] do={ :do { /interface wifiwave2 set $p disabled=no configuration.ssid=${ssid24} configuration.mode=ap security.authentication-types="" datapath.bridge=hotspotpro-bridge comment="HotspotPro: guest WiFi" } on-error={ } }`),
+    optionalRos(`/interface wireless security-profiles set [find default=yes] mode=none`),
+    optionalRos(`/interface wireless set [find where name=wlan1] disabled=no ssid=${ssid24} mode=ap-bridge security-profile=default comment="HotspotPro: guest WiFi 2.4GHz"`),
+    optionalRos(`/interface wireless set [find where name=wlan2] disabled=no ssid=${ssid5} mode=ap-bridge security-profile=default comment="HotspotPro: guest WiFi 5GHz"`),
   ];
   // Full SSID + bridge apply when the stamp changes; every check-in still verifies bridge below.
   const bridge = bridgeWifiLines().join("; ");

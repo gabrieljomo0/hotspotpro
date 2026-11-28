@@ -19,12 +19,12 @@ import { routerForNas } from "./routerUsage";
 import { accessDecision } from "./accessGate";
 import { forgetLocalUsers, localUserLines, packageProfileLines, portalPushCodes, portalPushLines } from "./localUsers";
 import { findPackageByName, findVoucher, list, noteLiveVouchers, packageSeconds } from "./packages";
-import { applyHtmlDirectoryRos, loginPageStamp, PORTAL_MARKER } from "./hotspotPages";
+import { applyHtmlDirectoryRos, stampComment } from "./hotspotPages";
 import { autoLoginFetchLines, latestTicketForToken } from "./portalLogin";
-import { CHECKIN_INTERVAL, SETUP_VERSION, accessGuardCommand, accessLockEnsureCommand, checkInBody, dnsNameApplyLines, hotspotReauthEnsureLines, loginDnsFromName, remoteWinboxLines } from "./routeros";
+import { CHECKIN_INTERVAL, SETUP_MARK, SETUP_VERSION, guardOptionalMenus, setupVersionMarkLines, accessGuardCommand, accessLockEnsureCommand, checkInBody, dnsNameApplyLines, hotspotReauthEnsureLines, loginDnsFromName, remoteWinboxLines } from "./routeros";
 import { primaryWanInterface } from "./primaryWan";
 import { type IspLink, multiWanLines } from "./multiWan";
-import { bridgeWifiLines, ensureHotspotServerLines, ensureWifiOnHotspotBridgeLines, freeWifiApplyLines, openSystemCaptivePortalLines, sealCaptivePortalLeakLines, ssidForRouter, wifiApplyLines } from "./wifiApply";
+import { bridgeWifiLines, ensureHotspotServerLines, ensureWifiOnHotspotBridgeLines, freeWifiEnsureLines, openSystemCaptivePortalLines, sealCaptivePortalLeakLines, ssidForRouter, wifiApplyLines } from "./wifiApply";
 import { portalOrigin } from "./provision";
 import { radiusCloudEnabled, radiusPorts, radiusPublicHost, radiusSecret } from "./radius";
 import { winboxRelayAddress } from "./winboxRelay";
@@ -132,7 +132,8 @@ function hotspotLines(router: Row, freeWifi = false): string[] {
     `:if ($hpBridged != "${SETUP_VERSION}") do={ ${bridgeWifiLines().join("; ")}; :set hpBridged "${SETUP_VERSION}" }`,
     ...ensureWifiOnHotspotBridgeLines(),
     // Free WiFi for all APs/ports on hotspotpro-bridge (or restore voucher mode).
-    ...freeWifiApplyLines(free),
+    // Ensure-only: the Free WiFi Off button job is what signs people out, never the check-in.
+    ...freeWifiEnsureLines(free),
   ];
   if (/^[a-z0-9][a-z0-9.-]{0,48}$/.test(name)) {
     lines.push(...dnsNameApplyLines(router.name, router.dnsName));
@@ -164,10 +165,58 @@ export function switchedOffRouter(source: string, identifier: string | undefined
 
 const oneLine = (s: string) => s.replace(/[\r\n]/g, " ").replace(/[\\"$]/g, "");
 
+/** Set /system identity to the dashboard name, only when it differs. */
+function identityLines(name: string): string[] {
+  const clean = oneLine(name || "").trim().slice(0, 64);
+  if (!clean) return [];
+  return [`:do { :if ([/system identity get name] != "${clean}") do={ /system identity set name="${clean}" } } on-error={ }`];
+}
+
 function pageFetch(origin: string, token: string, page: string, file: string) {
   const tls = origin.startsWith("https://") ? " check-certificate=no" : "";
   // A file left by reset-html is MikroTik's own page. Fetch will not overwrite it.
   return `:do { /file remove [find where name="${file}"] } on-error={ }; :do { /tool fetch url="${origin}/api/provision/${token}/${page}" dst-path=${file}${tls} } on-error={ }`;
+}
+
+const PORTAL_FILES = ["login.html", "rlogin.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html", "md5.js", "hotspotpro.css"];
+
+/**
+ * Keep HotspotPro's portal pages on the router without ever leaving a gap.
+ * - Up to date = login.html AND rlogin.html carry this version's stamp (it is inside the file, so it
+ *   survives reboots — the old global-variable stamp was lost on every power cut and made the router
+ *   wipe and re-download all pages, serving MikroTik's default page meanwhile).
+ * - Out of date: download over the old files first (no delete, so the portal never disappears);
+ *   only if that did not take, delete and download again.
+ */
+function portalPagesLines(origin: string, token: string): string[] {
+  const tls = origin.startsWith("https://") ? " check-certificate=no" : "";
+  const stamp = stampComment(token);
+  const fetchAll = (removeFirst: boolean) =>
+    PORTAL_FILES.flatMap((page) =>
+      ["hotspot", "flash/hotspot"].map((dir) => {
+        const file = page === "hotspotpro.css" ? `${dir}/css/${page}` : `${dir}/${page}`;
+        const fetch = `:do { /tool fetch url="${origin}/api/provision/${token}/${page}" dst-path="${file}"${tls} } on-error={ }`;
+        return removeFirst ? `:do { /file remove [find where name="${file}"] } on-error={ }; ${fetch}` : fetch;
+      }),
+    ).join("; ");
+  const read = (name: string, file: string) => `:set ${name} ""; :do { :set ${name} [/file get [find where name="${file}"] contents] } on-error={ }`;
+  const check = [
+    read("hpA", "hotspot/login.html"),
+    read("hpB", "hotspot/rlogin.html"),
+    read("hpC", "flash/hotspot/login.html"),
+    read("hpD", "flash/hotspot/rlogin.html"),
+    `:set hpOk false`,
+    `:local hpHot false; :local hpFl false; :local hpFlashHas false`,
+    `:if ([:typeof [:find $hpA $hpSt]] = "num" && [:typeof [:find $hpB $hpSt]] = "num") do={ :set hpHot true }`,
+    `:if ([:typeof [:find $hpC $hpSt]] = "num" && [:typeof [:find $hpD $hpSt]] = "num") do={ :set hpFl true }`,
+    `:if ([:len [/file find where name="flash/hotspot/login.html"]] > 0) do={ :set hpFlashHas true }`,
+    // A factory login.html left in flash would win, so flash must be ours too when it exists.
+    `:if (($hpHot || $hpFl) && (!$hpFlashHas || $hpFl)) do={ :set hpOk true }`,
+  ].join("; ");
+  return [
+    `:global hpLockState; :set hpLockState "open"`,
+    `:do { :local hpSt "${stamp}"; :local hpOk false; :local hpA ""; :local hpB ""; :local hpC ""; :local hpD ""; :do { ${check} } on-error={ }; :if (!$hpOk) do={ :put "HotspotPro: updating the portal pages"; ${fetchAll(false)}; :delay 1s; :do { ${check} } on-error={ }; :if (!$hpOk) do={ ${fetchAll(true)}; :delay 1s }; ${applyHtmlDirectoryRos()} } } on-error={ :log warning "HotspotPro: portal page check failed" }`,
+  ];
 }
 
 /** What a router downloads every 30 seconds. null = unknown token. */
@@ -204,6 +253,8 @@ export function controlScript(token: string, origin?: string): string | null {
     `# HotspotPro free wifi: ${free ? "ON" : "off"}`,
     `# HotspotPro login: ${useRadius ? "cloud+local (MikroTik local-first then RADIUS)" : "local"}`,
     `:do { /ip firewall raw ${off ? "enable" : "disable"} [find where comment="${SWITCH_COMMENT}"] } on-error={ }`,
+    // Dashboard rename → router identity (also the RADIUS NAS-Identifier, matched by name).
+    ...identityLines(router.name),
     `:do { :if ([:len [/ip firewall raw find where comment="HotspotPro paused"]] = 0) do={ /ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=accept dst-address-type=local comment="HotspotPro paused" disabled=yes; /ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=accept dst-address-type=broadcast comment="HotspotPro paused" disabled=yes; /ip firewall raw add chain=prerouting in-interface=hotspotpro-bridge action=drop comment="HotspotPro paused" disabled=yes } } on-error={ }`,
     `:do { /ip firewall raw ${paused ? "enable" : "disable"} [find where comment="HotspotPro paused"] } on-error={ }`,
     // Plant the lock rules and the offline timer, including on routers set up before this existed.
@@ -245,21 +296,8 @@ export function controlScript(token: string, origin?: string): string | null {
       `:do { /system clock set time-zone-name=Africa/Accra } on-error={ }`,
       `:do { :if ([:len [/ip firewall mangle find where comment="HotspotPro tethering"]] = 0) do={ /ip firewall mangle add chain=postrouting action=change-ttl new-ttl=set:1 passthrough=yes out-interface=hotspotpro-bridge comment="HotspotPro tethering" } } on-error={ }`,
     );
-    if (origin) {
-      const pages = ["login.html", "rlogin.html", "alogin.html", "error.html", "logout.html", "redirect.html", "status.html", "md5.js"];
-      const fetches = [
-        ...pages.flatMap((page) => [pageFetch(origin, token, page, `hotspot/${page}`), pageFetch(origin, token, page, `flash/hotspot/${page}`)]),
-        pageFetch(origin, token, "hotspotpro.css", "hotspot/css/hotspotpro.css"),
-        pageFetch(origin, token, "hotspotpro.css", "flash/hotspot/css/hotspotpro.css"),
-      ].join("; ");
-      lines.push(
-        `:global hpLockState`,
-        `:if ($hpLockState != "open") do={ ${pageFetch(origin, token, "login.html", "hotspot/login.html")}; ${pageFetch(origin, token, "login.html", "flash/hotspot/login.html")}; :set hpLockState "open" }`,
-        // Never call reset-html — it prompts y/N. Detect HotspotPro pages by our marker (MikroTik defaults also have link-login-only).
-        // If flash/hotspot/login.html exists but is factory HTML, we must rewrite it — check-in used to prefer flash by file existence alone.
-        `:global hpPages; :local hotBody ""; :local flashBody ""; :local hotRelogin ""; :local flashRelogin ""; :do { :set hotBody [/file get [find where name="hotspot/login.html"] contents] } on-error={ }; :do { :set flashBody [/file get [find where name="flash/hotspot/login.html"] contents] } on-error={ }; :do { :set hotRelogin [/file get [find where name="hotspot/rlogin.html"] contents] } on-error={ }; :do { :set flashRelogin [/file get [find where name="flash/hotspot/rlogin.html"] contents] } on-error={ }; :local hotOk false; :local flashOk false; :local hotROk false; :local flashROk false; :if ([:typeof [:find $hotBody "${PORTAL_MARKER}"]] = "num") do={ :set hotOk true }; :if ([:typeof [:find $flashBody "${PORTAL_MARKER}"]] = "num") do={ :set flashOk true }; :if ([:typeof [:find $hotRelogin "${PORTAL_MARKER}"]] = "num") do={ :set hotROk true }; :if ([:typeof [:find $flashRelogin "${PORTAL_MARKER}"]] = "num") do={ :set flashROk true }; :local flashLoginExists false; :if ([:len [/file find where name="flash/hotspot/login.html"]] > 0) do={ :set flashLoginExists true }; :local needFetch false; :if ($hpPages != "${loginPageStamp(token)}") do={ :set needFetch true }; :if (!$hotOk && !$flashOk) do={ :set needFetch true }; :if (!$hotROk && !$flashROk) do={ :set needFetch true }; :if ($flashLoginExists && !$flashOk) do={ :set needFetch true }; :if ($needFetch) do={ ${fetches}; :set hotBody ""; :set flashBody ""; :set hotRelogin ""; :set flashRelogin ""; :set hotOk false; :set flashOk false; :set hotROk false; :set flashROk false; :set flashLoginExists false; :do { :set hotBody [/file get [find where name="hotspot/login.html"] contents] } on-error={ }; :do { :set flashBody [/file get [find where name="flash/hotspot/login.html"] contents] } on-error={ }; :do { :set hotRelogin [/file get [find where name="hotspot/rlogin.html"] contents] } on-error={ }; :do { :set flashRelogin [/file get [find where name="flash/hotspot/rlogin.html"] contents] } on-error={ }; :if ([:len [/file find where name="flash/hotspot/login.html"]] > 0) do={ :set flashLoginExists true }; :if ([:typeof [:find $hotBody "${PORTAL_MARKER}"]] = "num") do={ :set hotOk true }; :if ([:typeof [:find $flashBody "${PORTAL_MARKER}"]] = "num") do={ :set flashOk true }; :if ([:typeof [:find $hotRelogin "${PORTAL_MARKER}"]] = "num") do={ :set hotROk true }; :if ([:typeof [:find $flashRelogin "${PORTAL_MARKER}"]] = "num") do={ :set flashROk true }; :if (($hotOk || $flashOk) && ($hotROk || $flashROk) && (!$flashLoginExists || $flashOk)) do={ :set hpPages "${loginPageStamp(token)}" }; ${applyHtmlDirectoryRos()} }`,
-      );
-    }
+    // Portal pages: only re-download when the router's copy is missing or out of date (see portalPagesLines).
+    if (origin) lines.push(...portalPagesLines(origin, token));
     const wan = primaryWanInterface(router);
     lines.push(
       `:do { :if ([:len [/ip firewall nat find where comment="HotspotPro NAT"]] = 0) do={ /ip firewall nat add chain=srcnat out-interface=${wan} action=masquerade comment="HotspotPro NAT" } } on-error={ }`,
@@ -315,9 +353,14 @@ export function controlScript(token: string, origin?: string): string | null {
   if (origin) {
     const tls = origin.startsWith("https://") ? " check-certificate=no" : "";
     // When the setup version changes, every connected router downloads and runs the latest setup by itself.
+    // The version the router last completed is kept in a small stored script (SETUP_MARK), because
+    // globals are wiped on reboot — the old global-only check re-ran the whole setup after every
+    // power cut. A router that still has the current version in its global just gets the mark.
+    // The setup is imported directly: `:execute script={/import file-name=$hpFile}` cannot see the
+    // local $hpFile, so the old update imported nothing and still marked the router as updated.
     lines.push(
       `:global hpSetup; :global hpSetupBusy`,
-      `:if ($hpSetup != "${SETUP_VERSION}" && $hpSetupBusy != "1") do={ :set hpSetupBusy "1"; :do { :put "HotspotPro: applying the latest setup (people online stay connected)..."; :do { /file remove [find where name=hotspotpro-setup.rsc] } on-error={ }; :do { /file remove [find where name="flash/hotspotpro-setup.rsc"] } on-error={ }; /tool fetch url="${origin}/api/provision/${token}?wireless=yes&ssid=${encodeURIComponent(ssidForRouter(router))}" dst-path=hotspotpro-setup.rsc${tls}; :do { :delay 2s } on-error={ }; :local hpFile "hotspotpro-setup.rsc"; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; :do { :execute script={/import file-name=$hpFile} file=hotspotpro-import-out.txt } on-error={ /import file-name=$hpFile }; :do { /file remove [find where name=hotspotpro-import-out.txt] } on-error={ }; :set hpSetup "${SETUP_VERSION}"; :global hpWifiSsid; :set hpWifiSsid ""; :put "HotspotPro: router is updated." } on-error={ :put "HotspotPro: setup update will try again on the next check-in." }; :set hpSetupBusy "0" }`,
+      `:do { :local hpMark ""; :do { :set hpMark [/system script get [find where name=${SETUP_MARK}] source] } on-error={ }; :if ($hpMark != "${SETUP_VERSION}" && $hpSetup = "${SETUP_VERSION}") do={ ${setupVersionMarkLines().join("; ")}; :set hpMark "${SETUP_VERSION}" }; :if ($hpMark != "${SETUP_VERSION}" && $hpSetupBusy != "1") do={ :set hpSetupBusy "1"; :do { :put "HotspotPro: applying the latest setup (people online stay connected)..."; :do { /file remove [find where name=hotspotpro-setup.rsc] } on-error={ }; :do { /file remove [find where name="flash/hotspotpro-setup.rsc"] } on-error={ }; /tool fetch url="${origin}/api/provision/${token}?wireless=yes&ssid=${encodeURIComponent(ssidForRouter(router))}" dst-path=hotspotpro-setup.rsc${tls}; :delay 2s; :local hpFile "hotspotpro-setup.rsc"; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; /import file-name=$hpFile; :set hpSetup "${SETUP_VERSION}"; :global hpWifiSsid; :set hpWifiSsid ""; :put "HotspotPro: router is updated." } on-error={ :put "HotspotPro: setup update will try again on the next check-in." }; :set hpSetupBusy "0" } } on-error={ :set hpSetupBusy "0" }`,
     );
     for (const job of queued) {
       const base = `${origin}/api/provision/${token}/job/${job.id}`;
@@ -332,7 +375,8 @@ export function controlScript(token: string, origin?: string): string | null {
   }
   // Speed up while a portal Connect push or site job is waiting.
   // Portal Connect needs the next check-in immediately so the voucher + hp-go.html land.
-  const interval = queued.length > 0 || portalPending ? "1s" : CHECKIN_INTERVAL;
+  // 3s, not 1s: the check-in is a ~50 KB script, and at 1s the runs overlapped on small boards.
+  const interval = queued.length > 0 || portalPending ? "3s" : CHECKIN_INTERVAL;
   lines.push(`:do { /system scheduler set [find where name=hotspotpro-control] interval=${interval} } on-error={ }`);
   if (origin) {
     const source = checkInBody(origin, token).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\$/g, "\\$");
@@ -350,7 +394,9 @@ export function controlScript(token: string, origin?: string): string | null {
       `:if ($hpCtlVer != "${ctlStamp}") do={ :do { /system script set [find where name=hotspotpro-control] source="${source}" } on-error={ }; :set hpCtlVer "${ctlStamp}" }`,
     );
   }
-  return lines.join("\n") + "\n";
+  // Any line still touching a menu this router may not have is parsed at run time, so it can no
+  // longer stop the rest of the check-in (packages, vouchers, jobs) — see guardOptionalMenus.
+  return guardOptionalMenus(lines.join("\n")) + "\n";
 }
 
 const IPV4_ADDR = /^(?:\d{1,3}\.){3}\d{1,3}$/;
@@ -517,7 +563,9 @@ export function recordRouterStats(token: string, stats: { cpu: number | null; me
     if (stats.board) updated.hardwareModel = stats.board;
     if (stats.serial) updated.hardwareSerial = stats.serial;
     if (stats.softwareId) updated.softwareId = stats.softwareId;
-    if (stats.identity) updated.name = stats.identity;
+    // The dashboard name is the source of truth (the check-in pushes it to the router). Keep what the
+    // router reports separately — copying it into `name` reverted every rename within one check-in.
+    if (stats.identity) updated.routerIdentity = stats.identity;
     if (stats.wan) updated.wanAddress = stats.wan;
     const seen = Array.isArray(row.seenHours) ? row.seenHours.filter((hour): hour is string => typeof hour === "string") : [];
     const hour = hourKey(nowMs);

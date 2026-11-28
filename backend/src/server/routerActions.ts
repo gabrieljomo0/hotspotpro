@@ -4,9 +4,9 @@
 
 import { getState, setState } from "./store";
 import { type IspLink, multiWanLines } from "./multiWan";
-import { dnsNameApplyLines, loginDnsFromName, remoteWinboxLines } from "./routeros";
+import { dnsNameApplyLines, guardOptionalMenus, loginDnsFromName, remoteWinboxLines } from "./routeros";
 import { primaryWanInterface } from "./primaryWan";
-import { applyHtmlDirectoryRos, pickHtmlDirectoryRos, PORTAL_MARKER } from "./hotspotPages";
+import { applyHtmlDirectoryRos, PORTAL_MARKER } from "./hotspotPages";
 import { forgetLocalUsers, localUserLines, packageProfileLines } from "./localUsers";
 import {
   bridgeWifiLines,
@@ -75,11 +75,9 @@ function password() {
 function fileFetches(origin: string, token: string) {
   // No reset-html — that command asks y/N in the terminal and blocks setup/sync.
   const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
+  // The folder is chosen by applyHtmlDirectoryRos() at the end, after the pages land (a separate
+  // pickHtmlDirectoryRos line here left $hpDir out of scope for the next lines).
   const lines = [
-    // Prefer flash only after HotspotPro pages land there (not factory login.html).
-    pickHtmlDirectoryRos(),
-    step(`/ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir`),
-    step(`/ip hotspot profile set [find where name=hotspotpro] html-directory-override=$hpDir`),
     // Factory / other hotspot servers would still serve MikroTik's default HTML.
     step(`/ip hotspot disable [find where name!="hotspotpro"]`),
     step(`/ip hotspot enable [find where name=hotspotpro]`),
@@ -173,7 +171,8 @@ export function routerActionScript(
     step(`/file remove [find where name="flash/hotspotpro-setup.rsc"]`),
     step(`/tool fetch url="${origin}/api/provision/${token}?wireless=yes" dst-path=hotspotpro-setup.rsc${tls}`),
     `:do { :delay 2s } on-error={ }`,
-    `:local hpFile "hotspotpro-setup.rsc"; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; :if ([:len [/file find where name=$hpFile]] > 0) do={ :do { :execute script={/import file-name=$hpFile} file=hotspotpro-import-out.txt } on-error={ /import file-name=$hpFile }; :do { /file remove [find where name=hotspotpro-import-out.txt] } on-error={ } }; :global hpWifiSsid; :set hpWifiSsid ""`,
+    `:local hpFile "hotspotpro-setup.rsc"; :if ([:len [/file find where name=("flash/" . $hpFile)]] > 0) do={ :set hpFile ("flash/" . $hpFile) }; :if ([:len [/file find where name=$hpFile]] > 0) do={ /import file-name=$hpFile }; :global hpWifiSsid; :set hpWifiSsid ""`,
+    // (Direct import: `:execute script={/import file-name=$hpFile}` cannot see the local $hpFile.)
   ];
   if (action === "full-provision" || action === "update-script") body = reprovision;
   else if (action === "snmp") body = snmpLines();
@@ -266,7 +265,7 @@ export function routerActionScript(
     if (!userQ) return null;
     body = [step(`/ip hotspot user enable [find where name=${userQ}]`)];
   } else return null;
-  return [head, ...body].join("\n") + "\n";
+  return guardOptionalMenus([head, ...body].join("\n")) + "\n";
 }
 
 function routerByToken(token: string) {

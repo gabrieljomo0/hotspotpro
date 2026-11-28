@@ -9,7 +9,9 @@ import { PORTAL_MARKER } from "./hotspotPages";
 import { packageProfileLines } from "./localUsers";
 
 /** Bump this when the setup script changes. Connected routers download the new setup on the next check-in. */
-export const SETUP_VERSION = "v62";
+// v63: optional menus parsed at run time, setup version kept across reboots, direct /import for
+// updates. Routers on v62 believed they were updated while the import never ran, so all re-run once.
+export const SETUP_VERSION = "v63";
 
 /** Default check-in spacing. Keep modest so weak African links stay healthy with many routers. */
 export const CHECKIN_INTERVAL = "10s";
@@ -23,6 +25,57 @@ export const CHECKIN_INTERVAL = "10s";
  * first and voucher dial bounces straight back to the captive portal (no internet).
  */
 export const HOTSPOT_LOGIN_BY = "cookie,http-chap,http-pap,mac-cookie";
+
+/**
+ * Menus / properties that only exist on some routers. RouterOS checks command names when it
+ * PARSES a line, so `:do { /interface wifiwave2 ... } on-error={ }` does not catch a missing menu:
+ * the line is a syntax error and /import stops right there. wifiwave2 is gone since 7.13, /interface
+ * wifi is missing on the old wireless package, and so on — so every router hit one of these, and the
+ * rest of the check-in (packages, vouchers, queued jobs, setup updates) never ran.
+ */
+const OPTIONAL_MENU =
+  /\/interface (?:wifi|wifiwave2|wireless|detect-internet)\b|back-to-home-vpn|vpn-wireguard-client-config|html-directory-override|require-message-auth/;
+
+function rosString(code: string) {
+  return `"${code.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\$/g, "\\$")}"`;
+}
+
+/**
+ * One command that uses an optional menu, parsed at run time so a missing menu is a normal,
+ * caught error. The code cannot see outer :local variables — pass needed globals by name.
+ */
+export function optionalRos(code: string, globals: string[] = []): string {
+  const head = globals.map((name) => `:global ${name}; `).join("");
+  return `:do { :local hpOpt [:parse ${rosString(head + code)}]; $hpOpt } on-error={ }`;
+}
+
+/** The line without its "..." strings (code already wrapped by optionalRos lives in strings). */
+function outsideStrings(line: string) {
+  return line.replace(/"(?:\\.|[^"\\])*"/g, '""');
+}
+
+/**
+ * Safety net for whole scripts: any line that still touches an optional menu outside a string is
+ * wrapped as a unit (so only that line is skipped on routers without the menu). Lines that mix
+ * several optional menus should use optionalRos per command instead, so one missing menu does not
+ * take the others down with it. Globals the line reads are re-declared inside.
+ */
+export function guardOptionalMenus(script: string): string {
+  const globals = new Set<string>();
+  for (const m of script.matchAll(/:global ([A-Za-z][A-Za-z0-9]*)/g)) globals.add(m[1]);
+  return script
+    .split("\n")
+    .map((line) => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#") || !OPTIONAL_MENU.test(outsideStrings(line))) return line;
+      const declared = new Set<string>();
+      for (const m of line.matchAll(/:(?:local|global|foreach) ([A-Za-z][A-Za-z0-9]*)/g)) declared.add(m[1]);
+      const used = new Set<string>();
+      for (const m of line.matchAll(/(?<!\\)\$([A-Za-z][A-Za-z0-9]*)/g)) if (!declared.has(m[1]) && globals.has(m[1])) used.add(m[1]);
+      return optionalRos(trimmed, [...used]);
+    })
+    .join("\n");
+}
 
 /** Hotspot login DNS name (MikroTik profile dns-name). Prefer a manually typed value; else first 4 letters of the router name. */
 export function loginDnsFromName(routerName: string, given?: string): string {
@@ -53,8 +106,9 @@ export function dnsNameApplyLines(routerName: string, given?: string): string[] 
     `:do { /ip hotspot profile set [find where name=hotspotpro] login-by=${HOTSPOT_LOGIN_BY} } on-error={ }`,
     // Also write onto whatever profile the live server uses (hsprof1 / default / renamed).
     `:do { :local p [/ip hotspot get [find where name=hotspotpro] profile]; :if ([:len $p] > 0) do={ /ip hotspot profile set [find where name=$p] dns-name=${dns}; /ip hotspot profile set [find where name=$p] login-by=${HOTSPOT_LOGIN_BY} } } on-error={ }`,
-    // Drop hosts stuck unauthorized after prior MAC login attempts (voucher dial can then succeed).
-    `:do { /ip hotspot host remove [find where authorized=no] } on-error={ }`,
+    // Do NOT remove unauthorized hosts here. This runs every check-in, and removing a phone's host
+    // while it sits on the login page gives it a new CHAP challenge — the voucher it then submits is
+    // hashed with the old one, is rejected, and the phone bounces back to the portal.
     `:do { :local a ""; :do { :set a [/ip address get [find where interface=hotspotpro-bridge comment="HotspotPro"] address] } on-error={ }; :if ([:len $a] = 0) do={ :do { :set a [/ip address get [find where interface=hotspotpro-bridge] address] } on-error={ } }; :if ([:len $a] > 0) do={ :local g [:pick $a 0 [:find $a "/"]]; /ip dns static remove [find where comment="HotspotPro login"]; /ip dns static add name=${dns} address=$g comment="HotspotPro login"; /ip dns set allow-remote-requests=yes } } on-error={ }`,
     `:do { :local d [/ip hotspot profile get [find where name=hotspotpro] dns-name]; :if ([:len $d] = 0) do={ :log warning "HotspotPro: Server Profiles DNS Name is still empty"; :put "HotspotPro: DNS Name is still empty — open IP → Hotspot → Server Profiles" } else={ :put ("HotspotPro: DNS Name is " . $d) } } on-error={ }`,
   ];
@@ -223,7 +277,34 @@ export function checkInBody(origin: string, token: string): string {
 }
 
 /** Open or close WinBox from outside the shop. Off keeps it on the admin port only. */
-export function remoteWinboxLines(enabled: boolean, origin: string, token: string, sameNetwork = false, wan = "ether1"): string[] {
+/**
+ * Accept rule on the ISP port only, written once. Rules from older versions that accepted the port on
+ * EVERY interface (customers included) — or sit on a port that is no longer the ISP port — are removed.
+ * Never delete + re-add on each check-in: re-adding with place-before=0 used to push the accept above
+ * "block WinBox from customers".
+ */
+function wanAcceptLines(comment: string, port: string, match: string): string[] {
+  return [
+    `:do { /ip firewall filter remove [find where comment="${comment}" && in-interface!=${port}] } on-error={ }`,
+    `:do { :if ([:len [/ip firewall filter find where comment="${comment}" && in-interface=${port}]] = 0) do={ /ip firewall filter add chain=input action=accept ${match} in-interface=${port} comment="${comment}" place-before=0 } } on-error={ }`,
+  ];
+}
+
+/** Customers on the hotspot bridge must never reach WinBox. Kept as the first input rule. */
+function blockCustomerWinboxLines(): string[] {
+  const comment = "HotspotPro block WinBox from customers";
+  return [
+    `:do { :if ([:len [/ip firewall filter find where comment="${comment}"]] = 0) do={ /ip firewall filter add chain=input action=drop in-interface=hotspotpro-bridge protocol=tcp dst-port=8291 comment="${comment}" place-before=0 } else={ :local hpFirst [:pick [/ip firewall filter find where chain=input && dynamic=no] 0]; :local hpBlock [:pick [/ip firewall filter find where comment="${comment}"] 0]; :if ($hpFirst != $hpBlock) do={ /ip firewall filter move $hpBlock destination=$hpFirst } } } on-error={ }`,
+  ];
+}
+
+/**
+ * Open or close WinBox from outside the shop. Off keeps it on the admin port only.
+ * waitForWg: the one-off setup script may wait (up to ~72s) for Back To Home to produce its WireGuard
+ * file. The check-in must never wait — it runs every 10s (1s while jobs wait), and a 72s wait made
+ * check-ins pile up on routers without Back To Home.
+ */
+export function remoteWinboxLines(enabled: boolean, origin: string, token: string, sameNetwork = false, wan = "ether1", waitForWg = false): string[] {
   const port = /^(ether|sfp|sfp-sfpplus|sfpplus|lte|wlan|wifi|vlan|pppoe-out)[A-Za-z0-9._-]*$/.test(wan) ? wan : "ether1";
   if (!enabled) {
     const lines = [
@@ -257,24 +338,24 @@ export function remoteWinboxLines(enabled: boolean, origin: string, token: strin
     // WebFig so the owner can open the router in a browser without installing WinBox.
     `:do { /ip service set www available-from=0.0.0.0/0 disabled=no } on-error={ }`,
     `:do { /ip service set api port=8728 available-from=192.168.88.0/24,192.168.216.0/24 disabled=no } on-error={ }`,
-    `:do { /ip firewall filter remove [find where comment="HotspotPro remote WinBox"] } on-error={ }`,
-    `:do { /ip firewall filter remove [find where comment="HotspotPro remote WebFig"] } on-error={ }`,
-    `:do { /ip firewall filter remove [find where comment="HotspotPro remote API"] } on-error={ }`,
-    `:do { /ip firewall filter add chain=input action=accept protocol=tcp dst-port=8291 comment="HotspotPro remote WinBox" place-before=0 } on-error={ }`,
-    `:do { /ip firewall filter add chain=input action=accept protocol=tcp dst-port=8291 in-interface=${port} comment="HotspotPro remote WinBox" place-before=0 } on-error={ }`,
-    `:do { /ip firewall filter add chain=input action=accept protocol=tcp dst-port=80 comment="HotspotPro remote WebFig" place-before=0 } on-error={ }`,
-    `:do { /ip firewall filter add chain=input action=accept protocol=tcp dst-port=8728 src-address=192.168.216.0/24 comment="HotspotPro remote API" place-before=0 } on-error={ }`,
+    // ISP port only — the old any-interface accepts also let hotspot customers reach WinBox/WebFig.
+    ...wanAcceptLines("HotspotPro remote WinBox", port, "protocol=tcp dst-port=8291"),
+    ...wanAcceptLines("HotspotPro remote WebFig", port, "protocol=tcp dst-port=80"),
+    // Back To Home tunnel → API. Written once instead of delete + re-add every check-in.
+    `:do { :if ([:len [/ip firewall filter find where comment="HotspotPro remote API"]] = 0) do={ /ip firewall filter add chain=input action=accept protocol=tcp dst-port=8728 src-address=192.168.216.0/24 comment="HotspotPro remote API" place-before=0 } } on-error={ }`,
   ];
   if (origin) {
     const tls = origin.startsWith("https:") ? " check-certificate=no" : "";
     const post = `${origin}/api/provision/${token}/winbox`;
-    // Back To Home: wait longer for MikroTik cloud, then upload the client conf to the site
-    // (file upload + raw http-data fallback) so the laptop can download WireGuard.
+    // Back To Home: upload the client conf to the site (file upload + raw http-data fallback) so
+    // the laptop can download WireGuard. Setup waits for MikroTik cloud; the check-in reads once
+    // and simply tries again next time.
+    const tries = waitForWg ? 24 : 1;
     lines.push(
-      `:do { :local hpWg ""; :local hpTry 0; :global hpWgSent; :while ($hpTry < 24) do={ :do { :set hpWg [/ip cloud get vpn-wireguard-client-config] } on-error={ }; :if ([:len $hpWg] > 20) do={ :set hpTry 24 } else={ :delay 3s; :set hpTry ($hpTry + 1) } }; :if ([:len $hpWg] > 20) do={ :if ($hpWgSent != $hpWg) do={ :local hpUp 0; :do { /file remove [find where name=hotspotpro-wg.conf] } on-error={ }; :do { /file add name=hotspotpro-wg.conf contents=$hpWg } on-error={ }; :do { /tool fetch url="${post}" src-path=hotspotpro-wg.conf upload=yes http-method=post keep-result=no${tls}; :set hpUp 1 } on-error={ }; :if ($hpUp = 0) do={ :do { /tool fetch url="${post}" http-method=post http-data=$hpWg keep-result=no${tls}; :set hpUp 1 } on-error={ } }; :if ($hpUp = 1) do={ :set hpWgSent $hpWg } } } } on-error={ }`,
+      `:do { :local hpWg ""; :local hpTry 0; :global hpWgSent; :while ($hpTry < ${tries}) do={ :do { :set hpWg [/ip cloud get vpn-wireguard-client-config] } on-error={ }; :set hpTry ($hpTry + 1); :if ([:len $hpWg] > 20) do={ :set hpTry ${tries} } else={ :if ($hpTry < ${tries}) do={ :delay 3s } } }; :if ([:len $hpWg] > 20) do={ :if ($hpWgSent != $hpWg) do={ :local hpUp 0; :do { /file remove [find where name=hotspotpro-wg.conf] } on-error={ }; :do { /file add name=hotspotpro-wg.conf contents=$hpWg } on-error={ }; :do { /tool fetch url="${post}" src-path=hotspotpro-wg.conf upload=yes http-method=post keep-result=no${tls}; :set hpUp 1 } on-error={ }; :if ($hpUp = 0) do={ :do { /tool fetch url="${post}" http-method=post http-data=$hpWg keep-result=no${tls}; :set hpUp 1 } on-error={ } }; :if ($hpUp = 1) do={ :set hpWgSent $hpWg } } } } on-error={ }`,
     );
   }
-  lines.push(`:do { :if ([:len [/ip firewall filter find where comment="HotspotPro block WinBox from customers"]] = 0) do={ /ip firewall filter add chain=input action=drop in-interface=hotspotpro-bridge protocol=tcp dst-port=8291 comment="HotspotPro block WinBox from customers" place-before=0 } } on-error={ }`);
+  lines.push(...blockCustomerWinboxLines());
   return lines;
 }
 
@@ -318,6 +399,17 @@ export function buildInternetSwitchSetup(input: { router: ProvisionRouter; origi
   lines.push(`:do { /system script run hotspotpro-control } on-error={ }`);
   lines.push(`:log info "HotspotPro disconnect-switch installed"`);
   return lines.join("\n") + "\n";
+}
+
+/** Name of the stored script whose source is the setup version this router last completed. */
+export const SETUP_MARK = "hotspotpro-setup-version";
+
+/** Record SETUP_VERSION on the router so it survives a reboot. */
+export function setupVersionMarkLines(): string[] {
+  return [
+    `:do { /system script remove [find where name=${SETUP_MARK}] } on-error={ }`,
+    `:do { /system script add name=${SETUP_MARK} source="${SETUP_VERSION}" comment="HotspotPro setup version" } on-error={ }`,
+  ];
 }
 
 export function buildProvisionScript(input: {
@@ -454,7 +546,7 @@ export function buildProvisionScript(input: {
   }
   // Remote WinBox + Back To Home WireGuard are part of the default setup script (not optional).
   // The tunnel file is uploaded to HotspotPro once; later remote enable reuses it.
-  for (const line of remoteWinboxLines(true, origin, token, false, wan)) add(line);
+  for (const line of remoteWinboxLines(true, origin, token, false, wan, true)) add(line);
   stage("Preparing remote WinBox and WireGuard");
   say("Remote WinBox and the WireGuard tunnel are part of this setup. The site stores the tunnel so you do not set it up again.");
   add(`:do { :delay 2s } on-error={ }`);
@@ -621,7 +713,9 @@ export function buildProvisionScript(input: {
     add(`:do { :local hpTry 0; :local hpBody ""; :while ($hpTry < 4) do={ :do { :set hpBody [/file get [find where name=($hpDir . "/rlogin.html")] contents] } on-error={ }; :if ([:typeof [:find $hpBody "${PORTAL_MARKER}"]] = "num") do={ :set hpTry 4; :put "Downloaded HotspotPro rlogin.html" } else={ :do { /file remove [find where name=($hpDir . "/rlogin.html")] } on-error={ }; :do { /file remove [find where name="hotspot/rlogin.html"] } on-error={ }; :do { /file remove [find where name="flash/hotspot/rlogin.html"] } on-error={ }; :do { /tool fetch url="${rloginUrl}" dst-path=($hpDir . "/rlogin.html")${tls} } on-error={ }; :do { /tool fetch url="${rloginUrl}" dst-path="hotspot/rlogin.html"${tls} } on-error={ }; :do { /tool fetch url="${rloginUrl}" dst-path="flash/hotspot/rlogin.html"${tls} } on-error={ }; :set hpTry ($hpTry + 1); :delay 4s; :put "HotspotPro is downloading your login page again..." } } } on-error={ }`);
     // Point the profile again after pages land, and turn off any other hotspot that would serve MikroTik defaults.
     // Prefer flash only when that login.html is HotspotPro's — existence alone can be MikroTik factory HTML.
-    add(`:do { :local hpPick "hotspot"; :local hpFlash ""; :do { :set hpFlash [/file get [find where name="flash/hotspot/login.html"] contents] } on-error={ }; :if ([:typeof [:find $hpFlash "${PORTAL_MARKER}"]] = "num") do={ :set hpPick "flash/hotspot" }; :set hpDir $hpPick; /ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir; :do { /ip hotspot profile set [find where name=hotspotpro] html-directory-override=$hpDir } on-error={ }; :do { /ip hotspot profile set [find where name=hotspotpro] open-status-page=http-login comment="HotspotPro: captive portal (voucher login)" } on-error={ } } on-error={ }`);
+    add(`:do { :local hpPick "hotspot"; :local hpFlash ""; :do { :set hpFlash [/file get [find where name="flash/hotspot/login.html"] contents] } on-error={ }; :if ([:typeof [:find $hpFlash "${PORTAL_MARKER}"]] = "num") do={ :set hpPick "flash/hotspot" }; /ip hotspot profile set [find where name=hotspotpro] html-directory=$hpPick; :global hpHtmlDir; :set hpHtmlDir $hpPick; :do { /ip hotspot profile set [find where name=hotspotpro] open-status-page=http-login comment="HotspotPro: captive portal (voucher login)" } on-error={ } } on-error={ }`);
+    // html-directory-override is missing on older RouterOS — its own run-time-parsed command.
+    add(optionalRos(`/ip hotspot profile set [find where name=hotspotpro] html-directory-override=$hpHtmlDir`, ["hpHtmlDir"]));
     add(`:do { /ip hotspot disable [find where name!="hotspotpro"] } on-error={ }`);
     add(`:do { /ip hotspot set [find where name=hotspotpro] disabled=no comment="HotspotPro: captive portal server" } on-error={ }`);
     add(`:do { /ip hotspot enable [find where name=hotspotpro] } on-error={ }`);
@@ -713,7 +807,10 @@ export function buildProvisionScript(input: {
     add(`:do { :foreach p in=[/interface wifi find] do={ :local n [/interface wifi get $p name]; :if ($n != $hpKeep) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ } } } } on-error={ }`);
     add(`:do { :foreach p in=[/interface wifiwave2 find] do={ :local n [/interface wifiwave2 get $p name]; :if ($n != $hpKeep) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ } } } } on-error={ }`);
     add(`:do { :foreach p in=[/interface wireless find] do={ :local n [/interface wireless get $p name]; :if ($n != $hpKeep) do={ :do { /interface bridge port remove [find where interface=$n] } on-error={ }; :do { /interface bridge port add bridge=hotspotpro-bridge interface=$n comment="HotspotPro" } on-error={ } } } } on-error={ }`);
-    add(`:do { :execute script={:do { /interface wifi enable [find] } on-error={ }; :do { /interface wifiwave2 enable [find] } on-error={ }; :do { /interface wireless enable [find] } on-error={ }} } on-error={ }`);
+    // One command per menu — a router only has one of these, and a missing menu must not skip the others.
+    add(optionalRos(`/interface wifi enable [find]`));
+    add(optionalRos(`/interface wifiwave2 enable [find]`));
+    add(optionalRos(`/interface wireless enable [find]`));
     for (const name of ["wifi1", "wifi2", "wlan1", "wlan2"]) keepPort(name);
     say("WiFi is set. Customers log in on the portal page.");
   } else if (!input.wireless) {
@@ -758,5 +855,8 @@ export function buildProvisionScript(input: {
   say("==========================================");
   add(`:if ($hpFails > 0) do={ :put ("HotspotPro finished with " . $hpFails . " step(s) skipped. Look in the router log for HotspotPro step failed.") }`);
   add(`:global hpSetup "${SETUP_VERSION}"`);
-  return lines.join("\n") + "\n";
+  // Globals are wiped on reboot. Keep the version in a tiny script too, so a power cut does not
+  // make the next check-in re-run the whole setup (which re-downloads the portal pages).
+  for (const line of setupVersionMarkLines()) add(line);
+  return guardOptionalMenus(lines.join("\n")) + "\n";
 }
