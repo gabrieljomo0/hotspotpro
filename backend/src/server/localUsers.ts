@@ -141,7 +141,6 @@ function emitProfile(pkg: Pkg | null, fallbackName: string, lines: string[]) {
   const name = profileName(pkg, fallbackName);
   const seconds = pkg ? packageSeconds(pkg) : 86400;
   const devices = pkg?.devices && pkg.devices > 1 ? Math.floor(pkg.devices) : 1;
-  const label = (pkg?.name || fallbackName || name).replace(/[\\"$\r\n]/g, "").slice(0, 48);
   const q = quote(name);
   // Stepwise create/set — a single long `add` with every property fails silently on some ROS
   // builds (unknown attr → whole add aborted → User Profiles stays empty except default).
@@ -155,7 +154,6 @@ function emitProfile(pkg: Pkg | null, fallbackName: string, lines: string[]) {
   lines.push(`:do { /ip hotspot user profile set [find where name=${q}] idle-timeout=none } on-error={ }`);
   lines.push(`:do { /ip hotspot user profile set [find where name=${q}] keepalive-timeout=none } on-error={ }`);
   lines.push(`:do { /ip hotspot user profile set [find where name=${q}] mac-cookie-timeout=${rosDuration(seconds)} } on-error={ }`);
-  lines.push(`:do { /ip hotspot user profile set [find where name=${q}] comment="HotspotPro:${label}" } on-error={ }`);
   lines.push(`:do { /ip hotspot user profile set [find where name=${q}] on-logout=hotspotpro-logout } on-error={ }`);
   return name;
 }

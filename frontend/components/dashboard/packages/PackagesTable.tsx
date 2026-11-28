@@ -23,11 +23,30 @@ import {
 } from "lucide-react";
 
 import { useDashboard } from "../context/DashboardContext";
-import type { Package, PackageStatus } from "../shared/types";
+import { queueRouterActionMany } from "../context/queueRouterAction";
+import type { Package, PackageStatus, Voucher } from "../shared/types";
 import type { RouterInfo } from "../data/dashboard-data";
+import { ConfirmDialog } from "../shared/ConfirmDialog";
 import { DropdownMenuPortal } from "../shared/DropdownMenuPortal";
 
 type StatusFilter = "All" | PackageStatus;
+
+/**
+ * Who a delete would affect. "In use" = a voucher a customer has started and whose time has not run
+ * out; "unused" = sold or printed but not started yet. Both stop working when the package goes.
+ */
+export function packageVoucherUsage(vouchers: Voucher[], packageNames: string[], now = Date.now()) {
+  const names = new Set(packageNames);
+  const inUse: Voucher[] = [];
+  let unused = 0;
+  for (const voucher of vouchers) {
+    if (!names.has(voucher.packageName)) continue;
+    const expiresAtMs = (voucher as Voucher & { expiresAtMs?: number }).expiresAtMs;
+    if (voucher.status === "Used" && !(expiresAtMs && expiresAtMs <= now)) inUse.push(voucher);
+    else if (voucher.status === "Available") unused += 1;
+  }
+  return { inUse, unused };
+}
 
 export function PackagesTable({
   packages,
@@ -40,8 +59,10 @@ export function PackagesTable({
   onSetStatus: (id: string, status: Package["status"]) => void;
   onDelete: (id: string) => void;
 }) {
-  const { duplicatePackage, expirePackageVouchers, showToast, businessLocations } = useDashboard();
+  const { duplicatePackage, expirePackageVouchers, showToast, businessLocations, vouchers } = useDashboard();
 
+  // Packages waiting for the admin to confirm the delete (one from the row menu, or the bulk selection).
+  const [pendingDelete, setPendingDelete] = useState<Package[] | null>(null);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [menuRect, setMenuRect] = useState<DOMRect | null>(null);
   const [query, setQuery] = useState("");
@@ -81,10 +102,37 @@ export function PackagesTable({
   }
 
   function handleBulkDelete() {
-    selectedIds.forEach((id) => onDelete(id));
-    showToast(`${selectedIds.length} package(s) deleted.`);
-    setSelectedIds([]);
+    const chosen = packages.filter((pkg) => selectedIds.includes(pkg.id));
+    if (chosen.length > 0) setPendingDelete(chosen);
   }
+
+  // After the admin confirms: end the package's vouchers, sign out anyone online on it, then delete.
+  function confirmDelete() {
+    const chosen = pendingDelete ?? [];
+    setPendingDelete(null);
+    if (chosen.length === 0) return;
+    const { inUse } = packageVoucherUsage(vouchers, chosen.map((pkg) => pkg.name));
+    const linked = routers.filter((r) => typeof r.provisioningToken === "string" && r.provisioningToken.length > 0).map((r) => r.ip);
+    for (const pkg of chosen) {
+      const own = packageVoucherUsage(vouchers, [pkg.name]);
+      if (own.inUse.length > 0 || own.unused > 0) expirePackageVouchers(pkg.name);
+    }
+    for (const voucher of inUse) {
+      // The router that has them, if we know it; otherwise every live router (kicking someone absent is harmless).
+      const where = routers.filter((r) => (r.liveUsers ?? []).includes(voucher.code)).map((r) => r.ip);
+      queueRouterActionMany(where.length > 0 ? where : linked, "kick-user", { username: voucher.code });
+    }
+    chosen.forEach((pkg) => onDelete(pkg.id));
+    setSelectedIds((current) => current.filter((id) => !chosen.some((pkg) => pkg.id === id)));
+    showToast(
+      inUse.length > 0
+        ? `${chosen.length} package(s) deleted. ${inUse.length} customer(s) signed out.`
+        : `${chosen.length} package(s) deleted.`,
+    );
+  }
+
+  const pendingUsage = pendingDelete ? packageVoucherUsage(vouchers, pendingDelete.map((pkg) => pkg.name)) : null;
+  const pendingName = pendingDelete?.length === 1 ? `"${pendingDelete[0].name}"` : `${pendingDelete?.length ?? 0} packages`;
 
   function handleOpenMenu(id: string, event: React.MouseEvent<HTMLElement>) {
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
@@ -442,7 +490,7 @@ export function PackagesTable({
                       <button
                         type="button"
                         onClick={() => {
-                          onDelete(pkg.id);
+                          setPendingDelete([pkg]);
                           closeMenu();
                         }}
                         className="flex w-full items-center gap-2 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50"
@@ -458,6 +506,35 @@ export function PackagesTable({
           </tbody>
         </table>
       </div>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title={
+          pendingUsage && pendingUsage.inUse.length > 0
+            ? `${pendingUsage.inUse.length} ${pendingUsage.inUse.length === 1 ? "person is" : "people are"} using ${pendingName}`
+            : `Delete ${pendingName}?`
+        }
+        subtitle={pendingUsage && pendingUsage.inUse.length > 0 ? `Delete ${pendingName} anyway?` : undefined}
+        confirmLabel={
+          pendingUsage && pendingUsage.inUse.length > 0
+            ? `Yes, delete and sign out ${pendingUsage.inUse.length}`
+            : "Yes, delete"
+        }
+        points={[
+          ...(pendingUsage && pendingUsage.inUse.length > 0
+            ? [
+                `${pendingUsage.inUse.length} ${pendingUsage.inUse.length === 1 ? "customer has" : "customers have"} time left on ${pendingName}. Deleting signs them out straight away, and their vouchers stop working, even if they paid.`,
+              ]
+            : []),
+          ...(pendingUsage && pendingUsage.unused > 0
+            ? [`${pendingUsage.unused} unused voucher${pendingUsage.unused === 1 ? "" : "s"} for ${pendingName} will stop working.`]
+            : []),
+          `The package is removed from the site and its User Profile from the router.`,
+          "This can't be undone. To stop selling it but keep current customers online, use Hide instead.",
+        ]}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={confirmDelete}
+      />
     </article>
   );
 }

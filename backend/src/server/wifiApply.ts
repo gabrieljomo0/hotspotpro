@@ -122,7 +122,7 @@ export function ensureHotspotServerLines(dnsName = "wifi"): string[] {
     // every check-in and made voucher dial bounce (no local user + RADIUS off).
     hotspotProfileEnsureLine({
       onCreate: ["hotspot-address=10.10.0.1", "use-radius=no"],
-      always: [`login-by=${HOTSPOT_LOGIN_BY}`, "trial-uptime-limit=0s", "open-status-page=http-login", `comment="HotspotPro: captive portal (voucher login)"`],
+      always: [`login-by=${HOTSPOT_LOGIN_BY}`, "trial-uptime-limit=0s"],
     }),
     // Keep hotspot-address = live bridge IP (custom LAN is not always 10.10.0.1).
     `:do { :local a ""; :do { :set a [/ip address get [find where interface=hotspotpro-bridge comment="HotspotPro"] address] } on-error={ }; :if ([:len $a] = 0) do={ :do { :set a [/ip address get [find where interface=hotspotpro-bridge] address] } on-error={ } }; :if ([:len $a] > 0) do={ :local g [:pick $a 0 [:find $a "/"]]; /ip hotspot profile set [find where name=hotspotpro] hotspot-address=$g } } on-error={ }`,
@@ -130,7 +130,7 @@ export function ensureHotspotServerLines(dnsName = "wifi"): string[] {
     `:do { /ip hotspot profile set [find where name=hotspotpro] dns-name=${dns} } on-error={ :log warning "HotspotPro: dns-name set failed" }`,
     `:do { /ip hotspot profile set [find where name=hotspotpro] login-by=${HOTSPOT_LOGIN_BY} } on-error={ }`,
     `:do { ${applyHtmlDirectoryRos()} } on-error={ }`,
-    hotspotServerEnsureLine({ comment: "HotspotPro: captive portal server" }),
+    hotspotServerEnsureLine(),
     `:do { /ip hotspot disable [find where name!="hotspotpro"] } on-error={ }`,
     `:do { /ip hotspot enable [find where name=hotspotpro] } on-error={ }`,
     `:do { :if ([:len [/ip hotspot find where name=hotspotpro]] = 0) do={ :put "HotspotPro: CRITICAL — Servers is still empty" } } on-error={ }`,
@@ -145,7 +145,6 @@ export function sealCaptivePortalLeakLines(): string[] {
   return [
     `# HotspotPro: seal free-internet leaks past the voucher portal`,
     `:do { /ip hotspot set [find where name=hotspotpro] interface=hotspotpro-bridge disabled=no addresses-per-mac=1 } on-error={ }`,
-    `:do { /ip hotspot set [find where name=hotspotpro] comment="HotspotPro: captive portal server" } on-error={ }`,
     `:do { /ip firewall nat disable [find where chain=srcnat action=masquerade comment=""] } on-error={ }`,
     `:do { /ip firewall nat disable [find where chain=srcnat action=masquerade comment~"defconf"] } on-error={ }`,
     `:do { /ip firewall nat enable [find where comment~"HotspotPro"] } on-error={ }`,
@@ -173,7 +172,6 @@ export function openSystemCaptivePortalLines(opts?: { keepFreeWifi?: boolean }):
     `# HotspotPro: force OUR voucher login as the only system captive portal`,
     `:do { /interface detect-internet set detect-interface-list=none } on-error={ }`,
     `:do { /ip hotspot set [find where name=hotspotpro] disabled=no interface=hotspotpro-bridge } on-error={ }`,
-    `:do { /ip hotspot profile set [find where name=hotspotpro] open-status-page=http-login } on-error={ }`,
     // Only HotspotPro HTML — never MikroTik factory skin / other hotspot servers.
     `:do { ${applyHtmlDirectoryRos()} } on-error={ }`,
     clearBypass,

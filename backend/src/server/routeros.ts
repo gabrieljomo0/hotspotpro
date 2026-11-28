@@ -635,8 +635,6 @@ export function buildProvisionScript(input: {
         always: [
           `hotspot-address=${plan.gateway}`,
           "trial-uptime-limit=0s",
-          "open-status-page=http-login",
-          `comment="HotspotPro: captive portal (voucher login)"`,
           ...(useCloud ? ["use-radius=yes", "radius-accounting=yes", "radius-interim-update=1m"] : ["use-radius=no"]),
         ],
         onFail: ":set hpFails ($hpFails + 1); :put \"HotspotPro: could not create the hotspot profile\"",
@@ -647,7 +645,7 @@ export function buildProvisionScript(input: {
     for (const line of dnsNameApplyLines(router.name, router.dnsName)) add(line);
     say(`DNS Name set to ${loginName} (Server Profiles)`);
     add(
-      hotspotServerEnsureLine({ comment: "HotspotPro: captive portal server", onFail: ":set hpFails ($hpFails + 1)" }),
+      hotspotServerEnsureLine({ onFail: ":set hpFails ($hpFails + 1)" }),
     );
     add(
       `:do { :if ([:len [/ip hotspot find where name=hotspotpro]] = 0) do={ :set hpFails ($hpFails + 1); :put "HotspotPro: CRITICAL — IP → Hotspot → Servers is still empty" } else={ :put "HotspotPro: hotspot server is ready (Servers shows hotspotpro)" } } on-error={ }`,
@@ -720,7 +718,7 @@ export function buildProvisionScript(input: {
     add(`:do { :local hpTry 0; :local hpBody ""; :while ($hpTry < 4) do={ :do { :set hpBody [/file get [find where name=($hpDir . "/rlogin.html")] contents] } on-error={ }; :if ([:typeof [:find $hpBody "${PORTAL_MARKER}"]] = "num") do={ :set hpTry 4; :put "Downloaded HotspotPro rlogin.html" } else={ :do { /file remove [find where name=($hpDir . "/rlogin.html")] } on-error={ }; :do { /file remove [find where name="hotspot/rlogin.html"] } on-error={ }; :do { /file remove [find where name="flash/hotspot/rlogin.html"] } on-error={ }; :do { /tool fetch url="${rloginUrl}" dst-path=($hpDir . "/rlogin.html")${tls} } on-error={ }; :do { /tool fetch url="${rloginUrl}" dst-path="hotspot/rlogin.html"${tls} } on-error={ }; :do { /tool fetch url="${rloginUrl}" dst-path="flash/hotspot/rlogin.html"${tls} } on-error={ }; :set hpTry ($hpTry + 1); :delay 4s; :put "HotspotPro is downloading your login page again..." } } } on-error={ }`);
     // Point the profile again after pages land, and turn off any other hotspot that would serve MikroTik defaults.
     // Prefer flash only when that login.html is HotspotPro's — existence alone can be MikroTik factory HTML.
-    add(`:do { :local hpPick "hotspot"; :local hpFlash ""; :do { :set hpFlash [/file get [find where name="flash/hotspot/login.html"] contents] } on-error={ }; :if ([:typeof [:find $hpFlash "${PORTAL_MARKER}"]] = "num") do={ :set hpPick "flash/hotspot" }; /ip hotspot profile set [find where name=hotspotpro] html-directory=$hpPick; :global hpHtmlDir; :set hpHtmlDir $hpPick; :do { /ip hotspot profile set [find where name=hotspotpro] open-status-page=http-login } on-error={ } } on-error={ }`);
+    add(`:do { :local hpPick "hotspot"; :local hpFlash ""; :do { :set hpFlash [/file get [find where name="flash/hotspot/login.html"] contents] } on-error={ }; :if ([:typeof [:find $hpFlash "${PORTAL_MARKER}"]] = "num") do={ :set hpPick "flash/hotspot" }; /ip hotspot profile set [find where name=hotspotpro] html-directory=$hpPick; :global hpHtmlDir; :set hpHtmlDir $hpPick } on-error={ }`);
     // html-directory-override is missing on older RouterOS — its own run-time-parsed command.
     add(optionalRos(`/ip hotspot profile set [find where name=hotspotpro] html-directory-override=$hpHtmlDir`, ["hpHtmlDir"]));
     add(`:do { /ip hotspot disable [find where name!="hotspotpro"] } on-error={ }`);
@@ -729,7 +727,6 @@ export function buildProvisionScript(input: {
     // System captive sheet must open OUR voucher login — not MikroTik factory HTML.
     say("Locking the system captive portal to HotspotPro voucher login...");
     add(`:do { /interface detect-internet set detect-interface-list=none } on-error={ }`);
-    add(`:do { /ip hotspot profile set [find where name=hotspotpro] open-status-page=http-login } on-error={ }`);
     for (const host of [
       "captive.apple.com",
       "www.apple.com",

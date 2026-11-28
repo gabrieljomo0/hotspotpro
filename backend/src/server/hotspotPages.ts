@@ -78,13 +78,10 @@ export function applyHtmlDirectoryRos(): string {
     // One property per set: RouterOS drops the whole set if any one is unknown, and html-directory is
     // what makes phones see the HotspotPro page instead of MikroTik's.
     `:do { /ip hotspot profile set [find where name=hotspotpro] html-directory=$hpDir } on-error={ :log warning "HotspotPro: hotspot profile rejected html-directory" }`,
-    `:do { /ip hotspot profile set [find where name=hotspotpro] open-status-page=http-login } on-error={ }`,
     // html-directory-override does not exist on older RouterOS. Parsed at run time (optionalRos) so a
     // router without it skips just this command; the folder is handed over in a global.
     `:global hpHtmlDir; :set hpHtmlDir $hpDir`,
     optionalRos(`/ip hotspot profile set [find where name=hotspotpro] html-directory-override=$hpHtmlDir`, ["hpHtmlDir"]),
-    `:do { /ip hotspot profile set [find where name=hotspotpro] open-status-page=http-login } on-error={ }`,
-    `:do { /ip hotspot profile set [find where name=hotspotpro] comment="HotspotPro: captive portal (voucher login)" } on-error={ }`,
     // Only our server may answer — other servers still serve MikroTik defaults.
     `:do { /ip hotspot disable [find where name!="hotspotpro"] } on-error={ }`,
     `:do { /ip hotspot set [find where name=hotspotpro] disabled=no } on-error={ }`,
